@@ -4,8 +4,9 @@
 #include <iostream>
 #include <string.h>
 #include <cmath>
-#include <stdlib.h>
+#include <cstdlib>
 #include <iomanip>
+#include <cassert>
 
 #ifndef NAN_CHECK
 #define NAN_CHECK(val) assert((val) == (val));
@@ -100,7 +101,7 @@ private:
   double alpha; 
   double beta;
   double gamma;
-  double dtmin; // minimum time step for problem checking.
+  double epi;   //  mass coefficients parameter 
 
 public:
 
@@ -125,7 +126,22 @@ public:
       Wjk[i]=new double[n];
       rjk[i]=new double4[n];
     }
-    dtmin=0;
+    alpha=1;
+    beta=0;
+    gamma=0;
+    epi=0.001;
+  }
+
+  //destruction
+  ~chain() {
+    delete[] X;
+    delete[] V;
+    delete[] list;
+    delete[] acc;
+    delete[] pf;
+    delete[] dmdr;
+    delete[] Wjk;
+    delete[] rjk;
   }
 
 private:
@@ -282,6 +298,10 @@ private:
         int lk = list[k];
         const particle *pk= &p[lk];
         double *rljk= rjk[lj][lk];
+        if (rljk==NULL) {
+          std::cerr<<"Error, rjk["<<lj<<"]["<<lk<<"] not found!, current particle number N="<<num<<std::endl;
+          abort();
+        }
 
         if(k==j) memset(rljk,0,4*sizeof(double));
         else if (k>j) {
@@ -371,7 +391,7 @@ private:
      function: one step integration of X and physical time
      argument: step size s (not physical time step)
    */
-  void step_forward_X(const double s) {
+  void step_forward_X(const double s, const double dtmin=5.4e-20) {
     // determine the physical time step
     double dt = s / (alpha * (Ekin + B) + beta * w + gamma);
     if (dt<dtmin) {
@@ -660,26 +680,37 @@ public:
 
   /* update_link
      function: update chain link based on current relative distance matrix and V
+     return:   if link is modified, return true
    */
-  void update_link(){
+  bool update_link(){
+    // indicator
+    bool modified=false;
+#ifdef DEBUG        
+    std::cerr<<"current:";
+    for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
+    std::cerr<<"\n";
+#endif
+    
     // create reverse index of link
     int* rlink = new int[num];
+    int* roldlink = new int[num];
     for (int i=0;i<num;i++) rlink[list[i]] = i;
+    memcpy(roldlink,rlink,num*sizeof(int));
 
     // backup previous link
     int* listbk = new int[num];
-    memcpy(listbk,list,num*sizeof(double));
+    memcpy(listbk,list,num*sizeof(int));
     
     // backup current V
-    double3* Vbk = new double3[num];
-    memcpy(Vbk,V,num*3*sizeof(double));
+    double3* Vbk = new double3[(num-1)];
+    memcpy(Vbk,V,(num-1)*3*sizeof(double));
 
     // create mask to avoid dup. check;
     bool* mask = new bool[num];
     memset(mask,false,num*sizeof(bool));
     for (int k=0;k<num-1;k++) {
       int lk  = list[k];
-      mask[lk] = true;
+       mask[lk] = true;
       int lkn = list[k+1];
       // possible new index
       int lku = lkn;
@@ -692,20 +723,42 @@ public:
         }
       }
       if (lku!=lkn) {
+#ifdef DEBUG        
+        std::cerr<<"Switch: "<<k<<" new: "<<lku<<" old: "<<lkn<<std::endl;
+        for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
+        std::cerr<<"\n Rlink";
+        for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<rlink[i];
+        std::cerr<<"\n";
+#endif
+        modified=true;
         // shift two index in the list
         list[rlink[lku]] = lkn;
+        rlink[lkn] = rlink[lku];
         list[k+1] = lku;
+        rlink[lku] = k+1;
         mask[lku] = true;
+#ifdef DEBUG        
+        for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
+        std::cerr<<"\n Rlink";
+        for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<rlink[i];
+        std::cerr<<"\n";
+#endif
       }
 
-      if (lk!=listbk[k]||lku!=lkn) {
+      if (lk!=listbk[k]||lku!=listbk[k+1]) {
         // update X from rjk
         memcpy(X[k], rjk[lk][lku], 3*sizeof(double));
+#ifdef DEBUG
+        std::cerr<<"copy rjk["<<lk<<"]["<<lku<<"] to X["<<k<<"]\n";
+#endif
         // update V
         // left boundary
-        int rlk = rlink[lk];
+        int rlk = roldlink[lk];
         if (rlk<k) {
           for (int j=rlk;j<k;j++) {
+#ifdef DEBUG
+            std::cerr<<"Add V["<<j<<"] to V["<<k<<"]\n";
+#endif
             V[k][0] += Vbk[j][0];
             V[k][1] += Vbk[j][1];
             V[k][2] += Vbk[j][2];
@@ -713,15 +766,21 @@ public:
         }
         else if (rlk>k) {
           for (int j=k;j<rlk;j++) {
+#ifdef DEBUG
+            std::cerr<<"Minus V["<<j<<"] from V["<<k<<"]\n";
+#endif
             V[k][0] -= Vbk[j][0];
             V[k][1] -= Vbk[j][1];
             V[k][2] -= Vbk[j][2];
           }
         }
         // right boundary
-        rlk = rlink[lku];
+        rlk = roldlink[lku];
         if (rlk<k+1) {
           for (int j=rlk;j<k+1;j++) {
+#ifdef DEBUG
+            std::cerr<<"Minus V["<<j<<"] from V["<<k<<"]\n";
+#endif
             V[k][0] -= Vbk[j][0];
             V[k][1] -= Vbk[j][1];
             V[k][2] -= Vbk[j][2];
@@ -729,6 +788,9 @@ public:
         }
         else if (rlk>k+1) {
           for (int j=k+1;j<rlk;j++) {
+#ifdef DEBUG
+            std::cerr<<"Add V["<<j<<"] to V["<<k<<"]\n";
+#endif
             V[k][0] += Vbk[j][0];
             V[k][1] += Vbk[j][1];
             V[k][2] += Vbk[j][2];
@@ -740,8 +802,15 @@ public:
     // clear template array
     delete[] mask;
     delete[] rlink;
+    delete[] roldlink;
     delete[] listbk;
     delete[] Vbk;
+
+#ifdef DEBUG    
+    if(modified) print();
+#endif
+    
+    return modified;
   }
 
   /* center_shift ==================================
@@ -838,17 +907,17 @@ public:
   }
 
   /* set_abg
-     function: set time step integration parameter alpha, beta and gamma
+     function: set time step integration parameter alpha, beta, gamma and epi
      argument: a: alpha
                b: beta
                g: gamma
-               tmin: minimum time step
+               e: epi
   */
-  void set_abg(const double a, const double b, const double g, const double tmin) {
+  void set_abg(const double a, const double b, const double g, const double e=0.001) {
     alpha = a;
     beta = b;
     gamma = g;
-    dtmin = tmin;
+    epi = e;
   }
 
 
@@ -860,12 +929,12 @@ public:
                np: number of perturber particle lists
                pext: perturber particle lists
                force: external force (not perturber forces which are calculated in pert_force)
-               check_flag: true: check link every step; false: check link at then end
+               check_flag: 2: check link every step; 1: check link at then end; 0 :no check
 ///               force: external force array
 ///               upforce: void (const particle * p, const particle *pext, double3* force). function to calculate force based on p and pext, return to force
   */             
   //  void Leapfrog_step_forward(const double s, const int n, particle* p, particle* pext, double3* force, ext_force<particle> upforce) {
-  void Leapfrog_step_forward(const double s, const int n, particle* p, const int np=0, const particle* pext=NULL, const double3* force=NULL, bool check_flag=false) {
+  void Leapfrog_step_forward(const double s, const int n, particle* p, const int np=0, const particle* pext=NULL, const double3* force=NULL, const double dtmin=5.4e-20, int check_flag=1) {
     double ds = s/double(n);
     double3* ave_v=new double3[num];  // average velocity
     bool fpf = false; // perturber force indicator
@@ -873,7 +942,7 @@ public:
 
     for (int i=0;i<n;i++) {
       // half step forward for X, t (dependence: Ekin, B, w, V)
-      step_forward_X(ds/2.0);
+      step_forward_X(ds/2.0,dtmin);
 
       // perturber force
       if (fpf) {
@@ -891,7 +960,7 @@ public:
       calc_rAPW(p,force); 
 
       // update chain list order if necessary, update list, X, V (dependence: rjk, V)
-      if (num>2&&check_flag) update_link();
+      if (num>2&&check_flag==2) update_link();
 
       // Step forward V and get time step dt(V)
       double dvt = step_forward_V(ds);
@@ -906,7 +975,7 @@ public:
       calc_Ekin(p);
 
       // half step forward for X (dependence: Ekin, B, w, V)
-      step_forward_X(ds/2.0);
+      step_forward_X(ds/2.0,dtmin);
 
     }
 
@@ -928,11 +997,10 @@ public:
 //#endif
       
     // update chain list order and calculate potential
-    if(num>2&&!check_flag)  update_link();
-    
-//    else if (num==2) {
-//      calc_Pot(p); // for energy check (dependence: p.mass, p.x)
-//    }
+    if(num>2&&check_flag==1)  update_link();
+
+    // clear memory
+    delete[] ave_v;
   }
 
 
@@ -981,27 +1049,29 @@ public:
                np: number of perturber particle lists
                pext: perturber particle lists
                force: external force (not perturber forces which are calculated in pert_force)
-               check_flag: true: check link every step; false: check link at then end
+               dtmin: minimum physical time step
      return:   iteration count (start from 1, which means no iteration)
    */
-  int extrapolation_integration(const double s, particle* p, const double error=1E-8, const int itermax=10, const int methods=1, const int np=0, const particle* pext=NULL, const double3* force=NULL, bool check_flag=false) {
+  int extrapolation_integration(const double s, particle* p, const double error=1E-8, const int itermax=10, const int methods=1, const int np=0, const particle* pext=NULL, const double3* force=NULL, const double dtmin=5.4e-20) {
+    // array size indicator for relative position and velocity
+    const int nrel = num-1;
+    
     // for storage
     double   t0,ttemp,t1[itermax];
     double   B0,Btemp,B1[itermax];
     double   w0,wtemp,w1[itermax];
     double   Ekin0;
-    //particle* p0 = new particle[num];
 
     double3* X1[itermax];
     double3* V1[itermax];
     for (int i=0;i<itermax;i++) {
-      X1[i] = new double3[num];
-      V1[i] = new double3[num];
+      X1[i] = new double3[nrel];
+      V1[i] = new double3[nrel];
     }
-    double3* X0 = new double3[num];
-    double3* V0 = new double3[num];
-    double3* Xtemp = new double3[num];
-    double3* Vtemp = new double3[num];
+    double3* X0 = new double3[nrel];
+    double3* V0 = new double3[nrel];
+    double3* Xtemp = new double3[nrel];
+    double3* Vtemp = new double3[nrel];
 
     double3 CX;
     double cxerr=error+1.0;
@@ -1011,12 +1081,12 @@ public:
     B0 = B;
     w0 = w;
     Ekin0 = Ekin;
-    memcpy(X0,X,3*num*sizeof(double));
-    memcpy(V0,V,3*num*sizeof(double));
+    memcpy(X0,X,3*nrel*sizeof(double));
+    memcpy(V0,V,3*nrel*sizeof(double));
     //memcpy(p0,p,num*sizeof(particle));
 
     // first step
-    Leapfrog_step_forward(s,1,p,np,pext,force,false);
+    Leapfrog_step_forward(s,1,p,np,pext,force,dtmin,0);
 
     // relative position vector between first and last particle for phase error check
     int k0 = list[0];
@@ -1031,8 +1101,8 @@ public:
         t1[0] = t;
         B1[0] = B;
         w1[0] = w;
-        memcpy(X1[0],X,3*num*sizeof(double));
-        memcpy(V1[0],V,3*num*sizeof(double));
+        memcpy(X1[0],X,3*nrel*sizeof(double));
+        memcpy(V1[0],V,3*nrel*sizeof(double));
       }
       intcount++;
       if (intcount == itermax) {
@@ -1046,10 +1116,10 @@ public:
       B = B0;
       w = w0;
       Ekin = Ekin0;
-      memcpy(X,X0,3*num*sizeof(double));
-      memcpy(V,V0,3*num*sizeof(double));
+      memcpy(X,X0,3*nrel*sizeof(double));
+      memcpy(V,V0,3*nrel*sizeof(double));
 
-      Leapfrog_step_forward(s,step,p,np,pext,force,false);
+      Leapfrog_step_forward(s,step,p,np,pext,force,dtmin,0);
 
       if (methods==1) {
         // Using Romberg method
@@ -1065,7 +1135,7 @@ public:
         t1[intcount] = Romberg_recursion_formula(t1[0],t,hr);
         B1[intcount] = Romberg_recursion_formula(B1[0],B,hr);
         w1[intcount] = Romberg_recursion_formula(w1[0],w,hr);
-        for (int i=0;i<num;i++) {
+        for (int i=0;i<nrel;i++) {
           for (int k=0;k<3;k++) {
             X1[intcount][i][k] = Romberg_recursion_formula(X1[0][i][k],X[i][k],hr);
             V1[intcount][i][k] = Romberg_recursion_formula(V1[0][i][k],V[i][k],hr);
@@ -1079,8 +1149,8 @@ public:
           t1[0] = t;
           B1[0] = B;
           w1[0] = w;
-          memcpy(X1[0],X,3*num*sizeof(double));
-          memcpy(V1[0],V,3*num*sizeof(double));
+          memcpy(X1[0],X,3*nrel*sizeof(double));
+          memcpy(V1[0],V,3*nrel*sizeof(double));
 
           // iteration to get final result
           for (int j=1; j<intcount; j++) {
@@ -1094,7 +1164,7 @@ public:
             ttemp = Romberg_recursion_formula(t1[j],t1[intcount],hr);
             Btemp = Romberg_recursion_formula(B1[j],B1[intcount],hr);
             wtemp = Romberg_recursion_formula(w1[j],w1[intcount],hr);
-            for (int i=0;i<num;i++) {
+            for (int i=0;i<nrel;i++) {
               for (int k=0;k<3;k++) {
                 Xtemp[i][k] = Romberg_recursion_formula(X1[j][i][k],X1[intcount][i][k],hr);
                 Vtemp[i][k] = Romberg_recursion_formula(V1[j][i][k],V1[intcount][i][k],hr);
@@ -1108,8 +1178,8 @@ public:
             t1[j] = t1[intcount];
             B1[j] = B1[intcount];
             w1[j] = w1[intcount];
-            memcpy(X1[j],X1[intcount],3*num*sizeof(double));
-            memcpy(V1[j],V1[intcount],3*num*sizeof(double));
+            memcpy(X1[j],X1[intcount],3*nrel*sizeof(double));
+            memcpy(V1[j],V1[intcount],3*nrel*sizeof(double));
    
             //shift temp data to index = intcount.
             /*
@@ -1118,8 +1188,8 @@ public:
             t1[intcount] = ttemp;
             B1[intcount] = Btemp;
             w1[intcount] = wtemp;
-            memcpy(X1[intcount],Xtemp,3*num*sizeof(double));
-            memcpy(V1[intcount],Vtemp,3*num*sizeof(double));
+            memcpy(X1[intcount],Xtemp,3*nrel*sizeof(double));
+            memcpy(V1[intcount],Vtemp,3*nrel*sizeof(double));
           }
         }
       }
@@ -1139,7 +1209,7 @@ public:
         t1[intcount] = Rational_recursion_formula(0,t1[0],t,hr);
         B1[intcount] = Rational_recursion_formula(0,B1[0],B,hr);
         w1[intcount] = Rational_recursion_formula(0,w1[0],w,hr);
-        for (int i=0;i<num;i++) {
+        for (int i=0;i<nrel;i++) {
           for (int k=0;k<3;k++) {
             X1[intcount][i][k] = Rational_recursion_formula(0,X1[0][i][k],X[i][k],hr);
             V1[intcount][i][k] = Rational_recursion_formula(0,V1[0][i][k],V[i][k],hr);
@@ -1160,7 +1230,7 @@ public:
             ttemp = Rational_recursion_formula(t1[j-1],t1[j],t1[intcount],hr);
             Btemp = Rational_recursion_formula(B1[j-1],B1[j],B1[intcount],hr);
             wtemp = Rational_recursion_formula(w1[j-1],w1[j],w1[intcount],hr);
-            for (int i=0;i<num;i++) {
+            for (int i=0;i<nrel;i++) {
               for (int k=0;k<3;k++) {
                 Xtemp[i][k] = Rational_recursion_formula(X1[j-1][i][k],X1[j][i][k],X1[intcount][i][k],hr);
                 Vtemp[i][k] = Rational_recursion_formula(V1[j-1][i][k],V1[j][i][k],V1[intcount][i][k],hr);
@@ -1173,8 +1243,8 @@ public:
               t1[0] = t;
               B1[0] = B;
               w1[0] = w;
-              memcpy(X1[0],X,3*num*sizeof(double));
-              memcpy(V1[0],V,3*num*sizeof(double));
+              memcpy(X1[0],X,3*nrel*sizeof(double));
+              memcpy(V1[0],V,3*nrel*sizeof(double));
             }
             else {
               // update j-1 order
@@ -1182,8 +1252,8 @@ public:
               t1[j-1] = tt1;
               B1[j-1] = Bt1;
               w1[j-1] = wt1;
-              memcpy(X1[j-1],Xt1,3*num*sizeof(double));
-              memcpy(V1[j-1],Vt1,3*num*sizeof(double));
+              memcpy(X1[j-1],Xt1,3*nrel*sizeof(double));
+              memcpy(V1[j-1],Vt1,3*nrel*sizeof(double));
             }
 
             //storage previous extrapolation data in template position t1
@@ -1191,26 +1261,29 @@ public:
             tt1 = t1[intcount];
             Bt1 = B1[intcount];
             wt1 = w1[intcount];
-            memcpy(Xt1,X1[intcount],3*num*sizeof(double));
-            memcpy(Vt1,V1[intcount],3*num*sizeof(double));
+            memcpy(Xt1,X1[intcount],3*nrel*sizeof(double));
+            memcpy(Vt1,V1[intcount],3*nrel*sizeof(double));
    
             //shift temp data to index = intcount.
             // [n] << T_n,j+1 [temp]
             t1[intcount] = ttemp;
             B1[intcount] = Btemp;
             w1[intcount] = wtemp;
-            memcpy(X1[intcount],Xtemp,3*num*sizeof(double));
-            memcpy(V1[intcount],Vtemp,3*num*sizeof(double));
+            memcpy(X1[intcount],Xtemp,3*nrel*sizeof(double));
+            memcpy(V1[intcount],Vtemp,3*nrel*sizeof(double));
           }
         }
+
+        delete[] Xt1;
+        delete[] Vt1;
       }
 
       // set final results back to chain array
       t = t1[intcount];
       B = B1[intcount];
       w = w1[intcount];
-      memcpy(X,X1[intcount],3*num*sizeof(double));
-      memcpy(V,V1[intcount],3*num*sizeof(double));
+      memcpy(X,X1[intcount],3*nrel*sizeof(double));
+      memcpy(V,V1[intcount],3*nrel*sizeof(double));
 
       // resolve particle
       resolve_XV(p);
@@ -1230,6 +1303,18 @@ public:
       std::cerr<<std::setprecision(14)<<"Iteration: "<<intcount<<" error = "<<cxerr;
       std::cerr<<" energy error "<<Ekin-Pot+B<<std::endl;
 #endif 
+    }
+
+    // update chain link order
+    if(num>2) update_link();
+
+    delete[] Xtemp;
+    delete[] Vtemp;
+    delete[] X0;
+    delete[] V0;
+    for (int i=0;i<itermax;i++) {
+      delete[] X1[i];
+      delete[] V1[i];
     }
     
     return intcount+1;
@@ -1305,54 +1390,54 @@ public:
      argument: width of each output value
   */
   //  template <class particle>
-  void print(const int width) {
+  void print(const int width=15) {
     if (width<=0) {
       std::cerr<<"Error: width should be larger than zero!\n";
       abort();
     }
     char xyz[4]={'x','y','z','r'};
-    std::cout<<"---- particle list------\n ";
-    for (int i=0;i<num;i++) std::cout<<std::setw(width)<<list[i];
-    std::cout<<"\n----- relative position X ------\n";
+    std::cerr<<"---- particle list------\n ";
+    for (int i=0;i<num;i++) std::cerr<<std::setw(width)<<list[i];
+    std::cerr<<"\n----- relative position X ------\n";
     for (int k=0;k<3;k++) {
-      std::cout<<xyz[k];
-      for (int i=0;i<num-1;i++) std::cout<<std::setw(width)<<X[i][k];
-      std::cout<<std::endl;
+      std::cerr<<xyz[k];
+      for (int i=0;i<num-1;i++) std::cerr<<std::setw(width)<<X[i][k];
+      std::cerr<<std::endl;
     }
-    std::cout<<"\n----- relative velocity V ------\n";
+    std::cerr<<"\n----- relative velocity V ------\n";
     for (int k=0;k<3;k++) {
-      std::cout<<xyz[k];
-      for (int i=0;i<num-1;i++) std::cout<<std::setw(width)<<V[i][k];
-      std::cout<<std::endl;
+      std::cerr<<xyz[k];
+      for (int i=0;i<num-1;i++) std::cerr<<std::setw(width)<<V[i][k];
+      std::cerr<<std::endl;
     }
-    std::cout<<"\n----- mass coefficients Matrix Wjk -----\n";
+    std::cerr<<"\n----- mass coefficients Matrix Wjk -----\n";
     for (int i=0;i<num;i++){
-      std::cout<<' ';
-      for (int j=0;j<num;j++) std::cout<<std::setw(width)<<Wjk[i][j];
-      std::cout<<std::endl;
+      std::cerr<<' ';
+      for (int j=0;j<num;j++) std::cerr<<std::setw(width)<<Wjk[i][j];
+      std::cerr<<std::endl;
     }
-    std::cout<<"\n----- relative distances Matrix rjk -----\n";
+    std::cerr<<"\n----- relative distances Matrix rjk -----\n";
     for (int k=0;k<4;k++){
-      std::cout<<"----------"<<xyz[k]<<"----------\n";
+      std::cerr<<"----------"<<xyz[k]<<"----------\n";
       for (int i=0;i<num;i++){
-        std::cout<<' ';
-        for (int j=0;j<num;j++) std::cout<<std::setw(width)<<rjk[i][j][k];
-        std::cout<<std::endl;
+        std::cerr<<' ';
+        for (int j=0;j<num;j++) std::cerr<<std::setw(width)<<rjk[i][j][k];
+        std::cerr<<std::endl;
       }
     }
-    std::cout<<"\n----- Acceleration A ------\n";
+    std::cerr<<"\n----- Acceleration A ------\n";
     for (int k=0;k<3;k++) {
-      std::cout<<xyz[k];
-      for (int i=0;i<num;i++) std::cout<<std::setw(width)<<acc[i][k];
-      std::cout<<std::endl;
+      std::cerr<<xyz[k];
+      for (int i=0;i<num;i++) std::cerr<<std::setw(width)<<acc[i][k];
+      std::cerr<<std::endl;
     }
-    std::cout<<"\n----- part omega / part rk ------\n";
+    std::cerr<<"\n----- part omega / part rk ------\n";
     for (int k=0;k<3;k++) {
-      std::cout<<xyz[k];
-      for (int i=0;i<num;i++) std::cout<<std::setw(width)<<dmdr[i][k];
-      std::cout<<std::endl;
+      std::cerr<<xyz[k];
+      for (int i=0;i<num;i++) std::cerr<<std::setw(width)<<dmdr[i][k];
+      std::cerr<<std::endl;
     }
-    std::cout<<"\n----- system parameters ------\n"
+    std::cerr<<"\n----- system parameters ------\n"
              <<"---Center-of-mass data: \n"
              <<"mass:"<<std::setw(width)<<cm.mass<<std::endl
              <<"(particle*)cm.pos:"
