@@ -13,7 +13,7 @@ int main(int argc, char **argv){
   int nstep=1000; // total step size
   int nsubstep=128;  // sub-step number if direct LF method is used
   int itermax=10;  //iteration maximum number for extrapolation methods
-  char* sw=NULL;        // use extrapolation method, 'rom' for Romberg method; 'bs'  for Bulirsch & Stoer
+  char* sw=NULL;        // use extrapolation method, 'linear' for Romberg method; 'rational'  for rational interpolation method
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
   double err=1e-8; // phase error requirement
   double s=0.5;    // step size
@@ -42,7 +42,7 @@ int main(int argc, char **argv){
       break;
     case 'm':
       sw = optarg;
-      if (strcmp(sw,"rom")&&strcmp(sw,"bs")) {
+      if (strcmp(sw,"linear")&&strcmp(sw,"rational")) {
         std::cerr<<"Extrapolation method "<<sw<<" not found!\n";
         abort();
       }
@@ -70,7 +70,7 @@ int main(int argc, char **argv){
                <<"    -n:  number of integration steps (1000)\n"
                <<"    -s:  step size, not physical time step (0.5)\n"
                <<"    -a:  algorithmic regularization method; 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog (logh)\n"
-               <<"    -m:  use extrapolation method; 'rom' for Romberg method; 'bs' for Bulirsch & Stoer method\n"
+               <<"    -m:  use extrapolation method to get high accuracy; 'linear' for Romberg linear interpolation method; 'ration' for rational interpolation method\n"
                <<"    -e:  phase error limit (1e-8)\n"
                <<"    -d:  minimum physical time step (5.4e-20)\n"
                <<"    -i:  maximum iteration steps for extrapolation method\n"
@@ -115,12 +115,13 @@ int main(int argc, char **argv){
   memset(stepcount,0,(itermax+1)*sizeof(int));
   
   //print
-  std::cout<<std::setw(w)<<"Time"
+  std::cout<<"Time"
            <<std::setw(w)<<"E_err"
            <<std::setw(w)<<"Ekin"
            <<std::setw(w)<<"Pot"
            <<std::setw(w)<<"B"
            <<std::setw(w)<<"w"
+           <<std::setw(w)<<"W"    
            <<std::setw(w)<<" "<<"mass-x-y-z-vx-vy-vz-for-each-particles"<<std::endl;
   for (int i=0;i<nstep;i++) {
     std::cout<<c.getTime()
@@ -128,7 +129,8 @@ int main(int argc, char **argv){
              <<std::setw(w)<<c.getEkin()
              <<std::setw(w)<<c.getPot()
              <<std::setw(w)<<c.getB()
-             <<std::setw(w)<<c.getw();
+             <<std::setw(w)<<c.getw()
+             <<std::setw(w)<<c.getW();
     for (int j=0;j<n;j++) {
       std::cout<<std::setw(w)<<p[j].mass;
       for (int k=0;k<3;k++) {
@@ -141,8 +143,8 @@ int main(int argc, char **argv){
     std::cout<<std::endl;
     int icount=0;
     if (sw==NULL) c.Leapfrog_step_forward(s,nsubstep,p,0,NULL,NULL,dtmin);
-    else if (strcmp(sw,"rom")==0) icount = c.extrapolation_integration(s,p,err,itermax,1,0,NULL,NULL,dtmin);
-    else if (strcmp(sw,"bs")==0) icount = c.extrapolation_integration(s,p,err,itermax,2,0,NULL,NULL,dtmin);
+    else if (strcmp(sw,"linear")==0) icount = c.extrapolation_integration(s,p,err,itermax,1,0,NULL,NULL,dtmin);
+    else if (strcmp(sw,"rational")==0) icount = c.extrapolation_integration(s,p,err,itermax,2,0,NULL,NULL,dtmin);
     stepcount[icount]++;
   }
 

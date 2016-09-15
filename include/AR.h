@@ -580,6 +580,46 @@ private:
     }
   }
 
+  /* resolve_V
+     function: resolve relative V to physical  v 
+               Notice the center-of-mass particle mass in Chain.cm is used.
+               The total mass of particles should be consistent with cm.mass. Otherwise update Chain.cm first.
+     argument: p: particle lists (return new x, v with center-of-mass correction)
+   */
+  //  template <class particle>
+  void resolve_V(particle* p) {
+    // resolve current V
+    double3 vc={0};
+    for (int i=0;i<num-1;i++) {
+      int lk = list[i];
+      int lkn = list[i+1];
+      p[lkn].vel[0] = p[lk].vel[0] + V[i][0];
+      p[lkn].vel[1] = p[lk].vel[1] + V[i][1];
+      p[lkn].vel[2] = p[lk].vel[2] + V[i][2];
+      //center-of-mass position and velocity
+      vc[0] += p[lkn].mass * p[lkn].vel[0];
+      vc[1] += p[lkn].mass * p[lkn].vel[1];
+      vc[2] += p[lkn].mass * p[lkn].vel[2];
+      if (i==0) {
+        vc[0] += p[lk].mass * p[lk].vel[0];
+        vc[1] += p[lk].mass * p[lk].vel[1];
+        vc[2] += p[lk].mass * p[lk].vel[2];
+      }        
+    }
+
+    // calcualte center-of-mass position and velocity shift
+    vc[0] /= cm.mass;
+    vc[1] /= cm.mass;
+    vc[2] /= cm.mass;
+    
+    for (int i=0;i<num;i++) {
+      // center-of-mass correction
+      p[i].vel[0] -= vc[0];
+      p[i].vel[1] -= vc[1];
+      p[i].vel[2] -= vc[2];
+    }
+  }
+
   /* pert_force
     function: get perturber force
     argument: p: particle list
@@ -659,7 +699,7 @@ public:
     
     // initial time step parameter
     B = Pot - Ekin;
-    w = B;
+    w = W;
     /*#ifdef DEBUG
 //    for (int i=0;i<num;i++) {
 //      std::cout<<i<<" m"<<std::setw(WIDTH)<<p[i].mass<<std::setw(WIDTH)<<"x";
@@ -935,15 +975,25 @@ public:
   */             
   //  void Leapfrog_step_forward(const double s, const int n, particle* p, particle* pext, double3* force, ext_force<particle> upforce) {
   void Leapfrog_step_forward(const double s, const int n, particle* p, const int np=0, const particle* pext=NULL, const double3* force=NULL, const double dtmin=5.4e-20, int check_flag=1) {
+    // Error check
+    if (n<=0) {
+      std::cerr<<"Error: step number shound be positive, current number is "<<n<<std::endl;
+      abort();
+    }
+    if (s<0) {
+      std::cerr<<"Error: step size should be positive, current value is "<<s<<std::endl;
+      abort();
+    }
+
     double ds = s/double(n);
     double3* ave_v=new double3[num];  // average velocity
     bool fpf = false; // perturber force indicator
     if (np>0) fpf = true;
 
-    for (int i=0;i<n;i++) {
-      // half step forward for X, t (dependence: Ekin, B, w, V)
-      step_forward_X(ds/2.0,dtmin);
+    // half step forward for X, t (dependence: Ekin, B, w, V)
+    step_forward_X(ds/2.0,dtmin);
 
+    for (int i=0;i<n;i++) {
       // perturber force
       if (fpf) {
         // resolve X to p.v (dependence: X, cm.mass)
@@ -974,9 +1024,9 @@ public:
       // Calcuale Kinetic energy (dependence: p.mass, p.v)
       calc_Ekin(p);
 
-      // half step forward for X (dependence: Ekin, B, w, V)
-      step_forward_X(ds/2.0,dtmin);
-
+      // step forward for X (dependence: Ekin, B, w, V)
+      if(i==n-1) step_forward_X(ds/2.0,dtmin);
+      else step_forward_X(ds,dtmin);
     }
 
    // resolve X at last, update p.x (dependence: X)
@@ -1030,12 +1080,10 @@ public:
   double Rational_recursion_formula(const double ti1k2, const double ti1k1, const double tik1, const double hr) {
     double dt2 = tik1 - ti1k2;
     double dt1 = tik1 - ti1k1;
-    if (dt2==0)
-      if (dt1==0) return tik1;
-      else {
-        std::cerr<<"Error!: T_i,k-1 - T_i-1,k-2 = 0 but T_i,k-1 - T_i-1,k-1 = "<<dt1<<" (T_i,k-1 = "<<tik1<<"; T_i-1,k-1 = "<<ti1k1<<"; h_i-k/h_i = "<<hr<<")"<<std::endl;
-        abort();
-      }
+    if (dt2==0) {
+      if (dt1-dt2==0) return ti1k1;
+      else return tik1;
+    }
     else return tik1 + (tik1 - ti1k1)/(hr*hr * (1 - dt1/dt2) - 1);
   }
   
@@ -1118,6 +1166,8 @@ public:
       Ekin = Ekin0;
       memcpy(X,X0,3*nrel*sizeof(double));
       memcpy(V,V0,3*nrel*sizeof(double));
+      // reset velocity to get correct w
+      if (beta>0) resolve_V(p);
 
       Leapfrog_step_forward(s,step,p,np,pext,force,dtmin,0);
 
@@ -1284,7 +1334,7 @@ public:
       w = w1[intcount];
       memcpy(X,X1[intcount],3*nrel*sizeof(double));
       memcpy(V,V1[intcount],3*nrel*sizeof(double));
-
+ 
       // resolve particle
       resolve_XV(p);
       // recalculate the energy

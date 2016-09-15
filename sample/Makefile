@@ -1,6 +1,8 @@
 ## TARGET
 TARGET=chain
 
+VPATH=../include
+
 ## compiler-------------------------------------------#
 CXX= g++
 
@@ -8,11 +10,11 @@ CXX= g++
 CXXFLAGS = -O2 -I../include
 
 ## for debug------------------------------------------#
-CXXFLAGS += -g -D DEBUG -fbounds-check -Wall
+#CXXFLAGS += -g D DEBUG -fbounds-check -Wall
 
 ## Target --------------------------------------------#
 
-$(TARGET): %: %.cxx
+$(TARGET): %: %.cxx AR.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:
