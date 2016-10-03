@@ -10,7 +10,7 @@ CXX= g++
 CXXFLAGS = -O2 -I../include
 
 ## for debug------------------------------------------#
-#CXXFLAGS += -g D DEBUG -fbounds-check -Wall
+#CXXFLAGS += -g -D DEBUG -fbounds-check -Wall
 
 ## Target --------------------------------------------#
 
