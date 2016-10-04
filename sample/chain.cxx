@@ -14,7 +14,7 @@ int main(int argc, char **argv){
   int nstep=1000; // total step size
   int nsubstep=128;  // sub-step number if direct LF method is used
   int itermax=15;  //iteration maximum number for extrapolation methods
-  char* sw=NULL;        // use extrapolation method, 'linear' for Romberg method; 'rational'  for rational interpolation method
+  char* sw=NULL;        // if not 'none', use extrapolation method, 'linear' for Romberg method; 'rational'  for rational interpolation method
   char* sq=NULL;        // extrapolation sequence, 'even' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
   double err=1e-8; // phase error requirement
@@ -44,7 +44,7 @@ int main(int argc, char **argv){
       break;
     case 'm':
       sw = optarg;
-      if (strcmp(sw,"linear")&&strcmp(sw,"rational")) {
+      if (strcmp(sw,"linear")&&strcmp(sw,"rational")&&strcmp(sw,"none")) {
         std::cerr<<"Extrapolation method "<<sw<<" not found!\n";
         abort();
       }
@@ -79,7 +79,7 @@ int main(int argc, char **argv){
                <<"    -n:  number of integration steps ("<<nstep<<")\n"
                <<"    -s:  step size, not physical time step ("<<s<<")\n"
                <<"    -a:  algorithmic regularization method; 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog (logh)\n"
-               <<"    -m:  use extrapolation method to get high accuracy; 'linear' for Romberg linear interpolation method; 'ration' for rational interpolation method (not used)\n"
+               <<"    -m:  use extrapolation method to get high accuracy; 'linear' for Romberg linear interpolation method; 'ration' for rational interpolation method; 'none' for no extrapolation (rational)\n"
                <<"    -M:  extrapolation sequences; 'even' for even sequences {h, h/2, h/4, h/8 ...}; 'bs' for Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...} (bs)\n"
                <<"    -e:  phase error limit ("<<err<<")\n"
                <<"    -d:  minimum physical time step ("<<dtmin<<")\n"
@@ -156,13 +156,14 @@ int main(int argc, char **argv){
     int msq=2;
     if (sq) 
       if (strcmp(sq,"even")==0) msq=1;
-    if (sw==NULL) c.Leapfrog_step_forward(s,nsubstep,NULL,dtmin);
-    else if (strcmp(sw,"linear")==0) icount = c.extrapolation_integration(s,err,itermax,1,msq,NULL,dtmin);
+    if (sw==NULL) icount = c.extrapolation_integration(s,err,itermax,2,msq,NULL,dtmin);
     else if (strcmp(sw,"rational")==0) icount = c.extrapolation_integration(s,err,itermax,2,msq,NULL,dtmin);
+    else if (strcmp(sw,"linear")==0) icount = c.extrapolation_integration(s,err,itermax,1,msq,NULL,dtmin);
+    else if (strcmp(sw,"none")==0) c.Leapfrog_step_forward(s,nsubstep,NULL,dtmin);
     stepcount[icount]++;
   }
 
-  if (sw!=NULL) {
+  if (sw==NULL||strcmp(sw,"none")!=0) {
     std::cerr<<"Step histogram:\n I\tCount\n";
     for (int i=1;i<=itermax;i++) {
       std::cerr<<i<<"\t"<<stepcount[i]<<std::endl;

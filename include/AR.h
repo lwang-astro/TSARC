@@ -487,13 +487,13 @@ private:
       const std::size_t lkn = list[i+1];
       const double *rk = p[lk].getPos();
       p[lkn].setPos(rk[0] + X[i][0],
-                          rk[1] + X[i][1],
-                          rk[2] + X[i][2]);
+                    rk[1] + X[i][1],
+                    rk[2] + X[i][2]);
 
       const double *vk = p[lk].getVel();
       p[lkn].setVel(vk[0] + V[i][0],
-                          vk[1] + V[i][1],
-                          vk[2] + V[i][2]);
+                    vk[1] + V[i][1],
+                    vk[2] + V[i][2]);
 
       //center-of-mass position and velocity
       const double mkn = p[lkn].getMass();
@@ -884,7 +884,9 @@ private:
       if (dt1-dt2==0) return ti1k1;
       else return tik1;
     }
-    else return tik1 + dt1/(hr*hr * (1 - dt1/dt2) - 1);
+    double dt = dt1/(hr*hr * (1 - dt1/dt2) - 1);
+    if (std::isinf(dt)) return tik1;
+    else return tik1 + dt;
   }
   
   /* center_shift_inverse_X==================================
@@ -1262,8 +1264,6 @@ public:
     // for error check
     double3 CX;
     //    double3 CXN;
-    double dcx1,dcx2,dcx3;
-    double *r0n;
     double cxerr=error+1.0;
     double eerr=error+1.0;
     double cxerr0=cxerr+1.0;
@@ -1294,14 +1294,20 @@ public:
     std::size_t stepeven = 2; 
     std::size_t stepodd = 3;
     
-    while (cxerr > 0.5*error || std::abs(eerr) > 0.5*error) {
+    while (cxerr > 0.5*error || std::abs(eerr) > 0.1*error) {
       // convergency check
-      if (cxerr>=cxerr0 && std::abs(eerr) >= std::abs(eerr0)) {
-        if (cxerr < error && abs(eerr) < error) break;
-        else if (intcount > std::min((size_t)6,itermax)){
-          std::cerr<<"Error: extrapolation cannot converge anymore, energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", try to weaken the error criterion\n";
-          abort();
+      if (cxerr>=cxerr0 || std::abs(eerr) >= std::abs(eerr0)) {
+        if (cxerr < error && std::abs(eerr) < error) break;
+        else if (intcount > std::min((size_t)10,itermax)){
+          std::cerr<<"Warning: extrapolation cannot converge anymore, energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", try to change the error criterion (notice energy error is cumulative value)\n";
+          break;
         }
+      }
+      // if completely converged, check energy error
+      if (cxerr==0) {
+        if (std::abs(eerr) > error)
+          std::cerr<<"Warning: phase error reach zero but energy error "<<eerr<<" cannot reach criterion "<<error<<"!\n";
+        break;
       }
       if (intcount == 0) {
         // storage the results
@@ -1314,7 +1320,7 @@ public:
       intcount++;
       // iteration limit check
       if (intcount == itermax) {
-        if(cxerr < error && abs(eerr) < error) break;
+        if(cxerr < error && std::abs(eerr) < error) break;
         if (std::abs(eerr) > error) {
           std::cerr<<"Error: maximum iteration step number "<<itermax<<" reached, but energy error "<<eerr<<" is larger than criterion "<<error<<std::endl;
         } else {
@@ -1480,6 +1486,10 @@ public:
               for (std::size_t k=0;k<3;k++) {
                 Xtemp[i][k] = Rational_recursion_formula(X1[j-1][i][k],X1[j][i][k],X1[intcount][i][k],hr);
                 Vtemp[i][k] = Rational_recursion_formula(V1[j-1][i][k],V1[j][i][k],V1[intcount][i][k],hr);
+                //  if(Xtemp[i][k]!=Xtemp[i][k])  {
+                //    std::cerr<<"j="<<j<<",i="<<i<<",k="<<k<<" Xik="<<Xtemp[i][k]<<" Xi1k2="<<X1[j-1][i][k]<<" Xi1k1="<<X1[j][i][k]<<" Xik1="<<X1[intcount][i][k]<<" hr="<<hr<<std::endl;
+                //     abort();
+                //  }
               }
             }
 
@@ -1539,17 +1549,17 @@ public:
       calc_rAPW();
 
       // phase error calculation
-      r0n = rjk[k0][kn];
-      dcx1 = r0n[0] - CX[0];
-      dcx2 = r0n[1] - CX[1];
-      dcx3 = r0n[2] - CX[2];
+      double* r0n = rjk[k0][kn];
+      double dcx1 = r0n[0] - CX[0];
+      double dcx2 = r0n[1] - CX[1];
+      double dcx3 = r0n[2] - CX[2];
       cxerr0 = cxerr;
       cxerr = std::sqrt(dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/r0n[3];
       eerr0 = eerr;
-      eerr = Ekin-Pot+B;
+      eerr = (Ekin-Pot+B)/B;
       memcpy(CX,r0n,3*sizeof(double));
 #ifdef DEBUG
-      std::cerr<<std::setprecision(14)<<"Iteration: "<<intcount<<" Step division = "<<step[intcount]<<" error = "<<cxerr;
+      std::cerr<<std::setprecision(18)<<"Iteration: "<<intcount<<" Step division = "<<step[intcount]<<" error = "<<cxerr;
       std::cerr<<" energy error "<<Ekin-Pot+B<<std::endl;
 #endif 
     }
