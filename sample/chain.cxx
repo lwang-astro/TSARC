@@ -8,16 +8,16 @@
 #include <iomanip>
 
 int main(int argc, char **argv){
-  int n=3; //particle number
+  std::size_t n=3; //particle number
   int w=18; //print width
   int pre=10; //print digital precision
   int nstep=1000; // total step size
   int nsubstep=128;  // sub-step number if direct LF method is used
-  int itermax=15;  //iteration maximum number for extrapolation methods
+  int itermax=20;  //iteration maximum number for extrapolation methods
   char* sw=NULL;        // if not 'none', use extrapolation method, 'linear' for Romberg method; 'rational'  for rational interpolation method
   char* sq=NULL;        // extrapolation sequence, 'rom' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
-  double err=1e-8; // phase error requirement
+  double err=1e-10; // phase error requirement
   double s=0.5;    // step size
   double dtmin=5.4e-20; // mimimum physical time step
   double t=0.0;    // initial physical time
@@ -117,9 +117,23 @@ int main(int argc, char **argv){
     abort();
   }
 
-  chain<Particle> c(n);
+  chainpars pars;
+  if (method)
+    if (strcmp(method,"ttl")==0) pars.setabg(0.0,1.0,0.0);
+
+  int msq=2;
+  if (sq) 
+    if (strcmp(sq,"rom")==0) msq=1;
+  int ms=2;
+  if (sw) {
+    if (strcmp(sw,"linear")==0) ms=1;
+    else if (strcmp(sw,"none")==0) ms=0;
+  }
+  pars.setEXP(err,dtmin,itermax,ms,msq);
+
+  chain<Particle> c(n,pars);
   Particle *p=new Particle[n];
-  for (int i=0;i<n;i++) {
+  for (std::size_t i=0;i<n;i++) {
     double x,y,z,vx,vy,vz,m;
     fs>>m>>x>>y>>z>>vx>>vy>>vz;
     if (fs.eof()) {
@@ -129,9 +143,6 @@ int main(int argc, char **argv){
     p[i]=Particle(m,x,y,z,vx,vy,vz);
   }
   c.addP(n,p);
-  
-  if (method)
-    if (strcmp(method,"ttl")==0) c.setPars(0.0,1.0,0.0);
   
   c.init(t);
   std::cout<<std::setprecision(pre);
@@ -155,7 +166,7 @@ int main(int argc, char **argv){
              <<std::setw(w)<<c.getB()
              <<std::setw(w)<<c.getw()
              <<std::setw(w)<<c.getW();
-    for (int j=0;j<n;j++) {
+    for (std::size_t j=0;j<n;j++) {
       std::cout<<std::setw(w)<<p[j].getMass();
       for (int k=0;k<3;k++) {
         std::cout<<std::setw(w)<<p[j].getPos()[k];
@@ -166,20 +177,15 @@ int main(int argc, char **argv){
     }
     std::cout<<std::endl;
     int icount=0;
-    int msq=2;
-    if (sq) 
-      if (strcmp(sq,"rom")==0) msq=1;
-    if (sw==NULL) icount = c.extrapolation_integration(s,err,itermax,2,msq,NULL,dtmin);
-    else if (strcmp(sw,"rational")==0) icount = c.extrapolation_integration(s,err,itermax,2,msq,NULL,dtmin);
-    else if (strcmp(sw,"linear")==0) icount = c.extrapolation_integration(s,err,itermax,1,msq,NULL,dtmin);
-    else if (strcmp(sw,"none")==0) c.Leapfrog_step_forward(s,nsubstep,NULL,-1.0,dtmin);
+    if (ms) icount = c.extrapolation_integration(s,-1.0,NULL);
+    else c.Leapfrog_step_forward(s,nsubstep,-1.0,NULL);
     stepcount[icount]++;
 #ifdef TIME_PROFILE
-    std::cerr<<"Time profile: Step: "<<i<<"  Accelaration+Potential(s): "<<c.getTP_apw()<<"  Update_link(s): "<<c.getTP_uplink()<<"  Leap-frog(s): "<<c.getTP_lf()<<"  Extrapolation(s): "<<c.getTP_ep()<<"  Perturbation(s): "<<c.getTP_pext()<<std::endl;
+    std::cerr<<"Time profile: Step: "<<i<<"  Accelaration+Potential(s): "<<c.profile.t_apw<<"  Update_link(s): "<<c.profile.t_uplink<<"  Leap-frog(s): "<<c.profile.t_lf<<"  Extrapolation(s): "<<c.profile.t_ep<<"  Perturbation(s): "<<c.profile.t_pext<<std::endl;
 #endif
   }
 
-  if (sw==NULL||strcmp(sw,"none")!=0) {
+  if (ms) {
     std::cerr<<"Step histogram:\n I\tCount\n";
     for (int i=1;i<=itermax;i++) {
       std::cerr<<i<<"\t"<<stepcount[i]<<std::endl;
@@ -187,4 +193,4 @@ int main(int argc, char **argv){
   }
   return 0;
 }
-  
+

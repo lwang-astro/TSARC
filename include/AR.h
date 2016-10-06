@@ -21,12 +21,61 @@ static double get_wtime(){
     gettimeofday(&tv, NULL);
     return tv.tv_sec + 1.e-6 * tv.tv_usec;
 }
+
+struct timeprofile{
+public:
+  double t_apw;    // APW calculation
+  double t_uplink; // update link
+  double t_lf;     // leap-frog
+  double t_ep;     // extrapolation
+  double t_pext;   // perturber force
+
+  timeprofile() {reset_tp();}
+  
+  void reset_tp(){
+    t_apw=0.0;
+    t_uplink=0.0;
+    t_lf=0.0;
+    t_ep=0.0;
+    t_pext=0.0;
+  }
+
+  /*  // calc_APW
+  double getTP_apw() const{
+    return t_apw;
+  }
+
+  //update link
+  double getTP_uplink() const{
+    return t_uplink;
+  }
+
+  // leap-frog
+  double getTP_lf() const{
+    return t_lf;
+  }
+
+  // extrapolation
+  double getTP_ep() const{
+    return t_ep;
+  }
+
+  // perturber force
+  double getTP_pext() const{
+    return t_pext;
+  }
+  */
+
+  
+};
+
 #endif
 
 //declaration
 
 template <class particle> class chain;
 template <class particle> class chainlist;
+class chainpars;
 
 // external force calculation function pointer
 //template <class particle>
@@ -34,6 +83,100 @@ template <class particle> class chainlist;
 //{
 //  typedef void (*type)(const particle *, const particle *, double3*);
 //};
+
+// chain parameter controller
+
+class chainpars{
+template <class T> friend class chain;
+private:
+  //time step integration parameter
+  double alpha; // logH cofficient
+  double beta;  // TTL cofficient
+  double gamma; // constant
+
+  //  mass coefficients parameter
+  double m_epi; // smooth parameter
+  bool m_smooth; // whether to use smooth mass coefficients
+
+  // minimum time step
+  double dtmin;
+  
+  // extrapolation control parameter
+  double exp_error; // relative error requirement for extrapolation
+  std::size_t exp_itermax; // maximum times for iteration.
+  int exp_methods;  // 1: Romberg method; others: Rational interpolation method
+  int exp_sequences; // 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
+
+public:
+
+  chainpars(): alpha(1.0), beta(0.0), gamma(0.0), m_epi(0.001), m_smooth(true), dtmin(5.4e-20), exp_error(1E-10), exp_itermax(20), exp_methods(2), exp_sequences(2) {}
+
+  chainpars(const double a, const double b, const double g, const double e=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
+    setabg(a,b,g);
+    setM(e,mm);
+    setEXP(error,dtm,itermax,methods,sequences);
+  }
+
+  /* setabg
+     function: set time step integration parameter alpha, beta, gamma
+     argument: a: alpha (logH)
+               b: beta  (TTL)
+               g: gamma (constant)
+  */
+  void setabg(const double a=1.0, const double b=0.0, const double g=0.0) {
+    alpha = a;
+    beta = b;
+    gamma = g;
+    // safety check
+    if (alpha==0&&beta==0&&gamma==0) {
+      std::cerr<<"Error: alpha, beta and gamma cannot be all zero!\n";
+      abort();
+    }
+  }
+
+  /* setM
+     function: set mass coefficient parameters epi and smooth_flag
+     argument: e: epi   (smooth parameter)
+               option: m_smooth (whether use smooth mass coefficients)
+  */
+  void setM(const double e=0.001, const bool mm=true) {
+    m_epi = e;
+    m_smooth = mm;
+    if (m_epi==0&&m_smooth) {
+      std::cerr<<"Error: smooth mass coefficients are used, but smooth coefficient epi is zero!\n";
+      abort();
+    }
+  }
+
+  /* setEXP
+     function: set extrapolation parameters
+     argument: error: relative error requirement for extrapolation
+               dtmin: minimum physical time step
+               itermax: maximum times for iteration.
+               methods: 1: Romberg method; others: Rational interpolation method
+               sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; others: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
+  */
+  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
+    exp_error = error;
+    exp_itermax = itermax;
+    exp_methods = methods;
+    exp_sequences = sequences;
+    dtmin = dtm;
+  }
+  
+  /*  const double &alpha()  const { return S_alpha;  }
+  const double &beta()   const { return S_beta;   }
+  const double &gamma()  const { return S_gamma;  }
+  const double &m_epi()    const { return M_epi;    } 
+  const double &m_smooth() const { return M_smooth; }
+  const double &exp_error()  const { return EXP_error;}
+  const std::size_t &exp_itermax() const { return EXP_itermax; }
+  const int &exp_methods()   const { return EXP_methods; }
+  const int &sequences()     const { return EXP_sequences; }
+  const double &dtmin()      const { return INT_dtmin; }*/
+  
+  
+};
 
 // Chain class
 template <class particle>
@@ -46,42 +189,26 @@ class chain{
   double3 *pf;  // perturber force
   double3 *dmdr; // \partial Omega/ \partial rk
 
-  //paramenters=======================================//
+  //integration paramenters=======================================//
   double Ekin;  //kinetic energy
   double Pot;   //potential
   double W;     //time transformation function
-
-  //Intgrt value======================================//
   double t;     //time
   double w;    //time transformation parameter
   double B;    //Binding energy (time momentum)
+  double m2;  // averaged mass
 
+  //number =======================================================//
   std::size_t num;      //total number of chain particles
   std::size_t nmax;     //maximum number 
 
-  //time step integration parameter
-  double alpha; // logH cofficient
-  double beta;  // TTL cofficient
-  double gamma; // constant
-
-  //  mass coefficients parameter
-  double epi; // smooth parameter
-  double m2;  // averaged mass
-  bool m_smooth; // whether to use smooth mass coefficients 
-
   //monitor flags
-  bool p_mod;     // indicate whether particle list is modified (true: modified)
-  bool p_origin; // indicate whether particle is shifted back to original frame (true: original frame: false: center-of-mass frame)
-  bool m2_s;     // indicate whether m2 is calculated.
-  bool abg_s;    // indicate whether abg is set.
+  bool F_Pmod;     // indicate whether particle list is modified (true: modified)
+  bool F_Porigin; // indicate whether particle is shifted back to original frame (true: original frame: false: center-of-mass frame)
+  bool F_m2s;     // indicate whether m2 is calculated.
 
-#ifdef TIME_PROFILE
-  double t_apw;    // APW calculation
-  double t_uplink; // update link
-  double t_lf;     // leap-frog
-  double t_ep;     // extrapolation
-  double t_pext;   // perturber force
-#endif
+  // chain parameter controller
+  const chainpars *pars;
 
 public:
 
@@ -97,12 +224,16 @@ public:
 
   //perturber list====================================//
   chainlist<particle> pext;
+
+#ifdef TIME_PROFILE
+  timeprofile profile;
+#endif
   
   //initialization
   //  template <class particle>
-  chain(std::size_t n): alpha(1.0), beta(0.0), gamma(0.0), epi(0.001), m2(0.0), m_smooth(true), abg_s(true) { nmax=0; allocate(n);}
+  chain(std::size_t n, const chainpars &par): m2(0.0), pars(&par) { nmax=0; allocate(n);}
 
-  chain(): alpha(1.0), beta(0.0), gamma(0.0), epi(0.001), m2(0.0), m_smooth(true), p_mod(false), p_origin(true), abg_s(true), m2_s(false), num(0), nmax(0) {}
+  chain(const chainpars &par): m2(0.0), pars(&par), F_Pmod(false), F_Porigin(true), F_m2s(false), num(0), nmax(0) {}
 
   // re-allocate function
   void allocate(std::size_t n) {
@@ -119,9 +250,9 @@ public:
     pf=new double3[n];
     dmdr=new double3[n];
     p.init(n);
-    p_mod=false;
-    p_origin=true;
-    m2_s=false;
+    F_Pmod=false;
+    F_Porigin=true;
+    F_m2s=false;
   }
 
   // clear function
@@ -136,9 +267,9 @@ public:
       num = 0;
       nmax = 0;
     }
-    p_mod=false;
-    p_origin=true;
-    m2_s=false;
+    F_Pmod=false;
+    F_Porigin=true;
+    F_m2s=false;
   }
 
   //destruction
@@ -244,7 +375,7 @@ private:
         }
       }
       m2 /= num * (num - 1) / 2;
-      m2_s = true;
+      F_m2s = true;
   }    
 
   
@@ -258,9 +389,9 @@ private:
   */  
   //  template <class particle>
   double calc_Wjk(const std::size_t i, const std::size_t j) {
-    if(abg_s==1) {
+    if(pars->m_smooth) {
       // Wjk = m2
-      if (p[i].getMass()* p[j].getMass()<epi*m2) return m2;
+      if (p[i].getMass()* p[j].getMass()<pars->m_epi*m2) return m2;
       // Wjk = 0
       else return 0;
     }
@@ -276,9 +407,9 @@ private:
                (notice the acceleration array index k and the distance matrix index j,k order follow particle p to avoid additional shift when chain list change)
      argument: force: external force (acceleration) for each particle, (not perturber forces)
   */
-  void calc_rAPW (const double3 *force=NULL) {
+  void calc_rAPW (const double3 *force=NULL, const bool recur_flag=false) {
 #ifdef TIME_PROFILE
-    t_apw -= get_wtime();
+    profile.t_apw -= get_wtime();
 #endif
     // template xjk vector
     // reset potential and transformation parameter
@@ -368,7 +499,7 @@ private:
     Pot = Pot_c;
     W = W_c;
 #ifdef TIME_PROFILE
-    t_apw += get_wtime();
+    profile.t_apw += get_wtime();
 #endif
   }
 
@@ -387,16 +518,15 @@ private:
   /* step_forward_X
      function: one step integration of X and physical time
      argument: ds: step size s (not physical time step), it is modifed if final step reach
-               dtmin: minimum physical time step criterion
                toff: ending physical time (negative means no ending point)
      return:  final step flag (if toff is reached)
    */
-  bool step_forward_X(double &ds, const double dtmin=5.4e-20, const double toff=-1) {
+  bool step_forward_X(double &ds, const double toff=-1) {
     bool finalstep = false;
     // determine the physical time step
-    double weight = (alpha * (Ekin + B) + beta * w + gamma);
+    double weight = (pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
     double dt = ds / weight;
-    if (dt<dtmin) {
+    if (dt < pars->dtmin) {
       std::cerr<<"Warning!: physical time step too small: "<<dt<<std::endl;
       abort();
     }
@@ -426,7 +556,7 @@ private:
    */
   double step_forward_V(const double s) {
     // determine velocity integration time step
-    double dt = s / (alpha * Pot + beta * W + gamma);
+    double dt = s / (pars->alpha * Pot + pars->beta * W + pars->gamma);
 
     // step forward V
     for (std::size_t i=0;i<num-1;i++) {
@@ -454,7 +584,7 @@ private:
   void step_forward_Bw(const double dt, const double3* ave_v, const double3* force, const bool fpf) {
     double dB = 0.0;
     double dw = 0.0;
-    if (beta>0||force!=NULL||fpf) {
+    if (pars->beta>0||force!=NULL||fpf) {
       for (std::size_t i=0;i<num;i++) {
         if (force!=NULL) {
           dB -= p[i].getMass() * ( ave_v[i][0] * (pf[i][0] + force[i][0]) 
@@ -466,7 +596,7 @@ private:
                             + ave_v[i][1] * pf[i][1] 
                             + ave_v[i][2] * pf[i][2]);
         }          
-        if (beta>0) {
+        if (pars->beta>0) {
           dw += ( ave_v[i][0] * dmdr[i][0]
                 + ave_v[i][1] * dmdr[i][1]
                 + ave_v[i][2] * dmdr[i][2]);
@@ -659,7 +789,7 @@ private:
   */
   bool pert_force() {
 #ifdef TIME_PROFILE
-    t_pext -= get_wtime();
+    profile.t_pext -= get_wtime();
 #endif
     const int np = pext.getN();
     if (np>0) {
@@ -688,7 +818,7 @@ private:
       return false;
     }
 #ifdef TIME_PROFILE
-    t_pext += get_wtime();
+    profile.t_pext += get_wtime();
 #endif
   }
      
@@ -698,7 +828,7 @@ private:
    */
   bool update_link(){
 #ifdef TIME_PROFILE
-    t_uplink -= get_wtime();
+    profile.t_uplink -= get_wtime();
 #endif
     // indicator
     bool modified=false;
@@ -852,7 +982,7 @@ private:
 #endif
     
 #ifdef TIME_PROFILE
-    t_uplink += get_wtime();
+    profile.t_uplink += get_wtime();
 #endif
     return modified;
   }
@@ -975,21 +1105,21 @@ public:
      argument: particle a
    */
   void addP(particle &a) {
-    if (!p_origin) std::cerr<<"Warning!: particle list are in the center-of-mass frame, dangerous to add new particles!\n";
+    if (!F_Porigin) std::cerr<<"Warning!: particle list are in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(a);
-    p_mod=true;
+    F_Pmod=true;
   }
 
   void addP(chain<particle> &a) {
-    if (!p_origin) std::cerr<<"Warning!: particle list are in the center-of-mass frame, dangerous to add new particles!\n";
+    if (!F_Porigin) std::cerr<<"Warning!: particle list are in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(a);
-    p_mod=true;
+    F_Pmod=true;
   }
   
   void addP(const std::size_t n, particle a[]) {
-    if (!p_origin) std::cerr<<"Warning!: particle list are in the center-of-mass frame, dangerous to add new particles!\n";
+    if (!F_Porigin) std::cerr<<"Warning!: particle list are in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(n,a);
-    p_mod=true;
+    F_Pmod=true;
   }
 
   /* remove particle
@@ -998,7 +1128,7 @@ public:
                option: true: shift last particle to current position (defaulted);
                        false: shift all right particle to left by one
   */
-  void removeP(const std::size_t i, bool option=true) { p.remove(i,option); p_mod=true; }
+  void removeP(const std::size_t i, bool option=true) { p.remove(i,option); F_Pmod=true; }
 
 
   /* initPext
@@ -1030,17 +1160,17 @@ public:
   */
   void removePext(const std::size_t i, bool option=true) { pext.remove(i,option); }
   
-  /* is_p_modified
+  /* isPmod
      function: reture true if particle list is modifed, in this case, the chain may need to be initialized again
      return: true/false
   */
-  bool is_p_modified() const { return p_mod; }
+  bool isPmod() const { return F_Pmod; }
 
-  /* is_p_origin
+  /* isPorigin
      function: return true if particle list are in original frame
      return: true/false
   */
-  bool is_p_origin() const { return p_origin; }
+  bool isPorigin() const { return F_Porigin; }
   
   /* init
      function: initialization chain from particle p
@@ -1058,9 +1188,9 @@ public:
     pert_force();
     
     //set center-of-mass
-    if (p_origin) {
+    if (F_Porigin) {
       center_shift_init();
-      p_origin=false;
+      F_Porigin=false;
     }
     else {
       std::cerr<<"Error: particles are not in original frame!\n";
@@ -1070,11 +1200,8 @@ public:
     //set member relative position and velocity
     calc_XV();
     
-    // check whether time and mass coefficients are set, if not, use defaulted.
-    if (!abg_s) setPars();
-
     // if smooth mass coefficients are used, calculate m2;
-    if (m_smooth) calc_m2();
+    if (pars->m_smooth) calc_m2();
 
     //set relative distance matrix, acceleration, potential and transformation parameter
     calc_rAPW(force);
@@ -1089,12 +1216,9 @@ public:
     B = Pot - Ekin;
     w = W;
 
-    // set p_mod to false
-    p_mod = false;
+    // set F_Pmod to false
+    F_Pmod = false;
 
-#ifdef TIME_PROFILE
-    reset_tp();
-#endif
     /*#ifdef DEBUG
 //    for (int i=0;i<num;i++) {
 //      std::cout<<i<<" m"<<std::setw(WIDTH)<<p[i].getMass()<<std::setw(WIDTH)<<"x";
@@ -1120,7 +1244,7 @@ public:
      p: particle list (read data and return shifted list);
   */
   void center_shift_inverse() {
-    if (p_origin) {
+    if (F_Porigin) {
       std::cerr<<"Warning: particles are already in original frame!\n";
     }
     else {
@@ -1136,7 +1260,7 @@ public:
                     vi[1] + vc[1],
                     vi[2] + vc[2]);
       }
-      p_origin = true;
+      F_Porigin = true;
     }
   }
 
@@ -1145,7 +1269,7 @@ public:
      p: particle list (read data and return shifted list);
   */
   void center_shift() {
-    if (p_origin) {
+    if (F_Porigin) {
       for (std::size_t i=0;i<num;i++) {
         const double *ri = p[i].getPos();
         const double *vi = p[i].getVel();
@@ -1158,56 +1282,27 @@ public:
                     vi[1] - vc[1],
                     vi[2] - vc[2]);
       }
-      p_origin = false;
+      F_Porigin = false;
     }
     else {
       std::cerr<<"Warning: particles are already in the center-of-mass frame!\n";
     }      
   }
 
-  /* setPars
-     function: set time step integration parameter alpha, beta, gamma and mass coefficients parameters epi and smooth_flag
-     argument: a: alpha (logH)
-               b: beta  (TTL)
-               g: gamma (constant)
-               e: epi   (smooth parameter)
-               option: m_smooth (whether use smooth mass coefficients)
-               
-  */
-  void setPars(const double a=1.0, const double b=0.0, const double g=0.0, const double e=0.001, const bool mm=true) {
-    alpha = a;
-    beta = b;
-    gamma = g;
-    epi = e;
-    m_smooth = mm;
-    // safety check
-    if (alpha==0&&beta==0&&gamma==0) {
-      std::cerr<<"Error: alpha, beta and gamma cannot be all zero!\n";
-      abort();
-    }
-    if (epi==0&&m_smooth) {
-      std::cerr<<"Error: smooth mass coefficients are used, but smooth coefficient epi is zero!\n";
-      abort();
-    }
-    abg_s = true;
-  }
-
-
   /* Leapfrog_step_forward
      function: integration n steps, particles' position and velocity will be updated in the center-of-mass frame
      argument: s: whole step size
                n: number of step division, real step size = (s/n), for Leapfrog integration, it is X(s/2n)V(s/n)X(s/n)V(s/n)..X(s/2n)
-               force: external force (not perturber forces which are calculated in pert_force)
                toff: ending physical time (negative means no ending time and integration finishing after n steps)
-               dtmin: minimum physical time step criterion
+               force: external force (not perturber forces which are calculated in pert_force)
                check_flag: 2: check link every step; 1: check link at then end; 0 :no check
-///               force: external force array
+               recur_flag: flag to determine whether to resolve sub-chain particles for force calculations. notice this require the sub-chain to be integrated to current physical time. Thus is this a recursion call (tree-recusion-integration)
 ///               upforce: void (const particle * p, const particle *pext, double3* force). function to calculate force based on p and pext, return to force
 //// ext_force<particle> upforce) 
   */             
-  void Leapfrog_step_forward(const double s, const int n, const double3* force=NULL, const double toff=-1.0, const double dtmin=5.4e-20, int check_flag=1) {
+  void Leapfrog_step_forward(const double s, const int n, const double toff=-1.0, const double3* force=NULL, int check_flag=1, bool recur_flag=false) {
 #ifdef TIME_PROFILE
-    t_lf -= get_wtime();
+    profile.t_lf -= get_wtime();
 #endif
     // Error check
     if (n<=0) {
@@ -1218,15 +1313,15 @@ public:
       std::cerr<<"Error: step size should be positive, current value is "<<s<<std::endl;
       abort();
     }
-    if (p_origin) {
+    if (F_Porigin) {
       std::cerr<<"Error: particles are not in the center-of-mass frame, the integration can be dangerous!"<<std::endl;
       abort();
     }
-    if (p_mod) {
+    if (F_Pmod) {
       std::cerr<<"Error: particles are modified, initialization required!"<<std::endl;
       abort();
     }
-    if (m_smooth&&!m2_s) {
+    if (pars->m_smooth&&!F_m2s) {
       std::cerr<<"Error: smooth mass coefficients are used, but averaged mass coefficient m2 is not calculated!\n";
       abort();
     }
@@ -1239,7 +1334,7 @@ public:
 
     // half step forward for X, t (dependence: Ekin, B, w, V)
     double hds = 0.5*ds;
-    bool finalflag=step_forward_X(hds,dtmin,toff);
+    bool finalflag=step_forward_X(hds,toff);
 
     // modify ds if finally step
     if (finalflag) ds = hds*2;
@@ -1261,23 +1356,57 @@ public:
         // reset position to center-of-mass frame, update p.x 
         center_shift_X();
       }
-      
-      // Update rjk, A, Pot, dmdr, W for half X (dependence: pf, force, p.getMass(), X, Wjk)
-      calc_rAPW(force); 
 
-      // update chain list order if necessary, update list, X, V (dependence: rjk, V)
+      // recursive integration-----------------------------------------------//
+#ifdef TIME_PROFILE
+      profile.t_lf += get_wtime();
+#endif
+      // check sub-chain 
+      const std::size_t nct = p.getNchain();
+      if (recur_flag&&nct>0) {
+        // get chainlist table
+        chain<particle> **clist = new chain<particle>*[nct];
+
+        // looping to link sub-chains
+        const std::size_t nt = p.getN();
+
+        std::size_t k = 0;
+        for (std::size_t j=0; j<nt; j++) {
+          chain<particle> *ct = p.getSub(j);
+          if (ct!=NULL) {
+            clist[k] = ct;
+            k++;
+          }
+        }
+
+        // call tree recursion integration
+        for (std::size_t j=0; j<nt; j++) {
+          // recursively call leapfrog until reaching the deepest branch.
+          if (clist[j]->p.getNchain()>0)  clist[j]->Leapfrog_step_forward(ds, n, t, force, 1, true);
+          else clist[j]->extrapolation_integration(ds, t, force);
+        }
+      }
+#ifdef TIME_PROFILE
+      profile.t_lf -= get_wtime();
+#endif
+      //---------------------------------------------------------------------//
+      
+      // Update rjk, A, Pot, dmdr, W for half X (dependence: pf, force, p.m, p.x, X)
+      calc_rAPW(force, recur_flag); 
+
+      // update chain list order if necessary, update list, X, V (dependence: p.x, X, V)
       if (num>2&&check_flag==2) update_link();
 
-      // Step forward V and get time step dt(V)
+      // Step forward V and get time step dt(V) (dependence: V, Pot, A, W)
       double dvt = step_forward_V(ds);
       
       // Get averaged velocity, update p.x, p.v, ave_v (dependence: X, V)
       resolve_XV(ave_v);
 
-      // forward B and w (dependence: dt(V), ave_v, p.getMass(), p.v, force, dmdr, pf)
+      // forward B and w (dependence: dt(V), ave_v, p.m, p.v, force, dmdr, pf)
       step_forward_Bw(dvt,ave_v,force,fpf);
 
-      // Calcuale Kinetic energy (dependence: p.getMass(), p.v)
+      // Calcuale Kinetic energy (dependence: p.m, p.v)
       calc_Ekin();
 
       // step forward for X (dependence: Ekin, B, w, V)
@@ -1285,7 +1414,7 @@ public:
         step_forward_X(hds,0.0);
         break;
       }
-      else step_forward_X(ds,dtmin);
+      else step_forward_X(ds);
       
       i++;
     } while (true);
@@ -1294,7 +1423,7 @@ public:
     resolve_X();
 
     // Update rjk, A, Pot, dmdr, W (notice A will be incorrect since pf is not updated)
-    calc_rAPW(force); 
+    calc_rAPW(force, recur_flag); 
     
 //#ifdef DEBUG
 //    std::cerr<<std::setw(WIDTH)<<t;
@@ -1313,25 +1442,26 @@ public:
     // clear memory
     delete[] ave_v;
 #ifdef TIME_PROFILE
-    t_lf += get_wtime();
+    profile.t_lf += get_wtime();
 #endif
   }
-
 
   /* extrapolation_integration
      function: extrapolation method to get accurate integration
      argument: s: whole step size
-               error: relative error requirement for extrapolation
-               itermax: maximum times for iteration.
-               methods: 1: Romberg method; others: Rational interpolation method
-               sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
+               toff: ending physical time (negative means no ending time and integration finishing after n steps)
                force: external force (not perturber forces which are calculated in pert_force)
-               dtmin: minimum physical time step
      return:   iteration count (start from 1, which means no iteration)
    */
-  int extrapolation_integration(const double s, const double error=1E-8, const std::size_t itermax=10, const int methods=1, const int sequences=2, const double3* force=NULL, const double dtmin=5.4e-20) {
+  int extrapolation_integration(const double s, const double toff=-1.0, const double3* force=NULL) {
+    // get parameters
+    const double error = pars->exp_error;
+    const std::size_t itermax = pars->exp_itermax;
+    const int methods = pars->exp_methods;
+    const int sequences = pars->exp_sequences;
+    
 #ifdef TIME_PROFILE
-    t_ep -= get_wtime();
+    profile.t_ep -= get_wtime();
 #endif
     // array size indicator for relative position and velocity
     const std::size_t nrel = num-1;
@@ -1371,7 +1501,7 @@ public:
     //memcpy(p0,p,num*sizeof(particle));
 
     // first step
-    Leapfrog_step_forward(s,1,force,-1.0,dtmin,0);
+    Leapfrog_step_forward(s,1,-1.0,force,0);
 
     // relative position vector between first and last particle for phase error check
     memset(CX,0,3*sizeof(double));
@@ -1447,9 +1577,9 @@ public:
       memcpy(X,X0,3*nrel*sizeof(double));
       memcpy(V,V0,3*nrel*sizeof(double));
       // reset velocity to get correct w
-      if (beta>0) resolve_V();
+      if (pars->beta>0) resolve_V();
 
-      Leapfrog_step_forward(s,step[intcount],force,-1.0,dtmin,0);
+      Leapfrog_step_forward(s,step[intcount],-1.0,force,0);
 
       if (methods==1) {
         // Using Romberg method
@@ -1624,7 +1754,7 @@ public:
       // recalculate the energy
       calc_Ekin();
       // force, potential and W
-      calc_rAPW();
+      calc_rAPW(force);
 
       // phase error calculation
       memset(CXN,0,3*sizeof(double));
@@ -1662,7 +1792,7 @@ public:
     if(num>2) update_link();
 
 #ifdef TIME_PROFILE
-    t_ep += get_wtime();
+    profile.t_ep += get_wtime();
 #endif
     
     return intcount+1;
@@ -1715,42 +1845,6 @@ public:
     return W;
   }
   
-#ifdef TIME_PROFILE
-  void reset_tp(){
-    t_apw=0.0;
-    t_uplink=0.0;
-    t_lf=0.0;
-    t_ep=0.0;
-    t_pext=0.0;
-  }
-
-  // calc_APW
-  double getTP_apw() const{
-    return t_apw;
-  }
-
-  //update link
-  double getTP_uplink() const{
-    return t_uplink;
-  }
-
-  // leap-frog
-  double getTP_lf() const{
-    return t_lf;
-  }
-
-  // extrapolation
-  double getTP_ep() const{
-    return t_ep;
-  }
-
-  // perturber force
-  double getTP_pext() const{
-    return t_pext;
-  }
-#endif
-
-
 #ifdef DEBUG
   /* set_X
      function: modify X
@@ -1824,9 +1918,9 @@ public:
              <<"Time momentum B:"<<std::setw(width)<<B<<std::endl
              <<"Transformation coefficient omega:"<<std::setw(width)<<w<<std::endl
              <<"---Time step coefficients:"<<std::endl
-             <<"alpha: "<<std::setw(width)<<alpha<<std::endl
-             <<"beta: "<<std::setw(width)<<beta<<std::endl
-             <<"gamma: "<<std::setw(width)<<gamma<<std::endl;
+             <<"alpha: "<<std::setw(width)<<pars->alpha<<std::endl
+             <<"beta: "<<std::setw(width)<<pars->beta<<std::endl
+             <<"gamma: "<<std::setw(width)<<pars->gamma<<std::endl;
   }
 #endif  
 };
@@ -1836,18 +1930,20 @@ template <class particle>
 class chainlist{
   std::size_t num;
   std::size_t nmax;
+  std::size_t nchain;  // number of sub-chain
   bool* cflag; // flag to indicater whether it is chain (true: chain; false: Particle)
   void** p;
 
 public:
   // initialization
-  chainlist(): num(0), nmax(0) {};
+  chainlist(): num(0), nmax(0), nchain(0) {};
   
   chainlist(const std::size_t n) { init(n); }
 
   void init(const std::size_t n) {
     num = 0;
     nmax = n;
+    nchain = 0;
     cflag=new bool[n];
     p=new void*[n];
   }
@@ -1871,6 +1967,11 @@ public:
   // get particle number
   std::size_t getN() const {
     return num;
+  }
+
+  // get chain number
+  std::size_t getNchain() const {
+    return nchain;
   }
 
   // add new particle
@@ -1907,6 +2008,7 @@ public:
       cflag[num] = true;
       p[num] = &a;
       num++;
+      nchain++;
     }
     else {
       std::cerr<<"Error: chainlist overflow! maximum number is "<<nmax<<std::endl;
@@ -1919,9 +2021,10 @@ public:
                        false: shift all right particle to left by one
                i: particle index
   */
-  void remove(std::size_t i, bool option=true) {
+  void remove(const std::size_t i, bool option=true) {
     if (option) {
       if (i<num-1) {
+        if (cflag[i]) nchain--;
         num--;
         cflag[i] = cflag[num];
         p[i] = p[num];
@@ -1932,6 +2035,7 @@ public:
     }
     else {
       if (i<num-1) {
+        if (cflag[i]) nchain--;
         num--;
         for (std::size_t j=i;j<num;j++) {
           cflag[j] = cflag[j+1];
@@ -1945,7 +2049,7 @@ public:
   }
 
   // return the particle reference or center-of-mass particle reference if it is a chain
-  particle &operator [](std::size_t i){
+  particle &operator [](const std::size_t i){
     if (i>=num) {
       std::cerr<<"Error: the required index "<<i<<" exceed the current particle list boundary (total number = "<<num<<std::endl;
       abort();
@@ -1956,6 +2060,20 @@ public:
     else {
       return *((particle*)p[i]);
     }
+  }
+
+  /* ischain
+     function: check whether a member is chain
+     argument: i: index
+     return:  true: chain; false: particle
+   */
+  bool isChain (const std::size_t i) const {
+    return cflag[i];
+  }
+
+  chain<particle> *getSub (const std::size_t i) const {
+    if (cflag[i]) return (chain<particle>*)p[i];
+    else return NULL;
   }
 
 };
