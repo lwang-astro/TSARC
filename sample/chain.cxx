@@ -15,32 +15,37 @@ int main(int argc, char **argv){
   int nsubstep=128;  // sub-step number if direct LF method is used
   int itermax=15;  //iteration maximum number for extrapolation methods
   char* sw=NULL;        // if not 'none', use extrapolation method, 'linear' for Romberg method; 'rational'  for rational interpolation method
-  char* sq=NULL;        // extrapolation sequence, 'even' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}
+  char* sq=NULL;        // extrapolation sequence, 'rom' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
   double err=1e-8; // phase error requirement
   double s=0.5;    // step size
   double dtmin=5.4e-20; // mimimum physical time step
+  double t=0.0;    // initial physical time
   int copt;
 
-  while ((copt = getopt(argc, argv, "a:d:N:w:n:s:k:i:m:M:e:p:h")) != -1)
+  while ((copt = getopt(argc, argv, "N:n:t:s:a:k:m:M:i:e:d:w:p:h")) != -1)
     switch (copt) {
     case 'N':
       n = atoi(optarg);
       break;
-    case 'w':
-      w = atof(optarg);
-      break;
     case 'n':
       nstep = atoi(optarg);
+      break;
+    case 't':
+      t = atof(optarg);
       break;
     case 's':
       s = atof(optarg);
       break;
+    case 'a':
+      method = optarg;
+      if (strcmp(method,"logh")&&strcmp(method,"ttl")) {
+        std::cerr<<"Regularization method "<<method<<" not found!\n";
+        abort();
+      }
+      break;
     case 'k':
       nsubstep = atoi(optarg);
-      break;
-    case 'i':
-      itermax = atoi(optarg);
       break;
     case 'm':
       sw = optarg;
@@ -51,43 +56,48 @@ int main(int argc, char **argv){
       break;
     case 'M':
       sq = optarg;
-      if (strcmp(sq,"even")&&strcmp(sq,"bs")) {
+      if (strcmp(sq,"rom")&&strcmp(sq,"bs")) {
         std::cerr<<"Extrapolation sequences "<<sq<<" not found!\n";
         abort();
       }
       break;
-    case 'a':
-      method = optarg;
-      if (strcmp(method,"logh")&&strcmp(method,"ttl")) {
-        std::cerr<<"Regularization method "<<method<<" not found!\n";
-        abort();
-      }
+    case 'i':
+      itermax = atoi(optarg);
+      break;
+    case 'e':
+      err = atof(optarg);
       break;
     case 'd':
       dtmin = atof(optarg);
       break;
-    case 'e':
-      err = atof(optarg);
+    case 'w':
+      w = atof(optarg);
       break;
     case 'p':
       pre = atoi(optarg);
       break;
     case 'h':
-      std::cout<<"chain [option] filename\n"
+      std::cout<<"chain [option] data_filename\n"
+               <<"Input data file format: each line: mass, x, y, z, vx, vy, vz\n"
                <<"Options: (*) show defaulted values\n"
-               <<"    -N:  total number of particles ("<<n<<")\n"
-               <<"    -n:  number of integration steps ("<<nstep<<")\n"
-               <<"    -s:  step size, not physical time step ("<<s<<")\n"
-               <<"    -a:  algorithmic regularization method; 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog (logh)\n"
-               <<"    -m:  use extrapolation method to get high accuracy; 'linear' for Romberg linear interpolation method; 'ration' for rational interpolation method; 'none' for no extrapolation (rational)\n"
-               <<"    -M:  extrapolation sequences; 'even' for even sequences {h, h/2, h/4, h/8 ...}; 'bs' for Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...} (bs)\n"
-               <<"    -e:  phase error limit ("<<err<<")\n"
-               <<"    -d:  minimum physical time step ("<<dtmin<<")\n"
-               <<"    -i:  maximum iteration steps for extrapolation method ("<<itermax<<")\n"
-               <<"    -k:  sub-step number if no extrapolation method is used ("<<nsubstep<<")\n"
-               <<"    -w:  print width of value ("<<w<<")\n"
-               <<"    -p:  print digital precision ("<<pre<<")\n"
-               <<"Input file format: each line: mass, x, y, z, vx, vy, vz\n";
+               <<"    -N [int]:     total number of particles ("<<n<<")\n"
+               <<"    -n [int]      number of integration steps ("<<nstep<<")\n"
+               <<"    -t [double]:  initial physical time ("<<t<<"\n"
+               <<"    -s [double]:  step size, not physical time step ("<<s<<")\n"
+               <<"    -a [string]:  algorithmic regularization method; 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog (logh)\n"
+               <<"    -k [int]:     sub-step number if no extrapolation method is used ("<<nsubstep<<")\n"
+               <<"    -m [string]:  use extrapolation method to get high accuracy (rational)\n"
+               <<"                  'linear':   Romberg linear interpolation method;\n"
+               <<"                  'rational': rational interpolation method;\n"
+               <<"                  'none':     no extrapolation\n"
+               <<"    -M [string]:  extrapolation sequences (bs)\n"
+               <<"                  'rom': Romberg sequences {h, h/2, h/4, h/8 ...};\n"
+               <<"                  'bs':   Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}\n"
+               <<"    -i [int]:     maximum iteration steps for extrapolation method ("<<itermax<<")\n"
+               <<"    -e [double]:  phase error limit ("<<err<<")\n"
+               <<"    -d [double]:  minimum physical time step ("<<dtmin<<")\n"
+               <<"    -w [int]:     print width of value ("<<w<<")\n"
+               <<"    -p [int]:     print digital precision ("<<pre<<")\n";
       return 0;
     default:
       std::cerr<<"Unknown argument. check '-h' for help.\n";
@@ -112,15 +122,18 @@ int main(int argc, char **argv){
   for (int i=0;i<n;i++) {
     double x,y,z,vx,vy,vz,m;
     fs>>m>>x>>y>>z>>vx>>vy>>vz;
+    if (fs.eof()) {
+      std::cerr<<"Error: data file reach end when reading particles (current loaded particle number is "<<i<<"; required N = "<<n<<std::endl;
+      abort();
+    }
     p[i]=Particle(m,x,y,z,vx,vy,vz);
   }
   c.addP(n,p);
   
-  c.set_abg(1.0,0.0,0.0);
   if (method)
-    if (strcmp(method,"ttl")==0) c.set_abg(0.0,1.0,0.0,0.001);
+    if (strcmp(method,"ttl")==0) c.setPars(0.0,1.0,0.0);
   
-  c.init(0.0);
+  c.init(t);
   std::cout<<std::setprecision(pre);
   int* stepcount=new int[itermax+1];
   memset(stepcount,0,(itermax+1)*sizeof(int));
@@ -155,12 +168,15 @@ int main(int argc, char **argv){
     int icount=0;
     int msq=2;
     if (sq) 
-      if (strcmp(sq,"even")==0) msq=1;
+      if (strcmp(sq,"rom")==0) msq=1;
     if (sw==NULL) icount = c.extrapolation_integration(s,err,itermax,2,msq,NULL,dtmin);
     else if (strcmp(sw,"rational")==0) icount = c.extrapolation_integration(s,err,itermax,2,msq,NULL,dtmin);
     else if (strcmp(sw,"linear")==0) icount = c.extrapolation_integration(s,err,itermax,1,msq,NULL,dtmin);
     else if (strcmp(sw,"none")==0) c.Leapfrog_step_forward(s,nsubstep,NULL,dtmin);
     stepcount[icount]++;
+#ifdef TIME_PROFILE
+    std::cerr<<"Time profile: Step: "<<i<<"  Accelaration+Potential(s): "<<c.getTP_apw()<<"  Update_link(s): "<<c.getTP_uplink()<<"  Leap-frog(s): "<<c.getTP_lf()<<"  Extrapolation(s): "<<c.getTP_ep()<<"  Perturbation(s): "<<c.getTP_pext()<<std::endl;
+#endif
   }
 
   if (sw==NULL||strcmp(sw,"none")!=0) {
@@ -169,7 +185,6 @@ int main(int argc, char **argv){
       std::cerr<<i<<"\t"<<stepcount[i]<<std::endl;
     }
   }
-
   return 0;
 }
   

@@ -4,10 +4,23 @@
 #include <string.h>
 #include <cmath>
 #include <cstdlib>
+#include <limits>
+#ifdef USE_OMP
+#include <omp.h>
+#endif
 
 #ifdef DEBUG
 #include <iomanip>
 #define WIDTH 10
+#endif
+
+#ifdef TIME_PROFILE
+#include <sys/time.h>
+static double get_wtime(){
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec + 1.e-6 * tv.tv_usec;
+}
 #endif
 
 //declaration
@@ -26,15 +39,12 @@ template <class particle> class chainlist;
 template <class particle>
 class chain{
   typedef double double3[3];
-  typedef double double4[4];
   double3 *X;  // relative position
   double3 *V;  // relative velocity
   std::size_t *list;   // chain index list
   double3 *acc; // acceleration
   double3 *pf;  // perturber force
   double3 *dmdr; // \partial Omega/ \partial rk
-  double **Wjk; // Omega ij, mass coefficients
-  double4 **rjk; // relative position matrix
 
   //paramenters=======================================//
   double Ekin;  //kinetic energy
@@ -50,14 +60,28 @@ class chain{
   std::size_t nmax;     //maximum number 
 
   //time step integration parameter
-  double alpha; 
-  double beta;
-  double gamma;
-  double epi;   //  mass coefficients parameter
+  double alpha; // logH cofficient
+  double beta;  // TTL cofficient
+  double gamma; // constant
+
+  //  mass coefficients parameter
+  double epi; // smooth parameter
+  double m2;  // averaged mass
+  bool m_smooth; // whether to use smooth mass coefficients 
 
   //monitor flags
   bool p_mod;     // indicate whether particle list is modified (true: modified)
   bool p_origin; // indicate whether particle is shifted back to original frame (true: original frame: false: center-of-mass frame)
+  bool m2_s;     // indicate whether m2 is calculated.
+  bool abg_s;    // indicate whether abg is set.
+
+#ifdef TIME_PROFILE
+  double t_apw;    // APW calculation
+  double t_uplink; // update link
+  double t_lf;     // leap-frog
+  double t_ep;     // extrapolation
+  double t_pext;   // perturber force
+#endif
 
 public:
 
@@ -76,9 +100,9 @@ public:
   
   //initialization
   //  template <class particle>
-  chain(std::size_t n): alpha(1.0), beta(0.0), gamma(0.0), epi(0.001) { nmax=0; allocate(n);}
+  chain(std::size_t n): alpha(1.0), beta(0.0), gamma(0.0), epi(0.001), m2(0.0), m_smooth(true), abg_s(true) { nmax=0; allocate(n);}
 
-  chain(): alpha(1.0), beta(0.0), gamma(0.0), epi(0.001), p_mod(false), p_origin(true), num(0), nmax(0) {}
+  chain(): alpha(1.0), beta(0.0), gamma(0.0), epi(0.001), m2(0.0), m_smooth(true), p_mod(false), p_origin(true), abg_s(true), m2_s(false), num(0), nmax(0) {}
 
   // re-allocate function
   void allocate(std::size_t n) {
@@ -94,15 +118,10 @@ public:
     acc=new double3[n];
     pf=new double3[n];
     dmdr=new double3[n];
-    Wjk=new double*[n];
-    rjk=new double4*[n];
-    for (std::size_t i=0;i<n;i++) {
-      Wjk[i]=new double[n];
-      rjk[i]=new double4[n];
-    }
     p.init(n);
     p_mod=false;
     p_origin=true;
+    m2_s=false;
   }
 
   // clear function
@@ -114,17 +133,12 @@ public:
       delete[] acc;
       delete[] pf;
       delete[] dmdr;
-      for (std::size_t i=0;i<nmax;i++) {
-        delete[] Wjk[i];
-        delete[] rjk[i];
-      }
-      delete[] Wjk;
-      delete[] rjk;
       num = 0;
       nmax = 0;
     }
     p_mod=false;
     p_origin=true;
+    m2_s=false;
   }
 
   //destruction
@@ -136,12 +150,6 @@ public:
       delete[] acc;
       delete[] pf;
       delete[] dmdr;
-      for (std::size_t i=0;i<nmax;i++) {
-        delete[] Wjk[i];
-        delete[] rjk[i];
-      }
-      delete[] Wjk;
-      delete[] rjk;
     }
   }
 
@@ -224,6 +232,22 @@ private:
     }
   }
 
+
+  /* calc_m2
+     function: Get averaged mass coefficients for calculating Wjk
+   */
+  void calc_m2() {
+      // calcualte m'^2
+      for (std::size_t i=0;i<num;i++) {
+        for (std::size_t j=i+1;j<num;j++) {
+          m2 += p[i].getMass() * p[j].getMass();
+        }
+      }
+      m2 /= num * (num - 1) / 2;
+      m2_s = true;
+  }    
+
+  
   /* calc_wij
      function: Get mass coefficients from particle p.
                To avoid frequent shift of data, the i,j order follow particle p (not chain list)
@@ -233,32 +257,16 @@ private:
                epi: for option=0
   */  
   //  template <class particle>
-  void calc_Wjk(const int option=0, const double epi=0.001) {
-    if(option==0) {
-      // calcualte m'^2
-      double m2=0.;
-      for (std::size_t i=0;i<num;i++) {
-        for (std::size_t j=i+1;j<num;j++) {
-          m2 += p[i].getMass() * p[j].getMass();
-        }
-      }
-      m2 /= num * (num - 1) / 2;
-
-      // set Wjk
-      for (std::size_t i=0;i<num;i++) {
-        for (std::size_t j=0;j<num;j++) {
-          if (p[i].getMass()* p[j].getMass()<epi*m2) Wjk[i][j] = m2;
-          else Wjk[i][j]=0;
-        }
-      }
+  double calc_Wjk(const std::size_t i, const std::size_t j) {
+    if(abg_s==1) {
+      // Wjk = m2
+      if (p[i].getMass()* p[j].getMass()<epi*m2) return m2;
+      // Wjk = 0
+      else return 0;
     }
     else {
       // Wjk = m_i*m_j
-      for (std::size_t i=0;i<num;i++) {
-        for (std::size_t j=0;j<num;j++) {
-          Wjk[i][j] = p[i].getMass() * p[j].getMass();
-        }
-      }
+      return p[i].getMass() * p[j].getMass();
     }
   }
 
@@ -268,14 +276,18 @@ private:
                (notice the acceleration array index k and the distance matrix index j,k order follow particle p to avoid additional shift when chain list change)
      argument: force: external force (acceleration) for each particle, (not perturber forces)
   */
-  //  template <class particle>
   void calc_rAPW (const double3 *force=NULL) {
+#ifdef TIME_PROFILE
+    t_apw -= get_wtime();
+#endif
     // template xjk vector
-    double3 xjk={0};
     // reset potential and transformation parameter
-    Pot  = 0.0;
-    W  = 0.0;
-    // Loop all particles 
+    double Pot_c  = 0.0;
+    double W_c  = 0.0;
+    // Loop all particles in list
+#ifdef USE_OMP
+#pragma omp parallel for reduction(+:Pot_c), reduction(+:W_c)
+#endif
     for (std::size_t j=0;j<num;j++) {
       std::size_t lj = list[j];
       const particle *pj= &p[lj];
@@ -287,61 +299,57 @@ private:
       memset(dmdr[lj],0,3*sizeof(double));
       
       for (std::size_t k=0;k<num;k++) {
+        if(k==j) continue;
         std::size_t lk = list[k];
         const particle *pk= &p[lk];
-        double *rljk= rjk[lj][lk];
-        if (rljk==NULL) {
-          std::cerr<<"Error, rjk["<<lj<<"]["<<lk<<"] not found!, current particle number N="<<num<<std::endl;
-          abort();
+        double3 xjk;
+
+        if(k==j+1) memcpy(xjk,X[j],3*sizeof(double));
+        if(k==j-1) {
+          xjk[0] = -X[k][0];
+          xjk[1] = -X[k][1];
+          xjk[2] = -X[k][2];
         }
-
-        if(k==j) memset(rljk,0,4*sizeof(double));
-        else if (k>j) {
-          if(k==j+1) memcpy(xjk,X[j],3*sizeof(double)); // initial xjk;
-          else { // update xjk
-            xjk[0] += X[k-1][0];
-            xjk[1] += X[k-1][1];
-            xjk[2] += X[k-1][2];
-          }
-          memcpy(rljk,xjk,3*sizeof(double));
-          // Suppressed old method
-          // else if(k==j+2) {
-          //   rljk[0] = X[j][0] + X[j+1][0];
-          //   rljk[1] = X[j][1] + X[j+1][1];
-          //   rljk[2] = X[j][2] + X[j+1][2];
-          // }
-          // else {
-          //   rljk[0] = pk->x[0] - pj->x[0];
-          //   rljk[1] = pk->x[1] - pj->x[1];
-          //   rljk[2] = pk->x[2] - pj->x[2];
-
-          rljk[3] = std::sqrt(rljk[0]*rljk[0]+rljk[1]*rljk[1]+rljk[2]*rljk[2]);
-          //Potential energy==================================//
-          Pot += pk->getMass() * pj->getMass() / rljk[3];
-          //Transformation coefficient========================//
-          W += Wjk[lj][lk] / rljk[3];
+        else if(k==j+2) {
+          xjk[0] = X[j][0] + X[j+1][0];
+          xjk[1] = X[j][1] + X[j+1][1];
+          xjk[2] = X[j][2] + X[j+1][2];
+        }
+        else if(k==j-2) {
+          xjk[0] = -X[k][0] - X[k+1][0];
+          xjk[1] = -X[k][1] - X[k+1][1];
+          xjk[2] = -X[k][2] - X[k+1][2];
         }
         else {
-          rljk[0] = -rjk[lk][lj][0];
-          rljk[1] = -rjk[lk][lj][1];
-          rljk[2] = -rjk[lk][lj][2];
-          rljk[3] =  rjk[lk][lj][3];
+          const double* xk = pk->getPos();
+          const double* xj = pj->getPos();
+          xjk[0] = xk[0] - xj[0];
+          xjk[1] = xk[1] - xj[1];
+          xjk[2] = xk[2] - xj[2];
+        }
+
+        double rjk = std::sqrt(xjk[0]*xjk[0]+xjk[1]*xjk[1]+xjk[2]*xjk[2]);
+        double wjk = calc_Wjk(lj,lk);
+
+        if (k>j) {
+          //Potential energy==================================//
+          Pot_c += pk->getMass() * pj->getMass() / rjk;
+          //Transformation coefficient========================//
+          W_c += wjk / rjk;
         }
         
-        if (k!=j) {
-          //Acceleration======================================//
-          double rljk3 = rljk[3]*rljk[3]*rljk[3];
-          double mor3 = pk->getMass() / rljk3;
-          acc[lj][0] += mor3 * rljk[0];
-          acc[lj][1] += mor3 * rljk[1];
-          acc[lj][2] += mor3 * rljk[2];
+        //Acceleration======================================//
+        double rjk3 = rjk*rjk*rjk;
+        double mor3 = pk->getMass() / rjk3;
+        acc[lj][0] += mor3 * xjk[0];
+        acc[lj][1] += mor3 * xjk[1];
+        acc[lj][2] += mor3 * xjk[2];
 
-          //d W / d r=========================================//
-          mor3 = Wjk[lj][lk] / rljk3;
-          dmdr[lj][0] += mor3 * rljk[0];
-          dmdr[lj][1] += mor3 * rljk[1];
-          dmdr[lj][2] += mor3 * rljk[2];
-        }
+        //d W / d r=========================================//
+        mor3 = wjk / rjk3;
+        dmdr[lj][0] += mor3 * xjk[0];
+        dmdr[lj][1] += mor3 * xjk[1];
+        dmdr[lj][2] += mor3 * xjk[2];
       }
       //add external acceleration======================================//
       if (force!=NULL) {
@@ -355,6 +363,13 @@ private:
         acc[lj][2] += pf[lj][2];
       }        
     }
+
+    // Write potential and w
+    Pot = Pot_c;
+    W = W_c;
+#ifdef TIME_PROFILE
+    t_apw += get_wtime();
+#endif
   }
 
   /* calc_Ekin
@@ -368,18 +383,6 @@ private:
       Ekin += 0.5 * p[i].getMass() * (vi[0]*vi[0]+vi[1]*vi[1]+vi[2]*vi[2]);
     }
   }
-
-  /* calc_Pot
-     function: calculate potential energy
-  */
-  //  template <class particle>
-  void calc_Pot(){
-    Pot = 0.0;
-    for (std::size_t i=0; i<num; i++) 
-      for (std::size_t j=0; j<i; j++) 
-        Pot += p[i].getMass() * p[j].getMass() / rjk[i][j][3];
-  }
-  
 
   /* step_forward_X
      function: one step integration of X and physical time
@@ -643,6 +646,9 @@ private:
     return:   true: pertubers exist. false: no perturbers
   */
   bool pert_force() {
+#ifdef TIME_PROFILE
+    t_pext -= get_wtime();
+#endif
     const int np = pext.getN();
     if (np>0) {
       for (std::size_t i=0;i<num;i++) {
@@ -669,6 +675,9 @@ private:
       memset(pf,0,3*num*sizeof(double));
       return false;
     }
+#ifdef TIME_PROFILE
+    t_pext += get_wtime();
+#endif
   }
      
   /* update_link
@@ -676,6 +685,9 @@ private:
      return:   if link is modified, return true
    */
   bool update_link(){
+#ifdef TIME_PROFILE
+    t_uplink -= get_wtime();
+#endif
     // indicator
     bool modified=false;
 #ifdef DEBUG        
@@ -693,6 +705,10 @@ private:
     // backup previous link
     std::size_t* listbk = new std::size_t[num];
     memcpy(listbk,list,num*sizeof(std::size_t));
+
+    // backup current X
+    double3* Xbk = new double3[num-1];
+    memcpy(Xbk,X,(num-1)*3*sizeof(double));
     
     // backup current V
     double3* Vbk = new double3[num-1];
@@ -701,18 +717,27 @@ private:
     // create mask to avoid dup. check;
     bool* mask = new bool[num];
     memset(mask,false,num*sizeof(bool));
+
+    const double NUMERIC_DOUBLE_MAX = std::numeric_limits<double>::max();
     for (std::size_t k=0;k<num-1;k++) {
       std::size_t lk  = list[k];
        mask[lk] = true;
       std::size_t lkn = list[k+1];
       // possible new index
       std::size_t lku = lkn;
-      double rmin = rjk[lk][lkn][3];
+      // calculate distance
+      double rmin = NUMERIC_DOUBLE_MAX;
       for (std::size_t j=0;j<num;j++) {
         if (mask[j]||j==k) continue;
-        if (rjk[lk][j][3]<rmin) {
+        const double* xk = p[lk].getPos();
+        const double* xj = p[j].getPos();
+        double xjk = xk[0] - xj[0];
+        double yjk = xk[1] - xj[1];
+        double zjk = xk[2] - xj[2];
+        double rjk2 = xjk*xjk + yjk*yjk + zjk*zjk;
+        if (rjk2<rmin) {
           lku=j;
-          rmin = rjk[lk][j][3];
+          rmin = rjk2;
         }
       }
       if (lku!=lkn) {
@@ -739,12 +764,7 @@ private:
       }
 
       if (lk!=listbk[k]||lku!=listbk[k+1]) {
-        // update X from rjk
-        memcpy(X[k], rjk[lk][lku], 3*sizeof(double));
-#ifdef DEBUG
-        std::cerr<<"copy rjk["<<lk<<"]["<<lku<<"] to X["<<k<<"]\n";
-#endif
-        // update V
+        // update X and V
         // left boundary
         std::size_t rlk = roldlink[lk];
         if (rlk<k) {
@@ -752,6 +772,10 @@ private:
 #ifdef DEBUG
             std::cerr<<"Add V["<<j<<"] to V["<<k<<"]\n";
 #endif
+            X[k][0] += Xbk[j][0];
+            X[k][1] += Xbk[j][1];
+            X[k][2] += Xbk[j][2];
+
             V[k][0] += Vbk[j][0];
             V[k][1] += Vbk[j][1];
             V[k][2] += Vbk[j][2];
@@ -762,6 +786,10 @@ private:
 #ifdef DEBUG
             std::cerr<<"Minus V["<<j<<"] from V["<<k<<"]\n";
 #endif
+            X[k][0] -= Xbk[j][0];
+            X[k][1] -= Xbk[j][1];
+            X[k][2] -= Xbk[j][2];
+
             V[k][0] -= Vbk[j][0];
             V[k][1] -= Vbk[j][1];
             V[k][2] -= Vbk[j][2];
@@ -774,6 +802,10 @@ private:
 #ifdef DEBUG
             std::cerr<<"Minus V["<<j<<"] from V["<<k<<"]\n";
 #endif
+            X[k][0] -= Xbk[j][0];
+            X[k][1] -= Xbk[j][1];
+            X[k][2] -= Xbk[j][2];
+
             V[k][0] -= Vbk[j][0];
             V[k][1] -= Vbk[j][1];
             V[k][2] -= Vbk[j][2];
@@ -784,6 +816,10 @@ private:
 #ifdef DEBUG
             std::cerr<<"Add V["<<j<<"] to V["<<k<<"]\n";
 #endif
+            X[k][0] += Xbk[j][0];
+            X[k][1] += Xbk[j][1];
+            X[k][2] += Xbk[j][2];
+
             V[k][0] += Vbk[j][0];
             V[k][1] += Vbk[j][1];
             V[k][2] += Vbk[j][2];
@@ -803,6 +839,9 @@ private:
     if(modified) print();
 #endif
     
+#ifdef TIME_PROFILE
+    t_uplink += get_wtime();
+#endif
     return modified;
   }
 
@@ -979,13 +1018,6 @@ public:
   */
   void removePext(const std::size_t &i, bool option=true) { pext.remove(i,option); }
   
-  /* init
-     function: initialization chain from particle p
-     argument: time: current time
-     n:    number of particles
-     force: external force
-  */
-
   /* is_p_modified
      function: reture true if particle list is modifed, in this case, the chain may need to be initialized again
      return: true/false
@@ -998,7 +1030,11 @@ public:
   */
   bool is_p_origin() const { return p_origin; }
   
-  //  template <class particle>
+  /* init
+     function: initialization chain from particle p
+     argument: time: current time
+     force: external force
+  */
   void init(const double time, const double3* force=NULL) {
     //update number indicator
     update_num(p.getN());
@@ -1022,9 +1058,11 @@ public:
     //set member relative position and velocity
     calc_XV();
     
-    //set mass coefficients Wjk
-    if (gamma==0&&((alpha==1&&beta==0)||(alpha==0&&beta==1))) calc_Wjk(1);
-    else calc_Wjk();
+    // check whether time and mass coefficients are set, if not, use defaulted.
+    if (!abg_s) setPars();
+
+    // if smooth mass coefficients are used, calculate m2;
+    if (m_smooth) calc_m2();
 
     //set relative distance matrix, acceleration, potential and transformation parameter
     calc_rAPW(force);
@@ -1035,16 +1073,16 @@ public:
     //kinetic energy
     calc_Ekin();
 
-    //Potential energy
-    //calc_Pot();
-    
     // initial time step parameter
     B = Pot - Ekin;
     w = W;
 
     // set p_mod to false
     p_mod = false;
-    
+
+#ifdef TIME_PROFILE
+    reset_tp();
+#endif
     /*#ifdef DEBUG
 //    for (int i=0;i<num;i++) {
 //      std::cout<<i<<" m"<<std::setw(WIDTH)<<p[i].getMass()<<std::setw(WIDTH)<<"x";
@@ -1115,18 +1153,31 @@ public:
     }      
   }
 
-  /* set_abg
-     function: set time step integration parameter alpha, beta, gamma and epi
-     argument: a: alpha
-               b: beta
-               g: gamma
-               e: epi
+  /* setPars
+     function: set time step integration parameter alpha, beta, gamma and mass coefficients parameters epi and smooth_flag
+     argument: a: alpha (logH)
+               b: beta  (TTL)
+               g: gamma (constant)
+               e: epi   (smooth parameter)
+               option: m_smooth (whether use smooth mass coefficients)
+               
   */
-  void set_abg(const double a, const double b, const double g, const double e=0.001) {
+  void setPars(const double a=1.0, const double b=0.0, const double g=0.0, const double e=0.001, const bool mm=true) {
     alpha = a;
     beta = b;
     gamma = g;
     epi = e;
+    m_smooth = mm;
+    // safety check
+    if (alpha==0&&beta==0&&gamma==0) {
+      std::cerr<<"Error: alpha, beta and gamma cannot be all zero!\n";
+      abort();
+    }
+    if (epi==0&&m_smooth) {
+      std::cerr<<"Error: smooth mass coefficients are used, but smooth coefficient epi is zero!\n";
+      abort();
+    }
+    abg_s = true;
   }
 
 
@@ -1141,6 +1192,9 @@ public:
 //// ext_force<particle> upforce) 
   */             
   void Leapfrog_step_forward(const double s, const int n, const double3* force=NULL, const double dtmin=5.4e-20, int check_flag=1) {
+#ifdef TIME_PROFILE
+    t_lf -= get_wtime();
+#endif
     // Error check
     if (n<=0) {
       std::cerr<<"Error: step number shound be positive, current number is "<<n<<std::endl;
@@ -1151,11 +1205,15 @@ public:
       abort();
     }
     if (p_origin) {
-      std::cerr<<"Error: particles are not in the center-of-mass frame, the integration can be dangerous"<<std::endl;
+      std::cerr<<"Error: particles are not in the center-of-mass frame, the integration can be dangerous!"<<std::endl;
       abort();
     }
     if (p_mod) {
-      std::cerr<<"Error: particles are modified, initialization required"<<std::endl;
+      std::cerr<<"Error: particles are modified, initialization required!"<<std::endl;
+      abort();
+    }
+    if (m_smooth&&!m2_s) {
+      std::cerr<<"Error: smooth mass coefficients are used, but averaged mass coefficient m2 is not calculated!\n";
       abort();
     }
 
@@ -1169,10 +1227,11 @@ public:
     step_forward_X(ds/2.0,dtmin);
 
     for (std::size_t i=0;i<n;i++) {
+      // resolve X to p.v (dependence: X, cm.getMass())
+      resolve_X();
+      
       // perturber force
       if (fpf) {
-        // resolve X to p.v (dependence: X, cm.getMass())
-        resolve_X();
         // get original position first, update p.x (dependence: X, cm.x)
         center_shift_inverse_X();
         // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
@@ -1226,6 +1285,9 @@ public:
 
     // clear memory
     delete[] ave_v;
+#ifdef TIME_PROFILE
+    t_lf += get_wtime();
+#endif
   }
 
 
@@ -1241,6 +1303,9 @@ public:
      return:   iteration count (start from 1, which means no iteration)
    */
   int extrapolation_integration(const double s, const double error=1E-8, const std::size_t itermax=10, const int methods=1, const int sequences=2, const double3* force=NULL, const double dtmin=5.4e-20) {
+#ifdef TIME_PROFILE
+    t_ep -= get_wtime();
+#endif
     // array size indicator for relative position and velocity
     const std::size_t nrel = num-1;
     
@@ -1262,7 +1327,7 @@ public:
     double3* Vtemp = new double3[nrel];
 
     // for error check
-    double3 CX;
+    double3 CX,CXN;
     //    double3 CXN;
     double cxerr=error+1.0;
     double eerr=error+1.0;
@@ -1282,10 +1347,12 @@ public:
     Leapfrog_step_forward(s,1,force,dtmin,0);
 
     // relative position vector between first and last particle for phase error check
-    std::size_t k0 = list[0];
-    std::size_t kn = list[num-1];
-    memcpy(CX,rjk[k0][kn],3*sizeof(double));
-    //    memcpy(CXN,rjk[k0][kn],3*sizeof(double));
+    memset(CX,0,3*sizeof(double));
+    for (size_t i=0;i<num-1;i++) {
+      CX[0] += X[i][0];
+      CX[1] += X[i][1];
+      CX[2] += X[i][2];
+    }
 
     std::size_t intcount = 0; // iteration counter
     std::size_t step[itermax]; //substep size
@@ -1356,22 +1423,6 @@ public:
       if (beta>0) resolve_V();
 
       Leapfrog_step_forward(s,step[intcount],force,dtmin,0);
-
-      /*
-      // error check before extrapolation
-      r0n = rjk[k0][kn];
-      dcx1 = r0n[0] - CXN[0];
-      dcx2 = r0n[1] - CXN[1];
-      dcx3 = r0n[2] - CXN[2];
-      double cxerrn = std::sqrt(dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/r0n[3];
-      double errn = Ekin-Pot+B;
-      memcpy(CXN,r0n,3*sizeof(double));
-      if (cxerrn <error && std::abs(errn) < error) break;
-#ifdef DEBUG
-      std::cerr<<std::setprecision(14)<<"Iteration: "<<intcount<<" error (origin) = "<<cxerrn;
-      std::cerr<<" energy error (origin) "<<errn<<std::endl;
-#endif
-      */
 
       if (methods==1) {
         // Using Romberg method
@@ -1545,19 +1596,26 @@ public:
       resolve_XV();
       // recalculate the energy
       calc_Ekin();
-      //calc_Pot(p);
+      // force, potential and W
       calc_rAPW();
 
       // phase error calculation
-      double* r0n = rjk[k0][kn];
-      double dcx1 = r0n[0] - CX[0];
-      double dcx2 = r0n[1] - CX[1];
-      double dcx3 = r0n[2] - CX[2];
+      memset(CXN,0,3*sizeof(double));
+      for (size_t i=0;i<num-1;i++) {
+        CXN[0] += X[i][0];
+        CXN[1] += X[i][1];
+        CXN[2] += X[i][2];
+      }
+      double RCXN2 = CXN[0]*CXN[0] + CXN[1]*CXN[1] + CXN[2]*CXN[2];
+      
+      double dcx1 = CXN[0] - CX[0];
+      double dcx2 = CXN[1] - CX[1];
+      double dcx3 = CXN[2] - CX[2];
       cxerr0 = cxerr;
-      cxerr = std::sqrt(dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/r0n[3];
+      cxerr = std::sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
       eerr0 = eerr;
       eerr = (Ekin-Pot+B)/B;
-      memcpy(CX,r0n,3*sizeof(double));
+      memcpy(CX,CXN,3*sizeof(double));
 #ifdef DEBUG
       std::cerr<<std::setprecision(18)<<"Iteration: "<<intcount<<" Step division = "<<step[intcount]<<" error = "<<cxerr;
       std::cerr<<" energy error "<<Ekin-Pot+B<<std::endl;
@@ -1576,11 +1634,15 @@ public:
     // update chain link order
     if(num>2) update_link();
 
+#ifdef TIME_PROFILE
+    t_ep += get_wtime();
+#endif
+    
     return intcount+1;
   }
 
-  /* GetTime
-     function: returen physical time
+  /* getTime
+     function: return physical time
      return: t
   */
   double getTime() const {
@@ -1626,6 +1688,41 @@ public:
     return W;
   }
   
+#ifdef TIME_PROFILE
+  void reset_tp(){
+    t_apw=0.0;
+    t_uplink=0.0;
+    t_lf=0.0;
+    t_ep=0.0;
+    t_pext=0.0;
+  }
+
+  // calc_APW
+  double getTP_apw() const{
+    return t_apw;
+  }
+
+  //update link
+  double getTP_uplink() const{
+    return t_uplink;
+  }
+
+  // leap-frog
+  double getTP_lf() const{
+    return t_lf;
+  }
+
+  // extrapolation
+  double getTP_ep() const{
+    return t_ep;
+  }
+
+  // perturber force
+  double getTP_pext() const{
+    return t_pext;
+  }
+#endif
+
 
 #ifdef DEBUG
   /* set_X
@@ -1668,21 +1765,6 @@ public:
       std::cerr<<xyz[k];
       for (std::size_t i=0;i<num-1;i++) std::cerr<<std::setw(width)<<V[i][k];
       std::cerr<<std::endl;
-    }
-    std::cerr<<"\n----- mass coefficients Matrix Wjk -----\n";
-    for (std::size_t i=0;i<num;i++){
-      std::cerr<<' ';
-      for (std::size_t j=0;j<num;j++) std::cerr<<std::setw(width)<<Wjk[i][j];
-      std::cerr<<std::endl;
-    }
-    std::cerr<<"\n----- relative distances Matrix rjk -----\n";
-    for (std::size_t k=0;k<4;k++){
-      std::cerr<<"----------"<<xyz[k]<<"----------\n";
-      for (std::size_t i=0;i<num;i++){
-        std::cerr<<' ';
-        for (std::size_t j=0;j<num;j++) std::cerr<<std::setw(width)<<rjk[i][j][k];
-        std::cerr<<std::endl;
-      }
     }
     std::cerr<<"\n----- Acceleration A ------\n";
     for (std::size_t k=0;k<3;k++) {
