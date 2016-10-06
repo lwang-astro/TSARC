@@ -14,10 +14,10 @@ class Particle{
 public:
   //instruction=======================================//
   Particle() {} 
-  Particle(const double &m, const double r[3], const double v[3]) {
+  Particle(const double m, const double r[3], const double v[3]) {
     set(m,r,v);
   }
-  Particle(const double &m, const double &rx, const double &ry, const double &rz, const double &vx, const double &vy, const double &vz) {
+  Particle(const double m, const double rx, const double ry, const double rz, const double vx, const double vy, const double vz) {
     set(m,rx,ry,rz,vx,vy,vz);
   }
   Particle(const Particle &a) {
@@ -40,7 +40,7 @@ public:
   }
   
   //set data=========================================//
-  void set(const double &m, const double &rx, const double &ry, const double &rz, const double &vx, const double &vy, const double &vz){
+  void set(const double m, const double rx, const double ry, const double rz, const double vx, const double vy, const double vz){
     NAN_CHECK(m);
     NAN_CHECK(rx);
     NAN_CHECK(ry);
@@ -58,7 +58,7 @@ public:
     vel[2]=vz;
   }
 
-  void set(const double &m, const double r[3], const double v[3]) {
+  void set(const double m, const double r[3], const double v[3]) {
     NAN_CHECK(m);
     NAN_CHECK(r[0]);
     NAN_CHECK(r[1]);
@@ -80,7 +80,7 @@ public:
   }
 
   //set position (required)
-  void setPos(const double &x, const double &y, const double &z) {
+  void setPos(const double x, const double y, const double z) {
     NAN_CHECK(x);
     NAN_CHECK(y);
     NAN_CHECK(z);
@@ -100,7 +100,7 @@ public:
   }
 
   //set velocity (required)
-  void setVel(const double &vx, const double &vy, const double &vz) {
+  void setVel(const double vx, const double vy, const double vz) {
     NAN_CHECK(vx);
     NAN_CHECK(vy);
     NAN_CHECK(vz);
@@ -120,7 +120,7 @@ public:
   }
 
   //set mass (required)
-  void setMass(const double &m) {
+  void setMass(const double m) {
     NAN_CHECK(m);
 
     mass = m;

@@ -172,7 +172,7 @@ int main(int argc, char **argv){
     if (sw==NULL) icount = c.extrapolation_integration(s,err,itermax,2,msq,NULL,dtmin);
     else if (strcmp(sw,"rational")==0) icount = c.extrapolation_integration(s,err,itermax,2,msq,NULL,dtmin);
     else if (strcmp(sw,"linear")==0) icount = c.extrapolation_integration(s,err,itermax,1,msq,NULL,dtmin);
-    else if (strcmp(sw,"none")==0) c.Leapfrog_step_forward(s,nsubstep,NULL,dtmin);
+    else if (strcmp(sw,"none")==0) c.Leapfrog_step_forward(s,nsubstep,NULL,-1.0,dtmin);
     stepcount[icount]++;
 #ifdef TIME_PROFILE
     std::cerr<<"Time profile: Step: "<<i<<"  Accelaration+Potential(s): "<<c.getTP_apw()<<"  Update_link(s): "<<c.getTP_uplink()<<"  Leap-frog(s): "<<c.getTP_lf()<<"  Extrapolation(s): "<<c.getTP_ep()<<"  Perturbation(s): "<<c.getTP_pext()<<std::endl;

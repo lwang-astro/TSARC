@@ -386,14 +386,25 @@ private:
 
   /* step_forward_X
      function: one step integration of X and physical time
-     argument: step size s (not physical time step)
+     argument: ds: step size s (not physical time step), it is modifed if final step reach
+               dtmin: minimum physical time step criterion
+               toff: ending physical time (negative means no ending point)
+     return:  final step flag (if toff is reached)
    */
-  void step_forward_X(const double s, const double dtmin=5.4e-20) {
+  bool step_forward_X(double &ds, const double dtmin=5.4e-20, const double toff=-1) {
+    bool finalstep = false;
     // determine the physical time step
-    double dt = s / (alpha * (Ekin + B) + beta * w + gamma);
+    double weight = (alpha * (Ekin + B) + beta * w + gamma);
+    double dt = ds / weight;
     if (dt<dtmin) {
       std::cerr<<"Warning!: physical time step too small: "<<dt<<std::endl;
       abort();
+    }
+    // if new time is larger than toff, cut it to fit toff.
+    if (toff>0.0&&(t+2*dt>toff)) {
+      dt = 0.5*(toff-t);
+      ds = dt/ weight;
+      finalstep=true;
     }
 
     // step forward physical time
@@ -405,6 +416,7 @@ private:
       X[i][1] += dt * V[i][1];
       X[i][2] += dt * V[i][2];
     }
+    return finalstep;
   }
 
   /* step_forward_V
@@ -974,7 +986,7 @@ public:
     p_mod=true;
   }
   
-  void addP(const std::size_t &n, particle a[]) {
+  void addP(const std::size_t n, particle a[]) {
     if (!p_origin) std::cerr<<"Warning!: particle list are in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(n,a);
     p_mod=true;
@@ -986,14 +998,14 @@ public:
                option: true: shift last particle to current position (defaulted);
                        false: shift all right particle to left by one
   */
-  void removeP(const std::size_t &i, bool option=true) { p.remove(i,option); p_mod=true; }
+  void removeP(const std::size_t i, bool option=true) { p.remove(i,option); p_mod=true; }
 
 
   /* initPext
      function: allocate array for Pext list
      argument: n: number of perturbers
    */
-  void initPext(const std::size_t &n) {
+  void initPext(const std::size_t n) {
     if (pext.getN()) {
       std::cerr<"Error: Perturber list is already initialized!\n";
       abort();
@@ -1008,7 +1020,7 @@ public:
    */
   void addPext(particle &a) { pext.add(a);}
   void addPext(chain<particle> &a) { pext.add(a);}
-  void addPext(const std::size_t &n, particle a[]) { pext.add(n,a); }
+  void addPext(const std::size_t n, particle a[]) { pext.add(n,a); }
 
   /* remove particle
      function: remove particle from p
@@ -1016,7 +1028,7 @@ public:
                option: true: shift last particle to current position (defaulted);
                        false: shift all right particle to left by one
   */
-  void removePext(const std::size_t &i, bool option=true) { pext.remove(i,option); }
+  void removePext(const std::size_t i, bool option=true) { pext.remove(i,option); }
   
   /* is_p_modified
      function: reture true if particle list is modifed, in this case, the chain may need to be initialized again
@@ -1186,12 +1198,14 @@ public:
      argument: s: whole step size
                n: number of step division, real step size = (s/n), for Leapfrog integration, it is X(s/2n)V(s/n)X(s/n)V(s/n)..X(s/2n)
                force: external force (not perturber forces which are calculated in pert_force)
+               toff: ending physical time (negative means no ending time and integration finishing after n steps)
+               dtmin: minimum physical time step criterion
                check_flag: 2: check link every step; 1: check link at then end; 0 :no check
 ///               force: external force array
 ///               upforce: void (const particle * p, const particle *pext, double3* force). function to calculate force based on p and pext, return to force
 //// ext_force<particle> upforce) 
   */             
-  void Leapfrog_step_forward(const double s, const int n, const double3* force=NULL, const double dtmin=5.4e-20, int check_flag=1) {
+  void Leapfrog_step_forward(const double s, const int n, const double3* force=NULL, const double toff=-1.0, const double dtmin=5.4e-20, int check_flag=1) {
 #ifdef TIME_PROFILE
     t_lf -= get_wtime();
 #endif
@@ -1224,9 +1238,17 @@ public:
     if (np>0) fpf = true;
 
     // half step forward for X, t (dependence: Ekin, B, w, V)
-    step_forward_X(ds/2.0,dtmin);
+    double hds = 0.5*ds;
+    bool finalflag=step_forward_X(hds,dtmin,toff);
 
-    for (std::size_t i=0;i<n;i++) {
+    // modify ds if finally step
+    if (finalflag) ds = hds*2;
+
+    //initial step counter
+    int i=1;
+
+    //integration loop
+    do {
       // resolve X to p.v (dependence: X, cm.getMass())
       resolve_X();
       
@@ -1259,9 +1281,14 @@ public:
       calc_Ekin();
 
       // step forward for X (dependence: Ekin, B, w, V)
-      if(i==n-1) step_forward_X(ds/2.0,dtmin);
+      if((toff<0&&i==n)||finalflag) {
+        step_forward_X(hds,0.0);
+        break;
+      }
       else step_forward_X(ds,dtmin);
-    }
+      
+      i++;
+    } while (true);
 
    // resolve X at last, update p.x (dependence: X)
     resolve_X();
@@ -1344,7 +1371,7 @@ public:
     //memcpy(p0,p,num*sizeof(particle));
 
     // first step
-    Leapfrog_step_forward(s,1,force,dtmin,0);
+    Leapfrog_step_forward(s,1,force,-1.0,dtmin,0);
 
     // relative position vector between first and last particle for phase error check
     memset(CX,0,3*sizeof(double));
@@ -1422,7 +1449,7 @@ public:
       // reset velocity to get correct w
       if (beta>0) resolve_V();
 
-      Leapfrog_step_forward(s,step[intcount],force,dtmin,0);
+      Leapfrog_step_forward(s,step[intcount],force,-1.0,dtmin,0);
 
       if (methods==1) {
         // Using Romberg method
@@ -1816,9 +1843,9 @@ public:
   // initialization
   chainlist(): num(0), nmax(0) {};
   
-  chainlist(const std::size_t &n) { init(n); }
+  chainlist(const std::size_t n) { init(n); }
 
-  void init(const std::size_t &n) {
+  void init(const std::size_t n) {
     num = 0;
     nmax = n;
     cflag=new bool[n];
@@ -1860,7 +1887,7 @@ public:
   }
 
   // add particle list
-  void add(const std::size_t &n, particle a[]) {
+  void add(const std::size_t n, particle a[]) {
     if (num+n<=nmax) {
       for (std::size_t i=0;i<n;i++) {
         cflag[num+i] = false;
