@@ -77,18 +77,97 @@ template <class particle> class chain;
 template <class particle> class chainlist;
 class chainpars;
 
-// external force calculation function pointer
-//template <class particle>
-//struct ext_force
-//{
-//  typedef void (*type)(const particle *, const particle *, double3*);
-//};
+/* pair AW: acceleration (potential) & dW/dr (W) function function pointer from j to i
+   argument: A: acceleration vector
+             P: potential
+             dW: dW/dr (used for beta>0) 
+             W: time transformation function (used for beta>0)
+             X: relative position (1:3)
+             mi: particle i mass;
+             mj: particle j mass;
+             mm2: smooth mass coefficient \sum m_i * m_j /(N(N-1)/2) (i<j) (Notice only calculated when m_smooth is true in chainpars)
+             epi: adjustable parameter (set in chainpars)
+ */
+typedef void (*pair_AW) (double *, double &, double *, double &, const double *, const double &, const double &, const double &, const double &);
 
+/* pair Ap: acceleration calculation function pointer from j to i
+   argument: A: acceleration vector
+             P: potential
+             pi: position vector i
+             pj: position vector j
+             mi: particle mass i;
+             mj: particle mass j;
+ */
+typedef void (*pair_Ap) (double *, double &, const double*, const double*, const double&, const double&);
+
+/* Newtonian AW from k to j
+   mm2 = sum (i<j) m_i*m_j/(N(N-1)/2)
+*/
+void Newtonian_AW (double A[3], double &P, double dW[3], double &W, const double xjk[3], const double &mj, const double &mk, const double &mm2, const double &epi) {
+
+  //distance
+  double rjk = std::sqrt(xjk[0]*xjk[0]+xjk[1]*xjk[1]+xjk[2]*xjk[2]);
+
+  // mass parameters
+  double mmjk = mj*mk;
+  double wjk;
+  if (mm2>0 && epi>0) {
+    // Wjk = mm2 if m_i*m_j < epi*m'^2; 0 otherwise;
+    if (mmjk<epi*mm2) wjk = mm2;
+    else wjk = 0;
+  }
+  else {
+    // Wjk = m_i*m_j
+    wjk = mmjk;
+  }
+  
+  //Potential energy==================================//
+  P = mmjk / rjk;
+  //Transformation coefficient========================//
+  W = wjk / rjk;
+        
+  //Acceleration======================================//
+  double rjk3 = rjk*rjk*rjk;
+  double mor3 = mk / rjk3;
+  A[0] = mor3 * xjk[0];
+  A[1] = mor3 * xjk[1];
+  A[2] = mor3 * xjk[2];
+
+  //d W / d r=========================================//
+  mor3 = wjk / rjk3;
+  dW[0] = mor3 * xjk[0];
+  dW[1] = mor3 * xjk[1];
+  dW[2] = mor3 * xjk[2];
+  
+}
+
+/* Newtonian force from p to i*/
+void Newtonian_Ap (double A[3], double &P, const double xi[3], const double xp[3], const double &mi, const double &mp){
+  double dx = xp[0] - xi[0];
+  double dy = xp[1] - xi[1];
+  double dz = xp[2] - xi[2];
+
+  double dr2 = dx*dx + dy*dy + dz*dz;
+  double dr  = std::sqrt(dr2);
+  double dr3 = dr*dr2;
+
+  A[0] = mp * dx / dr3;
+  A[1] = mp * dy / dr3;
+  A[2] = mp * dz / dr3;
+
+  P = mi*mp / dr;
+  
+}
+ 
 // chain parameter controller
 
 class chainpars{
 template <class T> friend class chain;
 private:
+  // pair force
+  pair_AW pp_AW;
+  pair_Ap pp_Ap;
+  
   //time step integration parameter
   double alpha; // logH cofficient
   double beta;  // TTL cofficient
@@ -100,7 +179,7 @@ private:
 
   // minimum time step
   double dtmin;
-  
+
   // extrapolation control parameter
   double exp_error; // relative error requirement for extrapolation
   std::size_t exp_itermax; // maximum times for iteration.
@@ -109,14 +188,35 @@ private:
 
 public:
 
-  chainpars(): alpha(1.0), beta(0.0), gamma(0.0), m_epi(0.001), m_smooth(true), dtmin(5.4e-20), exp_error(1E-10), exp_itermax(20), exp_methods(2), exp_sequences(2) {}
+  chainpars(): alpha(1.0), beta(0.0), gamma(0.0), m_epi(0.001), m_smooth(true), dtmin(5.4e-20), exp_error(1E-10), exp_itermax(20), exp_methods(2), exp_sequences(2) { pp_AW = &Newtonian_AW; pp_Ap = &Newtonian_Ap;}
 
-  chainpars(const double a, const double b, const double g, const double e=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
+  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double e=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
     setabg(a,b,g);
     setM(e,mm);
     setEXP(error,dtm,itermax,methods,sequences);
+    setA(aw,ap);
   }
 
+  /* setA
+     function: set pair acceleration function
+     argument: aw: pair_AW
+               ap: pair_Ap
+  */
+  void setA(pair_AW aw, pair_Ap ap) {
+    pp_AW = aw;
+    pp_Ap = ap;
+    // safety check
+    if (pp_AW==NULL) {
+      std::cerr<<"Error: accelaration / W calculator function is NULL\n";
+      abort();
+    }
+    if (pp_Ap==NULL) {
+      std::cerr<<"Error: perturber accelaration calculator function is NULL\n";
+      abort();
+    }
+  }
+  
+     
   /* setabg
      function: set time step integration parameter alpha, beta, gamma
      argument: a: alpha (logH)
@@ -187,7 +287,7 @@ class chain{
   std::size_t *list;   // chain index list
   double3 *acc; // acceleration
   double3 *pf;  // perturber force
-  double3 *dmdr; // \partial Omega/ \partial rk
+  double3 *dWdr; // \partial Omega/ \partial rk
 
   //integration paramenters=======================================//
   double Ekin;  //kinetic energy
@@ -196,7 +296,7 @@ class chain{
   double t;     //time
   double w;    //time transformation parameter
   double B;    //Binding energy (time momentum)
-  double m2;  // averaged mass
+  double mm2;  // mean mass production \sum m_i*m_j/(N(N-1)/2) (i<j)
 
   //number =======================================================//
   std::size_t num;      //total number of chain particles
@@ -204,8 +304,8 @@ class chain{
 
   //monitor flags
   bool F_Pmod;     // indicate whether particle list is modified (true: modified)
-  bool F_Porigin; // indicate whether particle is shifted back to original frame (true: original frame: false: center-of-mass frame)
-  bool F_m2s;     // indicate whether m2 is calculated.
+  int  F_Porigin; // indicate whether particle is shifted back to original frame (1: original frame: 0: center-of-mass frame; 2: only position is original frame)
+  bool F_mm2s;     // indicate whether mm2 is calculated.
 
   // chain parameter controller
   const chainpars *pars;
@@ -231,9 +331,9 @@ public:
   
   //initialization
   //  template <class particle>
-  chain(std::size_t n, const chainpars &par): m2(0.0), pars(&par) { nmax=0; allocate(n);}
+  chain(std::size_t n, const chainpars &par): mm2(0.0), pars(&par) { nmax=0; allocate(n);}
 
-  chain(const chainpars &par): m2(0.0), pars(&par), F_Pmod(false), F_Porigin(true), F_m2s(false), num(0), nmax(0) {}
+  chain(const chainpars &par): mm2(0.0), pars(&par), F_Pmod(false), F_Porigin(1), F_mm2s(false), num(0), nmax(0) {}
 
   // re-allocate function
   void allocate(std::size_t n) {
@@ -248,11 +348,11 @@ public:
     list=new std::size_t[n];
     acc=new double3[n];
     pf=new double3[n];
-    dmdr=new double3[n];
+    dWdr=new double3[n];
     p.init(n);
     F_Pmod=false;
-    F_Porigin=true;
-    F_m2s=false;
+    F_Porigin=1;
+    F_mm2s=false;
   }
 
   // clear function
@@ -263,13 +363,13 @@ public:
       delete[] list;
       delete[] acc;
       delete[] pf;
-      delete[] dmdr;
+      delete[] dWdr;
       num = 0;
       nmax = 0;
     }
     F_Pmod=false;
-    F_Porigin=true;
-    F_m2s=false;
+    F_Porigin=1;
+    F_mm2s=false;
   }
 
   //destruction
@@ -280,7 +380,7 @@ public:
       delete[] list;
       delete[] acc;
       delete[] pf;
-      delete[] dmdr;
+      delete[] dWdr;
     }
   }
 
@@ -364,50 +464,29 @@ private:
   }
 
 
-  /* calc_m2
+  /* calc_mm2
      function: Get averaged mass coefficients for calculating Wjk
    */
-  void calc_m2() {
+  void calc_mm2() {
       // calcualte m'^2
       for (std::size_t i=0;i<num;i++) {
         for (std::size_t j=i+1;j<num;j++) {
-          m2 += p[i].getMass() * p[j].getMass();
+          mm2 += p[i].getMass() * p[j].getMass();
         }
       }
-      m2 /= num * (num - 1) / 2;
-      F_m2s = true;
+      mm2 /= num * (num - 1) / 2;
+      F_mm2s = true;
   }    
 
   
-  /* calc_wij
-     function: Get mass coefficients from particle p.
-               To avoid frequent shift of data, the i,j order follow particle p (not chain list)
-     argument: option: 0): Wjk = m'^2 if m_i*m_j < epi*m'^2; 0 otherwise; 
-                          m'^2 = sum (i<j) m_i*m_j/(N(N-1)/2)  (for case alpha=1, beta!=0)
-                       1): Wjk = m_i*m_j      (for case alhpa=gamma=0, beta=1 or alpha=1, beta=gamma=0)
-               epi: for option=0
-  */  
-  //  template <class particle>
-  double calc_Wjk(const std::size_t i, const std::size_t j) {
-    if(pars->m_smooth) {
-      // Wjk = m2
-      if (p[i].getMass()* p[j].getMass()<pars->m_epi*m2) return m2;
-      // Wjk = 0
-      else return 0;
-    }
-    else {
-      // Wjk = m_i*m_j
-      return p[i].getMass() * p[j].getMass();
-    }
-  }
-
   /* calc_rAPW
      function: Get distance Matrix, acceleration, dm/dr, potential and transformation parameter
                based on particle mass (obtain from p), current X & V and Wjk
                (notice the acceleration array index k and the distance matrix index j,k order follow particle p to avoid additional shift when chain list change)
      argument: force: external force (acceleration) for each particle, (not perturber forces)
+               resolve_flag: flag to determine whether to resolve sub-chain particles for force calculations. 
   */
-  void calc_rAPW (const double3 *force=NULL, const bool recur_flag=false) {
+  void calc_rAPW (const double3 *force=NULL, const bool resolve_flag=false) {
 #ifdef TIME_PROFILE
     profile.t_apw -= get_wtime();
 #endif
@@ -427,12 +506,13 @@ private:
       memset(acc[lj],0,3*sizeof(double));
       
       //dw/dr ================================//
-      memset(dmdr[lj],0,3*sizeof(double));
+      memset(dWdr[lj],0,3*sizeof(double));
       
       for (std::size_t k=0;k<num;k++) {
         if(k==j) continue;
         std::size_t lk = list[k];
         const particle *pk= &p[lk];
+        const double* xj = pj->getPos();
         double3 xjk;
 
         if(k==j+1) memcpy(xjk,X[j],3*sizeof(double));
@@ -453,34 +533,59 @@ private:
         }
         else {
           const double* xk = pk->getPos();
-          const double* xj = pj->getPos();
           xjk[0] = xk[0] - xj[0];
           xjk[1] = xk[1] - xj[1];
           xjk[2] = xk[2] - xj[2];
         }
 
-        double rjk = std::sqrt(xjk[0]*xjk[0]+xjk[1]*xjk[1]+xjk[2]*xjk[2]);
-        double wjk = calc_Wjk(lj,lk);
+        double3 At,dWt;
+        double Pt,Wt;
+        const double mj=pj->getMass();
+        const double mk=pk->getMass();
+
+        // force calculation function from k to j
+        pars->pp_AW(At, Pt, dWt, Wt, xjk, mj, mk, mm2, pars->m_epi);
+
+        // resolve sub-chain
+        if(resolve_flag && p.isChain(lk)) {
+          chain<particle>*ck = p.getSub(lk);
+          // center shift to current frame
+          ck->center_shift_inverse_X();
+          const std::size_t cn = ck->p.getN();
+          Pt = 0;
+          memset(At,0,3*sizeof(double));
+          for (std::size_t i=0;i<cn;i++) {
+            double Ptemp;
+            double3 Atemp;
+            pars->pp_Ap(Atemp, Ptemp, xj, ck->p[i].getPos(), mj, ck->p[i].getMass());
+
+            //Acceleration======================================//
+            At[0] += Atemp[0];
+            At[1] += Atemp[1];
+            At[2] += Atemp[2];
+            //Potential=========================================//
+            if (k>j) Pt += Ptemp;
+          }
+          // center shift back
+          ck->center_shift_X();
+        }
+
+        //Acceleration======================================//
+        acc[lj][0] += At[0];
+        acc[lj][1] += At[1];
+        acc[lj][2] += At[2];
+
+        //d W / d r=========================================//
+        dWdr[lj][0] += dWt[0];
+        dWdr[lj][1] += dWt[1];
+        dWdr[lj][2] += dWt[2];
 
         if (k>j) {
           //Potential energy==================================//
-          Pot_c += pk->getMass() * pj->getMass() / rjk;
+          Pot_c += Pt;
           //Transformation coefficient========================//
-          W_c += wjk / rjk;
+          W_c += Wt;
         }
-        
-        //Acceleration======================================//
-        double rjk3 = rjk*rjk*rjk;
-        double mor3 = pk->getMass() / rjk3;
-        acc[lj][0] += mor3 * xjk[0];
-        acc[lj][1] += mor3 * xjk[1];
-        acc[lj][2] += mor3 * xjk[2];
-
-        //d W / d r=========================================//
-        mor3 = wjk / rjk3;
-        dmdr[lj][0] += mor3 * xjk[0];
-        dmdr[lj][1] += mor3 * xjk[1];
-        dmdr[lj][2] += mor3 * xjk[2];
       }
       //add external acceleration======================================//
       if (force!=NULL) {
@@ -597,9 +702,9 @@ private:
                             + ave_v[i][2] * pf[i][2]);
         }          
         if (pars->beta>0) {
-          dw += ( ave_v[i][0] * dmdr[i][0]
-                + ave_v[i][1] * dmdr[i][1]
-                + ave_v[i][2] * dmdr[i][2]);
+          dw += ( ave_v[i][0] * dWdr[i][0]
+                + ave_v[i][1] * dWdr[i][1]
+                + ave_v[i][2] * dWdr[i][2]);
         }
       }
     }
@@ -784,10 +889,10 @@ private:
 
   /* pert_force
     function: get perturber force
-    argument: force: return pertuber force to each particles
+    argument: resolve_flag: whether resolve perturber chain
     return:   true: pertubers exist. false: no perturbers
   */
-  bool pert_force() {
+  bool pert_force(const bool resolve_flag=false) {
 #ifdef TIME_PROFILE
     profile.t_pext -= get_wtime();
 #endif
@@ -796,19 +901,45 @@ private:
       for (std::size_t i=0;i<num;i++) {
         memset(pf[i],0,3*sizeof(double));
         for (std::size_t j=0;j<np;j++) {
-          const double *ri = p[i].getPos();
-          const double *rpj = pext[j].getPos();
-          const double mpj = pext[j].getMass();
-          double dx = ri[0] - rpj[0];
-          double dy = ri[1] - rpj[1];
-          double dz = ri[2] - rpj[2];
+          double3 At={0};
+          double Pt;
+          const particle* pi=&p[i];
+          const double* xi=pi->getPos();
+          const double  mi=pi->getMass();
+          
+          // check sub-chain system
+          if (resolve_flag && pext.isChain(j)) {
+            chain<particle>*cj = pext.getSub(j);
+            // get center-of-mass position for shifting;
+            const double* xc=cj->cm.getPos();
+            const std::size_t cn = cj->pext.getN();
+            for (std::size_t k=0;k<cn;k++) {
 
-          double rij2 = dx*dx + dy*dy + dz*dz;
-          double rij3 = std::sqrt(rij2)*rij2;
-        
-          pf[i][0] -= mpj * dx / rij3;
-          pf[i][1] -= mpj * dy / rij3;
-          pf[i][2] -= mpj * dz / rij3;
+              double3 xk;
+              memcpy(xk,cj->p[k].getPos(),3*sizeof(double));
+              // shift position to current frame; to keep thread safety, original data are not modified
+              if (cj->isPorigin()==0) {
+                xk[0] += xc[0];
+                xk[1] += xc[1];
+                xk[2] += xc[2];
+              }
+              double3 Atemp;
+              pars->pp_Ap(Atemp, Pt, xi, xk, mi, cj->p[k].getMass());
+
+              //Acceleration======================================//
+              At[0] += Atemp[0];
+              At[1] += Atemp[1];
+              At[2] += Atemp[2];
+            }
+          }
+          else {
+            // perturber force
+            pars->pp_Ap(At, Pt, xi, pext[j].getPos(), mi, pext[j].getMass());
+          }
+          
+          pf[i][0] += At[0];
+          pf[i][1] += At[1];
+          pf[i][2] += At[2];
         }
       }
       return true;
@@ -1075,12 +1206,18 @@ private:
      p: particle list (read data and return shifted list);
   */
   void center_shift_inverse_X() {
-    for (std::size_t i=0;i<num;i++) {
-      const double *ri = p[i].getPos();
-      const double *rc = cm.getPos();
-      p[i].setPos(ri[0] + rc[0],
-                  ri[1] + rc[1],
-                  ri[2] + rc[2]);
+    if (F_Porigin>0) {
+      std::cerr<<"Warning: particles are already in original frame!\n";
+    }
+    else {
+      for (std::size_t i=0;i<num;i++) {
+        const double *ri = p[i].getPos();
+        const double *rc = cm.getPos();
+        p[i].setPos(ri[0] + rc[0],
+                    ri[1] + rc[1],
+                    ri[2] + rc[2]);
+      }
+      F_Porigin=2;
     }
   }
 
@@ -1089,12 +1226,22 @@ private:
      p: particle list (read data and return shifted list);
   */
   void center_shift_X() {
-    for (std::size_t i=0;i<num;i++) {
-      const double *ri = p[i].getPos();
-      const double *rc = cm.getPos();
-      p[i].setPos(ri[0] - rc[0],
-                  ri[1] - rc[1],
-                  ri[2] - rc[2]);
+    if (F_Porigin==0) {
+      std::cerr<<"Warning: particles are already in the center-of-mass frame!\n";
+    }
+    else if (F_Porigin==1) {
+      std::cerr<<"Error: particles are in original frame, please use center_shift instead!\n";
+      abort();
+    }
+    else {
+      for (std::size_t i=0;i<num;i++) {
+        const double *ri = p[i].getPos();
+        const double *rc = cm.getPos();
+        p[i].setPos(ri[0] - rc[0],
+                    ri[1] - rc[1],
+                    ri[2] - rc[2]);
+      }
+      F_Porigin=0;
     }
   }
 
@@ -1105,19 +1252,19 @@ public:
      argument: particle a
    */
   void addP(particle &a) {
-    if (!F_Porigin) std::cerr<<"Warning!: particle list are in the center-of-mass frame, dangerous to add new particles!\n";
+    if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(a);
     F_Pmod=true;
   }
 
   void addP(chain<particle> &a) {
-    if (!F_Porigin) std::cerr<<"Warning!: particle list are in the center-of-mass frame, dangerous to add new particles!\n";
+    if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(a);
     F_Pmod=true;
   }
   
   void addP(const std::size_t n, particle a[]) {
-    if (!F_Porigin) std::cerr<<"Warning!: particle list are in the center-of-mass frame, dangerous to add new particles!\n";
+    if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(n,a);
     F_Pmod=true;
   }
@@ -1168,9 +1315,9 @@ public:
 
   /* isPorigin
      function: return true if particle list are in original frame
-     return: true/false
+     return: 1 (original frame),2 (position in original frame only) ,0 (center-of-mass frame)
   */
-  bool isPorigin() const { return F_Porigin; }
+  int isPorigin() const { return F_Porigin; }
   
   /* init
      function: initialization chain from particle p
@@ -1188,9 +1335,9 @@ public:
     pert_force();
     
     //set center-of-mass
-    if (F_Porigin) {
+    if (F_Porigin==1) {
       center_shift_init();
-      F_Porigin=false;
+      F_Porigin=0;
     }
     else {
       std::cerr<<"Error: particles are not in original frame!\n";
@@ -1200,8 +1347,8 @@ public:
     //set member relative position and velocity
     calc_XV();
     
-    // if smooth mass coefficients are used, calculate m2;
-    if (pars->m_smooth) calc_m2();
+    // if smooth mass coefficients are used, calculate mm2;
+    if (pars->m_smooth) calc_mm2();
 
     //set relative distance matrix, acceleration, potential and transformation parameter
     calc_rAPW(force);
@@ -1244,23 +1391,25 @@ public:
      p: particle list (read data and return shifted list);
   */
   void center_shift_inverse() {
-    if (F_Porigin) {
+    if (F_Porigin==1) {
       std::cerr<<"Warning: particles are already in original frame!\n";
     }
     else {
       for (std::size_t i=0;i<num;i++) {
-        const double *ri = p[i].getPos();
+        if (F_Porigin==0) {
+          const double *ri = p[i].getPos();
+          const double *rc = cm.getPos();
+          p[i].setPos(ri[0] + rc[0],
+                      ri[1] + rc[1],
+                      ri[2] + rc[2]);
+        }
         const double *vi = p[i].getVel();
-        const double *rc = cm.getPos();
         const double *vc = cm.getVel();
-        p[i].setPos(ri[0] + rc[0],
-                    ri[1] + rc[1],
-                    ri[2] + rc[2]);
         p[i].setVel(vi[0] + vc[0],
                     vi[1] + vc[1],
                     vi[2] + vc[2]);
       }
-      F_Porigin = true;
+      F_Porigin = 1;
     }
   }
 
@@ -1269,20 +1418,22 @@ public:
      p: particle list (read data and return shifted list);
   */
   void center_shift() {
-    if (F_Porigin) {
+    if (F_Porigin>0) {
       for (std::size_t i=0;i<num;i++) {
         const double *ri = p[i].getPos();
-        const double *vi = p[i].getVel();
         const double *rc = cm.getPos();
-        const double *vc = cm.getVel();
         p[i].setPos(ri[0] - rc[0],
                     ri[1] - rc[1],
                     ri[2] - rc[2]);
-        p[i].setVel(vi[0] - vc[0],
-                    vi[1] - vc[1],
-                    vi[2] - vc[2]);
+        if (F_Porigin==1) {
+          const double *vi = p[i].getVel();
+          const double *vc = cm.getVel();
+          p[i].setVel(vi[0] - vc[0],
+                      vi[1] - vc[1],
+                      vi[2] - vc[2]);
+        }
       }
-      F_Porigin = false;
+      F_Porigin = 0;
     }
     else {
       std::cerr<<"Warning: particles are already in the center-of-mass frame!\n";
@@ -1321,8 +1472,8 @@ public:
       std::cerr<<"Error: particles are modified, initialization required!"<<std::endl;
       abort();
     }
-    if (pars->m_smooth&&!F_m2s) {
-      std::cerr<<"Error: smooth mass coefficients are used, but averaged mass coefficient m2 is not calculated!\n";
+    if (pars->m_smooth&&!F_mm2s) {
+      std::cerr<<"Error: smooth mass coefficients are used, but averaged mass coefficient mm2 is not calculated!\n";
       abort();
     }
 
@@ -1391,7 +1542,7 @@ public:
 #endif
       //---------------------------------------------------------------------//
       
-      // Update rjk, A, Pot, dmdr, W for half X (dependence: pf, force, p.m, p.x, X)
+      // Update rjk, A, Pot, dWdr, W for half X (dependence: pf, force, p.m, p.x, X)
       calc_rAPW(force, recur_flag); 
 
       // update chain list order if necessary, update list, X, V (dependence: p.x, X, V)
@@ -1403,7 +1554,7 @@ public:
       // Get averaged velocity, update p.x, p.v, ave_v (dependence: X, V)
       resolve_XV(ave_v);
 
-      // forward B and w (dependence: dt(V), ave_v, p.m, p.v, force, dmdr, pf)
+      // forward B and w (dependence: dt(V), ave_v, p.m, p.v, force, dWdr, pf)
       step_forward_Bw(dvt,ave_v,force,fpf);
 
       // Calcuale Kinetic energy (dependence: p.m, p.v)
@@ -1422,7 +1573,7 @@ public:
    // resolve X at last, update p.x (dependence: X)
     resolve_X();
 
-    // Update rjk, A, Pot, dmdr, W (notice A will be incorrect since pf is not updated)
+    // Update rjk, A, Pot, dWdr, W (notice A will be incorrect since pf is not updated)
     calc_rAPW(force, recur_flag); 
     
 //#ifdef DEBUG
@@ -1896,7 +2047,7 @@ public:
     std::cerr<<"\n----- part omega / part rk ------\n";
     for (std::size_t k=0;k<3;k++) {
       std::cerr<<xyz[k];
-      for (std::size_t i=0;i<num;i++) std::cerr<<std::setw(width)<<dmdr[i][k];
+      for (std::size_t i=0;i<num;i++) std::cerr<<std::setw(width)<<dWdr[i][k];
       std::cerr<<std::endl;
     }
     std::cerr<<"\n----- system parameters ------\n"
