@@ -1,5 +1,5 @@
 ## TARGET
-TARGET=chain
+TARGET=chain tree
 
 VPATH=../include
 
@@ -10,7 +10,7 @@ CXX= g++
 CXXFLAGS = -O2 -I../include
 
 ## OpenMP flag----------------------------------------#
-CXXFLAGS += -fopenmp -D USE_OMP
+#CXXFLAGS += -fopenmp -D USE_OMP
 
 ## Time profile---------------------------------------#
 CXXFLAGS += -D TIME_PROFILE

@@ -177,23 +177,24 @@ private:
   double m_epi; // smooth parameter
   bool m_smooth; // whether to use smooth mass coefficients
 
-  // minimum time step
-  double dtmin;
+  // time step
+  double dtmin; // minimum physical time step
+  double dterr; // physical time error criterion
 
   // extrapolation control parameter
   double exp_error; // relative error requirement for extrapolation
   std::size_t exp_itermax; // maximum times for iteration.
   int exp_methods;  // 1: Romberg method; others: Rational interpolation method
-  int exp_sequences; // 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
+  int exp_sequences; // 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other. 4k sequence {h/2, h/6, h/10, h/14 ...}
 
 public:
 
-  chainpars(): alpha(1.0), beta(0.0), gamma(0.0), m_epi(0.001), m_smooth(true), dtmin(5.4e-20), exp_error(1E-10), exp_itermax(20), exp_methods(2), exp_sequences(2) { pp_AW = &Newtonian_AW; pp_Ap = &Newtonian_Ap;}
+  chainpars(): alpha(1.0), beta(0.0), gamma(0.0), m_epi(0.001), m_smooth(true), dtmin(5.4e-20), dterr(1e-6), exp_error(1E-10), exp_itermax(20), exp_methods(2), exp_sequences(2) { pp_AW = &Newtonian_AW; pp_Ap = &Newtonian_Ap;}
 
-  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double e=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
+  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double e=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
     setabg(a,b,g);
     setM(e,mm);
-    setEXP(error,dtm,itermax,methods,sequences);
+    setEXP(error,dtm,dte,itermax,methods,sequences);
     setA(aw,ap);
   }
 
@@ -232,6 +233,10 @@ public:
       std::cerr<<"Error: alpha, beta and gamma cannot be all zero!\n";
       abort();
     }
+    if (alpha==0&&gamma==0&&m_smooth) {
+      std::cerr<<"TTL method is used with gamma=0, thus smooth mass coefficient is forced to be switched off\n";
+      setM(0.001,false);
+    }
   }
 
   /* setM
@@ -246,6 +251,9 @@ public:
       std::cerr<<"Error: smooth mass coefficients are used, but smooth coefficient epi is zero!\n";
       abort();
     }
+    if (alpha==0&&gamma==0) {
+      std::cerr<<"Warning: alpha=0 and gamma=0, the smooth mass coefficients may cause initial w = 0 and result in zero time step!";
+    }
   }
 
   /* setEXP
@@ -254,13 +262,14 @@ public:
                dtmin: minimum physical time step
                itermax: maximum times for iteration.
                methods: 1: Romberg method; others: Rational interpolation method
-               sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; others: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
+               sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other: 4k sequence {h/2, h/6, h/10, h/14 ...}
   */
-  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
+  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
     exp_error = error;
     exp_itermax = itermax;
     exp_methods = methods;
     exp_sequences = sequences;
+    dterr = dte;
     dtmin = dtm;
   }
   
@@ -620,38 +629,32 @@ private:
     }
   }
 
-  /* step_forward_X
-     function: one step integration of X and physical time
-     argument: ds: step size s (not physical time step), it is modifed if final step reach
-               toff: ending physical time (negative means no ending point)
-     return:  final step flag (if toff is reached)
-   */
-  bool step_forward_X(double &ds, const double toff=-1) {
-    bool finalstep = false;
+  /* calc_dt
+     function: calculate physical time step dt based on ds
+     argument:  ds:  step size s (not physical time step) 
+     return:    dt:  physical integration time step for X
+  */
+  double calc_dt(const double &ds) {
     // determine the physical time step
-    double weight = (pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
-    double dt = ds / weight;
-    if (dt < pars->dtmin) {
+    double dt = ds / (pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
+    if (std::abs(dt) < pars->dtmin) {
       std::cerr<<"Warning!: physical time step too small: "<<dt<<std::endl;
       abort();
     }
-    // if new time is larger than toff, cut it to fit toff.
-    if (toff>0.0&&(t+2*dt>toff)) {
-      dt = 0.5*(toff-t);
-      ds = dt/ weight;
-      finalstep=true;
-    }
-
-    // step forward physical time
-    t += dt;
-
+    return dt;
+  }
+  
+  /* step_forward_X
+     function: one step integration of X 
+     argument: ds: step size s (not physical time step), it is modifed if final step reach
+   */
+  void step_forward_X(const double &dt) {
     // step forward relative X
     for (std::size_t i=0;i<num-1;i++) {
       X[i][0] += dt * V[i][0];
       X[i][1] += dt * V[i][1];
       X[i][2] += dt * V[i][2];
     }
-    return finalstep;
   }
 
   /* step_forward_V
@@ -689,18 +692,19 @@ private:
   void step_forward_Bw(const double dt, const double3* ave_v, const double3* force, const bool fpf) {
     double dB = 0.0;
     double dw = 0.0;
-    if (pars->beta>0||force!=NULL||fpf) {
+    if (force!=NULL||fpf||pars->beta>0) {
       for (std::size_t i=0;i<num;i++) {
         if (force!=NULL) {
           dB -= p[i].getMass() * ( ave_v[i][0] * (pf[i][0] + force[i][0]) 
                             + ave_v[i][1] * (pf[i][1] + force[i][1]) 
                             + ave_v[i][2] * (pf[i][2] + force[i][2]));
         }
-        else {
+        else if (fpf){
           dB -= p[i].getMass() * ( ave_v[i][0] * pf[i][0] 
                             + ave_v[i][1] * pf[i][1] 
                             + ave_v[i][2] * pf[i][2]);
-        }          
+        }
+        
         if (pars->beta>0) {
           dw += ( ave_v[i][0] * dWdr[i][0]
                 + ave_v[i][1] * dWdr[i][1]
@@ -1284,7 +1288,7 @@ public:
    */
   void initPext(const std::size_t n) {
     if (pext.getN()) {
-      std::cerr<"Error: Perturber list is already initialized!\n";
+      std::cerr<<"Error: Perturber list is already initialized!\n";
       abort();
     }
     pext.init(n);
@@ -1460,8 +1464,11 @@ public:
       std::cerr<<"Error: step number shound be positive, current number is "<<n<<std::endl;
       abort();
     }
-    if (s<0) {
+    /*    if (s<0) {
       std::cerr<<"Error: step size should be positive, current value is "<<s<<std::endl;
+      abort();*/
+    if (s==0) {
+      std::cerr<<"Error: step size should not be zero!\n"<<std::endl;
       abort();
     }
     if (F_Porigin) {
@@ -1480,33 +1487,32 @@ public:
     double ds = s/double(n);
     double3* ave_v=new double3[num];  // average velocity
     bool fpf = false; // perturber force indicator
+    bool finalstep = false; 
     const int np = pext.getN();
     if (np>0) fpf = true;
-
-    // half step forward for X, t (dependence: Ekin, B, w, V)
-    double hds = 0.5*ds;
-    bool finalflag=step_forward_X(hds,toff);
-
-    // modify ds if finally step
-    if (finalflag) ds = hds*2;
 
     //initial step counter
     int i=1;
 
     //integration loop
     do {
-      // resolve X to p.v (dependence: X, cm.getMass())
-      resolve_X();
-      
-      // perturber force
-      if (fpf) {
-        // get original position first, update p.x (dependence: X, cm.x)
-        center_shift_inverse_X();
-        // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
-        pert_force();
-        // reset position to center-of-mass frame, update p.x 
-        center_shift_X();
+      // half step forward for t (dependence: Ekin, B, w)
+      double dt = calc_dt(ds*0.5);
+
+      // if new time is larger than toff, cut it to fit toff.
+      if (toff>0&&t+2*dt>toff) {
+        dt = toff-t;
+        ds = dt/(pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
+        dt = 0.5*dt; //get half dt
+#ifdef DEBUG
+        std::cerr<<"Reach time ending, current t="<<t<<"  toff="<<toff<<"  dt="<<dt<<"  ds="<<ds<<"  diff="<<toff-t<<std::endl;
+#endif
       }
+      // if toff not set, use n as finalstep criterion
+      if (toff<0&&i==n) finalstep = true;
+
+      // step_forward time
+      t += dt;
 
       // recursive integration-----------------------------------------------//
 #ifdef TIME_PROFILE
@@ -1523,15 +1529,14 @@ public:
 
         std::size_t k = 0;
         for (std::size_t j=0; j<nt; j++) {
-          chain<particle> *ct = p.getSub(j);
-          if (ct!=NULL) {
-            clist[k] = ct;
+          if (p.isChain(j)) {
+            clist[k] = p.getSub(j);
             k++;
           }
         }
 
         // call tree recursion integration
-        for (std::size_t j=0; j<nt; j++) {
+        for (std::size_t j=0; j<k; j++) {
           // recursively call leapfrog until reaching the deepest branch.
           if (clist[j]->p.getNchain()>0)  clist[j]->Leapfrog_step_forward(ds, n, t, force, 1, true);
           else clist[j]->extrapolation_integration(ds, t, force);
@@ -1541,7 +1546,24 @@ public:
       profile.t_lf -= get_wtime();
 #endif
       //---------------------------------------------------------------------//
+
+      // half step forward X (dependence: V, dt)
+      step_forward_X(dt);
+
+      // resolve X to p.v (dependence: X, cm.getMass())
+      resolve_X();
       
+      
+      // perturber force
+      if (fpf) {
+        // get original position first, update p.x (dependence: X, cm.x)
+        center_shift_inverse_X();
+        // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
+        pert_force();
+        // reset position to center-of-mass frame, update p.x 
+        center_shift_X();
+      }
+
       // Update rjk, A, Pot, dWdr, W for half X (dependence: pf, force, p.m, p.x, X)
       calc_rAPW(force, recur_flag); 
 
@@ -1560,15 +1582,21 @@ public:
       // Calcuale Kinetic energy (dependence: p.m, p.v)
       calc_Ekin();
 
-      // step forward for X (dependence: Ekin, B, w, V)
-      if((toff<0&&i==n)||finalflag) {
-        step_forward_X(hds,0.0);
-        break;
-      }
-      else step_forward_X(ds);
+      // step forward for t (dependence: Ekin, B, w)
+      dt = calc_dt(ds*0.5);
+      t += dt;
+
+      // check whether time match toff
+      if (std::abs(toff - t)<pars->dterr) finalstep = true;
+      
+      // step forward for X (dependence: X, V)
+      step_forward_X(dt);
+
+      // reverst negative ds;
+      if (ds<0) ds = -ds;
       
       i++;
-    } while (true);
+    } while (!finalstep);
 
    // resolve X at last, update p.x (dependence: X)
     resolve_X();
@@ -1651,8 +1679,26 @@ public:
     memcpy(V0,V,3*nrel*sizeof(double));
     //memcpy(p0,p,num*sizeof(particle));
 
+    // for case of toff criterion
+    double ds = s;
+    if (toff>0) {
+      // calculate ds from dt;
+      ds = (toff-t)/(pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
+#ifdef DEBUG
+      std::cerr<<"Extra-init, current t="<<t<<"  toff="<<toff<<"  dt="<<toff-t<<"  ds="<<ds<<std::endl;
+#endif
+    }      
+    
+    std::size_t intcount = 0; // iteration counter
+    std::size_t step[itermax]; //substep size
+    if (sequences<=2) step[0] = 1; // for even sequence and B.S. sequence 
+    else step[0] = 2; // for 4k sequence
+    // for B.S. 
+    std::size_t stepeven = 2; 
+    std::size_t stepodd = 3;
+    
     // first step
-    Leapfrog_step_forward(s,1,-1.0,force,0);
+    Leapfrog_step_forward(ds,step[0],-1.0,force,0);
 
     // relative position vector between first and last particle for phase error check
     memset(CX,0,3*sizeof(double));
@@ -1662,13 +1708,6 @@ public:
       CX[2] += X[i][2];
     }
 
-    std::size_t intcount = 0; // iteration counter
-    std::size_t step[itermax]; //substep size
-    step[0] = 1;
-    // for B.S. 
-    std::size_t stepeven = 2; 
-    std::size_t stepodd = 3;
-    
     while (cxerr > 0.5*error || std::abs(eerr) > 0.1*error) {
       // convergency check
       if (cxerr>=cxerr0 || std::abs(eerr) >= std::abs(eerr0)) {
@@ -1708,7 +1747,7 @@ public:
         //even sequence
         step[intcount] = 2*step[intcount-1];
       }
-      else {
+      else if (sequences==2) {
         // B.S. sequence
         if (intcount%2) {
           step[intcount] = stepeven;
@@ -1718,6 +1757,10 @@ public:
           step[intcount] = stepodd;
           stepodd = stepodd*2;
         }
+      }
+      else {
+        // 4k sequence
+        step[intcount] = step[intcount-1] + 4;
       }
       
       // reset the initial data
@@ -1730,7 +1773,7 @@ public:
       // reset velocity to get correct w
       if (pars->beta>0) resolve_V();
 
-      Leapfrog_step_forward(s,step[intcount],-1.0,force,0);
+      Leapfrog_step_forward(ds,step[intcount],-1.0,force,0);
 
       if (methods==1) {
         // Using Romberg method
@@ -1925,8 +1968,8 @@ public:
       eerr = (Ekin-Pot+B)/B;
       memcpy(CX,CXN,3*sizeof(double));
 #ifdef DEBUG
-      std::cerr<<std::setprecision(18)<<"Iteration: "<<intcount<<" Step division = "<<step[intcount]<<" error = "<<cxerr;
-      std::cerr<<" energy error "<<Ekin-Pot+B<<std::endl;
+      std::cerr<<std::setprecision(6)<<"Iter.= "<<intcount<<" Dep.= "<<step[intcount]<<" P-err.= "<<cxerr;
+      std::cerr<<" E-err.="<<(Ekin-Pot+B)/B<<" B ="<<std::setprecision(12)<<B<<std::endl;
 #endif 
     }
 
