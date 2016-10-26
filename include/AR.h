@@ -1644,23 +1644,12 @@ public:
 #endif
     // array size indicator for relative position and velocity
     const std::size_t nrel = num-1;
+    const std::size_t dsize = (2*nrel+1)*3;
     
     // for storage
-    double   t0,ttemp,t1[itermax];
-    double   B0,Btemp,B1[itermax];
-    double   w0,wtemp,w1[itermax];
-    double   Ekin0;
-
-    double3* X1[itermax];
-    double3* V1[itermax];
-    for (std::size_t i=0;i<itermax;i++) {
-      X1[i] = new double3[nrel];
-      V1[i] = new double3[nrel];
-    }
-    double3* X0 = new double3[nrel];
-    double3* V0 = new double3[nrel];
-    double3* Xtemp = new double3[nrel];
-    double3* Vtemp = new double3[nrel];
+    // for convenient, the data are storaged in one array with size (2*nrel+1)*3, which represents t, B, w, X[3][nrel], V[3][nrel]
+    double d0[dsize],dtemp[dsize],dn[itermax][dsize];
+    double Ekin0;
 
     // for error check
     double3 CX,CXN;
@@ -1671,13 +1660,12 @@ public:
     double eerr0=eerr+1.0;
 
     // backup initial values
-    t0 = t;
-    B0 = B;
-    w0 = w;
+    d0[0] = t;
+    d0[1] = B;
+    d0[2] = w;
+    memcpy(&d0[3],X,3*nrel*sizeof(double));
+    memcpy(&d0[3+nrel*3],V,3*nrel*sizeof(double));
     Ekin0 = Ekin;
-    memcpy(X0,X,3*nrel*sizeof(double));
-    memcpy(V0,V,3*nrel*sizeof(double));
-    //memcpy(p0,p,num*sizeof(particle));
 
     // for case of toff criterion
     double ds = s;
@@ -1725,11 +1713,11 @@ public:
       }
       if (intcount == 0) {
         // storage the results
-        t1[0] = t;
-        B1[0] = B;
-        w1[0] = w;
-        memcpy(X1[0],X,3*nrel*sizeof(double));
-        memcpy(V1[0],V,3*nrel*sizeof(double));
+        dn[0][0] = t;
+        dn[0][1] = B;
+        dn[0][2] = w;
+        memcpy(&dn[0][3],X,3*nrel*sizeof(double));
+        memcpy(&dn[0][3+nrel*3],V,3*nrel*sizeof(double));
       }
       intcount++;
       // iteration limit check
@@ -1764,12 +1752,12 @@ public:
       }
       
       // reset the initial data
-      t = t0;
-      B = B0;
-      w = w0;
+      t = d0[0];
+      B = d0[1];
+      w = d0[2];
       Ekin = Ekin0;
-      memcpy(X,X0,3*nrel*sizeof(double));
-      memcpy(V,V0,3*nrel*sizeof(double));
+      memcpy(X,&d0[3],3*nrel*sizeof(double));
+      memcpy(V,&d0[3+nrel*3],3*nrel*sizeof(double));
       // reset velocity to get correct w
       if (pars->beta>0) resolve_V();
 
@@ -1785,14 +1773,14 @@ public:
         */
         // H_i-k/H_i
         double hr = (double)step[intcount]/(double)step[intcount-1];
-        
-        t1[intcount] = Romberg_recursion_formula(t1[0],t,hr);
-        B1[intcount] = Romberg_recursion_formula(B1[0],B,hr);
-        w1[intcount] = Romberg_recursion_formula(w1[0],w,hr);
+
+        dn[intcount][0] = Romberg_recursion_formula(dn[0][0],t,hr);
+        dn[intcount][1] = Romberg_recursion_formula(dn[0][1],B,hr);
+        dn[intcount][2] = Romberg_recursion_formula(dn[0][2],w,hr);
         for (std::size_t i=0;i<nrel;i++) {
           for (std::size_t k=0;k<3;k++) {
-            X1[intcount][i][k] = Romberg_recursion_formula(X1[0][i][k],X[i][k],hr);
-            V1[intcount][i][k] = Romberg_recursion_formula(V1[0][i][k],V[i][k],hr);
+            dn[intcount][3*(i+1)+k] = Romberg_recursion_formula(dn[0][3*(i+1)+k],X[i][k],hr);
+            dn[intcount][3*(nrel+i+1)+k] = Romberg_recursion_formula(dn[0][3*(nrel+i+1)+k],V[i][k],hr);
           }
         }
    
@@ -1800,11 +1788,11 @@ public:
         if (intcount>1) {
           // update zero order
           // [0] << T_n,0
-          t1[0] = t;
-          B1[0] = B;
-          w1[0] = w;
-          memcpy(X1[0],X,3*nrel*sizeof(double));
-          memcpy(V1[0],V,3*nrel*sizeof(double));
+          dn[0][0] = t;
+          dn[0][1] = B;
+          dn[0][2] = w;
+          memcpy(&dn[0][3],X,3*nrel*sizeof(double));
+          memcpy(&dn[0][3+nrel*3],V,3*nrel*sizeof(double));
 
           // iteration to get final result
           for (std::size_t j=1; j<intcount; j++) {
@@ -1815,44 +1803,29 @@ public:
               T_n,j [n]
              */
             hr = (double)step[intcount]/(double)step[intcount-j-1];
-            ttemp = Romberg_recursion_formula(t1[j],t1[intcount],hr);
-            Btemp = Romberg_recursion_formula(B1[j],B1[intcount],hr);
-            wtemp = Romberg_recursion_formula(w1[j],w1[intcount],hr);
-            for (std::size_t i=0;i<nrel;i++) {
-              for (std::size_t k=0;k<3;k++) {
-                Xtemp[i][k] = Romberg_recursion_formula(X1[j][i][k],X1[intcount][i][k],hr);
-                Vtemp[i][k] = Romberg_recursion_formula(V1[j][i][k],V1[intcount][i][k],hr);
-              }
-            }
+            for (std::size_t k=0; k<dsize; k++) dtemp[k] = Romberg_recursion_formula(dn[j][k],dn[intcount][k],hr);
    
             //update j order
             /*
               [j] << T_n,j [n]
              */
-            t1[j] = t1[intcount];
-            B1[j] = B1[intcount];
-            w1[j] = w1[intcount];
-            memcpy(X1[j],X1[intcount],3*nrel*sizeof(double));
-            memcpy(V1[j],V1[intcount],3*nrel*sizeof(double));
+            memcpy(dn[j],dn[intcount],dsize*sizeof(double));
    
             //shift temp data to index = intcount.
             /*
               [n] << T_n,j+1 [temp]
              */
-            t1[intcount] = ttemp;
-            B1[intcount] = Btemp;
-            w1[intcount] = wtemp;
-            memcpy(X1[intcount],Xtemp,3*nrel*sizeof(double));
-            memcpy(V1[intcount],Vtemp,3*nrel*sizeof(double));
+            memcpy(dn[intcount],dtemp,dsize*sizeof(double));
           }
         }
       }
       else {
         // Using Rational interpolation method
         // additional template storage
-        double tt1, Bt1, wt1;
-        double3* Xt1 = new double3[nrel];
-        double3* Vt1 = new double3[nrel];
+        double d1[dsize];
+        /*double tt1, Bt1, wt1;
+          double3* Xt1 = new double3[nrel];
+          double3* Vt1 = new double3[nrel];*/
         
         /*
            T_n-1,0 [0]
@@ -1860,13 +1833,13 @@ public:
            T_n,0 [Chain]
         */
         double hr = (double)step[intcount]/(double)step[intcount-1];
-        t1[intcount] = Rational_recursion_formula(0,t1[0],t,hr);
-        B1[intcount] = Rational_recursion_formula(0,B1[0],B,hr);
-        w1[intcount] = Rational_recursion_formula(0,w1[0],w,hr);
+        dn[intcount][0] = Rational_recursion_formula(0,dn[0][0],t,hr);
+        dn[intcount][1] = Rational_recursion_formula(0,dn[0][1],B,hr);
+        dn[intcount][2] = Rational_recursion_formula(0,dn[0][2],w,hr);
         for (std::size_t i=0;i<nrel;i++) {
           for (std::size_t k=0;k<3;k++) {
-            X1[intcount][i][k] = Rational_recursion_formula(0,X1[0][i][k],X[i][k],hr);
-            V1[intcount][i][k] = Rational_recursion_formula(0,V1[0][i][k],V[i][k],hr);
+            dn[intcount][3*(i+1)+k] = Rational_recursion_formula(0,dn[0][3*(i+1)+k],X[i][k],hr);
+            dn[intcount][3*(i+nrel+1)+k] = Rational_recursion_formula(0,dn[0][3*(i+nrel+1)+k],V[i][k],hr);
           }
         }
 
@@ -1881,67 +1854,38 @@ public:
                            T_n,j [n]
              */
             hr = (double)step[intcount]/(double)step[intcount-j-1];
-            ttemp = Rational_recursion_formula(t1[j-1],t1[j],t1[intcount],hr);
-            Btemp = Rational_recursion_formula(B1[j-1],B1[j],B1[intcount],hr);
-            wtemp = Rational_recursion_formula(w1[j-1],w1[j],w1[intcount],hr);
-            for (std::size_t i=0;i<nrel;i++) {
-              for (std::size_t k=0;k<3;k++) {
-                Xtemp[i][k] = Rational_recursion_formula(X1[j-1][i][k],X1[j][i][k],X1[intcount][i][k],hr);
-                Vtemp[i][k] = Rational_recursion_formula(V1[j-1][i][k],V1[j][i][k],V1[intcount][i][k],hr);
-                //  if(Xtemp[i][k]!=Xtemp[i][k])  {
-                //    std::cerr<<"j="<<j<<",i="<<i<<",k="<<k<<" Xik="<<Xtemp[i][k]<<" Xi1k2="<<X1[j-1][i][k]<<" Xi1k1="<<X1[j][i][k]<<" Xik1="<<X1[intcount][i][k]<<" hr="<<hr<<std::endl;
-                //     abort();
-                //  }
-              }
-            }
+            for (std::size_t k=0; k<dsize; k++) dtemp[k] = Rational_recursion_formula(dn[j-1][k],dn[j][k],dn[intcount][k],hr);
 
             if (j==1) {
               // update zero order
               // [0] << T_n,0
-              t1[0] = t;
-              B1[0] = B;
-              w1[0] = w;
-              memcpy(X1[0],X,3*nrel*sizeof(double));
-              memcpy(V1[0],V,3*nrel*sizeof(double));
+              dn[0][0] = t;
+              dn[0][1] = B;
+              dn[0][2] = w;
+              memcpy(&dn[0][3],X,3*nrel*sizeof(double));
+              memcpy(&dn[0][3+nrel*3],V,3*nrel*sizeof(double));
             }
-            else {
-              // update j-1 order
-              // [j-1] << T_n,j-1 [t1]
-              t1[j-1] = tt1;
-              B1[j-1] = Bt1;
-              w1[j-1] = wt1;
-              memcpy(X1[j-1],Xt1,3*nrel*sizeof(double));
-              memcpy(V1[j-1],Vt1,3*nrel*sizeof(double));
-            }
+            // update j-1 order
+            // [j-1] << T_n,j-1 [t1]
+            else memcpy(dn[j-1],d1,dsize*sizeof(double));
 
             //storage previous extrapolation data in template position t1
             // [t1] << T_n,j [n]
-            tt1 = t1[intcount];
-            Bt1 = B1[intcount];
-            wt1 = w1[intcount];
-            memcpy(Xt1,X1[intcount],3*nrel*sizeof(double));
-            memcpy(Vt1,V1[intcount],3*nrel*sizeof(double));
+            memcpy(d1,dn[intcount],dsize*sizeof(double));
    
             //shift temp data to index = intcount.
             // [n] << T_n,j+1 [temp]
-            t1[intcount] = ttemp;
-            B1[intcount] = Btemp;
-            w1[intcount] = wtemp;
-            memcpy(X1[intcount],Xtemp,3*nrel*sizeof(double));
-            memcpy(V1[intcount],Vtemp,3*nrel*sizeof(double));
+            memcpy(dn[intcount],dtemp,dsize*sizeof(double));
           }
         }
-
-        delete[] Xt1;
-        delete[] Vt1;
       }
 
       // set final results back to chain array
-      t = t1[intcount];
-      B = B1[intcount];
-      w = w1[intcount];
-      memcpy(X,X1[intcount],3*nrel*sizeof(double));
-      memcpy(V,V1[intcount],3*nrel*sizeof(double));
+      t = dn[intcount][0];
+      B = dn[intcount][1];
+      w = dn[intcount][2];
+      memcpy(X,&dn[intcount][3],3*nrel*sizeof(double));
+      memcpy(V,&dn[intcount][3+nrel*3],3*nrel*sizeof(double));
  
       // resolve particle
       resolve_XV();
@@ -1973,15 +1917,6 @@ public:
 #endif 
     }
 
-    delete[] Xtemp;
-    delete[] Vtemp;
-    delete[] X0;
-    delete[] V0;
-    for (std::size_t i=0;i<itermax;i++) {
-      delete[] X1[i];
-      delete[] V1[i];
-    }
-    
     // update chain link order
     if(num>2) update_link();
 
