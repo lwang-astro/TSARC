@@ -30,7 +30,11 @@ public:
   double t_ep;     // extrapolation
   double t_pext;   // perturber force
 
+  int* stepcount;  // iteration step count in extrapolation
+
   timeprofile() {reset_tp();}
+
+  void initstep(const std::size_t n) { if (!stepcount) stepcount=new int[n];}
   
   void reset_tp(){
     t_apw=0.0;
@@ -38,35 +42,11 @@ public:
     t_lf=0.0;
     t_ep=0.0;
     t_pext=0.0;
+    stepcount=NULL;
   }
 
-  /*  // calc_APW
-  double getTP_apw() const{
-    return t_apw;
-  }
+  ~timeprofile() { if (stepcount) delete[] stepcount;}
 
-  //update link
-  double getTP_uplink() const{
-    return t_uplink;
-  }
-
-  // leap-frog
-  double getTP_lf() const{
-    return t_lf;
-  }
-
-  // extrapolation
-  double getTP_ep() const{
-    return t_ep;
-  }
-
-  // perturber force
-  double getTP_pext() const{
-    return t_pext;
-  }
-  */
-
-  
 };
 
 #endif
@@ -187,14 +167,23 @@ private:
   int exp_methods;  // 1: Romberg method; others: Rational interpolation method
   int exp_sequences; // 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other. 4k sequence {h/2, h/6, h/10, h/14 ...}
 
+  std::size_t* step; //substep sequence
+  std::size_t  opt_iter; // optimaized iteration index
+
 public:
 
-  chainpars(): alpha(1.0), beta(0.0), gamma(0.0), m_epi(0.001), m_smooth(true), dtmin(5.4e-20), dterr(1e-6), exp_error(1E-10), exp_itermax(20), exp_methods(2), exp_sequences(2) { pp_AW = &Newtonian_AW; pp_Ap = &Newtonian_Ap;}
+  chainpars(): alpha(1.0), beta(0.0), gamma(0.0), m_epi(0.001), m_smooth(true) {
+    step = NULL;
+    setEXP(1E-10, 5.4E-20, 1E-6, 20, 2, 2, 5);
+    pp_AW = &Newtonian_AW;
+    pp_Ap = &Newtonian_Ap;
+  }
 
-  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double e=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
+  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double e=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2, const std::size_t optiter=5) {
+    step = NULL;
     setabg(a,b,g);
     setM(e,mm);
-    setEXP(error,dtm,dte,itermax,methods,sequences);
+    setEXP(error,dtm,dte,itermax,methods,sequences,optiter);
     setA(aw,ap);
   }
 
@@ -262,15 +251,51 @@ public:
                dtmin: minimum physical time step
                itermax: maximum times for iteration.
                methods: 1: Romberg method; others: Rational interpolation method
-               sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other: 4k sequence {h/2, h/6, h/10, h/14 ...}
+               sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other: 4k sequence {h, h/2, h/6, h/10, h/14 ...}
   */
-  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
+  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2, const std::size_t optiter=5) {
     exp_error = error;
-    exp_itermax = itermax;
     exp_methods = methods;
     exp_sequences = sequences;
     dterr = dte;
     dtmin = dtm;
+    exp_itermax = itermax;
+    opt_iter=optiter;
+    // reset step array
+    if (step!=NULL) delete[] step;
+    step = new std::size_t[itermax+1];
+    // calculate sequences of steps
+    // Romberg (even) sequence {h, h/2, h/4, h/8 ...}
+    if (sequences==1) {
+      step[0] = 1;
+      for (std::size_t i=1;i<=itermax;i++) {
+        step[i] = 2*step[i-1];
+      }
+    }
+    // Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
+    else if (sequences==2) {
+      step[0] = 1;
+      std::size_t stepeven = 2; 
+      std::size_t stepodd = 3;
+      for (std::size_t i=1;i<=itermax;i++) {
+        if (i%2) {
+          step[i] = stepeven;
+          stepeven = stepeven*2;
+        }
+        else {
+          step[i] = stepodd;
+          stepodd = stepodd*2;
+        }
+      }      
+    }
+    // E. Hairer (4k) sequences {h, h/2, h/6, h/10, h/14 ...}
+    else {
+      step[0] = 1;
+      step[1] = 2;
+      for (std::size_t i=2;i<=itermax;i++) {
+        step[i] = step[i-1] + 4;
+      }
+    }
   }
   
   /*  const double &alpha()  const { return S_alpha;  }
@@ -315,6 +340,11 @@ class chain{
   bool F_Pmod;     // indicate whether particle list is modified (true: modified)
   int  F_Porigin; // indicate whether particle is shifted back to original frame (1: original frame: 0: center-of-mass frame; 2: only position is original frame)
   bool F_mm2s;     // indicate whether mm2 is calculated.
+
+  //error control
+  std::size_t INT_q; // last step corresponding index
+  double INT_s;      // last step size
+  double INT_errmax; // last step errmax
 
   // chain parameter controller
   const chainpars *pars;
@@ -634,7 +664,7 @@ private:
      argument:  ds:  step size s (not physical time step) 
      return:    dt:  physical integration time step for X
   */
-  double calc_dt(const double &ds) {
+  double calc_dt(const double ds) {
     // determine the physical time step
     double dt = ds / (pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
     if (std::abs(dt) < pars->dtmin) {
@@ -648,7 +678,7 @@ private:
      function: one step integration of X 
      argument: ds: step size s (not physical time step), it is modifed if final step reach
    */
-  void step_forward_X(const double &dt) {
+  void step_forward_X(const double dt) {
     // step forward relative X
     for (std::size_t i=0;i<num-1;i++) {
       X[i][0] += dt * V[i][0];
@@ -946,15 +976,18 @@ private:
           pf[i][2] += At[2];
         }
       }
+#ifdef TIME_PROFILE
+      profile.t_pext += get_wtime();
+#endif
       return true;
     }
     else {
       memset(pf,0,3*num*sizeof(double));
+#ifdef TIME_PROFILE
+      profile.t_pext += get_wtime();
+#endif
       return false;
     }
-#ifdef TIME_PROFILE
-    profile.t_pext += get_wtime();
-#endif
   }
      
   /* update_link
@@ -1627,17 +1660,17 @@ public:
 
   /* extrapolation_integration
      function: extrapolation method to get accurate integration
-     argument: s: whole step size
+     argument: ds: whole step size
                toff: ending physical time (negative means no ending time and integration finishing after n steps)
                force: external force (not perturber forces which are calculated in pert_force)
-     return:   iteration count (start from 1, which means no iteration)
+     return:   new step size modification factor
    */
-  int extrapolation_integration(const double s, const double toff=-1.0, const double3* force=NULL) {
+  double extrapolation_integration(const double ds, const double toff=-1.0, const double3* force=NULL) {
     // get parameters
     const double error = pars->exp_error;
     const std::size_t itermax = pars->exp_itermax;
     const int methods = pars->exp_methods;
-    const int sequences = pars->exp_sequences;
+    const std::size_t *step = pars->step;
     
 #ifdef TIME_PROFILE
     profile.t_ep -= get_wtime();
@@ -1653,11 +1686,12 @@ public:
 
     // for error check
     double3 CX,CXN;
-    //    double3 CXN;
     double cxerr=error+1.0;
     double eerr=error+1.0;
     double cxerr0=cxerr+1.0;
     double eerr0=eerr+1.0;
+    // error for step estimation
+    double werrmax=std::numeric_limits<double>::max();
 
     // backup initial values
     d0[0] = t;
@@ -1667,26 +1701,25 @@ public:
     memcpy(&d0[3+nrel*3],V,3*nrel*sizeof(double));
     Ekin0 = Ekin;
 
+    // new step
+    double dsn = 1.0;
+    
     // for case of toff criterion
-    double ds = s;
-    if (toff>0) {
+    /*double ds = s;
+        if (toff>0) {
       // calculate ds from dt;
       ds = (toff-t)/(pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
 #ifdef DEBUG
       std::cerr<<"Extra-init, current t="<<t<<"  toff="<<toff<<"  dt="<<toff-t<<"  ds="<<ds<<std::endl;
 #endif
-    }      
+} */     
     
     std::size_t intcount = 0; // iteration counter
-    std::size_t step[itermax]; //substep size
-    if (sequences<=2) step[0] = 1; // for even sequence and B.S. sequence 
-    else step[0] = 2; // for 4k sequence
-    // for B.S. 
-    std::size_t stepeven = 2; 
-    std::size_t stepodd = 3;
     
     // first step
     Leapfrog_step_forward(ds,step[0],-1.0,force,0);
+
+    std::size_t itercount = step[0]; // iteration efforts count
 
     // relative position vector between first and last particle for phase error check
     memset(CX,0,3*sizeof(double));
@@ -1731,26 +1764,6 @@ public:
         abort();
       }
 
-      if (sequences==1) {
-        //even sequence
-        step[intcount] = 2*step[intcount-1];
-      }
-      else if (sequences==2) {
-        // B.S. sequence
-        if (intcount%2) {
-          step[intcount] = stepeven;
-          stepeven = stepeven*2;
-        }
-        else {
-          step[intcount] = stepodd;
-          stepodd = stepodd*2;
-        }
-      }
-      else {
-        // 4k sequence
-        step[intcount] = step[intcount-1] + 4;
-      }
-      
       // reset the initial data
       t = d0[0];
       B = d0[1];
@@ -1763,6 +1776,9 @@ public:
 
       Leapfrog_step_forward(ds,step[intcount],-1.0,force,0);
 
+      // increase iteration counter
+      itercount += step[intcount];
+      
       if (methods==1) {
         // Using Romberg method
         // first step extrapolate, storage the temp data in last index of array
@@ -1880,6 +1896,25 @@ public:
         }
       }
 
+      // get error estimation
+      double ermax=0;
+      for (std::size_t k=0; k<dsize; k++) {
+        double dik = dn[intcount][k];
+        double di1k= dn[intcount-1][k];
+        ermax = std::max(ermax, 2*(dik-di1k)/std::sqrt(dik*dik+di1k*di1k));
+      }
+      double dsfactor = std::pow(ermax/error,1/double(2*intcount+3));
+      double werrn = (double)itercount * dsfactor;
+      if (ermax>0&&werrn<werrmax) {
+        werrmax = werrn;
+        dsn = 1.0 / dsfactor;
+        //dsn = std::min(dsn,0.9); // not larger than 1.0
+        //dsn = std::max(dsn,pars->dtmin); // not too small
+#ifdef DEBUG
+        std::cerr<<"ERR factor update: iterindex="<<intcount<<"; modify factor="<<1.0/dsfactor<<"; ermax="<<ermax<<std::endl;
+#endif
+      }
+      
       // set final results back to chain array
       t = dn[intcount][0];
       B = dn[intcount][1];
@@ -1896,7 +1931,7 @@ public:
 
       // phase error calculation
       memset(CXN,0,3*sizeof(double));
-      for (size_t i=0;i<num-1;i++) {
+      for (size_t i=0;i<nrel;i++) {
         CXN[0] += X[i][0];
         CXN[1] += X[i][1];
         CXN[2] += X[i][2];
@@ -1921,10 +1956,13 @@ public:
     if(num>2) update_link();
 
 #ifdef TIME_PROFILE
+    profile.initstep(itermax+1);
+    profile.stepcount[intcount+1]++;
     profile.t_ep += get_wtime();
 #endif
-    
-    return intcount+1;
+
+    if (intcount+1<pars->opt_iter) dsn = std::pow(ds, (2*intcount+3)/(double)(2*pars->opt_iter+1)-1);
+    return dsn;
   }
 
   /* getTime
