@@ -14,6 +14,8 @@
 #define WIDTH 10
 #endif
 
+#include "extrapolation.h"
+
 #ifdef TIME_PROFILE
 #include <sys/time.h>
 static double get_wtime(){
@@ -167,13 +169,16 @@ private:
   int exp_methods;  // 1: Romberg method; others: Rational interpolation method
   int exp_sequences; // 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other. 4k sequence {h/2, h/6, h/10, h/14 ...}
 
-  std::size_t* step; //substep sequence
+  int* step; //substep sequence
   std::size_t  opt_iter; // optimaized iteration index
+
+  int** bin_index; // binomial coefficients
 
 public:
 
   chainpars(): alpha(1.0), beta(0.0), gamma(0.0), m_epi(0.001), m_smooth(true) {
     step = NULL;
+    bin_index = NULL;
     setEXP(1E-10, 5.4E-20, 1E-6, 20, 2, 2, 5);
     pp_AW = &Newtonian_AW;
     pp_Ap = &Newtonian_Ap;
@@ -181,10 +186,21 @@ public:
 
   chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double e=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2, const std::size_t optiter=5) {
     step = NULL;
+    bin_index = NULL;
     setabg(a,b,g);
     setM(e,mm);
     setEXP(error,dtm,dte,itermax,methods,sequences,optiter);
     setA(aw,ap);
+  }
+
+  ~chainpars() {
+    if (step!=NULL) delete[] step;
+    if (bin_index!=NULL) {
+      for (std::size_t i=0;i<exp_itermax;i++) 
+        if (bin_index[i]!=NULL)
+          delete[] bin_index[i];
+      delete[] bin_index;
+    }
   }
 
   /* setA
@@ -259,43 +275,37 @@ public:
     exp_sequences = sequences;
     dterr = dte;
     dtmin = dtm;
-    exp_itermax = itermax;
     opt_iter=optiter;
     // reset step array
     if (step!=NULL) delete[] step;
-    step = new std::size_t[itermax+1];
+    step = new int[itermax+1];
+
     // calculate sequences of steps
     // Romberg (even) sequence {h, h/2, h/4, h/8 ...}
-    if (sequences==1) {
-      step[0] = 1;
-      for (std::size_t i=1;i<=itermax;i++) {
-        step[i] = 2*step[i-1];
-      }
-    }
+    if (sequences==1) EP::seq_Romberg(step,itermax+1);
     // Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
-    else if (sequences==2) {
-      step[0] = 1;
-      std::size_t stepeven = 2; 
-      std::size_t stepodd = 3;
-      for (std::size_t i=1;i<=itermax;i++) {
-        if (i%2) {
-          step[i] = stepeven;
-          stepeven = stepeven*2;
-        }
-        else {
-          step[i] = stepodd;
-          stepodd = stepodd*2;
-        }
-      }      
-    }
+    else if (sequences==2) EP::seq_BS(step,itermax+1);
     // E. Hairer (4k) sequences {h, h/2, h/6, h/10, h/14 ...}
-    else {
-      step[0] = 1;
-      step[1] = 2;
-      for (std::size_t i=2;i<=itermax;i++) {
-        step[i] = step[i-1] + 4;
-      }
+    else EP::seq_Hairer(step,itermax+1);
+
+    // calculate binomial coefficients
+    // delete old
+    if (bin_index!=NULL) {
+      for (std::size_t i=0; i<exp_itermax; i++)
+        if (bin_index[i]!=NULL) delete[] bin_index[i];
+      delete[] bin_index;
     }
+    // get new
+    bin_index = new int*[itermax+1];
+    bin_index[0] = new int[1];
+    for (std::size_t i=1; i<=itermax; i++) {
+      bin_index[i] = new int[i+1];
+      bin_index[i][0] = 1;
+      bin_index[i][i] = 1;
+      // use recursive formula
+      for (std::size_t j=1; j<i; j++) bin_index[i][j] = bin_index[i-1][j-1] + bin_index[i-1][j]; 
+    }
+    exp_itermax = itermax;
   }
   
   /*  const double &alpha()  const { return S_alpha;  }
@@ -1203,41 +1213,6 @@ private:
     }
   }
 
-  /* Romberg_recursion_formula
-     function: Using Romberg function: T_ik = T_i,k-1 + (T_i,k-1 - T_i-1,k-1) / [(h_i-k/h_i)^2 -1]
-     argument: ti1k1: t_i-1,k-1
-               tik1: t_i,k-1
-               hr: h_i-k/h_i
-     return:   T_ik
-  */
-  double Romberg_recursion_formula(const double ti1k1, const double tik1, const double hr) {
-    if (hr==1) {
-      std::cerr<<"Error!: h_i-k/h_i should not be 1.0! (Romberg_recursion_formula)";
-      abort();
-    }
-    return tik1 + (tik1 - ti1k1)/(hr*hr - 1);
-  }
-
-  /* Rational_recursion formula
-     function: Using rational function: T_ik = T_i,k-1 + (T_i,k-1 - T_i-1,k-1) / {(h_i-k/h_i)^2 * [1- (T_i,k-1 - T_i-1,k-1)/(T_i,k-1 - T_i-1,k-2)] -1}
-     argument: ti1k2: T_i-1,k-2
-               ti1k1: T_i-1,k-1
-               tik1:  T_i,k-1
-               hr:    h_i-k/h_i
-     return:   T_ik
-   */
-  double Rational_recursion_formula(const double ti1k2, const double ti1k1, const double tik1, const double hr) {
-    double dt2 = tik1 - ti1k2;
-    double dt1 = tik1 - ti1k1;
-    if (dt2==0) {
-      if (dt1-dt2==0) return ti1k1;
-      else return tik1;
-    }
-    double dt = dt1/(hr*hr * (1 - dt1/dt2) - 1);
-    if (std::isinf(dt)) return tik1;
-    else return tik1 + dt;
-  }
-  
   /* center_shift_inverse_X==================================
      function: shift back positions of N (num) particles (p) based on chain center-of-mass
      p: particle list (read data and return shifted list);
@@ -1369,7 +1344,7 @@ public:
     generate_list();
 
     // calculate perturber forces
-    pert_force();
+    //    pert_force();
     
     //set center-of-mass
     if (F_Porigin==1) {
@@ -1670,7 +1645,7 @@ public:
     const double error = pars->exp_error;
     const std::size_t itermax = pars->exp_itermax;
     const int methods = pars->exp_methods;
-    const std::size_t *step = pars->step;
+    const int *step = pars->step;
     
 #ifdef TIME_PROFILE
     profile.t_ep -= get_wtime();
@@ -1681,9 +1656,15 @@ public:
     
     // for storage
     // for convenient, the data are storaged in one array with size (2*nrel+1)*3, which represents t, B, w, X[3][nrel], V[3][nrel]
-    double d0[dsize],dtemp[dsize],dn[itermax][dsize];
+    double d0[dsize],dtemp[dsize];
+    double* dn[itermax];
+    for (std::size_t i=0; i<itermax; i++) dn[i] = new double[dsize];
     double Ekin0;
 
+    // for dense output polynomial
+    //const std::size_t psize=2*dsize;
+    //double* pd[itermax];    // left and right difference
+    
     // for error check
     double3 CX,CXN;
     double cxerr=error+1.0;
@@ -1715,20 +1696,10 @@ public:
 } */     
     
     std::size_t intcount = 0; // iteration counter
+    std::size_t itercount = 0; // iteration efforts count
     
     // first step
-    Leapfrog_step_forward(ds,step[0],-1.0,force,0);
-
-    std::size_t itercount = step[0]; // iteration efforts count
-
-    // relative position vector between first and last particle for phase error check
-    memset(CX,0,3*sizeof(double));
-    for (size_t i=0;i<num-1;i++) {
-      CX[0] += X[i][0];
-      CX[1] += X[i][1];
-      CX[2] += X[i][2];
-    }
-
+    
     while (cxerr > 0.5*error || std::abs(eerr) > 0.1*error) {
       // convergency check
       if (cxerr>=cxerr0 || std::abs(eerr) >= std::abs(eerr0)) {
@@ -1744,15 +1715,7 @@ public:
           std::cerr<<"Warning: phase error reach zero but energy error "<<eerr<<" cannot reach criterion "<<error<<"!\n";
         break;
       }
-      if (intcount == 0) {
-        // storage the results
-        dn[0][0] = t;
-        dn[0][1] = B;
-        dn[0][2] = w;
-        memcpy(&dn[0][3],X,3*nrel*sizeof(double));
-        memcpy(&dn[0][3+nrel*3],V,3*nrel*sizeof(double));
-      }
-      intcount++;
+
       // iteration limit check
       if (intcount == itermax) {
         if(cxerr < error && std::abs(eerr) < error) break;
@@ -1763,189 +1726,103 @@ public:
         }          
         abort();
       }
+      
+      // reset the initial data 
+      if (intcount>0) {
+        t = d0[0];
+        B = d0[1];
+        w = d0[2];
+        Ekin = Ekin0;
+        memcpy(X,&d0[3],3*nrel*sizeof(double));
+        memcpy(V,&d0[3+nrel*3],3*nrel*sizeof(double));
+        // reset velocity to get correct w
+        if (pars->beta>0) resolve_V();
+      }
 
-      // reset the initial data
-      t = d0[0];
-      B = d0[1];
-      w = d0[2];
-      Ekin = Ekin0;
-      memcpy(X,&d0[3],3*nrel*sizeof(double));
-      memcpy(V,&d0[3+nrel*3],3*nrel*sizeof(double));
-      // reset velocity to get correct w
-      if (pars->beta>0) resolve_V();
-
+      // intergration
       Leapfrog_step_forward(ds,step[intcount],-1.0,force,0);
 
       // increase iteration counter
       itercount += step[intcount];
       
-      if (methods==1) {
-        // Using Romberg method
-        // first step extrapolate, storage the temp data in last index of array
-        /*
-          T_n-1,0 [0]
-                     -> T_n,1 [n]
-          T_n,0 [Chain]
-        */
-        // H_i-k/H_i
-        double hr = (double)step[intcount]/(double)step[intcount-1];
+      if (intcount == 0) {
+        // storage the results to [n]
+        dn[intcount][0] = t;
+        dn[intcount][1] = B;
+        dn[intcount][2] = w;
+        memcpy(&dn[intcount][3],X,3*nrel*sizeof(double));
+        memcpy(&dn[intcount][3+nrel*3],V,3*nrel*sizeof(double));
 
-        dn[intcount][0] = Romberg_recursion_formula(dn[0][0],t,hr);
-        dn[intcount][1] = Romberg_recursion_formula(dn[0][1],B,hr);
-        dn[intcount][2] = Romberg_recursion_formula(dn[0][2],w,hr);
-        for (std::size_t i=0;i<nrel;i++) {
-          for (std::size_t k=0;k<3;k++) {
-            dn[intcount][3*(i+1)+k] = Romberg_recursion_formula(dn[0][3*(i+1)+k],X[i][k],hr);
-            dn[intcount][3*(nrel+i+1)+k] = Romberg_recursion_formula(dn[0][3*(nrel+i+1)+k],V[i][k],hr);
-          }
-        }
-   
-        // if step number > 1, need iteration
-        if (intcount>1) {
-          // update zero order
-          // [0] << T_n,0
-          dn[0][0] = t;
-          dn[0][1] = B;
-          dn[0][2] = w;
-          memcpy(&dn[0][3],X,3*nrel*sizeof(double));
-          memcpy(&dn[0][3+nrel*3],V,3*nrel*sizeof(double));
-
-          // iteration to get final result
-          for (std::size_t j=1; j<intcount; j++) {
-            //templately storage new results to ttemp
-            /*
-              T_n-1,j [j]
-                       -> T_n,j+1 [temp]
-              T_n,j [n]
-             */
-            hr = (double)step[intcount]/(double)step[intcount-j-1];
-            for (std::size_t k=0; k<dsize; k++) dtemp[k] = Romberg_recursion_formula(dn[j][k],dn[intcount][k],hr);
-   
-            //update j order
-            /*
-              [j] << T_n,j [n]
-             */
-            memcpy(dn[j],dn[intcount],dsize*sizeof(double));
-   
-            //shift temp data to index = intcount.
-            /*
-              [n] << T_n,j+1 [temp]
-             */
-            memcpy(dn[intcount],dtemp,dsize*sizeof(double));
-          }
+        // relative position vector between first and last particle for phase error check
+        memset(CX,0,3*sizeof(double));
+        for (size_t i=0;i<num-1;i++) {
+          CX[0] += X[i][0];
+          CX[1] += X[i][1];
+          CX[2] += X[i][2];
         }
       }
       else {
-        // Using Rational interpolation method
-        // additional template storage
-        double d1[dsize];
-        /*double tt1, Bt1, wt1;
-          double3* Xt1 = new double3[nrel];
-          double3* Vt1 = new double3[nrel];*/
+        // storage the results to [temp]
+        dtemp[0] = t;
+        dtemp[1] = B;
+        dtemp[2] = w;
+        memcpy(&dtemp[3],X,3*nrel*sizeof(double));
+        memcpy(&dtemp[3+nrel*3],V,3*nrel*sizeof(double));
         
-        /*
-           T_n-1,0 [0]
-        0               -> T_n,1 [n]
-           T_n,0 [Chain]
-        */
-        double hr = (double)step[intcount]/(double)step[intcount-1];
-        dn[intcount][0] = Rational_recursion_formula(0,dn[0][0],t,hr);
-        dn[intcount][1] = Rational_recursion_formula(0,dn[0][1],B,hr);
-        dn[intcount][2] = Rational_recursion_formula(0,dn[0][2],w,hr);
-        for (std::size_t i=0;i<nrel;i++) {
-          for (std::size_t k=0;k<3;k++) {
-            dn[intcount][3*(i+1)+k] = Rational_recursion_formula(0,dn[0][3*(i+1)+k],X[i][k],hr);
-            dn[intcount][3*(i+nrel+1)+k] = Rational_recursion_formula(0,dn[0][3*(i+nrel+1)+k],V[i][k],hr);
-          }
-        }
+        // iteration
+        // Using Romberg method
+        if (methods==1) EP::polynomial_extrapolation(dn,dtemp,step,dsize,intcount);
+        // Using Rational interpolation method
+        else EP::rational_extrapolation(dn,dtemp,step,dsize,intcount);
 
-        // if step number > 1, need iteration
-        if (intcount>1) {
-          // iteration to get final result
-          for (std::size_t j=1; j<intcount; j++) {
-            //templately storage new results to ttemp
-            /*
-                           T_n-1,j [j]
-             T_n-1,j-1 [j-1]          -> T_n,j+1 [temp]
-                           T_n,j [n]
-             */
-            hr = (double)step[intcount]/(double)step[intcount-j-1];
-            for (std::size_t k=0; k<dsize; k++) dtemp[k] = Rational_recursion_formula(dn[j-1][k],dn[j][k],dn[intcount][k],hr);
-
-            if (j==1) {
-              // update zero order
-              // [0] << T_n,0
-              dn[0][0] = t;
-              dn[0][1] = B;
-              dn[0][2] = w;
-              memcpy(&dn[0][3],X,3*nrel*sizeof(double));
-              memcpy(&dn[0][3+nrel*3],V,3*nrel*sizeof(double));
-            }
-            // update j-1 order
-            // [j-1] << T_n,j-1 [t1]
-            else memcpy(dn[j-1],d1,dsize*sizeof(double));
-
-            //storage previous extrapolation data in template position t1
-            // [t1] << T_n,j [n]
-            memcpy(d1,dn[intcount],dsize*sizeof(double));
-   
-            //shift temp data to index = intcount.
-            // [n] << T_n,j+1 [temp]
-            memcpy(dn[intcount],dtemp,dsize*sizeof(double));
-          }
-        }
-      }
-
-      // get error estimation
-      double ermax=0;
-      for (std::size_t k=0; k<dsize; k++) {
-        double dik = dn[intcount][k];
-        double di1k= dn[intcount-1][k];
-        ermax = std::max(ermax, 2*(dik-di1k)/std::sqrt(dik*dik+di1k*di1k));
-      }
-      double dsfactor = std::pow(ermax/error,1/double(2*intcount+3));
-      double werrn = (double)itercount * dsfactor;
-      if (ermax>0&&werrn<werrmax) {
-        werrmax = werrn;
-        dsn = 1.0 / dsfactor;
+        // get error estimation
+        double ermax=EP::extrapolation_error(dn,dsize,intcount);
+        double dsfactor = EP::H_opt_factor(ermax,error,intcount);
+        double werrn = (double)itercount / dsfactor;
+        if (ermax>0&&werrn<werrmax) {
+          werrmax = werrn;
+          dsn = dsfactor;
         //dsn = std::min(dsn,0.9); // not larger than 1.0
         //dsn = std::max(dsn,pars->dtmin); // not too small
 #ifdef DEBUG
-        std::cerr<<"ERR factor update: iterindex="<<intcount<<"; modify factor="<<1.0/dsfactor<<"; ermax="<<ermax<<std::endl;
+          std::cerr<<"ERR factor update: iterindex="<<intcount<<"; modify factor="<<1.0/dsfactor<<"; ermax="<<ermax<<std::endl;
 #endif
-      }
+        }
       
-      // set final results back to chain array
-      t = dn[intcount][0];
-      B = dn[intcount][1];
-      w = dn[intcount][2];
-      memcpy(X,&dn[intcount][3],3*nrel*sizeof(double));
-      memcpy(V,&dn[intcount][3+nrel*3],3*nrel*sizeof(double));
+        // set final results back to chain array
+        t = dn[intcount][0];
+        B = dn[intcount][1];
+        w = dn[intcount][2];
+        memcpy(X,&dn[intcount][3],3*nrel*sizeof(double));
+        memcpy(V,&dn[intcount][3+nrel*3],3*nrel*sizeof(double));
  
-      // resolve particle
-      resolve_XV();
-      // recalculate the energy
-      calc_Ekin();
-      // force, potential and W
-      calc_rAPW(force);
+        // resolve particle
+        resolve_XV();
+        // recalculate the energy
+        calc_Ekin();
+        // force, potential and W
+        calc_rAPW(force);
 
-      // phase error calculation
-      memset(CXN,0,3*sizeof(double));
-      for (size_t i=0;i<nrel;i++) {
-        CXN[0] += X[i][0];
-        CXN[1] += X[i][1];
-        CXN[2] += X[i][2];
-      }
-      double RCXN2 = CXN[0]*CXN[0] + CXN[1]*CXN[1] + CXN[2]*CXN[2];
+        // phase error calculation
+        memset(CXN,0,3*sizeof(double));
+        for (size_t i=0;i<nrel;i++) {
+          CXN[0] += X[i][0];
+          CXN[1] += X[i][1];
+          CXN[2] += X[i][2];
+        }
+        double RCXN2 = CXN[0]*CXN[0] + CXN[1]*CXN[1] + CXN[2]*CXN[2];
       
-      double dcx1 = CXN[0] - CX[0];
-      double dcx2 = CXN[1] - CX[1];
-      double dcx3 = CXN[2] - CX[2];
-      cxerr0 = cxerr;
-      cxerr = std::sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
-      eerr0 = eerr;
-      eerr = (Ekin-Pot+B)/B;
-      memcpy(CX,CXN,3*sizeof(double));
+        double dcx1 = CXN[0] - CX[0];
+        double dcx2 = CXN[1] - CX[1];
+        double dcx3 = CXN[2] - CX[2];
+        cxerr0 = cxerr;
+        cxerr = std::sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
+        eerr0 = eerr;
+        eerr = (Ekin-Pot+B)/B;
+        memcpy(CX,CXN,3*sizeof(double));
+      }
+      
+      intcount++;
 #ifdef DEBUG
       std::cerr<<std::setprecision(6)<<"Iter.= "<<intcount<<" Dep.= "<<step[intcount]<<" P-err.= "<<cxerr;
       std::cerr<<" E-err.="<<(Ekin-Pot+B)/B<<" B ="<<std::setprecision(12)<<B<<std::endl;
@@ -1962,6 +1839,8 @@ public:
 #endif
 
     if (intcount+1<pars->opt_iter) dsn = std::pow(ds, (2*intcount+3)/(double)(2*pars->opt_iter+1)-1);
+
+    for (std::size_t i=0; i<itermax; i++) delete[] dn[i];
     return dsn;
   }
 

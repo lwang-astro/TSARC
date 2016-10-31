@@ -20,7 +20,7 @@ CXXFLAGS += -D TIME_PROFILE
 
 ## Target --------------------------------------------#
 
-$(TARGET): %: %.cxx AR.h
+$(TARGET): %: %.cxx AR.h extrapolation.h
 	$(CXX) $(CXXFLAGS) $< -o $@
 
 clean:
