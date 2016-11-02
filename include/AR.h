@@ -276,6 +276,16 @@ public:
     dterr = dte;
     dtmin = dtm;
     opt_iter=optiter;
+
+    // delete binomial array
+    if (bin_index!=NULL) {
+      if (step!=NULL) {
+        for (std::size_t i=0; i<step[exp_itermax]; i++)
+          if (bin_index[i]!=NULL) delete[] bin_index[i];
+        delete[] bin_index;
+      }
+    }
+    
     // reset step array
     if (step!=NULL) delete[] step;
     step = new int[itermax+1];
@@ -289,21 +299,11 @@ public:
     else EP::seq_Hairer(step,itermax+1);
 
     // calculate binomial coefficients
-    // delete old
-    if (bin_index!=NULL) {
-      for (std::size_t i=0; i<exp_itermax; i++)
-        if (bin_index[i]!=NULL) delete[] bin_index[i];
-      delete[] bin_index;
-    }
-    // get new
-    bin_index = new int*[itermax+1];
-    bin_index[0] = new int[1];
-    for (std::size_t i=1; i<=itermax; i++) {
+    bin_index = new int*[step[itermax]];
+    for (std::size_t i=0; i<step[itermax]; i++) {
       bin_index[i] = new int[i+1];
-      bin_index[i][0] = 1;
-      bin_index[i][i] = 1;
-      // use recursive formula
-      for (std::size_t j=1; j<i; j++) bin_index[i][j] = bin_index[i-1][j-1] + bin_index[i-1][j]; 
+      if (i>0) EP::binomial_recursive_generator(bin_index[i],bin_index[i-1],i+1);
+      else EP::binomial_recursive_generator(bin_index[i],NULL,i+1);
     }
     exp_itermax = itermax;
   }
@@ -669,12 +669,12 @@ private:
     }
   }
 
-  /* calc_dt
-     function: calculate physical time step dt based on ds
+  /* calc_dt_X
+     function: calculate physical time step dt for X based on ds
      argument:  ds:  step size s (not physical time step) 
      return:    dt:  physical integration time step for X
   */
-  double calc_dt(const double ds) {
+  double calc_dt_X(const double ds) {
     // determine the physical time step
     double dt = ds / (pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
     if (std::abs(dt) < pars->dtmin) {
@@ -684,9 +684,19 @@ private:
     return dt;
   }
   
+  /* calc_dt_V
+     function: calculate physical time step dt for V based on ds
+     argument:  ds:  step size s (not physical time step) 
+     return:    dt:  physical integration time step for V
+  */
+  double calc_dt_V(const double ds) {
+    // determine velocity integration time step
+    return ds / (pars->alpha * Pot + pars->beta * W + pars->gamma);
+  }
+  
   /* step_forward_X
      function: one step integration of X 
-     argument: ds: step size s (not physical time step), it is modifed if final step reach
+     argument: dt: physical time step dt for X
    */
   void step_forward_X(const double dt) {
     // step forward relative X
@@ -699,13 +709,9 @@ private:
 
   /* step_forward_V
      function: one step integration of V
-     argument: s: step size s (not physical time step)
-     return: dt: time step for V (for B and w integration)
+     argument: dt: physical time step dt for V
    */
-  double step_forward_V(const double s) {
-    // determine velocity integration time step
-    double dt = s / (pars->alpha * Pot + pars->beta * W + pars->gamma);
-
+  void step_forward_V(const double dt) {
     // step forward V
     for (std::size_t i=0;i<num-1;i++) {
       std::size_t k = list[i];
@@ -714,8 +720,6 @@ private:
       V[i][1] += dt * (acc[k1][1]-acc[k][1]);
       V[i][2] += dt * (acc[k1][2]-acc[k][2]);
     }
-
-    return dt;
   }
 
   /* step_forward_Bw
@@ -1456,14 +1460,13 @@ public:
      function: integration n steps, particles' position and velocity will be updated in the center-of-mass frame
      argument: s: whole step size
                n: number of step division, real step size = (s/n), for Leapfrog integration, it is X(s/2n)V(s/n)X(s/n)V(s/n)..X(s/2n)
-               toff: ending physical time (negative means no ending time and integration finishing after n steps)
                force: external force (not perturber forces which are calculated in pert_force)
                check_flag: 2: check link every step; 1: check link at then end; 0 :no check
-               recur_flag: flag to determine whether to resolve sub-chain particles for force calculations. notice this require the sub-chain to be integrated to current physical time. Thus is this a recursion call (tree-recusion-integration)
+               dpoly: interpolation polynomial coefficients array (size shold be [n][(2*nrel+1)*3])
+///               recur_flag: flag to determine whether to resolve sub-chain particles for force calculations. notice this require the sub-chain to be integrated to current physical time. Thus is this a recursion call (tree-recusion-integration)
 ///               upforce: void (const particle * p, const particle *pext, double3* force). function to calculate force based on p and pext, return to force
-//// ext_force<particle> upforce) 
   */             
-  void Leapfrog_step_forward(const double s, const int n, const double toff=-1.0, const double3* force=NULL, int check_flag=1, bool recur_flag=false) {
+  void Leapfrog_step_forward(const double s, const int n, const double3* force=NULL, int check_flag=1, double** dpoly=NULL ) {
 #ifdef TIME_PROFILE
     profile.t_lf -= get_wtime();
 #endif
@@ -1495,34 +1498,22 @@ public:
     double ds = s/double(n);
     double3* ave_v=new double3[num];  // average velocity
     bool fpf = false; // perturber force indicator
-    bool finalstep = false; 
     const int np = pext.getN();
     if (np>0) fpf = true;
+    const int** binI = chainpars->bin_index;
 
-    //initial step counter
-    int i=1;
-
+    
+    
     //integration loop
-    do {
+    for (std::size_t i=0;i<n;i++) {
       // half step forward for t (dependence: Ekin, B, w)
-      double dt = calc_dt(ds*0.5);
-
-      // if new time is larger than toff, cut it to fit toff.
-      if (toff>0&&t+2*dt>toff) {
-        dt = toff-t;
-        ds = dt/(pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
-        dt = 0.5*dt; //get half dt
-#ifdef DEBUG
-        std::cerr<<"Reach time ending, current t="<<t<<"  toff="<<toff<<"  dt="<<dt<<"  ds="<<ds<<"  diff="<<toff-t<<std::endl;
-#endif
-      }
-      // if toff not set, use n as finalstep criterion
-      if (toff<0&&i==n) finalstep = true;
+      double dt = calc_dt_X(ds*0.5);
 
       // step_forward time
       t += dt;
-
+      
       // recursive integration-----------------------------------------------//
+      /*
 #ifdef TIME_PROFILE
       profile.t_lf += get_wtime();
 #endif
@@ -1553,6 +1544,7 @@ public:
 #ifdef TIME_PROFILE
       profile.t_lf -= get_wtime();
 #endif
+      */
       //---------------------------------------------------------------------//
 
       // half step forward X (dependence: V, dt)
@@ -1573,13 +1565,16 @@ public:
       }
 
       // Update rjk, A, Pot, dWdr, W for half X (dependence: pf, force, p.m, p.x, X)
-      calc_rAPW(force, recur_flag); 
+      calc_rAPW(force); 
 
-      // update chain list order if necessary, update list, X, V (dependence: p.x, X, V)
+      // Update chain list order if necessary, update list, X, V (dependence: p.x, X, V)
       if (num>2&&check_flag==2) update_link();
 
-      // Step forward V and get time step dt(V) (dependence: V, Pot, A, W)
-      double dvt = step_forward_V(ds);
+      // Get time step dt(V) (dependence: Pot, W)
+      double dvt = calc_dt_V(ds);
+
+      // Step forward V (dependence: dt(V), V, A)
+      step_forward_V(dvt);
       
       // Get averaged velocity, update p.x, p.v, ave_v (dependence: X, V)
       resolve_XV(ave_v);
@@ -1591,26 +1586,39 @@ public:
       calc_Ekin();
 
       // step forward for t (dependence: Ekin, B, w)
-      dt = calc_dt(ds*0.5);
+      dt = calc_dt_X(ds*0.5);
       t += dt;
 
-      // check whether time match toff
-      if (std::abs(toff - t)<pars->dterr) finalstep = true;
-      
       // step forward for X (dependence: X, V)
       step_forward_X(dt);
-
-      // reverst negative ds;
-      if (ds<0) ds = -ds;
       
-      i++;
-    } while (!finalstep);
+      // for interpolation polynomial coefficient
+      if (dpoly!=NULL) {
+        for (std::size_t j=0; j<n; j++) {
+          // j indicate the difference degree, count from 0 (first difference)
+          std::size_t ik= j-i;   // ik = n-i
+          if (ik>=0&ik<=j) {     // ik should limit for diferent level of difference
+            double coff = ((ik%2)?-1:1)*binI[j+1][ik];
+            dpoly[j][0] += coff * t;
+            dpoly[j][1] += coff * B;
+            dpoly[j][2] += coff * w;
+            for (std::size_t k=0; k<num-1; k++) {
+              for (std::size_t kk=0; kk<3; kk++) {
+                dpoly[j][3+k*kk] += coff * X[k][kk];
+                dpoly[j][3*num+k*kk] += coff * V[k][kk];
+              }
+            }
+          }
+        }
+      }
+    }
 
-   // resolve X at last, update p.x (dependence: X)
+    // resolve X at last, update p.x (dependence: X)
     resolve_X();
 
     // Update rjk, A, Pot, dWdr, W (notice A will be incorrect since pf is not updated)
-    calc_rAPW(force, recur_flag); 
+    calc_rAPW(force);
+    
     
 //#ifdef DEBUG
 //    std::cerr<<std::setw(WIDTH)<<t;
@@ -1662,8 +1670,8 @@ public:
     double Ekin0;
 
     // for dense output polynomial
-    //const std::size_t psize=2*dsize;
-    //double* pd[itermax];    // left and right difference
+    bool ip_flag = true; // interpolation coefficient calculation flag
+    double** pd[itermax]; // central difference
     
     // for error check
     double3 CX,CXN;
@@ -1739,8 +1747,15 @@ public:
         if (pars->beta>0) resolve_V();
       }
 
+      // for dense output data
+      if (ip_flag) {
+        pd[intcount] = new double*[step[intcount]];
+        for (std::size_t j=0;j<step[intcount];j++) pd[intcount][j] = new double[dsize];
+      }
+      else pd[intcount] = NULL;
+
       // intergration
-      Leapfrog_step_forward(ds,step[intcount],-1.0,force,0);
+      Leapfrog_step_forward(ds,step[intcount],force,0,pd[intcount]);
 
       // increase iteration counter
       itercount += step[intcount];
@@ -1840,7 +1855,14 @@ public:
 
     if (intcount+1<pars->opt_iter) dsn = std::pow(ds, (2*intcount+3)/(double)(2*pars->opt_iter+1)-1);
 
-    for (std::size_t i=0; i<itermax; i++) delete[] dn[i];
+    for (std::size_t i=0; i<itermax; i++) {
+      delete[] dn[i];
+      if (pd[i]!=NULL) {
+        for (std::size_t j=0; j<=i; j++) delete[] pd[i][j];
+        delete[] pd[i];
+      }
+    }
+    
     return dsn;
   }
 

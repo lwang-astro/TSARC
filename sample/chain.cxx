@@ -316,7 +316,7 @@ int main(int argc, char **argv){
       }
     }
       
-    else c.Leapfrog_step_forward(s,nsubstep,tend,f);
+    else c.Leapfrog_step_forward(s,nsubstep,f);
 #ifdef TIME_PROFILE
     std::cerr<<"Time profile: Step: "<<i<<"  Accelaration+Potential(s): "<<c.profile.t_apw<<"  Update_link(s): "<<c.profile.t_uplink<<"  Leap-frog(s): "<<c.profile.t_lf<<"  Extrapolation(s): "<<c.profile.t_ep<<"  Perturbation(s): "<<c.profile.t_pext<<std::endl;
 #endif

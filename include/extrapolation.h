@@ -190,5 +190,20 @@ namespace EP {
     if (err>0) return std::pow(exp/err, 1/double(2*n+3));
     else return 1.0;
   }
-  
+
+  /* binomial coefficients calculator
+     function: generate the next binomial sequence (n 1:n) based on (n-1 1:n-1)
+     argument: bp: n-1 sequence array (size of n-1)
+               bn: new sequence array (size of n)
+               n:  new sequence index 
+   */
+  void binomial_recursive_generator (int *bn, const int* bp, const std::size_t n) {
+    if (n>1) {
+      bn[0] = 1;
+      bn[n-1] = 1;
+      // use recursive formula
+      for (std::size_t j=1; j<n-1; j++) bn[j] = bp[j-1] + bp[j];
+    }
+    else bn[0] = 1;
+  }
 }
