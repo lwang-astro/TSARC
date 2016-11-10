@@ -2,12 +2,29 @@
 #include <cstdlib>
 #include <iostream>
 #include <cmath>
-
+#include <cstring>
+#ifdef DEBUG
+#include <iomanip>
+#endif
 
 // For extrapolation
 namespace EP {
   // Sequence generator:
 
+
+  /* function: generate Harmonic sequence {h, h/2, h/3, h/4 ...}
+     argument: step: sequence array for storing the result
+               itermax: array size
+   */
+  void seq_Harmonic (int step[], const std::size_t itermax) {
+    if (itermax>0) {
+      step[0] = 1;
+      for (std::size_t i=1;i<itermax;i++) {
+        step[i] = step[i-1]+1;
+      }
+    }
+  }
+  
   /* function: generate Romberg (even) sequence {h, h/2, h/4, h/8 ...}
      argument: step: sequence array for storing the result
                itermax: array size
@@ -117,13 +134,13 @@ namespace EP {
       /*
               [j] << T_n,j [Tnew]
       */
-      memcpy(Tn[j],Tnew,Tsize*sizeof(double));
+      std::memcpy(Tn[j],Tnew,Tsize*sizeof(double));
    
       //shift temp data to index = n.
       /*
               [Tnew] << T_n,j+1 []
       */
-      memcpy(Tnew,Tn[n],Tsize*sizeof(double));
+      std::memcpy(Tnew,Tn[n],Tsize*sizeof(double));
     }
   }
 
@@ -150,15 +167,15 @@ namespace EP {
       else for (std::size_t k=0; k<Tsize; k++) Tn[n][k] = rational_recursive_formula(Tn[j-1][k],Tn[j][k],Tnew[k],hr);
 
       // update j-1 order
-      if (j>0) memcpy(Tn[j-1],T1,Tsize*sizeof(double));
+      if (j>0) std::memcpy(Tn[j-1],T1,Tsize*sizeof(double));
 
       //storage previous extrapolated data in template position t1
       // [t1] << T_n,j [Tnew]
-      memcpy(T1,Tnew,Tsize*sizeof(double));
+      std::memcpy(T1,Tnew,Tsize*sizeof(double));
             
       //shift Tn data to Tnew
       // [Tnew] << T_n,j+1 [n]
-      memcpy(Tnew,Tn[n],Tsize*sizeof(double));
+      std::memcpy(Tnew,Tn[n],Tsize*sizeof(double));
     }
   }
 
@@ -206,4 +223,111 @@ namespace EP {
     }
     else bn[0] = 1;
   }
+
+  /* Hermite interpolation coefficient
+     function: generate Hermite interpolation polynomial coefficient
+     argument: coff: two dimensional array storing the interpolation coefficients [ndata][\sum_j (nlev_j)]
+               x: one dimensional array that store the positions [npoints]
+               f: one dimensional array that store the f(x) (ndata*npoints) (f_(data),(points): f_0,0, f_1,0, f_2,0...)
+               df: two dimensional array that store the f^(k)(x) [k][ndata*npoints]
+               ndata: number of different type of data for interpolation
+               npoints: number of position points.
+               nlev:  one dimensional array that store the maximum difference level for each position (f^(0)(x) count as 1)
+  */
+  void Hermite_interpolation_coefficients (double **coff, const double* x, const double* f, double **df, const int ndata, const int npoints, const int* nlev) {
+    // get total coefficient number
+    int n = 0;
+    for (int i=0; i<npoints; i++) n += nlev[i];
+
+    // template data for iteration
+    double* dtemp= new double[n];
+    // indicator of which point corresponding to in dtemp (-1: need to calculate, >=0; need to set data from points dk)
+    int* dk0 = new int[n];
+    int* dkn = new int[n];
+    
+    // loop different type of datt
+    for (int i=0; i<ndata; i++) {
+      // set initial value
+      int joff = 0;
+      for (int j=0; j<npoints; j++) {
+        for (int k=0; k<nlev[j]; k++) {
+          dtemp[k+joff] = f[j*ndata+i];
+          dk0[k+joff] = j;
+          dkn[k+joff] = j;
+#ifdef DEBUG
+          std::cerr<<std::setprecision(3)<<std::setw(3)<<dk0[k+joff]<<std::setw(3)<<dkn[k+joff]<<std::setw(9)<<dtemp[k+joff]<<"|";
+          if (k+joff==n-1) std::cerr<<"\n";
+#endif
+        }
+        joff += nlev[j];
+      }
+
+      // first coff (f(x));
+      coff[i][0] = dtemp[0];
+      // (k!) for cofficients
+      int nk=1;
+      // j indicate derivate order
+      for (int j=1; j<n; j++) {
+        nk *=j;
+        
+        // iteration to get cofficients 
+        for (int k=0; k<n-j; k++) {
+          // set known derivate value 
+          if (dk0[k]==dkn[k+1]) dtemp[k] = df[j-1][i+dk0[k]*ndata]/(double)nk;
+          // calculate new
+          else {
+            dtemp[k] = (dtemp[k+1] - dtemp[k])/(x[dkn[k+1]] - x[dk0[k]]);
+            dkn[k] = dkn[k+1];
+          }
+#ifdef DEBUG
+          std::cerr<<std::setw(3)<<dk0[k]<<std::setw(3)<<dkn[k]<<std::setw(9)<<dtemp[k]<<"|";
+          if (k==n-j-1) std::cerr<<"\n";
+#endif
+        }
+
+        // get coff
+        coff[i][j] = dtemp[0];
+      }
+    }
+
+    delete[] dtemp;
+    delete[] dk0;
+    delete[] dkn;
+  }
+
+  /* Hermite interpolation polynomial
+     function: return the interpolation result based on polynomial coefficients
+     argument: xn: position want to get interpolation value
+               fxn: one dimensional array that store the interpolation results [ndata]
+               coff: two dimensional array storing the interpolation coefficients [ndata][\sum_j (nlev_j)]
+               x: one dimensional array that store the positions [npoints].
+               ndata: number of different type of data for interpolation
+               npoints: number of position points.
+               nlev:  one dimensional array that store the maximum difference level for each position (f^(0)(x) count as 1)
+  */
+  void Hermite_interpolation_polynomial(double xn, double *fxn, double** coff, const double *x, const int ndata, const int npoints, const int* nlev) {
+    // offset for shifting dx calculation
+    int noff[npoints];
+    for (int i=0; i<npoints-1; i++) noff[i] = nlev[i];
+    noff[npoints-1] = nlev[npoints-1]-1;
+
+    // polynomial
+    for (int i=0; i<ndata; i++) {
+      // first cofficient is constant
+      fxn[i] = coff[i][0];
+      // initial dx
+      double dx=1;
+      // coff index
+      std::size_t ik=1;
+      for (int k=0; k<npoints; k++) {
+        double dk = xn - x[k];
+        for (int j=0; j<noff[k]; j++) {
+          dx *= dk;
+          fxn[i] += coff[i][ik]*dx;
+          ik++;
+        }
+      }
+    }
+  }
+  
 }

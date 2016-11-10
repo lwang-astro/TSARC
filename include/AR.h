@@ -1,7 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <string.h>
+#include <cstring>
 #include <cmath>
 #include <cstdlib>
 #include <limits>
@@ -36,7 +36,12 @@ public:
 
   timeprofile() {reset_tp();}
 
-  void initstep(const std::size_t n) { if (!stepcount) stepcount=new int[n];}
+  void initstep(const std::size_t n) {
+    if (!stepcount) {
+      stepcount=new int[n];
+      for (std::size_t i=0; i<n; i++) stepcount[i]=0;
+    }
+  }
   
   void reset_tp(){
     t_apw=0.0;
@@ -267,7 +272,7 @@ public:
                dtmin: minimum physical time step
                itermax: maximum times for iteration.
                methods: 1: Romberg method; others: Rational interpolation method
-               sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other: 4k sequence {h, h/2, h/6, h/10, h/14 ...}
+               sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...}
   */
   void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2, const std::size_t optiter=5) {
     exp_error = error;
@@ -280,7 +285,7 @@ public:
     // delete binomial array
     if (bin_index!=NULL) {
       if (step!=NULL) {
-        for (std::size_t i=0; i<step[exp_itermax]; i++)
+        for (std::size_t i=0; i<(std::size_t)step[exp_itermax]; i++)
           if (bin_index[i]!=NULL) delete[] bin_index[i];
         delete[] bin_index;
       }
@@ -296,11 +301,13 @@ public:
     // Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
     else if (sequences==2) EP::seq_BS(step,itermax+1);
     // E. Hairer (4k) sequences {h, h/2, h/6, h/10, h/14 ...}
-    else EP::seq_Hairer(step,itermax+1);
+    else if (sequences==3) EP::seq_Hairer(step,itermax+1);
+    // Harmonic sequences {h, h/2, h/3, h/4 ...}
+    else EP::seq_Harmonic(step,itermax+1);
 
     // calculate binomial coefficients
     bin_index = new int*[step[itermax]];
-    for (std::size_t i=0; i<step[itermax]; i++) {
+    for (std::size_t i=0; i<(std::size_t)step[itermax]; i++) {
       bin_index[i] = new int[i+1];
       if (i>0) EP::binomial_recursive_generator(bin_index[i],bin_index[i-1],i+1);
       else EP::binomial_recursive_generator(bin_index[i],NULL,i+1);
@@ -333,13 +340,15 @@ class chain{
   double3 *pf;  // perturber force
   double3 *dWdr; // \partial Omega/ \partial rk
 
-  //integration paramenters=======================================//
-  double Ekin;  //kinetic energy
-  double Pot;   //potential
-  double W;     //time transformation function
+  //integration parameters=======================================//
   double t;     //time
   double w;    //time transformation parameter
   double B;    //Binding energy (time momentum)
+
+  //template parameters==========================================//
+  double W;     //time transformation function
+  double Ekin;  //kinetic energy
+  double Pot;   //potential
   double mm2;  // mean mass production \sum m_i*m_j/(N(N-1)/2) (i<j)
 
   //number =======================================================//
@@ -349,12 +358,6 @@ class chain{
   //monitor flags
   bool F_Pmod;     // indicate whether particle list is modified (true: modified)
   int  F_Porigin; // indicate whether particle is shifted back to original frame (1: original frame: 0: center-of-mass frame; 2: only position is original frame)
-  bool F_mm2s;     // indicate whether mm2 is calculated.
-
-  //error control
-  std::size_t INT_q; // last step corresponding index
-  double INT_s;      // last step size
-  double INT_errmax; // last step errmax
 
   // chain parameter controller
   const chainpars *pars;
@@ -380,9 +383,15 @@ public:
   
   //initialization
   //  template <class particle>
-  chain(std::size_t n, const chainpars &par): mm2(0.0), pars(&par) { nmax=0; allocate(n);}
+  chain(std::size_t n, const chainpars &par):  pars(&par) {
+    nmax=0;
+    mm2=-std::numeric_limits<double>::infinity();
+    allocate(n);
+  }
 
-  chain(const chainpars &par): mm2(0.0), pars(&par), F_Pmod(false), F_Porigin(1), F_mm2s(false), num(0), nmax(0) {}
+  chain(const chainpars &par): pars(&par), F_Pmod(false), F_Porigin(1), num(0), nmax(0) {
+    mm2=-std::numeric_limits<double>::infinity();
+  }
 
   // re-allocate function
   void allocate(std::size_t n) {
@@ -401,7 +410,7 @@ public:
     p.init(n);
     F_Pmod=false;
     F_Porigin=1;
-    F_mm2s=false;
+    mm2=-std::numeric_limits<double>::infinity();
   }
 
   // clear function
@@ -418,7 +427,7 @@ public:
     }
     F_Pmod=false;
     F_Porigin=1;
-    F_mm2s=false;
+    mm2=-std::numeric_limits<double>::infinity();
   }
 
   //destruction
@@ -455,7 +464,7 @@ private:
   //  template <class particle>
   void generate_list() {
     bool *is_checked=new bool[num];
-    memset(is_checked,false,num*sizeof(bool));
+    for (std::size_t i=0; i<num; i++) is_checked[i] = false;
     std::size_t inext=0;
     for (std::size_t i=0; i<num; i++) {
       //initial rjk=======================================//
@@ -517,14 +526,14 @@ private:
      function: Get averaged mass coefficients for calculating Wjk
    */
   void calc_mm2() {
-      // calcualte m'^2
-      for (std::size_t i=0;i<num;i++) {
-        for (std::size_t j=i+1;j<num;j++) {
-          mm2 += p[i].getMass() * p[j].getMass();
-        }
+    // calcualte m'^2
+    mm2 = 0;
+    for (std::size_t i=0;i<num;i++) {
+      for (std::size_t j=i+1;j<num;j++) {
+        mm2 += p[i].getMass() * p[j].getMass();
       }
-      mm2 /= num * (num - 1) / 2;
-      F_mm2s = true;
+    }
+    mm2 /= num * (num - 1) / 2;
   }    
 
   
@@ -551,12 +560,13 @@ private:
       std::size_t lj = list[j];
       const particle *pj= &p[lj];
 
-      //Acceleration==========================================//
-      memset(acc[lj],0,3*sizeof(double));
-      
-      //dw/dr ================================//
-      memset(dWdr[lj],0,3*sizeof(double));
-      
+      for (std::size_t k=0; k<3; k++) {
+        //Acceleration==========================================//
+        acc [lj][k]=0.0;
+        //dw/dr ================================//
+        dWdr[lj][k]=0.0;
+      }
+
       for (std::size_t k=0;k<num;k++) {
         if(k==j) continue;
         std::size_t lk = list[k];
@@ -564,7 +574,7 @@ private:
         const double* xj = pj->getPos();
         double3 xjk;
 
-        if(k==j+1) memcpy(xjk,X[j],3*sizeof(double));
+        if(k==j+1) std::memcpy(xjk,X[j],3*sizeof(double));
         if(k==j-1) {
           xjk[0] = -X[k][0];
           xjk[1] = -X[k][1];
@@ -602,7 +612,7 @@ private:
           ck->center_shift_inverse_X();
           const std::size_t cn = ck->p.getN();
           Pt = 0;
-          memset(At,0,3*sizeof(double));
+          for (std::size_t i=0;i<3;i++) At[i]=0.0;
           for (std::size_t i=0;i<cn;i++) {
             double Ptemp;
             double3 Atemp;
@@ -947,7 +957,7 @@ private:
     const int np = pext.getN();
     if (np>0) {
       for (std::size_t i=0;i<num;i++) {
-        memset(pf[i],0,3*sizeof(double));
+        for (std::size_t j=0;j<3;j++) pf[i][j] = 0.0;
         for (std::size_t j=0;j<np;j++) {
           double3 At={0};
           double Pt;
@@ -964,7 +974,7 @@ private:
             for (std::size_t k=0;k<cn;k++) {
 
               double3 xk;
-              memcpy(xk,cj->p[k].getPos(),3*sizeof(double));
+              std::memcpy(xk,cj->p[k].getPos(),3*sizeof(double));
               // shift position to current frame; to keep thread safety, original data are not modified
               if (cj->isPorigin()==0) {
                 xk[0] += xc[0];
@@ -996,7 +1006,7 @@ private:
       return true;
     }
     else {
-      memset(pf,0,3*num*sizeof(double));
+      std::memset(pf,0,3*num*sizeof(double));
 #ifdef TIME_PROFILE
       profile.t_pext += get_wtime();
 #endif
@@ -1024,23 +1034,23 @@ private:
     std::size_t* rlink = new std::size_t[num];
     std::size_t* roldlink = new std::size_t[num];
     for (std::size_t i=0;i<num;i++) rlink[list[i]] = i;
-    memcpy(roldlink,rlink,num*sizeof(std::size_t));
+    std::memcpy(roldlink,rlink,num*sizeof(std::size_t));
 
     // backup previous link
     std::size_t* listbk = new std::size_t[num];
-    memcpy(listbk,list,num*sizeof(std::size_t));
+    std::memcpy(listbk,list,num*sizeof(std::size_t));
 
     // backup current X
     double3* Xbk = new double3[num-1];
-    memcpy(Xbk,X,(num-1)*3*sizeof(double));
+    std::memcpy(Xbk,X,(num-1)*3*sizeof(double));
     
     // backup current V
     double3* Vbk = new double3[num-1];
-    memcpy(Vbk,V,(num-1)*3*sizeof(double));
+    std::memcpy(Vbk,V,(num-1)*3*sizeof(double));
 
     // create mask to avoid dup. check;
     bool* mask = new bool[num];
-    memset(mask,false,num*sizeof(bool));
+    for (std::size_t i=0;i<num;i++) mask[i] = false;
 
     const double NUMERIC_DOUBLE_MAX = std::numeric_limits<double>::max();
     for (std::size_t k=0;k<num-1;k++) {
@@ -1261,6 +1271,139 @@ private:
     }
   }
 
+  /* mid_diff_calc
+    function: central differernce cumulative calculator for t, B, w, X, V.
+              If i is 0, the array will be reset to zero, and for the same n, this function need to be called n+1 times (i=0...n+1) to complete the n'th order difference.
+    argument: dpoly: two dimensional array to storage the results. Array size is [n][6*num-3+1] (last is for safety checking). first [] indicate different level of differences, second [] indicate the data (t, B, w, X, V), the same as backup/restore data. If dpoly is NULL, no calculation will be done.    
+              n: maximum difference level (count from 1)
+              i: current position of data (t, B, w, X, V) corresponding to the binomial coefficients (count from 0 as starting point)
+  void mid_diff_calc(double **dpoly, const std::size_t n, const std::size_t i) {
+    // safety check
+    if (dpoly!=NULL) {
+      // safety check
+      const std::size_t dsize=6*num-3;
+      if ((std::size_t)dpoly[0][dsize]!=dsize) {
+        std::cerr<<"Error: data array size ("<<(std::size_t)dpoly[0][dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
+        abort();
+      }
+      int** binI = pars->bin_index;
+      for (std::size_t j=0; j<n; j++) {
+        if(i==0) for(std::size_t k=0; k<dsize; k++) dpoly[j][k] = 0.0;
+        // j indicate the difference degree, count from 0 (first difference)
+        std::size_t ik= j-(i-1);   // ik = n-i
+        if (ik>=0&&ik<=j+1) {     // ik should limit for diferent level of difference
+          double coff = ((ik%2)?-1:1)*binI[j+1][ik];
+#ifdef DEBUG
+          std::cerr<<"Poly coff: n= "<<n<<"; j="<<j<<"; i="<<i<<" coff="<<coff<<std::endl;
+#endif
+          dpoly[j][0] += coff * t;
+          dpoly[j][1] += coff * B;
+          dpoly[j][2] += coff * w;
+          for (std::size_t k=0; k<num-1; k++) {
+            for (std::size_t kk=0; kk<3; kk++) {
+              dpoly[j][3+k*kk] += coff * X[k][kk];
+              dpoly[j][3*num+k*kk] += coff * V[k][kk];
+            }
+          }
+        }
+      }
+    }
+  }
+   */
+
+  /* edge_diff_calc
+     function: left forward and right backward difference cumulative calculator for t, B, w, X, V
+              If i is 0, the array will be reset to zero, and for the same n, this function need to be called n+1 times (i=0...n+1) to complete the n'th order difference.
+    argument: dpoly: two dimensional array to storage the results. Array size is [n][12*num-6+1] (last is for safety checking). first [] indicate different level of differences, second [] indicate the left and right difference of data (t, B, w, X, V), similar as backup/restore data. If dpoly is NULL, no calculation will be done.    
+              nmax: maximum difference level (count from 1)
+              i: current position of data (t, B, w, X, V) corresponding to the binomial coefficients (count from 0 as starting poin              ndiv: total step number 
+t)
+   */
+  void edge_diff_calc(double **dpoly, const int nmax, const std::size_t i, const int ndiv) {
+    // safety check
+    if (dpoly!=NULL) {
+      // safety check
+      const std::size_t dsize=12*num-6;
+      if ((std::size_t)dpoly[0][dsize]!=dsize) {
+        std::cerr<<"Error: data array size ("<<(std::size_t)dpoly[0][dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
+        abort();
+      }
+      if (nmax>ndiv) {
+        std::cerr<<"Error: maximum difference order "<<nmax<<" > total step number "<<ndiv<<"!\n";
+        abort();
+      }
+      int** binI = pars->bin_index;
+      for (std::size_t j=0; j<(std::size_t)nmax; j++) {
+        // j+1 indicate the difference degree, count from 1 (first difference)
+        const int n = (int)j+1;
+        
+        // i indicate the position, i=0 means x0
+        if(i==0) std::memset(dpoly[j],0,dsize*sizeof(double)); // reset data array at i=0
+        
+        // left edge, forward difference: (-1)^(n-i) (n n-i) f(x0+i*h) (i from 0 to n)
+        int ileft = (int)(n-i);   // n-i
+        if (ileft>=0) {
+          double coff = ((ileft%2)?-1:1)*binI[n][ileft];
+          dpoly[j][0] += coff * t;
+          dpoly[j][1] += coff * B;
+          dpoly[j][2] += coff * w;
+           for (std::size_t k=0; k<num-1; k++) {
+            for (std::size_t kk=0; kk<3; kk++) {
+              dpoly[j][3*(1+k)+kk] += coff * X[k][kk];
+              dpoly[j][3*(num+k)+kk] += coff * V[k][kk];
+            }
+          }
+#ifdef DEBUG
+           std::cerr<<"Poly left: n="<<n<<" ik="<<ileft<<" i="<<i<<" coff="<<coff<<" t="<<t<<std::endl;
+#endif
+        }
+
+        // right edge, backward difference: (-1)^(n-i) (n n-i) f(xn-(n-i)*h) (i from 0 to n)
+        int ishift = ndiv-n;
+        int iright= ileft+ishift;     // n-i
+        if (i>=ishift) {
+          double coff = ((iright%2)?-1:1)*binI[n][iright];
+          const std::size_t ir = dsize/2;
+          dpoly[j][0+ir] += coff * t;
+          dpoly[j][1+ir] += coff * B;
+          dpoly[j][2+ir] += coff * w;
+          for (std::size_t k=0; k<num-1; k++) {
+            for (std::size_t kk=0; kk<3; kk++) {
+              dpoly[j][3*(1+k)+kk+ir] += coff * X[k][kk];
+              dpoly[j][3*(num+k)+kk+ir] += coff * V[k][kk];
+            }
+          }
+#ifdef DEBUG
+          std::cerr<<"                 Poly right: n="<<n<<" ik="<<iright<<" i="<<i<<" coff="<<coff<<std::endl;
+#endif
+        }
+      }
+    }
+  }
+
+  /* edge_dev_calc
+     function: calcualte derivates from differences: \d^(n)f/ h^n
+     argument: dpoly: two dimensional storing differences, will be updated to derivates. Array size is [n][12*num-6+1] (last is for safety checking). first [] indicate different level of differences, second [] indicate the left and right difference of data (t, B, w, X, V), similar as backup/restore data. If dpoly is NULL, no calculation will be done.
+               h: step size
+               nmax: maximum difference order
+   */
+  void edge_dev_calc(double **dpoly, const double h, const int nmax) {
+    double hn = h;
+    // safety check
+    const std::size_t dsize=12*num-6;
+    if ((std::size_t)dpoly[0][dsize]!=dsize) {
+      std::cerr<<"Error: data array size ("<<(std::size_t)dpoly[0][dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
+      abort();
+    }
+    // loop difference order from 1 to nmax
+    for (std::size_t i=0; i<nmax; i++) {
+#ifdef DEBUG
+      std::cerr<<"Diff order "<<i<<" h "<<hn<<std::endl;
+#endif
+      for (std::size_t j=0; j<dsize; j++) dpoly[i][j] /= hn;
+      hn *= h;
+    }
+  }
 
 public:
   /* add particle
@@ -1456,6 +1599,42 @@ public:
     }      
   }
 
+  /* backup
+     function: backup integration data to one dimensional array
+     argument: db: backup array (size should be 6*num-3)
+   */
+  void backup(double* db) {
+    const std::size_t dsize=6*num-3;
+    if ((std::size_t)db[dsize]!=dsize) {
+      std::cerr<<"Error: data array size ("<<(std::size_t)db[dsize]<<") for backup is not matched, should be ("<<dsize<<")!\n";
+      abort();
+    }
+    const std::size_t ndata=3*(num-1);
+    db[0] = t;
+    db[1] = B;
+    db[2] = w;
+    std::memcpy(&db[3], X, ndata*sizeof(double));
+    std::memcpy(&db[3+ndata], V, ndata*sizeof(double));
+  }
+     
+  /* restore
+     function: restore integration data from one dimensional array
+     argument: db: data array (size should be 6*num-3)
+   */
+  void restore(double* db) {
+    const std::size_t dsize=6*num-3;
+    if ((std::size_t)db[dsize]!=dsize) {
+      std::cerr<<"Error: data array size ("<<(std::size_t)db[dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
+      abort();
+    }
+    const std::size_t ndata=3*(num-1);
+    t = db[0];
+    B = db[1];
+    w = db[2];
+    std::memcpy(X, &db[3], ndata*sizeof(double));
+    std::memcpy(V, &db[3+ndata], ndata*sizeof(double));
+  }
+
   /* Leapfrog_step_forward
      function: integration n steps, particles' position and velocity will be updated in the center-of-mass frame
      argument: s: whole step size
@@ -1463,10 +1642,11 @@ public:
                force: external force (not perturber forces which are calculated in pert_force)
                check_flag: 2: check link every step; 1: check link at then end; 0 :no check
                dpoly: interpolation polynomial coefficients array (size shold be [n][(2*nrel+1)*3])
+               ndmax: maximum difference limit
 ///               recur_flag: flag to determine whether to resolve sub-chain particles for force calculations. notice this require the sub-chain to be integrated to current physical time. Thus is this a recursion call (tree-recusion-integration)
 ///               upforce: void (const particle * p, const particle *pext, double3* force). function to calculate force based on p and pext, return to force
   */             
-  void Leapfrog_step_forward(const double s, const int n, const double3* force=NULL, int check_flag=1, double** dpoly=NULL ) {
+  void Leapfrog_step_forward(const double s, const int n, const double3* force=NULL, int check_flag=1, double** dpoly=NULL, const int ndmax=0 ) {
 #ifdef TIME_PROFILE
     profile.t_lf -= get_wtime();
 #endif
@@ -1490,7 +1670,7 @@ public:
       std::cerr<<"Error: particles are modified, initialization required!"<<std::endl;
       abort();
     }
-    if (pars->m_smooth&&!F_mm2s) {
+    if (pars->m_smooth&&mm2==-std::numeric_limits<double>::infinity()) {
       std::cerr<<"Error: smooth mass coefficients are used, but averaged mass coefficient mm2 is not calculated!\n";
       abort();
     }
@@ -1500,9 +1680,9 @@ public:
     bool fpf = false; // perturber force indicator
     const int np = pext.getN();
     if (np>0) fpf = true;
-    const int** binI = chainpars->bin_index;
 
-    
+    //for polynomial coefficient calculation first pint
+    edge_diff_calc(dpoly,ndmax,0,n);
     
     //integration loop
     for (std::size_t i=0;i<n;i++) {
@@ -1592,25 +1772,8 @@ public:
       // step forward for X (dependence: X, V)
       step_forward_X(dt);
       
-      // for interpolation polynomial coefficient
-      if (dpoly!=NULL) {
-        for (std::size_t j=0; j<n; j++) {
-          // j indicate the difference degree, count from 0 (first difference)
-          std::size_t ik= j-i;   // ik = n-i
-          if (ik>=0&ik<=j) {     // ik should limit for diferent level of difference
-            double coff = ((ik%2)?-1:1)*binI[j+1][ik];
-            dpoly[j][0] += coff * t;
-            dpoly[j][1] += coff * B;
-            dpoly[j][2] += coff * w;
-            for (std::size_t k=0; k<num-1; k++) {
-              for (std::size_t kk=0; kk<3; kk++) {
-                dpoly[j][3+k*kk] += coff * X[k][kk];
-                dpoly[j][3*num+k*kk] += coff * V[k][kk];
-              }
-            }
-          }
-        }
-      }
+      // for interpolation polynomial coefficient (difference)
+      edge_diff_calc(dpoly,ndmax,i+1,n);
     }
 
     // resolve X at last, update p.x (dependence: X)
@@ -1618,8 +1781,7 @@ public:
 
     // Update rjk, A, Pot, dWdr, W (notice A will be incorrect since pf is not updated)
     calc_rAPW(force);
-    
-    
+
 //#ifdef DEBUG
 //    std::cerr<<std::setw(WIDTH)<<t;
 //    //      for (int i=0;i<num;i++) 
@@ -1647,6 +1809,7 @@ public:
                toff: ending physical time (negative means no ending time and integration finishing after n steps)
                force: external force (not perturber forces which are calculated in pert_force)
      return:   new step size modification factor
+               if it is negative and toff>0; the abs of value is factor to be used for redoing the extrapolation_integrration of this step to reach the toff. And also in this case the data will not be integrated.
    */
   double extrapolation_integration(const double ds, const double toff=-1.0, const double3* force=NULL) {
     // get parameters
@@ -1660,18 +1823,26 @@ public:
 #endif
     // array size indicator for relative position and velocity
     const std::size_t nrel = num-1;
-    const std::size_t dsize = (2*nrel+1)*3;
+    // data storage size (extra one is used to show the size of the array for safety check)
+    const std::size_t dsize = 6*nrel+3;
+    // edge difference array size;
+    const std::size_t psize=dsize*2;
     
     // for storage
     // for convenient, the data are storaged in one array with size (2*nrel+1)*3, which represents t, B, w, X[3][nrel], V[3][nrel]
-    double d0[dsize],dtemp[dsize];
+    double d0[dsize+1],dtemp[dsize+1];
     double* dn[itermax];
-    for (std::size_t i=0; i<itermax; i++) dn[i] = new double[dsize];
+    d0[dsize] = (double)dsize;    // label for safety check
+    dtemp[dsize] = (double)dsize; // label for safety check
+    for (std::size_t i=0; i<itermax; i++) {
+      dn[i] = new double[dsize+1];
+      dn[i][dsize] = (double)dsize; // label for safety check
+    }
     double Ekin0;
 
     // for dense output polynomial
     bool ip_flag = true; // interpolation coefficient calculation flag
-    double** pd[itermax]; // central difference
+    double** pd[itermax]; // central difference, [*] indicate different accuracy level 
     
     // for error check
     double3 CX,CXN;
@@ -1682,26 +1853,12 @@ public:
     // error for step estimation
     double werrmax=std::numeric_limits<double>::max();
 
-    // backup initial values
-    d0[0] = t;
-    d0[1] = B;
-    d0[2] = w;
-    memcpy(&d0[3],X,3*nrel*sizeof(double));
-    memcpy(&d0[3+nrel*3],V,3*nrel*sizeof(double));
+    // backup initial values (t, B, w, X, V, Ekin)
+    backup(d0);
     Ekin0 = Ekin;
 
     // new step
     double dsn = 1.0;
-    
-    // for case of toff criterion
-    /*double ds = s;
-        if (toff>0) {
-      // calculate ds from dt;
-      ds = (toff-t)/(pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
-#ifdef DEBUG
-      std::cerr<<"Extra-init, current t="<<t<<"  toff="<<toff<<"  dt="<<toff-t<<"  ds="<<ds<<std::endl;
-#endif
-} */     
     
     std::size_t intcount = 0; // iteration counter
     std::size_t itercount = 0; // iteration efforts count
@@ -1735,42 +1892,39 @@ public:
         abort();
       }
       
-      // reset the initial data 
       if (intcount>0) {
-        t = d0[0];
-        B = d0[1];
-        w = d0[2];
+        // reset the initial data (t, B, w, X, V, Ekin)
+        restore(d0);
         Ekin = Ekin0;
-        memcpy(X,&d0[3],3*nrel*sizeof(double));
-        memcpy(V,&d0[3+nrel*3],3*nrel*sizeof(double));
         // reset velocity to get correct w
         if (pars->beta>0) resolve_V();
       }
 
       // for dense output data
       if (ip_flag) {
-        pd[intcount] = new double*[step[intcount]];
-        for (std::size_t j=0;j<step[intcount];j++) pd[intcount][j] = new double[dsize];
+        // pd[][*]: * storage difference order from 1 to intcount+1
+        pd[intcount] = new double*[intcount+1];
+        // pd[][][*]: * storage left and right difference data (t, B, w, X, V)
+        for (std::size_t j=0;j<=intcount;j++) {
+          pd[intcount][j] = new double[psize+1];
+          pd[intcount][j][psize]=(double)psize;
+        }
       }
       else pd[intcount] = NULL;
 
       // intergration
-      Leapfrog_step_forward(ds,step[intcount],force,0,pd[intcount]);
+      Leapfrog_step_forward(ds,step[intcount],force,0,pd[intcount],intcount+1);
 
       // increase iteration counter
       itercount += step[intcount];
       
       if (intcount == 0) {
         // storage the results to [n]
-        dn[intcount][0] = t;
-        dn[intcount][1] = B;
-        dn[intcount][2] = w;
-        memcpy(&dn[intcount][3],X,3*nrel*sizeof(double));
-        memcpy(&dn[intcount][3+nrel*3],V,3*nrel*sizeof(double));
+        backup(dn[intcount]);
 
         // relative position vector between first and last particle for phase error check
-        memset(CX,0,3*sizeof(double));
-        for (size_t i=0;i<num-1;i++) {
+        for (std::size_t i=0;i<3;i++) CX[i] = 0.0;
+        for (std::size_t i=0;i<num-1;i++) {
           CX[0] += X[i][0];
           CX[1] += X[i][1];
           CX[2] += X[i][2];
@@ -1778,11 +1932,7 @@ public:
       }
       else {
         // storage the results to [temp]
-        dtemp[0] = t;
-        dtemp[1] = B;
-        dtemp[2] = w;
-        memcpy(&dtemp[3],X,3*nrel*sizeof(double));
-        memcpy(&dtemp[3+nrel*3],V,3*nrel*sizeof(double));
+        backup(dtemp);
         
         // iteration
         // Using Romberg method
@@ -1805,11 +1955,7 @@ public:
         }
       
         // set final results back to chain array
-        t = dn[intcount][0];
-        B = dn[intcount][1];
-        w = dn[intcount][2];
-        memcpy(X,&dn[intcount][3],3*nrel*sizeof(double));
-        memcpy(V,&dn[intcount][3+nrel*3],3*nrel*sizeof(double));
+        restore(dn[intcount]);
  
         // resolve particle
         resolve_XV();
@@ -1819,8 +1965,8 @@ public:
         calc_rAPW(force);
 
         // phase error calculation
-        memset(CXN,0,3*sizeof(double));
-        for (size_t i=0;i<nrel;i++) {
+        for (std::size_t i=0;i<3;i++) CXN[i] = 0.0;
+        for (std::size_t i=0;i<nrel;i++) {
           CXN[0] += X[i][0];
           CXN[1] += X[i][1];
           CXN[2] += X[i][2];
@@ -1834,7 +1980,7 @@ public:
         cxerr = std::sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
         eerr0 = eerr;
         eerr = (Ekin-Pot+B)/B;
-        memcpy(CX,CXN,3*sizeof(double));
+        std::memcpy(CX,CXN,3*sizeof(double));
       }
       
       intcount++;
@@ -1844,29 +1990,167 @@ public:
 #endif 
     }
 
+    if (intcount+1<pars->opt_iter) dsn = std::pow(ds, (2*intcount+3)/(double)(2*pars->opt_iter+1)-1);
+
+    // for dense output
+    if (toff>0&&toff<t) {
+
+      // calculate derivates from differences
+#ifdef DEBUG
+      std::cerr<<"ds="<<ds<<" step[0]="<<step[0]<<std::endl;
+#endif
+      for (std::size_t i=0; i<intcount; i++) edge_dev_calc(pd[i],ds/(double)step[i],i+1);
+
+      // extrapolation table
+      double* pn[intcount];
+      for (std::size_t i=0; i<intcount; i++) {
+        pn[i] = new double[psize+1];
+        pn[i][psize] = (double)psize; // label for safety check
+      }
+      
+      // from low difference order (1) to high difference order (intcount-1) (last order intcount is not need to extrapolate)
+      for (std::size_t i=0; i<(std::size_t)intcount-1; i++) {
+        // storage result of first order accuracy
+        std::memcpy(pn[0],pd[i][i],psize*sizeof(double));
+#ifdef DEBUG
+        std::cerr<<"Poly calc order="<<0<<" step_1="<<step[i]<<" t X11^("<<i+1<<")_"<<i<<"="<<pd[i][i][0]<<"\t"<<pd[i][i][3]<<std::endl;
+#endif
+        // extrapolation to higher order accuracy
+        for (std::size_t j=i+1; j<(std::size_t)intcount; j++) {
+#ifdef DEBUG
+          std::cerr<<"Poly calc order="<<j<<" step_1="<<step[i]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
+#endif
+          if (methods==1) EP::polynomial_extrapolation(pn,pd[j][i],&step[i],psize,j-i);
+          if (methods==2) EP::rational_extrapolation(pn,pd[j][i],&step[i],psize,j-i);
+#ifdef DEBUG
+          std::cerr<<"Poly extra order="<<j-i<<" step_1="<<step[i]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
+#endif
+        }
+      }
+
+      // store position s
+      double xpoint[2]={0.0,ds};
+      // maximum difference level
+      int nlev[2]={(int)intcount+1,(int)intcount+1};
+
+      // store f(x)
+      double fpoint[psize];
+      std::memcpy(fpoint, d0, dsize*sizeof(double));
+      std::memcpy(&fpoint[dsize], dn[intcount-1], dsize*sizeof(double));
+
+      double* pcoff[dsize];
+      for (std::size_t i=0; i<dsize; i++) pcoff[i]= new double[2*(intcount+1)];
+
+      // Hermite interpolation
+      EP::Hermite_interpolation_coefficients(pcoff,xpoint,fpoint,pd[intcount-1],dsize,2,nlev);
+
+      // Iteration to get correct physical time position
+      double tpoint[2]= {0,ds};  
+      double dsi[2]   = {0,ds};    // edges for iteration
+      double tsi[2]   = {d0[0],t}; // edges values
+      double dsm,tpre;    // expected ds and t;
+      const double dterr = pars->dterr;
+      const double dterr3 = 1000*dterr;  //1000 * time error criterion
+
+      bool rf_method=false;
+      do {
+        if (rf_method) dsm = (dsi[0]*(tsi[1]-toff)-dsi[1]*(tsi[0]-toff))/(tsi[1]-tsi[0]);  // Use regula falsi method to find accurate ds
+        else {
+          if(std::abs(tpre-toff)<dterr3) rf_method=true;
+          dsm = (dsi[0]+dsi[1])*0.5;      // Use bisection method to get approximate region
+        }
+        
+        EP::Hermite_interpolation_polynomial(dsm,&tpre,pcoff,tpoint,1,2,nlev);
+        if (tpre > toff) {
+          dsi[1] = dsm;
+          tsi[1] = tpre;
+        }
+        else {
+          dsi[0] = dsm;
+          tsi[0] = tpre;
+        }
+      } while (std::abs(tpre-toff)>dterr);
+
+      // Get the interpolation result
+      EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,2,nlev);
+
+      // update time factor
+      dsn = -(dsm/ds);
+      
+      // update the results
+      //      restore(dtemp);
+      restore(d0);
+      Ekin = Ekin0;
+
+#ifdef DEBUG
+      std::cerr<<"Geting: ds= "<<dsm;
+      for (std::size_t i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
+      std::cerr<<std::endl;
+      
+      EP::Hermite_interpolation_polynomial(0,dtemp,pcoff,xpoint,dsize,2,nlev);
+      std::cerr<<"Staring:";
+      for (std::size_t i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
+      std::cerr<<std::endl;
+
+      std::cerr<<"Endling:";
+      EP::Hermite_interpolation_polynomial(ds,dtemp,pcoff,xpoint,dsize,2,nlev);
+      for (std::size_t i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
+      std::cerr<<std::endl;
+      
+      for (std::size_t i=0; i<=1000; i++) {
+        dsm = ds/1000*i;
+        EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,2,nlev);
+//        // update the results
+//        restore(dtemp);
+//        // resolve particle
+//        resolve_XV();
+//        // recalculate the energy
+//        calc_Ekin();
+//        // force, potential and W
+//        calc_rAPW(force);
+        
+        std::cerr<<"Loop: "<<dsm;
+        //        std::cerr<<" "<<(Ekin-Pot+B)/B;
+        for (std::size_t i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
+        std::cerr<<std::endl;
+      }
+      
+#endif
+
+      // resolve particle
+      resolve_XV();
+      // recalculate the energy
+      //      calc_Ekin();
+      // force, potential and W
+      calc_rAPW(force);
+
+      for (std::size_t i=0; i<intcount; i++) delete[] pn[i];
+      for (std::size_t i=0; i<dsize; i++) delete[] pcoff[i];
+    }
+
     // update chain link order
     if(num>2) update_link();
 
-#ifdef TIME_PROFILE
-    profile.initstep(itermax+1);
-    profile.stepcount[intcount+1]++;
-    profile.t_ep += get_wtime();
-#endif
-
-    if (intcount+1<pars->opt_iter) dsn = std::pow(ds, (2*intcount+3)/(double)(2*pars->opt_iter+1)-1);
-
     for (std::size_t i=0; i<itermax; i++) {
       delete[] dn[i];
+    }
+    for (std::size_t i=0; i<intcount; i++) {
       if (pd[i]!=NULL) {
         for (std::size_t j=0; j<=i; j++) delete[] pd[i][j];
         delete[] pd[i];
       }
     }
     
+#ifdef TIME_PROFILE
+    profile.initstep(itermax+1);
+    profile.stepcount[intcount+1]++;
+    profile.t_ep += get_wtime();
+#endif
+
     return dsn;
   }
 
-  /* getTime
+  /* gettime
      function: return physical time
      return: t
   */

@@ -1,6 +1,6 @@
 #pragma once
 #include <cassert>
-#include <string.h>
+#include <cstring>
 
 #ifndef NAN_CHECK
 #define NAN_CHECK(val) assert((val) == (val));
@@ -68,15 +68,15 @@ public:
     NAN_CHECK(v[2]);
 
     mass=m;
-    memcpy(pos,r,3*sizeof(double));
-    memcpy(vel,v,3*sizeof(double));
+    std::memcpy(pos,r,3*sizeof(double));
+    std::memcpy(vel,v,3*sizeof(double));
   }
     
 
   void set(const Particle &a){
     mass = a.getMass();
-    memcpy(pos,a.getPos(),3*sizeof(double));
-    memcpy(vel,a.getVel(),3*sizeof(double));
+    std::memcpy(pos,a.getPos(),3*sizeof(double));
+    std::memcpy(vel,a.getVel(),3*sizeof(double));
   }
 
   //set position (required)
@@ -96,7 +96,7 @@ public:
     NAN_CHECK(r[1]);
     NAN_CHECK(r[2]);
 
-    memcpy(pos,r,3*sizeof(double));
+    std::memcpy(pos,r,3*sizeof(double));
   }
 
   //set velocity (required)
@@ -116,7 +116,7 @@ public:
     NAN_CHECK(v[1]);
     NAN_CHECK(v[2]);
 
-    memcpy(vel,v,3*sizeof(double));
+    std::memcpy(vel,v,3*sizeof(double));
   }
 
   //set mass (required)
@@ -127,8 +127,10 @@ public:
   }
 
   void clear(){
-    memset(pos,0,3*sizeof(double));
-    memset(vel,0,3*sizeof(double));
+    for (std::size_t i=0;i<3;i++) {
+      pos[i] = 0.0;
+      vel[i] = 0.0;
+    }
     mass = 0.0;
   }
   

@@ -18,7 +18,7 @@ int main(int argc, char **argv){
   int nsubstep=128;  // sub-step number if direct LF method is used
   int itermax=20;  //iteration maximum number for extrapolation methods
   char* sw=NULL;        // if not 'none', use extrapolation method, 'linear' for Romberg method; 'rational'  for rational interpolation method
-  char* sq=NULL;        // extrapolation sequence, 'rom' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}, '4k' for {h/2, h/6, h/10, h/14 ...}
+  char* sq=NULL;        // extrapolation sequence, 'rom' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}; '4k' for {h/2, h/6, h/10, h/14 ...}; 'hm' for {h, h/2, h/3, h/4 ...}
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
   double err=1e-10; // phase error requirement
   double s=0.5;    // step size
@@ -129,7 +129,7 @@ int main(int argc, char **argv){
       break;
     case 'q':
       sq = optarg;
-      if (strcmp(sq,"rom")&&strcmp(sq,"bs")&&strcmp(sq,"4k")) {
+      if (strcmp(sq,"rom")&&strcmp(sq,"bs")&&strcmp(sq,"4k")&&strcmp(sq,"hm")) {
         std::cerr<<"Extrapolation sequences "<<sq<<" not found!\n";
         abort();
       }
@@ -171,9 +171,10 @@ int main(int argc, char **argv){
                <<"                  'none':     no extrapolation\n"
                <<"          --extra-method (same as -m)\n"
                <<"    -q [string]: extrapolation sequences (bs)\n"
-               <<"                  'rom': Romberg sequences {h, h/2, h/4, h/8 ...};\n"
+               <<"                  'rom': Romberg sequence {h, h/2, h/4, h/8 ...};\n"
                <<"                  'bs':  Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}\n"
                <<"                  '4k':  4k linear sequence {h/2, h/6, h/10, h/14 ...}\n"
+               <<"                  'hm':  Harmonic sequence {h, h/2, h/3, h/4 ...}"
                <<"          --extra-seq (same as -q)\n"
                <<"    -i [int]: maximum iteration steps for extrapolation method ("<<itermax<<")\n"
                <<"          --iter-max (same as -i)\n"
@@ -240,14 +241,15 @@ int main(int argc, char **argv){
   if (sq) {
     if (strcmp(sq,"rom")==0) msq=1;
     else if (strcmp(sq,"bs")==0) msq=2;
-    else msq=3;
+    else if (strcmp(sq,"4k")==0) msq=3;
+    else msq=4;
   }
   int ms=2;
   if (sw) {
     if (strcmp(sw,"linear")==0) ms=1;
     else if (strcmp(sw,"none")==0) ms=0;
   }
-  pars.setEXP(err,dtmin,1e-6,itermax,ms,msq,nlev);
+  pars.setEXP(err,dtmin,1e-12,itermax,ms,msq,nlev);
 
   chain<Particle> c(n,pars);
   Particle *p=new Particle[n];
@@ -280,40 +282,51 @@ int main(int argc, char **argv){
 
   // step 
   double ds = s;
+
+  // flag for output
+  bool flag_out=true;
   
   while (true) {
-    std::cout<<c.getTime()
-             <<std::setw(w)<<(c.getEkin()+c.getPot()+c.getB())/c.getB()
-             <<std::setw(w)<<c.getEkin()
-             <<std::setw(w)<<c.getPot()
-             <<std::setw(w)<<c.getB()
-             <<std::setw(w)<<c.getw()
-             <<std::setw(w)<<c.getW();
-    for (std::size_t j=0;j<n;j++) {
-      std::cout<<std::setw(w)<<p[j].getMass();
-      for (int k=0;k<3;k++) {
-        std::cout<<std::setw(w)<<p[j].getPos()[k];
+    if (flag_out) {
+      std::cout<<c.getTime()
+               <<std::setw(w)<<(c.getEkin()+c.getPot()+c.getB())/c.getB()
+               <<std::setw(w)<<c.getEkin()
+               <<std::setw(w)<<c.getPot()
+               <<std::setw(w)<<c.getB()
+               <<std::setw(w)<<c.getw()
+               <<std::setw(w)<<c.getW();
+      for (std::size_t j=0;j<n;j++) {
+        std::cout<<std::setw(w)<<p[j].getMass();
+        for (int k=0;k<3;k++) {
+          std::cout<<std::setw(w)<<p[j].getPos()[k];
+        }
+        for (int k=0;k<3;k++) {
+          std::cout<<std::setw(w)<<p[j].getVel()[k];
+        }
       }
-      for (int k=0;k<3;k++) {
-        std::cout<<std::setw(w)<<p[j].getVel()[k];
-      }
+      std::cout<<std::endl;
     }
-    std::cout<<std::endl;
 
-    if ((tend<0&&i==nstep)||(tend>0&&c.getTime()>tend)) break;
+    if ((tend<0&&i==nstep)||(tend>0&&std::abs(c.getTime()-tend)<1e-6)) break;
     i++;
 
     if (ms) {
       double dsf=c.extrapolation_integration(ds,tend,f);
-      if (dsA) {
+      if (dsf<0) {
+        ds *= -dsf;
+        flag_out=false;
+      }
+      else if (dsA) {
         /*double factor=std::max(0.0,(std::abs(icount-nlev)-nreduce)/smooth);
         s *=std::pow(0.5,(icount>nlev?factor:-factor));
         s = std::min(s,0.9);*/
         ds = s*dsf;
+        flag_out = true;
 #ifdef DEBUG        
         std::cerr<<"S: "<<i<<" "<<ds<< std::endl;
 #endif
       }
+      else flag_out = true;
     }
       
     else c.Leapfrog_step_forward(s,nsubstep,f);
