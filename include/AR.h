@@ -1271,111 +1271,147 @@ private:
     }
   }
 
+
   /* mid_diff_calc
-    function: central differernce cumulative calculator for t, B, w, X, V.
-              If i is 0, the array will be reset to zero, and for the same n, this function need to be called n+1 times (i=0...n+1) to complete the n'th order difference.
-    argument: dpoly: two dimensional array to storage the results. Array size is [n][6*num-3+1] (last is for safety checking). first [] indicate different level of differences, second [] indicate the data (t, B, w, X, V), the same as backup/restore data. If dpoly is NULL, no calculation will be done.    
+    function: central difference cumulative calculator for t only
+              If i is 0, the value will be reset to zero, and for the same n, this function need to be called n+1 times to complete the n'th order difference
+    argument: tdiff: one dimensional array to storage the difference of t for different order. Array size is [n], If tdiff is NULL, no calculation will be done.
               n: maximum difference level (count from 1)
-              i: current position of data (t, B, w, X, V) corresponding to the binomial coefficients (count from 0 as starting point)
-  void mid_diff_calc(double **dpoly, const std::size_t n, const std::size_t i) {
+              i: current position of t_i corresponding to the binomial coefficients (count from 0 as starting point)
+              ndiv: current substep number can be used
+              tflag: calculate time only if true
+  */
+  void mid_diff_calc(double **dpoly, const std::size_t nmax, const std::size_t i, const int ndiv, bool tflag=true) {
     // safety check
     if (dpoly!=NULL) {
-      // safety check
-      const std::size_t dsize=6*num-3;
-      if ((std::size_t)dpoly[0][dsize]!=dsize) {
-        std::cerr<<"Error: data array size ("<<(std::size_t)dpoly[0][dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
+      // difference level should not exceed the point number
+      if (2*nmax>ndiv) {
+        std::cerr<<"Error: maximum difference order "<<nmax<<" *2 > total step number "<<ndiv<<"!\n";
         abort();
       }
-      int** binI = pars->bin_index;
-      for (std::size_t j=0; j<n; j++) {
-        if(i==0) for(std::size_t k=0; k<dsize; k++) dpoly[j][k] = 0.0;
-        // j indicate the difference degree, count from 0 (first difference)
-        std::size_t ik= j-(i-1);   // ik = n-i
-        if (ik>=0&&ik<=j+1) {     // ik should limit for diferent level of difference
-          double coff = ((ik%2)?-1:1)*binI[j+1][ik];
+      // for middle difference, odd substep number is not allown
+      if(ndiv%2) {
+        std::cerr<<"Error: middle difference cannot allow odd substep number ("<<ndiv<<")!\n";
+        abort();
+      }
+      if (i>=ndiv/2-nmax&&i<=ndiv/2+nmax) {
+        if (!tflag) {
+          const std::size_t dsize=6*num-3;
+          //initial dpoly to zero
+          for (std::size_t j=0; j<nmax; j++) if(i==0) std::memset(dpoly[j],0,dsize*sizeof(double));
+        }
+        else if(i==0) for (std::size_t j=0; j<nmax; j++) dpoly[j][0] = 0.0;
+        
+        int** binI = pars->bin_index;
+        // formula delta^n f(x) = sum_ik=0,n (-1)^(n-ik) (n n-ik) f(x+2*ik*h)
+        for (int j=0; j<nmax; j++) {
+          if ((i%2&&j%2)||(i%2==0&&j%2==0)) {
+            // n=j+1 indicate the difference degree (first difference is j=0)
+            const int n=j+1;
+            // for even and odd difference level n, different i points are used
+            // ndiv/2: middle point; n/2: left edge point shift, (should be double since only odd points are used);
+            int ik= i-(ndiv/2-n);
+            // ik should be limited for diferent level of difference
+            if (ik>=0&&ik<=2*n) {
+              int nk= n-ik/2;  // n-ik
+              double coff = ((nk%2)?-1:1)*binI[n][nk];
 #ifdef DEBUG
-          std::cerr<<"Poly coff: n= "<<n<<"; j="<<j<<"; i="<<i<<" coff="<<coff<<std::endl;
+              std::cerr<<"Poly_coff: n= "<<n<<"; i="<<i<<"; ik="<<ik<<"; coff="<<coff<<std::endl;
 #endif
-          dpoly[j][0] += coff * t;
-          dpoly[j][1] += coff * B;
-          dpoly[j][2] += coff * w;
-          for (std::size_t k=0; k<num-1; k++) {
-            for (std::size_t kk=0; kk<3; kk++) {
-              dpoly[j][3+k*kk] += coff * X[k][kk];
-              dpoly[j][3*num+k*kk] += coff * V[k][kk];
+              dpoly[j][0] += coff * t;
+              if (!tflag) {
+                dpoly[j][1] += coff * B;
+                dpoly[j][2] += coff * w;
+                for (std::size_t k=0; k<num-1; k++) {
+                  for (std::size_t kk=0; kk<3; kk++) {
+                    dpoly[j][3*(1+k)+kk] += coff * X[k][kk];
+                    dpoly[j][3*(num+k)+kk] += coff * V[k][kk];
+                  }
+                }
+              }
             }
           }
         }
       }
     }
   }
-   */
+
 
   /* edge_diff_calc
      function: left forward and right backward difference cumulative calculator for t, B, w, X, V
               If i is 0, the array will be reset to zero, and for the same n, this function need to be called n+1 times (i=0...n+1) to complete the n'th order difference.
     argument: dpoly: two dimensional array to storage the results. Array size is [n][12*num-6+1] (last is for safety checking). first [] indicate different level of differences, second [] indicate the left and right difference of data (t, B, w, X, V), similar as backup/restore data. If dpoly is NULL, no calculation will be done.    
               nmax: maximum difference level (count from 1)
-              i: current position of data (t, B, w, X, V) corresponding to the binomial coefficients (count from 0 as starting poin              ndiv: total step number 
+              i: current position of data (t, B, w, X, V) corresponding to the binomial coefficients (count from 0 as starting poin              ndiv: total step number
+              tflag: calculate time only if true
 t)
    */
-  void edge_diff_calc(double **dpoly, const int nmax, const std::size_t i, const int ndiv) {
+  void edge_diff_calc(double **dpoly, const int nmax, const std::size_t i, const int ndiv, bool tflag=true) {
     // safety check
     if (dpoly!=NULL) {
       // safety check
-      const std::size_t dsize=12*num-6;
-      if ((std::size_t)dpoly[0][dsize]!=dsize) {
-        std::cerr<<"Error: data array size ("<<(std::size_t)dpoly[0][dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
-        abort();
+      if (!tflag) {
+        const std::size_t dsize=12*num-6;
+        // i indicate the position, i=0 means x0
+        if(i==0) for (int j=0; j<nmax; j++) std::memset(dpoly[j],0,dsize*sizeof(double)); // reset data array at i=0
       }
+      else if(i==0) for (int j=0; j<nmax; j++) {
+          dpoly[j][0]=0.0;
+          dpoly[j][1]=0.0;
+        }
+      
       if (nmax>ndiv) {
         std::cerr<<"Error: maximum difference order "<<nmax<<" > total step number "<<ndiv<<"!\n";
         abort();
       }
-      int** binI = pars->bin_index;
-      for (std::size_t j=0; j<(std::size_t)nmax; j++) {
-        // j+1 indicate the difference degree, count from 1 (first difference)
-        const int n = (int)j+1;
-        
-        // i indicate the position, i=0 means x0
-        if(i==0) std::memset(dpoly[j],0,dsize*sizeof(double)); // reset data array at i=0
-        
-        // left edge, forward difference: (-1)^(n-i) (n n-i) f(x0+i*h) (i from 0 to n)
-        int ileft = (int)(n-i);   // n-i
-        if (ileft>=0) {
-          double coff = ((ileft%2)?-1:1)*binI[n][ileft];
-          dpoly[j][0] += coff * t;
-          dpoly[j][1] += coff * B;
-          dpoly[j][2] += coff * w;
-           for (std::size_t k=0; k<num-1; k++) {
-            for (std::size_t kk=0; kk<3; kk++) {
-              dpoly[j][3*(1+k)+kk] += coff * X[k][kk];
-              dpoly[j][3*(num+k)+kk] += coff * V[k][kk];
-            }
-          }
-#ifdef DEBUG
-           std::cerr<<"Poly left: n="<<n<<" ik="<<ileft<<" i="<<i<<" coff="<<coff<<" t="<<t<<std::endl;
-#endif
-        }
 
-        // right edge, backward difference: (-1)^(n-i) (n n-i) f(xn-(n-i)*h) (i from 0 to n)
-        int ishift = ndiv-n;
-        int iright= ileft+ishift;     // n-i
-        if (i>=ishift) {
-          double coff = ((iright%2)?-1:1)*binI[n][iright];
-          const std::size_t ir = dsize/2;
-          dpoly[j][0+ir] += coff * t;
-          dpoly[j][1+ir] += coff * B;
-          dpoly[j][2+ir] += coff * w;
-          for (std::size_t k=0; k<num-1; k++) {
-            for (std::size_t kk=0; kk<3; kk++) {
-              dpoly[j][3*(1+k)+kk+ir] += coff * X[k][kk];
-              dpoly[j][3*(num+k)+kk+ir] += coff * V[k][kk];
+      if (i<=nmax||i>=ndiv-nmax) {
+        int** binI = pars->bin_index;
+        for (int j=0; j<nmax; j++) {
+          // j+1 indicate the difference degree, count from 1 (first difference)
+          const int n = j+1;
+              
+          // left edge, forward difference: (-1)^(n-i) (n n-i) f(x0+i*h) (i from 0 to n)
+          int ileft = (int)(n-i);   // n-i
+          if (ileft>=0) {
+            double coff = ((ileft%2)?-1:1)*binI[n][ileft];
+            dpoly[j][0] += coff * t;
+            if (!tflag) {
+              dpoly[j][1] += coff * B;
+              dpoly[j][2] += coff * w;
+              for (std::size_t k=0; k<num-1; k++) {
+                for (std::size_t kk=0; kk<3; kk++) {
+                  dpoly[j][3*(1+k)+kk] += coff * X[k][kk];
+                  dpoly[j][3*(num+k)+kk] += coff * V[k][kk];
+                }
+              }
             }
-          }
 #ifdef DEBUG
-          std::cerr<<"                 Poly right: n="<<n<<" ik="<<iright<<" i="<<i<<" coff="<<coff<<std::endl;
+            std::cerr<<"Poly left: n="<<n<<" ik="<<ileft<<" i="<<i<<" coff="<<coff<<" t="<<t<<std::endl;
 #endif
+          }
+
+          // right edge, backward difference: (-1)^(n-i) (n n-i) f(xn-(n-i)*h) (i from 0 to n)
+          int ishift = ndiv-n;
+          int iright= ileft+ishift;     // n-i
+          if (i>=ishift) {
+            double coff = ((iright%2)?-1:1)*binI[n][iright];
+            if (!tflag) {
+              const std::size_t ir = 6*num-3;
+              dpoly[j][0+ir] += coff * t;
+              dpoly[j][1+ir] += coff * B;
+              dpoly[j][2+ir] += coff * w;
+              for (std::size_t k=0; k<num-1; k++) {
+                for (std::size_t kk=0; kk<3; kk++) {
+                  dpoly[j][3*(1+k)+kk+ir] += coff * X[k][kk];
+                  dpoly[j][3*(num+k)+kk+ir] += coff * V[k][kk];
+                }
+              }
+            } else dpoly[j][1] += coff * t;
+#ifdef DEBUG
+            std::cerr<<"                 Poly right: n="<<n<<" ik="<<iright<<" i="<<i<<" coff="<<coff<<std::endl;
+#endif
+          }
         }
       }
     }
@@ -1386,19 +1422,14 @@ t)
      argument: dpoly: two dimensional storing differences, will be updated to derivates. Array size is [n][12*num-6+1] (last is for safety checking). first [] indicate different level of differences, second [] indicate the left and right difference of data (t, B, w, X, V), similar as backup/restore data. If dpoly is NULL, no calculation will be done.
                h: step size
                nmax: maximum difference order
+               dsize: data number
    */
-  void edge_dev_calc(double **dpoly, const double h, const int nmax) {
+  void edge_dev_calc(double **dpoly, const double h, const int nmax, const int dsize) {
     double hn = h;
-    // safety check
-    const std::size_t dsize=12*num-6;
-    if ((std::size_t)dpoly[0][dsize]!=dsize) {
-      std::cerr<<"Error: data array size ("<<(std::size_t)dpoly[0][dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
-      abort();
-    }
     // loop difference order from 1 to nmax
     for (std::size_t i=0; i<nmax; i++) {
 #ifdef DEBUG
-      std::cerr<<"Diff order "<<i<<" h "<<hn<<std::endl;
+      std::cerr<<"Diff order "<<i<<"; h="<<hn<<"; nmax="<<nmax<<std::endl;
 #endif
       for (std::size_t j=0; j<dsize; j++) dpoly[i][j] /= hn;
       hn *= h;
@@ -1681,8 +1712,12 @@ public:
     const int np = pext.getN();
     if (np>0) fpf = true;
 
-    //for polynomial coefficient calculation first pint
-    edge_diff_calc(dpoly,ndmax,0,n);
+    //for polynomial coefficient calculation first point
+    // middle difference (first array is used to store the f_1/2)
+    if(pars->exp_sequences==3) mid_diff_calc(&dpoly[1],ndmax-1,0,n);
+    // edge difference
+    else edge_diff_calc(dpoly,ndmax,0,n); 
+                                               
     
     //integration loop
     for (std::size_t i=0;i<n;i++) {
@@ -1773,7 +1808,13 @@ public:
       step_forward_X(dt);
       
       // for interpolation polynomial coefficient (difference)
-      edge_diff_calc(dpoly,ndmax,i+1,n);
+      // middle difference (first array is used to store the f_1/2)
+      if(pars->exp_sequences==3) {
+        if (i==n/2) dpoly[0][0]=t; // f(x)
+        mid_diff_calc(&dpoly[1],ndmax-1,i+1,n);
+      }
+      // edge difference
+      else edge_diff_calc(dpoly,ndmax,i+1,n);
     }
 
     // resolve X at last, update p.x (dependence: X)
@@ -1826,7 +1867,7 @@ public:
     // data storage size (extra one is used to show the size of the array for safety check)
     const std::size_t dsize = 6*nrel+3;
     // edge difference array size;
-    const std::size_t psize=dsize*2;
+    // const std::size_t psize=dsize*2;
     
     // for storage
     // for convenient, the data are storaged in one array with size (2*nrel+1)*3, which represents t, B, w, X[3][nrel], V[3][nrel]
@@ -1843,7 +1884,11 @@ public:
     // for dense output polynomial
     bool ip_flag = true; // interpolation coefficient calculation flag
     double** pd[itermax]; // central difference, [*] indicate different accuracy level 
-    
+    int ndmax[itermax]; //maximum difference order
+    std::size_t pnn;  // data size
+    if(pars->exp_sequences==3) pnn = 1;     // middle difference case
+    else pnn = 2; // edge two points case
+
     // for error check
     double3 CX,CXN;
     double cxerr=error+1.0;
@@ -1900,20 +1945,22 @@ public:
         if (pars->beta>0) resolve_V();
       }
 
-      // for dense output data
+      // Dense output
       if (ip_flag) {
-        // pd[][*]: * storage difference order from 1 to intcount+1
-        pd[intcount] = new double*[intcount+1];
-        // pd[][][*]: * storage left and right difference data (t, B, w, X, V)
-        for (std::size_t j=0;j<=intcount;j++) {
-          pd[intcount][j] = new double[psize+1];
-          pd[intcount][j][psize]=(double)psize;
-        }
+        // middle difference case: difference order from 1 to 2*intcount+1 (2*kappa-1; kappa=intcount+1), first one is used to storage f(x)        
+        if(pars->exp_sequences==3) ndmax[intcount] = 2*intcount+2;
+        // edge difference case: difference order from 1 to intcount+1
+        else ndmax[intcount] = intcount+1;
+        
+        // pd[][*]: * storage f(x) and difference
+        pd[intcount] = new double*[ndmax[intcount]];
+        // pd[][][*]: * storage data (t, B, w, X, V)
+        for (std::size_t j=0;j<ndmax[intcount];j++) pd[intcount][j] = new double[pnn];
       }
       else pd[intcount] = NULL;
 
       // intergration
-      Leapfrog_step_forward(ds,step[intcount],force,0,pd[intcount],intcount+1);
+      Leapfrog_step_forward(ds,step[intcount],force,0,pd[intcount],ndmax[intcount]);
 
       // increase iteration counter
       itercount += step[intcount];
@@ -1995,57 +2042,143 @@ public:
     // for dense output
     if (toff>0&&toff<t) {
 
-      // calculate derivates from differences
 #ifdef DEBUG
       std::cerr<<"ds="<<ds<<" step[0]="<<step[0]<<std::endl;
 #endif
-      for (std::size_t i=0; i<intcount; i++) edge_dev_calc(pd[i],ds/(double)step[i],i+1);
+      // calculate derivates from differences
+      for (std::size_t i=0; i<intcount; i++) {
+        // first difference pointer
+        double **pdptr;
+        int dpsize;
+        double h;
+        if(pars->exp_sequences==3) {
+          // middle difference case first element is f(x)
+          pdptr=&pd[i][1];
+          // differece order number should be reduced by one
+          dpsize = ndmax[i]-1;
+          // step size
+          h = 2*ds/(double)step[i];
+        }
+        else {
+          pdptr=pd[i];
+          dpsize = ndmax[i];
+          h = ds/(double)step[i];
+        }
 
+        edge_dev_calc(pdptr,h,dpsize,pnn); 
+      }        
+      
       // extrapolation table
       double* pn[intcount];
-      for (std::size_t i=0; i<intcount; i++) {
-        pn[i] = new double[psize+1];
-        pn[i][psize] = (double)psize; // label for safety check
-      }
+      for (std::size_t i=0; i<intcount; i++) pn[i] = new double[pnn];
+
+      // starting accuracy index
+      std::size_t istart=0;
       
-      // from low difference order (1) to high difference order (intcount-1) (last order intcount is not need to extrapolate)
-      for (std::size_t i=0; i<(std::size_t)intcount-1; i++) {
+      // from low difference order (1) to high difference order (ndmax) 
+      for (std::size_t i=0; i<(std::size_t)ndmax[intcount-1]; i++) {
+
+        // find correct istart;
+        if (i>=ndmax[istart]) istart++;
+
+        if (istart>=intcount) break;
+        
         // storage result of first order accuracy
-        std::memcpy(pn[0],pd[i][i],psize*sizeof(double));
+        std::memcpy(pn[0],pd[istart][i],pnn*sizeof(double));
 #ifdef DEBUG
-        std::cerr<<"Poly calc order="<<0<<" step_1="<<step[i]<<" t X11^("<<i+1<<")_"<<i<<"="<<pd[i][i][0]<<"\t"<<pd[i][i][3]<<std::endl;
+        std::cerr<<"Poly calc order="<<istart<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<istart<<"="<<pd[istart][i][0]<<"\t"<<pd[istart][i][3]<<std::endl;
 #endif
         // extrapolation to higher order accuracy
-        for (std::size_t j=i+1; j<(std::size_t)intcount; j++) {
+        for (std::size_t j=istart+1; j<intcount; j++) {
 #ifdef DEBUG
-          std::cerr<<"Poly calc order="<<j<<" step_1="<<step[i]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
+          std::cerr<<"Poly calc order="<<j<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
 #endif
-          if (methods==1) EP::polynomial_extrapolation(pn,pd[j][i],&step[i],psize,j-i);
-          if (methods==2) EP::rational_extrapolation(pn,pd[j][i],&step[i],psize,j-i);
+          if (methods==1) EP::polynomial_extrapolation(pn,pd[j][i],&step[istart],pnn,j-istart);
+          if (methods==2) EP::rational_extrapolation(pn,pd[j][i],&step[istart],pnn,j-istart);
 #ifdef DEBUG
-          std::cerr<<"Poly extra order="<<j-i<<" step_1="<<step[i]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
+          std::cerr<<"Poly extra order="<<j-istart<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
 #endif
         }
       }
 
+      // number of points
+      int npoints;
       // store position s
-      double xpoint[2]={0.0,ds};
+      double* xpoint;
       // maximum difference level
-      int nlev[2]={(int)intcount+1,(int)intcount+1};
+      int* nlev;
+      // polynomial
+      double* pcoff;
+      // data point
+      double** fpoint;
+      // final derivate starting pointer
+      double*** dfptr;
+      
 
-      // store f(x)
-      double fpoint[psize];
-      std::memcpy(fpoint, d0, dsize*sizeof(double));
-      std::memcpy(&fpoint[dsize], dn[intcount-1], dsize*sizeof(double));
+      // for middle difference case (1 point)
+      if(pars->exp_sequences==3) {
 
-      double* pcoff[dsize];
-      for (std::size_t i=0; i<dsize; i++) pcoff[i]= new double[2*(intcount+1)];
+        npoints=3;
+        
+        xpoint=new double[npoints];
+        xpoint[0]=0.0;
+        xpoint[1]=0.5*ds;
+        xpoint[2]=ds;
 
+        nlev=new int[npoints];
+        nlev[0] = 1;
+        nlev[1] = 2*(int)intcount;
+        nlev[2] = 1;
+
+        fpoint=new double*[npoints];
+        fpoint[0] = d0;
+        fpoint[1] = pd[intcount-1][0];
+        fpoint[2] = dn[intcount-1];
+
+        // \sum nlev = 2*intcount+2;
+        pcoff = new double[2*intcount+2];
+
+        dfptr=new double**[nlev[1]-1];
+        for (int i=0;i<nlev[1]-1;i++) {
+          dfptr[i]=new double*[3];
+          dfptr[i][0]=NULL;
+          dfptr[i][1]=pd[intcount-1][i+1];
+          dfptr[i][2]=NULL;
+        }
+      }
+      // for edge difference case (2 points)
+      else {
+        npoints=2;
+
+        xpoint=new double[npoints];
+        xpoint[0]=0.0;
+        xpoint[1]=ds;
+
+        nlev=new int[npoints];
+        nlev[0] = (int)intcount+1;
+        nlev[1] = nlev[0];
+        
+        // store f(x)
+        fpoint=new double*[npoints];
+        fpoint[0] = d0;
+        fpoint[1] = dn[intcount-1];
+
+        // \sum nlev = 2*intcount+2;
+        pcoff= new double[2*intcount+2];
+
+        dfptr=new double**[intcount];
+        for (int i=0;i<intcount;i++) {
+          dfptr[i] = new double*[2];
+          dfptr[i][0] = pd[intcount-1][i];
+          dfptr[i][1] = &pd[intcount-1][i][1];
+        }
+      }
+
+      
       // Hermite interpolation
-      EP::Hermite_interpolation_coefficients(pcoff,xpoint,fpoint,pd[intcount-1],dsize,2,nlev);
+      EP::Hermite_interpolation_coefficients(&pcoff,xpoint,fpoint,dfptr,1,npoints,nlev);
 
       // Iteration to get correct physical time position
-      double tpoint[2]= {0,ds};  
       double dsi[2]   = {0,ds};    // edges for iteration
       double tsi[2]   = {d0[0],t}; // edges values
       double dsm,tpre;    // expected ds and t;
@@ -2060,7 +2193,7 @@ public:
           dsm = (dsi[0]+dsi[1])*0.5;      // Use bisection method to get approximate region
         }
         
-        EP::Hermite_interpolation_polynomial(dsm,&tpre,pcoff,tpoint,1,2,nlev);
+        EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
         if (tpre > toff) {
           dsi[1] = dsm;
           tsi[1] = tpre;
@@ -2072,60 +2205,61 @@ public:
       } while (std::abs(tpre-toff)>dterr);
 
       // Get the interpolation result
-      EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,2,nlev);
+      //EP::Hermite_interpolation_polynomial(dsm,dtemp,&pcoff,xpoint,1,npoints,nlev);
 
       // update time factor
       dsn = -(dsm/ds);
       
       // update the results
-      //      restore(dtemp);
+      //restore(dtemp);
       restore(d0);
       Ekin = Ekin0;
 
 #ifdef DEBUG
-      std::cerr<<"Geting: ds= "<<dsm;
+      /*std::cerr<<"Getting: ds= "<<dsm;
       for (std::size_t i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
       std::cerr<<std::endl;
       
-      EP::Hermite_interpolation_polynomial(0,dtemp,pcoff,xpoint,dsize,2,nlev);
-      std::cerr<<"Staring:";
+      EP::Hermite_interpolation_polynomial(0,dtemp,&pcoff,xpoint,dsize,2,nlev);
+      std::cerr<<"Starting:";
       for (std::size_t i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
       std::cerr<<std::endl;
 
-      std::cerr<<"Endling:";
-      EP::Hermite_interpolation_polynomial(ds,dtemp,pcoff,xpoint,dsize,2,nlev);
+      std::cerr<<"Ending:";
+      EP::Hermite_interpolation_polynomial(ds,dtemp,&pcoff,xpoint,dsize,2,nlev);
       for (std::size_t i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
       std::cerr<<std::endl;
-      
-      for (std::size_t i=0; i<=1000; i++) {
+      */
+      /*      for (std::size_t i=0; i<=1000; i++) {
         dsm = ds/1000*i;
-        EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,2,nlev);
-//        // update the results
-//        restore(dtemp);
-//        // resolve particle
-//        resolve_XV();
-//        // recalculate the energy
-//        calc_Ekin();
-//        // force, potential and W
-//        calc_rAPW(force);
+        EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,npoints,nlev);
+        // update the results
+        restore(dtemp);
+        // resolve particle
+        resolve_XV();
+        // recalculate the energy
+        calc_Ekin();
+        // force, potential and W
+        calc_rAPW(force);
         
         std::cerr<<"Loop: "<<dsm;
-        //        std::cerr<<" "<<(Ekin-Pot+B)/B;
+        std::cerr<<" "<<(Ekin-Pot+B)/B;
         for (std::size_t i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
         std::cerr<<std::endl;
-      }
+        }*/
       
 #endif
 
       // resolve particle
       resolve_XV();
       // recalculate the energy
-      //      calc_Ekin();
+      // calc_Ekin();
       // force, potential and W
       calc_rAPW(force);
 
       for (std::size_t i=0; i<intcount; i++) delete[] pn[i];
-      for (std::size_t i=0; i<dsize; i++) delete[] pcoff[i];
+      //for (std::size_t i=0; i<dsize; i++) delete[] pcoff[i];
+      delete[] pcoff;
     }
 
     // update chain link order

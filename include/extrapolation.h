@@ -66,9 +66,8 @@ namespace EP {
    */
   void seq_Hairer (int step[], const std::size_t itermax) {
     if (itermax>0) {
-      step[0] = 1;
-      step[1] = 2;
-      for (std::size_t i=2;i<itermax;i++) {
+      step[0] = 2;
+      for (std::size_t i=1;i<itermax;i++) {
         step[i] = step[i-1] + 4;
       }
     }
@@ -228,13 +227,13 @@ namespace EP {
      function: generate Hermite interpolation polynomial coefficient
      argument: coff: two dimensional array storing the interpolation coefficients [ndata][\sum_j (nlev_j)]
                x: one dimensional array that store the positions [npoints]
-               f: one dimensional array that store the f(x) (ndata*npoints) (f_(data),(points): f_0,0, f_1,0, f_2,0...)
-               df: two dimensional array that store the f^(k)(x) [k][ndata*npoints]
+               f: two dimensional array that store the f(x) [npoints][ndata]
+               df: three dimensional array that store the f^(k)(x) [k][npoints][ndata]
                ndata: number of different type of data for interpolation
                npoints: number of position points.
                nlev:  one dimensional array that store the maximum difference level for each position (f^(0)(x) count as 1)
   */
-  void Hermite_interpolation_coefficients (double **coff, const double* x, const double* f, double **df, const int ndata, const int npoints, const int* nlev) {
+  void Hermite_interpolation_coefficients (double **coff, const double* x, double** f, double ***df, const int ndata, const int npoints, const int* nlev) {
     // get total coefficient number
     int n = 0;
     for (int i=0; i<npoints; i++) n += nlev[i];
@@ -251,7 +250,7 @@ namespace EP {
       int joff = 0;
       for (int j=0; j<npoints; j++) {
         for (int k=0; k<nlev[j]; k++) {
-          dtemp[k+joff] = f[j*ndata+i];
+          dtemp[k+joff] = f[j][i];
           dk0[k+joff] = j;
           dkn[k+joff] = j;
 #ifdef DEBUG
@@ -273,7 +272,7 @@ namespace EP {
         // iteration to get cofficients 
         for (int k=0; k<n-j; k++) {
           // set known derivate value 
-          if (dk0[k]==dkn[k+1]) dtemp[k] = df[j-1][i+dk0[k]*ndata]/(double)nk;
+          if (dk0[k]==dkn[k+1]) dtemp[k] = df[j-1][dk0[k]][i]/(double)nk;
           // calculate new
           else {
             dtemp[k] = (dtemp[k+1] - dtemp[k])/(x[dkn[k+1]] - x[dk0[k]]);

@@ -307,7 +307,7 @@ int main(int argc, char **argv){
       std::cout<<std::endl;
     }
 
-    if ((tend<0&&i==nstep)||(tend>0&&std::abs(c.getTime()-tend)<1e-6)) break;
+    if ((tend<0&&i==nstep)||(tend>0&&std::abs(c.getTime()-tend)<1e-12)) break;
     i++;
 
     if (ms) {
