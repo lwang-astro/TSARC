@@ -6,13 +6,13 @@
 #define NAN_CHECK(val) assert((val) == (val));
 #endif
 
-//basic particle structure==========================//
+//!basic particle structure==========================//
 class Particle{
   double pos[3], vel[3];
   double mass;
 
 public:
-  //instruction=======================================//
+  //!instruction=======================================//
   Particle() {} 
   Particle(const double m, const double r[3], const double v[3]) {
     set(m,r,v);
@@ -24,22 +24,22 @@ public:
     set(a);
   }
 
-  // Get mass (required)
+  //! Get mass (required)
   const double getMass() const{
     return mass;
   }
   
-  // Get position (required)
+  //! Get position (required)
   const double* getPos() const{
     return pos;
   }
 
-  // Get velocity (required)
+  //! Get velocity (required)
   const double* getVel() const{
     return vel;
   }
   
-  //set data=========================================//
+  //!set data=========================================//
   void set(const double m, const double rx, const double ry, const double rz, const double vx, const double vy, const double vz){
     NAN_CHECK(m);
     NAN_CHECK(rx);
@@ -79,7 +79,7 @@ public:
     std::memcpy(vel,a.getVel(),3*sizeof(double));
   }
 
-  //set position (required)
+  //!set position (required)
   void setPos(const double x, const double y, const double z) {
     NAN_CHECK(x);
     NAN_CHECK(y);
@@ -90,7 +90,7 @@ public:
     pos[2] = z;
   }
 
-  //set position (required)
+  //!set position (required)
   void setPos(const double r[3]) {
     NAN_CHECK(r[0]);
     NAN_CHECK(r[1]);
@@ -99,7 +99,7 @@ public:
     std::memcpy(pos,r,3*sizeof(double));
   }
 
-  //set velocity (required)
+  //!set velocity (required)
   void setVel(const double vx, const double vy, const double vz) {
     NAN_CHECK(vx);
     NAN_CHECK(vy);
@@ -110,7 +110,7 @@ public:
     vel[2] = vz;
   }
 
-  //set position (required)
+  //!set position (required)
   void setVel(const double v[3]) {
     NAN_CHECK(v[0]);
     NAN_CHECK(v[1]);
@@ -119,7 +119,7 @@ public:
     std::memcpy(vel,v,3*sizeof(double));
   }
 
-  //set mass (required)
+  //!set mass (required)
   void setMass(const double m) {
     NAN_CHECK(m);
 

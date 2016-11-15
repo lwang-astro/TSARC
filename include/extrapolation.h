@@ -7,12 +7,12 @@
 #include <iomanip>
 #endif
 
-// For extrapolation
+//! For extrapolation
 namespace EP {
-  // Sequence generator:
+  //! Sequence generator:
 
 
-  /* function: generate Harmonic sequence {h, h/2, h/3, h/4 ...}
+  /*! function: generate Harmonic sequence {h, h/2, h/3, h/4 ...}
      argument: step: sequence array for storing the result
                itermax: array size
    */
@@ -25,7 +25,7 @@ namespace EP {
     }
   }
   
-  /* function: generate Romberg (even) sequence {h, h/2, h/4, h/8 ...}
+  /*! function: generate Romberg (even) sequence {h, h/2, h/4, h/8 ...}
      argument: step: sequence array for storing the result
                itermax: array size
   */
@@ -38,7 +38,7 @@ namespace EP {
     }
   }
 
-  /* function: generate Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
+  /*! function: generate Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
      argument: step: sequence array for storing the result
                itermax: array size
    */
@@ -60,7 +60,7 @@ namespace EP {
     }
   }      
 
-  /* function: generate E. Hairer (4k) sequences {h, h/2, h/6, h/10, h/14 ...}
+  /*! function: generate E. Hairer (4k) sequences {h, h/2, h/6, h/10, h/14 ...}
      argument: step: sequence array for storing the result
                itermax: array size
    */
@@ -73,8 +73,8 @@ namespace EP {
     }
   }
 
-  // Recursive function for extrapolation
-  /* Polynomial_recursion_formula
+  //! Recursive function for extrapolation
+  /*! Polynomial_recursion_formula
      function: Using Polynomial function: T_ik = T_i,k-1 + (T_i,k-1 - T_i-1,k-1) / [(h_i-k/h_i)^2 -1]
      argument: ti1k1: t_i-1,k-1
                tik1: t_i,k-1
@@ -89,7 +89,7 @@ namespace EP {
     return tik1 + (tik1 - ti1k1)/(hr*hr - 1);
   }
 
-  /* Rational_recursion formula
+  /*! Rational_recursion formula
      function: Using rational function: T_ik = T_i,k-1 + (T_i,k-1 - T_i-1,k-1) / {(h_i-k/h_i)^2 * [1- (T_i,k-1 - T_i-1,k-1)/(T_i,k-1 - T_i-1,k-2)] -1}
      argument: ti1k2: T_i-1,k-2
                ti1k1: T_i-1,k-1
@@ -109,8 +109,8 @@ namespace EP {
     else return tik1 + dt;
   }
 
-  // extrapolation iteration function
-  /* polynomial extrapolation iteration
+  //! extrapolation iteration function
+  /*! polynomial extrapolation iteration
     function: iterate T_n,{1..n} based on T_n-1,{1...n-1} and T_n,1
     argument: Tn: Array of T_n-1,{1...n-1}, will be updated to T_n,{1..n}
               Tnew: T_n,1, will be updated to T_n
@@ -120,8 +120,8 @@ namespace EP {
    */
   void polynomial_extrapolation (double** Tn, double* Tnew, const int step[], const std::size_t Tsize, const std::size_t n) {
     for (std::size_t j=0; j<n; j++) {
-      //templately storage new results to ttemp
-      /*
+      //!templately storage new results to ttemp
+      /*!
              T_n-1,j [j]
                        -> T_n,j+1 [n]
               T_n,j [Tnew]
@@ -129,21 +129,21 @@ namespace EP {
       double hr = (double)step[n]/(double)step[n-j-1];
       for (std::size_t k=0; k<Tsize; k++) Tn[n][k] = polynomial_recursive_formula(Tn[j][k],Tnew[k],hr);
    
-      //update j order
-      /*
+      //!update j order
+      /*!
               [j] << T_n,j [Tnew]
       */
       std::memcpy(Tn[j],Tnew,Tsize*sizeof(double));
    
-      //shift temp data to index = n.
-      /*
+      //!shift temp data to index = n.
+      /*!
               [Tnew] << T_n,j+1 []
       */
       std::memcpy(Tnew,Tn[n],Tsize*sizeof(double));
     }
   }
 
-  /* rational extrapolation iteration
+  /*! rational extrapolation iteration
     function: iterate T_n,{1..n} based on T_n-1,{1...n-1} and T_n,1
     argument: Tn: Array of T_n-1,{1...n-1}, will be updated to T_n,{1..n}
               Tnew: T_n,1, will be updated to T_n
@@ -151,12 +151,12 @@ namespace EP {
               n: the new iteration step index (count from 0)
   */
   void rational_extrapolation (double** Tn, double* Tnew, const int step[], const std::size_t Tsize, const std::size_t n) {
-    // additional template storage
+    //! additional template storage
     double T1[Tsize];
         
     for (std::size_t j=0; j<n; j++) {
-      //templately storage new results to ttemp
-      /*
+      //!templately storage new results to ttemp
+      /*!
                            T_n-1,j [j]
              T_n-1,j-1 [j-1]          -> T_n,j+1 [n]
                            T_n,j [Tnew]
@@ -165,20 +165,20 @@ namespace EP {
       if (j==0) for (std::size_t k=0; k<Tsize; k++) Tn[n][k] = rational_recursive_formula(0,Tn[j][k],Tnew[k],hr);
       else for (std::size_t k=0; k<Tsize; k++) Tn[n][k] = rational_recursive_formula(Tn[j-1][k],Tn[j][k],Tnew[k],hr);
 
-      // update j-1 order
+      //! update j-1 order
       if (j>0) std::memcpy(Tn[j-1],T1,Tsize*sizeof(double));
 
-      //storage previous extrapolated data in template position t1
-      // [t1] << T_n,j [Tnew]
+      //!storage previous extrapolated data in template position t1
+      //! [t1] << T_n,j [Tnew]
       std::memcpy(T1,Tnew,Tsize*sizeof(double));
             
-      //shift Tn data to Tnew
-      // [Tnew] << T_n,j+1 [n]
+      //!shift Tn data to Tnew
+      //! [Tnew] << T_n,j+1 [n]
       std::memcpy(Tnew,Tn[n],Tsize*sizeof(double));
     }
   }
 
-  /* error estimation
+  /*! error estimation
      function: error calculation based on T_n,n and T_n,n-1 (get maximum error)
      argument: Tn: Tn array
                Tsize: data array size
@@ -195,7 +195,7 @@ namespace EP {
     return ermax;
   }
 
-  /* next step optimized factor estimation (based on n)
+  /*! next step optimized factor estimation (based on n)
      function: calculate the modification factor for next extrapolation intergration step (assume next maximum iteration step number is n). Hnew ~ H * (exp/err)**1/(2n+3) 
      argument: err: error of current extrapolation from T_n,n-1 to T_n,n
                exp: expected error
@@ -207,7 +207,7 @@ namespace EP {
     else return 1.0;
   }
 
-  /* binomial coefficients calculator
+  /*! binomial coefficients calculator
      function: generate the next binomial sequence (n 1:n) based on (n-1 1:n-1)
      argument: bp: n-1 sequence array (size of n-1)
                bn: new sequence array (size of n)
@@ -217,13 +217,13 @@ namespace EP {
     if (n>1) {
       bn[0] = 1;
       bn[n-1] = 1;
-      // use recursive formula
+      //! use recursive formula
       for (std::size_t j=1; j<n-1; j++) bn[j] = bp[j-1] + bp[j];
     }
     else bn[0] = 1;
   }
 
-  /* Hermite interpolation coefficient
+  /*! Hermite interpolation coefficient
      function: generate Hermite interpolation polynomial coefficient
      argument: coff: two dimensional array storing the interpolation coefficients [ndata][\sum_j (nlev_j)]
                x: one dimensional array that store the positions [npoints]
@@ -234,19 +234,19 @@ namespace EP {
                nlev:  one dimensional array that store the maximum difference level for each position (f^(0)(x) count as 1)
   */
   void Hermite_interpolation_coefficients (double **coff, const double* x, double** f, double ***df, const int ndata, const int npoints, const int* nlev) {
-    // get total coefficient number
+    //! get total coefficient number
     int n = 0;
     for (int i=0; i<npoints; i++) n += nlev[i];
 
-    // template data for iteration
+    //! template data for iteration
     double* dtemp= new double[n];
-    // indicator of which point corresponding to in dtemp (-1: need to calculate, >=0; need to set data from points dk)
+    //! indicator of which point corresponding to in dtemp (-1: need to calculate, >=0; need to set data from points dk)
     int* dk0 = new int[n];
     int* dkn = new int[n];
     
-    // loop different type of datt
+    //! loop different type of datt
     for (int i=0; i<ndata; i++) {
-      // set initial value
+      //! set initial value
       int joff = 0;
       for (int j=0; j<npoints; j++) {
         for (int k=0; k<nlev[j]; k++) {
@@ -261,19 +261,19 @@ namespace EP {
         joff += nlev[j];
       }
 
-      // first coff (f(x));
+      //! first coff (f(x));
       coff[i][0] = dtemp[0];
-      // (k!) for cofficients
+      //! (k!) for cofficients
       int nk=1;
-      // j indicate derivate order
+      //! j indicate derivate order
       for (int j=1; j<n; j++) {
         nk *=j;
         
-        // iteration to get cofficients 
+        //! iteration to get cofficients 
         for (int k=0; k<n-j; k++) {
-          // set known derivate value 
+          //! set known derivate value 
           if (dk0[k]==dkn[k+1]) dtemp[k] = df[j-1][dk0[k]][i]/(double)nk;
-          // calculate new
+          //! calculate new
           else {
             dtemp[k] = (dtemp[k+1] - dtemp[k])/(x[dkn[k+1]] - x[dk0[k]]);
             dkn[k] = dkn[k+1];
@@ -284,7 +284,7 @@ namespace EP {
 #endif
         }
 
-        // get coff
+        //! get coff
         coff[i][j] = dtemp[0];
       }
     }
@@ -294,7 +294,7 @@ namespace EP {
     delete[] dkn;
   }
 
-  /* Hermite interpolation polynomial
+  /*! Hermite interpolation polynomial
      function: return the interpolation result based on polynomial coefficients
      argument: xn: position want to get interpolation value
                fxn: one dimensional array that store the interpolation results [ndata]
@@ -305,18 +305,18 @@ namespace EP {
                nlev:  one dimensional array that store the maximum difference level for each position (f^(0)(x) count as 1)
   */
   void Hermite_interpolation_polynomial(double xn, double *fxn, double** coff, const double *x, const int ndata, const int npoints, const int* nlev) {
-    // offset for shifting dx calculation
+    //! offset for shifting dx calculation
     int noff[npoints];
     for (int i=0; i<npoints-1; i++) noff[i] = nlev[i];
     noff[npoints-1] = nlev[npoints-1]-1;
 
-    // polynomial
+    //! polynomial
     for (int i=0; i<ndata; i++) {
-      // first cofficient is constant
+      //! first cofficient is constant
       fxn[i] = coff[i][0];
-      // initial dx
+      //! initial dx
       double dx=1;
-      // coff index
+      //! coff index
       std::size_t ik=1;
       for (int k=0; k<npoints; k++) {
         double dk = xn - x[k];

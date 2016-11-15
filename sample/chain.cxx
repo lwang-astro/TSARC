@@ -320,7 +320,7 @@ int main(int argc, char **argv){
         /*double factor=std::max(0.0,(std::abs(icount-nlev)-nreduce)/smooth);
         s *=std::pow(0.5,(icount>nlev?factor:-factor));
         s = std::min(s,0.9);*/
-        ds = s*dsf;
+        ds = s*std::max(std::min(dsf,8.0),0.125);
         flag_out = true;
 #ifdef DEBUG        
         std::cerr<<"S: "<<i<<" "<<ds<< std::endl;
