@@ -32,7 +32,7 @@ static double get_wtime(){
 }
 
 //! A structure storing time profile 
-structure timeprofile{
+struct timeprofile{
 public:
   double t_apw;    ///< APW calculation
   double t_uplink; ///< update link
@@ -311,7 +311,7 @@ public:
      @param[in] mm: m_smooth (whether use smooth mass coefficients)
   */
   void setM(const double epi=0.001, const bool mm=true) {
-    m_epi = e;
+    m_epi = epi;
     m_smooth = mm;
     if (m_epi==0&&m_smooth) {
       std::cerr<<"Error: smooth mass coefficients are used, but smooth coefficient epi is zero!\n";

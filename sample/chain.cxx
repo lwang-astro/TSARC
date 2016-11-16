@@ -230,7 +230,7 @@ int main(int argc, char **argv){
     abort();
   }
 
-  chainpars pars;
+  ARC::chainpars pars;
   if (method)
     if (strcmp(method,"ttl")==0) {
       pars.setM(0.003,false);
@@ -251,7 +251,7 @@ int main(int argc, char **argv){
   }
   pars.setEXP(err,dtmin,1e-12,itermax,ms,msq,nlev);
 
-  chain<Particle> c(n,pars);
+  ARC::chain<Particle> c(n,pars);
   Particle *p=new Particle[n];
   if (fflag) f=new double3[n];
   for (std::size_t i=0;i<n;i++) {
