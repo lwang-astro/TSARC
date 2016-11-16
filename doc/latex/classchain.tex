@@ -1,177 +1,714 @@
-\hypertarget{classchain}{
-\section{chain$<$ particle $>$ Class Template Reference}
-\label{classchain}\index{chain@{chain}}
-}
+\hypertarget{classchain}{}\section{chain$<$ particle $>$ Class Template Reference}
+\label{classchain}\index{chain$<$ particle $>$@{chain$<$ particle $>$}}
+
+
+Algorithmic regularization (AR) class.  
+
+
+
+
+{\ttfamily \#include $<$A\+R.\+h$>$}
+
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classchain_aca11deddacc14caff191f4273e634219}{
-{\bfseries chain} (std::size\_\-t n)}
-\label{classchain_aca11deddacc14caff191f4273e634219}
-
+\hyperlink{classchain_a64c82c65e14b76682bceb525bb1801f7}{chain} (std\+::size\+\_\+t n, const \hyperlink{classchainpars}{chainpars} \&par)
+\begin{DoxyCompactList}\small\item\em initialization \end{DoxyCompactList}\item 
+\hyperlink{classchain_a6cca333a0d626f8ac763e1dc5d1d35ea}{chain} (const \hyperlink{classchainpars}{chainpars} \&par)
 \item 
-\hypertarget{classchain_a396b6a6ce8ed5e92dab4b6cf8ee0008d}{
-void {\bfseries allocate} (std::size\_\-t n)}
-\label{classchain_a396b6a6ce8ed5e92dab4b6cf8ee0008d}
-
+void \hyperlink{classchain_a396b6a6ce8ed5e92dab4b6cf8ee0008d}{allocate} (std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em re-\/allocate function \end{DoxyCompactList}\item 
+void \hyperlink{classchain_a63d5a11da8c3f0e0024fea9e8f2774bb}{clear} ()
+\begin{DoxyCompactList}\small\item\em clear function \end{DoxyCompactList}\item 
+\hyperlink{classchain_acf3aeeb136a915e80e17aa4221c822a7}{$\sim$chain} ()
+\begin{DoxyCompactList}\small\item\em destruction \end{DoxyCompactList}\item 
+void \hyperlink{classchain_a859cdc2249ee280069aa997d455c063b}{addP} (particle \&a)
+\begin{DoxyCompactList}\small\item\em add particle function\+: add particle into chainlist p argument\+: particle a \end{DoxyCompactList}\item 
+void \hyperlink{classchain_a1ad83d089ce15a5bd09ec0bd47a8e0fc}{addP} (\hyperlink{classchain}{chain}$<$ particle $>$ \&a)
 \item 
-\hypertarget{classchain_a63d5a11da8c3f0e0024fea9e8f2774bb}{
-void {\bfseries clear} ()}
-\label{classchain_a63d5a11da8c3f0e0024fea9e8f2774bb}
-
+void \hyperlink{classchain_aa8991445a46067f7196fad6fd1d975c4}{addP} (const std\+::size\+\_\+t n, particle a\mbox{[}$\,$\mbox{]})
 \item 
-\hypertarget{classchain_a859cdc2249ee280069aa997d455c063b}{
-void {\bfseries addP} (particle \&a)}
-\label{classchain_a859cdc2249ee280069aa997d455c063b}
-
+void \hyperlink{classchain_afcf23f66ae1f2a8a20787c9767d01a99}{removeP} (const std\+::size\+\_\+t i, bool option=true)
+\begin{DoxyCompactList}\small\item\em remove particle function\+: remove particle from p argument\+: i\+: particle index option\+: true\+: shift last particle to current position (defaulted); false\+: shift all right particle to left by one \end{DoxyCompactList}\item 
+void \hyperlink{classchain_acc7edf934b406995525aea0533cd87d4}{init\+Pext} (const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em init\+Pext function\+: allocate array for Pext list argument\+: n\+: number of perturbers \end{DoxyCompactList}\item 
+void \hyperlink{classchain_ae41d460ef51d06c4474285f866caea02}{add\+Pext} (particle \&a)
+\begin{DoxyCompactList}\small\item\em add perturber particle function\+: add pertuber particle into chainlist p argument\+: particle a \end{DoxyCompactList}\item 
+void \hyperlink{classchain_a2e2533d167715198a0316ce037dbd34f}{add\+Pext} (\hyperlink{classchain}{chain}$<$ particle $>$ \&a)
 \item 
-\hypertarget{classchain_a1ad83d089ce15a5bd09ec0bd47a8e0fc}{
-void {\bfseries addP} (\hyperlink{classchain}{chain}$<$ particle $>$ \&a)}
-\label{classchain_a1ad83d089ce15a5bd09ec0bd47a8e0fc}
-
+void \hyperlink{classchain_ae838fccf5313905d44690ef6cf08160d}{add\+Pext} (const std\+::size\+\_\+t n, particle a\mbox{[}$\,$\mbox{]})
 \item 
-\hypertarget{classchain_a93d170d4ad9431507be1f9430256ccc8}{
-void {\bfseries addP} (const std::size\_\-t \&n, particle a\mbox{[}$\,$\mbox{]})}
-\label{classchain_a93d170d4ad9431507be1f9430256ccc8}
-
-\item 
-\hypertarget{classchain_af5c4820f4118d6852fe981e752a505a0}{
-void {\bfseries removeP} (const std::size\_\-t \&i, bool option=true)}
-\label{classchain_af5c4820f4118d6852fe981e752a505a0}
-
-\item 
-\hypertarget{classchain_a06be7eb9dd22520e32a6530734522b22}{
-void {\bfseries initPext} (const std::size\_\-t \&n)}
-\label{classchain_a06be7eb9dd22520e32a6530734522b22}
-
-\item 
-\hypertarget{classchain_ae41d460ef51d06c4474285f866caea02}{
-void {\bfseries addPext} (particle \&a)}
-\label{classchain_ae41d460ef51d06c4474285f866caea02}
-
-\item 
-\hypertarget{classchain_a2e2533d167715198a0316ce037dbd34f}{
-void {\bfseries addPext} (\hyperlink{classchain}{chain}$<$ particle $>$ \&a)}
-\label{classchain_a2e2533d167715198a0316ce037dbd34f}
-
-\item 
-\hypertarget{classchain_a314cb21138e081fbc6b1436a645d1d71}{
-void {\bfseries addPext} (const std::size\_\-t \&n, particle a\mbox{[}$\,$\mbox{]})}
-\label{classchain_a314cb21138e081fbc6b1436a645d1d71}
-
-\item 
-\hypertarget{classchain_af3f2369d9909eb2592270ebb43bfb033}{
-void {\bfseries removePext} (const std::size\_\-t \&i, bool option=true)}
-\label{classchain_af3f2369d9909eb2592270ebb43bfb033}
-
-\item 
-\hypertarget{classchain_a82aa8a7fbc0a59dc80a6664a89831ff5}{
-bool {\bfseries is\_\-p\_\-modified} () const }
-\label{classchain_a82aa8a7fbc0a59dc80a6664a89831ff5}
-
-\item 
-\hypertarget{classchain_aafaed894c8cc06a39e53e60c9464098b}{
-bool {\bfseries is\_\-p\_\-origin} () const }
-\label{classchain_aafaed894c8cc06a39e53e60c9464098b}
-
-\item 
-\hypertarget{classchain_ab8d6469cd14e32f5ee3b5aba24bdc601}{
-void {\bfseries init} (const double time, const double3 $\ast$force=NULL)}
-\label{classchain_ab8d6469cd14e32f5ee3b5aba24bdc601}
-
-\item 
-\hypertarget{classchain_a623ee5de9bc2a5548e2e3b026fa083d9}{
-void {\bfseries center\_\-shift\_\-inverse} ()}
-\label{classchain_a623ee5de9bc2a5548e2e3b026fa083d9}
-
-\item 
-\hypertarget{classchain_a4282f016d3dd10774815ba7c32c0e021}{
-void {\bfseries center\_\-shift} ()}
-\label{classchain_a4282f016d3dd10774815ba7c32c0e021}
-
-\item 
-\hypertarget{classchain_a53ba548d770aacf76e9d5db7d2035a03}{
-void {\bfseries set\_\-abg} (const double a, const double b, const double g, const double e=0.001)}
-\label{classchain_a53ba548d770aacf76e9d5db7d2035a03}
-
-\item 
-\hypertarget{classchain_aca74f3caca3d6c0ba909de4511993160}{
-void {\bfseries Leapfrog\_\-step\_\-forward} (const double s, const int n, const double3 $\ast$force=NULL, const double dtmin=5.4e-\/20, int check\_\-flag=1)}
-\label{classchain_aca74f3caca3d6c0ba909de4511993160}
-
-\item 
-\hypertarget{classchain_abe96df70b2ba53b02eca60d1e03ec17c}{
-int {\bfseries extrapolation\_\-integration} (const double s, const double error=1E-\/8, const std::size\_\-t itermax=10, const int methods=1, const int sequences=2, const double3 $\ast$force=NULL, const double dtmin=5.4e-\/20)}
-\label{classchain_abe96df70b2ba53b02eca60d1e03ec17c}
-
-\item 
-\hypertarget{classchain_a4d3fee933c9eb286f0fd5c8bf4d33ad0}{
-double {\bfseries getTime} () const }
-\label{classchain_a4d3fee933c9eb286f0fd5c8bf4d33ad0}
-
-\item 
-\hypertarget{classchain_a205cebb0df7069dfbfb485b608dd54b1}{
-double {\bfseries getEkin} () const }
-\label{classchain_a205cebb0df7069dfbfb485b608dd54b1}
-
-\item 
-\hypertarget{classchain_ae4a94b896f99ec793f2a1ef1a758bdee}{
-double {\bfseries getPot} () const }
-\label{classchain_ae4a94b896f99ec793f2a1ef1a758bdee}
-
-\item 
-\hypertarget{classchain_a98ea0efdd86a780e497cc1c9ed6ef832}{
-double {\bfseries getB} () const }
-\label{classchain_a98ea0efdd86a780e497cc1c9ed6ef832}
-
-\item 
-\hypertarget{classchain_a5605d2319e60e5fa6b1d9609d83b625d}{
-double {\bfseries getw} () const }
-\label{classchain_a5605d2319e60e5fa6b1d9609d83b625d}
-
-\item 
-\hypertarget{classchain_ae8da9f979a477c47b80673f95eef6607}{
-double {\bfseries getW} () const }
-\label{classchain_ae8da9f979a477c47b80673f95eef6607}
-
-\item 
-\hypertarget{classchain_a84a64c135620027cdc63cb1a72be6e37}{
-void {\bfseries set\_\-X} (const std::size\_\-t i, const std::size\_\-t k, const double value)}
-\label{classchain_a84a64c135620027cdc63cb1a72be6e37}
-
-\item 
-\hypertarget{classchain_ac605b407a47aa202afe6f5bd0a3163ec}{
-void {\bfseries update\_\-rAPW} (const double3 $\ast$force)}
-\label{classchain_ac605b407a47aa202afe6f5bd0a3163ec}
-
-\item 
-\hypertarget{classchain_a573ade699785fd4f3d5433aaed7381d0}{
-void {\bfseries print} (const int width=15)}
-\label{classchain_a573ade699785fd4f3d5433aaed7381d0}
-
-\end{DoxyCompactItemize}
+void \hyperlink{classchain_a3b80366fe18fc80159b4c5c5168d010c}{remove\+Pext} (const std\+::size\+\_\+t i, bool option=true)
+\begin{DoxyCompactList}\small\item\em remove particle function\+: remove particle from p argument\+: i\+: particle index option\+: true\+: shift last particle to current position (defaulted); false\+: shift all right particle to left by one \end{DoxyCompactList}\item 
+bool \hyperlink{classchain_a45e5bde36e12c0388b175983c8f4b9cf}{is\+Pmod} () const
+\begin{DoxyCompactList}\small\item\em is\+Pmod function\+: reture true if particle list is modifed, in this case, the chain may need to be initialized again return\+: true/false \end{DoxyCompactList}\item 
+int \hyperlink{classchain_aa0716fdbd7717da18d32b0c5161f108f}{is\+Porigin} () const
+\begin{DoxyCompactList}\small\item\em is\+Porigin function\+: return true if particle list are in original frame return\+: 1 (original frame),2 (position in original frame only) ,0 (center-\/of-\/mass frame) \end{DoxyCompactList}\item 
+void \hyperlink{classchain_ab8d6469cd14e32f5ee3b5aba24bdc601}{init} (const double time, const double3 $\ast$force=N\+U\+LL)
+\begin{DoxyCompactList}\small\item\em init function\+: initialization chain from particle p argument\+: time\+: current time force\+: external force \end{DoxyCompactList}\item 
+void \hyperlink{classchain_a623ee5de9bc2a5548e2e3b026fa083d9}{center\+\_\+shift\+\_\+inverse} ()
+\begin{DoxyCompactList}\small\item\em center\+\_\+shift\+\_\+inverse================================== function\+: shift back to original positions and velocities of N (num) particles (p) based on their center-\/of-\/mass p\+: particle list (read data and return shifted list); \end{DoxyCompactList}\item 
+void \hyperlink{classchain_a4282f016d3dd10774815ba7c32c0e021}{center\+\_\+shift} ()
+\begin{DoxyCompactList}\small\item\em center\+\_\+shift================================== function\+: shift positions and velocities of N (num) particles (p) based on their center-\/of-\/mass p\+: particle list (read data and return shifted list); \end{DoxyCompactList}\item 
+void \hyperlink{classchain_ac7b6422d8e7772461c4cde99916a4b6a}{backup} (double $\ast$db)
+\begin{DoxyCompactList}\small\item\em backup function\+: backup integration data to one dimensional array argument\+: db\+: backup array (size should be 6$\ast$num-\/3) \end{DoxyCompactList}\item 
+void \hyperlink{classchain_a6450983197baedc6f5c8f0cb59702340}{restore} (double $\ast$db)
+\begin{DoxyCompactList}\small\item\em restore function\+: restore integration data from one dimensional array argument\+: db\+: data array (size should be 6$\ast$num-\/3) \end{DoxyCompactList}\item 
+void \hyperlink{classchain_a337be88f209915ffceb971b27f71f0be}{Leapfrog\+\_\+step\+\_\+forward} (const double s, const int n, const double3 $\ast$force=N\+U\+LL, int check\+\_\+flag=1, double $\ast$$\ast$dpoly=N\+U\+LL, const int ndmax=0)
+\begin{DoxyCompactList}\small\item\em Leapfrog\+\_\+step\+\_\+forward function\+: integration n steps, particles\textquotesingle{} position and velocity will be updated in the center-\/of-\/mass frame argument\+: s\+: whole step size n\+: number of step division, real step size = (s/n), for Leapfrog integration, it is X(s/2n)V(s/n)X(s/n)V(s/n)..X(s/2n) force\+: external force (not perturber forces which are calculated in pert\+\_\+force) check\+\_\+flag\+: 2\+: check link every step; 1\+: check link at then end; 0 \+:no check dpoly\+: interpolation polynomial coefficients array (size shold be \mbox{[}n\mbox{]}\mbox{[}(2$\ast$nrel+1)$\ast$3\mbox{]}) ndmax\+: maximum difference limit recur\+\_\+flag\+: flag to determine whether to resolve sub-\/chain particles for force calculations. \end{DoxyCompactList}\item 
+double \hyperlink{classchain_ae6fe95b3bebd4ce9e0cc39086cec88f1}{extrapolation\+\_\+integration} (const double ds, const double toff=-\/1.\+0, const double3 $\ast$force=N\+U\+LL)
+\begin{DoxyCompactList}\small\item\em extrapolation\+\_\+integration function\+: extrapolation method to get accurate integration argument\+: ds\+: whole step size toff\+: ending physical time (negative means no ending time and integration finishing after n steps) force\+: external force (not perturber forces which are calculated in pert\+\_\+force) return\+: new step size modification factor if it is negative and toff$>$0; the abs of value is factor to be used for redoing the extrapolation\+\_\+integrration of this step to reach the toff. \end{DoxyCompactList}\item 
+double \hyperlink{classchain_ae17d47b7c94181f9aa15b59c772a4fae}{get\+Time} () const
+\begin{DoxyCompactList}\small\item\em gettime function\+: return physical time return\+: t \end{DoxyCompactList}\item 
+double \hyperlink{classchain_aa230b214a266ce94c564c40a0c0c497f}{get\+Ekin} () const
+\begin{DoxyCompactList}\small\item\em get\+\_\+\+Ekin function\+: get kinetic energy return\+: Ekin \end{DoxyCompactList}\item 
+double \hyperlink{classchain_a0a0a6fb28cad0a841cd6c8e8dafa5055}{get\+Pot} () const
+\begin{DoxyCompactList}\small\item\em get\+\_\+\+Pot function\+: get potetnial energy (negative value) return\+: Pot \end{DoxyCompactList}\item 
+double \hyperlink{classchain_a0dee1cb1d986110c6f05e71e25b020d0}{getB} () const
+\begin{DoxyCompactList}\small\item\em get\+\_\+B function\+: get potetnial energy (negative value) return\+: Pot \end{DoxyCompactList}\item 
+double \hyperlink{classchain_aae4b94cc13a4a8e4f81f5874ecaf50bc}{getw} () const
+\begin{DoxyCompactList}\small\item\em get\+\_\+w function\+: get potetnial energy (negative value) return\+: Pot \end{DoxyCompactList}\item 
+double \hyperlink{classchain_a4f72c2eb51358d5ee7979803d1bc72cb}{getW} () const
+\begin{DoxyCompactList}\small\item\em get\+\_\+W function\+: get potetnial energy (negative value) return\+: Pot \end{DoxyCompactList}\item 
+void \hyperlink{classchain_a84a64c135620027cdc63cb1a72be6e37}{set\+\_\+X} (const std\+::size\+\_\+t i, const std\+::size\+\_\+t k, const double value)
+\begin{DoxyCompactList}\small\item\em set\+\_\+X function\+: modify X argument\+: i\+: the index of X k\+: axis-\/0\+:x,1\+:y,2\+:z value\+: new value \end{DoxyCompactList}\item 
+void \hyperlink{classchain_ac605b407a47aa202afe6f5bd0a3163ec}{update\+\_\+r\+A\+PW} (const double3 $\ast$force)
+\begin{DoxyCompactList}\small\item\em template $<$class particle$>$=\char`\"{}\char`\"{}$>$ \end{DoxyCompactList}\item 
+void \hyperlink{classchain_a573ade699785fd4f3d5433aaed7381d0}{print} (const int width=15)
+\begin{DoxyCompactList}\small\item\em print function\+: print all data argument\+: width of each output value \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Public Attributes}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classchain_a84dfcd9f0112836152bc6843e8f74505}{
-particle {\bfseries cm}}
-\label{classchain_a84dfcd9f0112836152bc6843e8f74505}
+particle \hyperlink{classchain_a84dfcd9f0112836152bc6843e8f74505}{cm}
+\begin{DoxyCompactList}\small\item\em center mass \end{DoxyCompactList}\item 
+\hyperlink{classchainlist}{chainlist}$<$ particle $>$ \hyperlink{classchain_a1962dd942432d4f43b5f26e292fa4836}{p}
+\begin{DoxyCompactList}\small\item\em particle list \end{DoxyCompactList}\item 
+\hyperlink{classchainlist}{chainlist}$<$ particle $>$ \hyperlink{classchain_ad26d11d20934a500df042ecf333a3f72}{pext}
+\begin{DoxyCompactList}\small\item\em perturber list \end{DoxyCompactList}\end{DoxyCompactItemize}
 
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class particle$>$\newline
+class chain$<$ particle $>$}
+
+Algorithmic regularization (AR) class. 
+
+Chain class.
+
+Three classes\+: chain$<$\+T$>$; chainlist$<$\+T$>$; chainpars; 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classchain_a64c82c65e14b76682bceb525bb1801f7}{}\label{classchain_a64c82c65e14b76682bceb525bb1801f7} 
+\index{chain@{chain}!chain@{chain}}
+\index{chain@{chain}!chain@{chain}}
+\subsubsection{\texorpdfstring{chain()}{chain()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+\hyperlink{classchain}{chain}$<$ particle $>$\+::\hyperlink{classchain}{chain} (\begin{DoxyParamCaption}\item[{std\+::size\+\_\+t}]{n,  }\item[{const \hyperlink{classchainpars}{chainpars} \&}]{par }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+initialization 
+
+\hypertarget{classchain_a6cca333a0d626f8ac763e1dc5d1d35ea}{}\label{classchain_a6cca333a0d626f8ac763e1dc5d1d35ea} 
+\index{chain@{chain}!chain@{chain}}
+\index{chain@{chain}!chain@{chain}}
+\subsubsection{\texorpdfstring{chain()}{chain()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+\hyperlink{classchain}{chain}$<$ particle $>$\+::\hyperlink{classchain}{chain} (\begin{DoxyParamCaption}\item[{const \hyperlink{classchainpars}{chainpars} \&}]{par }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\hypertarget{classchain_acf3aeeb136a915e80e17aa4221c822a7}{}\label{classchain_acf3aeeb136a915e80e17aa4221c822a7} 
+\index{chain@{chain}!````~chain@{$\sim$chain}}
+\index{````~chain@{$\sim$chain}!chain@{chain}}
+\subsubsection{\texorpdfstring{$\sim$chain()}{~chain()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+\hyperlink{classchain}{chain}$<$ particle $>$\+::$\sim$\hyperlink{classchain}{chain} (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+destruction 
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classchain_a859cdc2249ee280069aa997d455c063b}{}\label{classchain_a859cdc2249ee280069aa997d455c063b} 
+\index{chain@{chain}!addP@{addP}}
+\index{addP@{addP}!chain@{chain}}
+\subsubsection{\texorpdfstring{add\+P()}{addP()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::addP (\begin{DoxyParamCaption}\item[{particle \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+add particle function\+: add particle into chainlist p argument\+: particle a 
+
+\hypertarget{classchain_a1ad83d089ce15a5bd09ec0bd47a8e0fc}{}\label{classchain_a1ad83d089ce15a5bd09ec0bd47a8e0fc} 
+\index{chain@{chain}!addP@{addP}}
+\index{addP@{addP}!chain@{chain}}
+\subsubsection{\texorpdfstring{add\+P()}{addP()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::addP (\begin{DoxyParamCaption}\item[{\hyperlink{classchain}{chain}$<$ particle $>$ \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\hypertarget{classchain_aa8991445a46067f7196fad6fd1d975c4}{}\label{classchain_aa8991445a46067f7196fad6fd1d975c4} 
+\index{chain@{chain}!addP@{addP}}
+\index{addP@{addP}!chain@{chain}}
+\subsubsection{\texorpdfstring{add\+P()}{addP()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::addP (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n,  }\item[{particle}]{a\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\hypertarget{classchain_ae41d460ef51d06c4474285f866caea02}{}\label{classchain_ae41d460ef51d06c4474285f866caea02} 
+\index{chain@{chain}!add\+Pext@{add\+Pext}}
+\index{add\+Pext@{add\+Pext}!chain@{chain}}
+\subsubsection{\texorpdfstring{add\+Pext()}{addPext()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::add\+Pext (\begin{DoxyParamCaption}\item[{particle \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+add perturber particle function\+: add pertuber particle into chainlist p argument\+: particle a 
+
+\hypertarget{classchain_a2e2533d167715198a0316ce037dbd34f}{}\label{classchain_a2e2533d167715198a0316ce037dbd34f} 
+\index{chain@{chain}!add\+Pext@{add\+Pext}}
+\index{add\+Pext@{add\+Pext}!chain@{chain}}
+\subsubsection{\texorpdfstring{add\+Pext()}{addPext()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::add\+Pext (\begin{DoxyParamCaption}\item[{\hyperlink{classchain}{chain}$<$ particle $>$ \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\hypertarget{classchain_ae838fccf5313905d44690ef6cf08160d}{}\label{classchain_ae838fccf5313905d44690ef6cf08160d} 
+\index{chain@{chain}!add\+Pext@{add\+Pext}}
+\index{add\+Pext@{add\+Pext}!chain@{chain}}
+\subsubsection{\texorpdfstring{add\+Pext()}{addPext()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::add\+Pext (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n,  }\item[{particle}]{a\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\hypertarget{classchain_a396b6a6ce8ed5e92dab4b6cf8ee0008d}{}\label{classchain_a396b6a6ce8ed5e92dab4b6cf8ee0008d} 
+\index{chain@{chain}!allocate@{allocate}}
+\index{allocate@{allocate}!chain@{chain}}
+\subsubsection{\texorpdfstring{allocate()}{allocate()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::allocate (\begin{DoxyParamCaption}\item[{std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+re-\/allocate function 
+
+\hypertarget{classchain_ac7b6422d8e7772461c4cde99916a4b6a}{}\label{classchain_ac7b6422d8e7772461c4cde99916a4b6a} 
+\index{chain@{chain}!backup@{backup}}
+\index{backup@{backup}!chain@{chain}}
+\subsubsection{\texorpdfstring{backup()}{backup()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::backup (\begin{DoxyParamCaption}\item[{double $\ast$}]{db }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+backup function\+: backup integration data to one dimensional array argument\+: db\+: backup array (size should be 6$\ast$num-\/3) 
+
+\hypertarget{classchain_a4282f016d3dd10774815ba7c32c0e021}{}\label{classchain_a4282f016d3dd10774815ba7c32c0e021} 
+\index{chain@{chain}!center\+\_\+shift@{center\+\_\+shift}}
+\index{center\+\_\+shift@{center\+\_\+shift}!chain@{chain}}
+\subsubsection{\texorpdfstring{center\+\_\+shift()}{center\_shift()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::center\+\_\+shift (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+center\+\_\+shift================================== function\+: shift positions and velocities of N (num) particles (p) based on their center-\/of-\/mass p\+: particle list (read data and return shifted list); 
+
+\hypertarget{classchain_a623ee5de9bc2a5548e2e3b026fa083d9}{}\label{classchain_a623ee5de9bc2a5548e2e3b026fa083d9} 
+\index{chain@{chain}!center\+\_\+shift\+\_\+inverse@{center\+\_\+shift\+\_\+inverse}}
+\index{center\+\_\+shift\+\_\+inverse@{center\+\_\+shift\+\_\+inverse}!chain@{chain}}
+\subsubsection{\texorpdfstring{center\+\_\+shift\+\_\+inverse()}{center\_shift\_inverse()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::center\+\_\+shift\+\_\+inverse (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+center\+\_\+shift\+\_\+inverse================================== function\+: shift back to original positions and velocities of N (num) particles (p) based on their center-\/of-\/mass p\+: particle list (read data and return shifted list); 
+
+\hypertarget{classchain_a63d5a11da8c3f0e0024fea9e8f2774bb}{}\label{classchain_a63d5a11da8c3f0e0024fea9e8f2774bb} 
+\index{chain@{chain}!clear@{clear}}
+\index{clear@{clear}!chain@{chain}}
+\subsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::clear (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+clear function 
+
+\hypertarget{classchain_ae6fe95b3bebd4ce9e0cc39086cec88f1}{}\label{classchain_ae6fe95b3bebd4ce9e0cc39086cec88f1} 
+\index{chain@{chain}!extrapolation\+\_\+integration@{extrapolation\+\_\+integration}}
+\index{extrapolation\+\_\+integration@{extrapolation\+\_\+integration}!chain@{chain}}
+\subsubsection{\texorpdfstring{extrapolation\+\_\+integration()}{extrapolation\_integration()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+double \hyperlink{classchain}{chain}$<$ particle $>$\+::extrapolation\+\_\+integration (\begin{DoxyParamCaption}\item[{const double}]{ds,  }\item[{const double}]{toff = {\ttfamily -\/1.0},  }\item[{const double3 $\ast$}]{force = {\ttfamily NULL} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+extrapolation\+\_\+integration function\+: extrapolation method to get accurate integration argument\+: ds\+: whole step size toff\+: ending physical time (negative means no ending time and integration finishing after n steps) force\+: external force (not perturber forces which are calculated in pert\+\_\+force) return\+: new step size modification factor if it is negative and toff$>$0; the abs of value is factor to be used for redoing the extrapolation\+\_\+integrration of this step to reach the toff. 
+
+And also in this case the data will not be integrated. get parameters
+
+array size indicator for relative position and velocity
+
+data storage size (extra one is used to show the size of the array for safety check)
+
+edge difference array size; const std\+::size\+\_\+t psize=dsize$\ast$2;
+
+for storage for convenient, the data are storaged in one array with size (2$\ast$nrel+1)$\ast$3, which represents t, B, w, X\mbox{[}3\mbox{]}\mbox{[}nrel\mbox{]}, V\mbox{[}3\mbox{]}\mbox{[}nrel\mbox{]}
+
+$<$ label for safety check
+
+$<$ label for safety check
+
+$<$ label for safety check
+
+for dense output polynomial
+
+$<$ interpolation coefficient calculation flag
+
+$<$ central difference, \mbox{[}$\ast$\mbox{]} indicate different accuracy level
+
+$<$ maximum difference order
+
+$<$ data size
+
+$<$ middle difference case
+
+$<$ edge two points case
+
+for error check
+
+error for step estimation
+
+backup initial values (t, B, w, X, V, Ekin)
+
+new step
+
+$<$ iteration counter
+
+$<$ iteration efforts count
+
+first step
+
+convergency check
+
+if completely converged, check energy error
+
+iteration limit check
+
+reset the initial data (t, B, w, X, V, Ekin)
+
+reset velocity to get correct w
+
+Dense output
+
+middle difference case\+: difference order from 1 to 2$\ast$intcount+1 (2$\ast$kappa-\/1; kappa=intcount+1), first one is used to storage f(x)
+
+edge difference case\+: difference order from 1 to intcount+1
+
+pd\mbox{[}\mbox{]}\mbox{[}$\ast$\mbox{]}\+: $\ast$ storage f(x) and difference
+
+pd\mbox{[}\mbox{]}\mbox{[}\mbox{]}\mbox{[}$\ast$\mbox{]}\+: $\ast$ storage data (t, B, w, X, V)
+
+intergration
+
+increase iteration counter
+
+storage the results to \mbox{[}n\mbox{]}
+
+relative position vector between first and last particle for phase error check
+
+storage the results to \mbox{[}temp\mbox{]}
+
+iteration Using Romberg method
+
+Using Rational interpolation method
+
+get error estimation
+
+set final results back to chain array
+
+resolve particle
+
+recalculate the energy
+
+force, potential and W
+
+phase error calculation
+
+for dense output
+
+calculate derivates from differences
+
+first difference pointer
+
+middle difference case first element is f(x)
+
+differece order number should be reduced by one
+
+step size
+
+extrapolation table
+
+starting accuracy index
+
+from low difference order (1) to high difference order (ndmax)
+
+find correct istart;
+
+storage result of first order accuracy
+
+extrapolation to higher order accuracy
+
+number of points
+
+store position s
+
+maximum difference level
+
+polynomial
+
+data point
+
+final derivate starting pointer
+
+for middle difference case (1 point)
+
+nlev = 2$\ast$intcount+2;
+
+for edge difference case (2 points)
+
+store f(x)
+
+nlev = 2$\ast$intcount+2;
+
+Hermite interpolation
+
+Iteration to get correct physical time position
+
+$<$ edges for iteration
+
+$<$ edges values
+
+$<$ expected ds and t;
+
+$<$ 1000 $\ast$ time error criterion
+
+$<$ Use regula falsi method to find accurate ds
+
+$<$ Use bisection method to get approximate region
+
+update time factor
+
+reset the data to original
+
+resolve particle
+
+force, potential and W
+
+clear memory
+
+update chain link order
+
+clear memory \hypertarget{classchain_a0dee1cb1d986110c6f05e71e25b020d0}{}\label{classchain_a0dee1cb1d986110c6f05e71e25b020d0} 
+\index{chain@{chain}!getB@{getB}}
+\index{getB@{getB}!chain@{chain}}
+\subsubsection{\texorpdfstring{get\+B()}{getB()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+double \hyperlink{classchain}{chain}$<$ particle $>$\+::getB (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+get\+\_\+B function\+: get potetnial energy (negative value) return\+: Pot 
+
+\hypertarget{classchain_aa230b214a266ce94c564c40a0c0c497f}{}\label{classchain_aa230b214a266ce94c564c40a0c0c497f} 
+\index{chain@{chain}!get\+Ekin@{get\+Ekin}}
+\index{get\+Ekin@{get\+Ekin}!chain@{chain}}
+\subsubsection{\texorpdfstring{get\+Ekin()}{getEkin()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+double \hyperlink{classchain}{chain}$<$ particle $>$\+::get\+Ekin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+get\+\_\+\+Ekin function\+: get kinetic energy return\+: Ekin 
+
+\hypertarget{classchain_a0a0a6fb28cad0a841cd6c8e8dafa5055}{}\label{classchain_a0a0a6fb28cad0a841cd6c8e8dafa5055} 
+\index{chain@{chain}!get\+Pot@{get\+Pot}}
+\index{get\+Pot@{get\+Pot}!chain@{chain}}
+\subsubsection{\texorpdfstring{get\+Pot()}{getPot()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+double \hyperlink{classchain}{chain}$<$ particle $>$\+::get\+Pot (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+get\+\_\+\+Pot function\+: get potetnial energy (negative value) return\+: Pot 
+
+\hypertarget{classchain_ae17d47b7c94181f9aa15b59c772a4fae}{}\label{classchain_ae17d47b7c94181f9aa15b59c772a4fae} 
+\index{chain@{chain}!get\+Time@{get\+Time}}
+\index{get\+Time@{get\+Time}!chain@{chain}}
+\subsubsection{\texorpdfstring{get\+Time()}{getTime()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+double \hyperlink{classchain}{chain}$<$ particle $>$\+::get\+Time (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+gettime function\+: return physical time return\+: t 
+
+\hypertarget{classchain_aae4b94cc13a4a8e4f81f5874ecaf50bc}{}\label{classchain_aae4b94cc13a4a8e4f81f5874ecaf50bc} 
+\index{chain@{chain}!getw@{getw}}
+\index{getw@{getw}!chain@{chain}}
+\subsubsection{\texorpdfstring{getw()}{getw()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+double \hyperlink{classchain}{chain}$<$ particle $>$\+::getw (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+get\+\_\+w function\+: get potetnial energy (negative value) return\+: Pot 
+
+\hypertarget{classchain_a4f72c2eb51358d5ee7979803d1bc72cb}{}\label{classchain_a4f72c2eb51358d5ee7979803d1bc72cb} 
+\index{chain@{chain}!getW@{getW}}
+\index{getW@{getW}!chain@{chain}}
+\subsubsection{\texorpdfstring{get\+W()}{getW()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+double \hyperlink{classchain}{chain}$<$ particle $>$\+::getW (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+get\+\_\+W function\+: get potetnial energy (negative value) return\+: Pot 
+
+\hypertarget{classchain_ab8d6469cd14e32f5ee3b5aba24bdc601}{}\label{classchain_ab8d6469cd14e32f5ee3b5aba24bdc601} 
+\index{chain@{chain}!init@{init}}
+\index{init@{init}!chain@{chain}}
+\subsubsection{\texorpdfstring{init()}{init()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::init (\begin{DoxyParamCaption}\item[{const double}]{time,  }\item[{const double3 $\ast$}]{force = {\ttfamily NULL} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+init function\+: initialization chain from particle p argument\+: time\+: current time force\+: external force 
+
+update number indicator
+
+Generate chain link list
+
+set center-\/of-\/mass
+
+set member relative position and velocity
+
+if smooth mass coefficients are used, calculate mm2;
+
+set relative distance matrix, acceleration, potential and transformation parameter
+
+Initial intgrt value t
+
+kinetic energy
+
+initial time step parameter
+
+set F\+\_\+\+Pmod to false \hypertarget{classchain_acc7edf934b406995525aea0533cd87d4}{}\label{classchain_acc7edf934b406995525aea0533cd87d4} 
+\index{chain@{chain}!init\+Pext@{init\+Pext}}
+\index{init\+Pext@{init\+Pext}!chain@{chain}}
+\subsubsection{\texorpdfstring{init\+Pext()}{initPext()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::init\+Pext (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+init\+Pext function\+: allocate array for Pext list argument\+: n\+: number of perturbers 
+
+\hypertarget{classchain_a45e5bde36e12c0388b175983c8f4b9cf}{}\label{classchain_a45e5bde36e12c0388b175983c8f4b9cf} 
+\index{chain@{chain}!is\+Pmod@{is\+Pmod}}
+\index{is\+Pmod@{is\+Pmod}!chain@{chain}}
+\subsubsection{\texorpdfstring{is\+Pmod()}{isPmod()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+bool \hyperlink{classchain}{chain}$<$ particle $>$\+::is\+Pmod (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+is\+Pmod function\+: reture true if particle list is modifed, in this case, the chain may need to be initialized again return\+: true/false 
+
+\hypertarget{classchain_aa0716fdbd7717da18d32b0c5161f108f}{}\label{classchain_aa0716fdbd7717da18d32b0c5161f108f} 
+\index{chain@{chain}!is\+Porigin@{is\+Porigin}}
+\index{is\+Porigin@{is\+Porigin}!chain@{chain}}
+\subsubsection{\texorpdfstring{is\+Porigin()}{isPorigin()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+int \hyperlink{classchain}{chain}$<$ particle $>$\+::is\+Porigin (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+is\+Porigin function\+: return true if particle list are in original frame return\+: 1 (original frame),2 (position in original frame only) ,0 (center-\/of-\/mass frame) 
+
+\hypertarget{classchain_a337be88f209915ffceb971b27f71f0be}{}\label{classchain_a337be88f209915ffceb971b27f71f0be} 
+\index{chain@{chain}!Leapfrog\+\_\+step\+\_\+forward@{Leapfrog\+\_\+step\+\_\+forward}}
+\index{Leapfrog\+\_\+step\+\_\+forward@{Leapfrog\+\_\+step\+\_\+forward}!chain@{chain}}
+\subsubsection{\texorpdfstring{Leapfrog\+\_\+step\+\_\+forward()}{Leapfrog\_step\_forward()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::Leapfrog\+\_\+step\+\_\+forward (\begin{DoxyParamCaption}\item[{const double}]{s,  }\item[{const int}]{n,  }\item[{const double3 $\ast$}]{force = {\ttfamily NULL},  }\item[{int}]{check\+\_\+flag = {\ttfamily 1},  }\item[{double $\ast$$\ast$}]{dpoly = {\ttfamily NULL},  }\item[{const int}]{ndmax = {\ttfamily 0} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Leapfrog\+\_\+step\+\_\+forward function\+: integration n steps, particles\textquotesingle{} position and velocity will be updated in the center-\/of-\/mass frame argument\+: s\+: whole step size n\+: number of step division, real step size = (s/n), for Leapfrog integration, it is X(s/2n)V(s/n)X(s/n)V(s/n)..X(s/2n) force\+: external force (not perturber forces which are calculated in pert\+\_\+force) check\+\_\+flag\+: 2\+: check link every step; 1\+: check link at then end; 0 \+:no check dpoly\+: interpolation polynomial coefficients array (size shold be \mbox{[}n\mbox{]}\mbox{[}(2$\ast$nrel+1)$\ast$3\mbox{]}) ndmax\+: maximum difference limit recur\+\_\+flag\+: flag to determine whether to resolve sub-\/chain particles for force calculations. 
+
+notice this require the sub-\/chain to be integrated to current physical time. Thus is this a recursion call (tree-\/recusion-\/integration) upforce\+: void (const particle $\ast$ p, const particle {\itshape pext, double3} force). function to calculate force based on p and pext, return to force Error check
+
+$<$ average velocity
+
+$<$ perturber force indicator
+
+for polynomial coefficient calculation first point middle difference (first array is used to store the f\+\_\+1/2)
+
+edge difference
+
+integration loop
+
+half step forward for t (dependence\+: Ekin, B, w)
+
+step\+\_\+forward time
+
+half step forward X (dependence\+: V, dt)
+
+resolve X to p.\+v (dependence\+: X, cm.\+get\+Mass())
+
+perturber force
+
+get original position first, update p.\+x (dependence\+: X, cm.\+x)
+
+Update perturber force pf (dependence\+: pext, original-\/frame p.\+x, p.\+get\+Mass())
+
+reset position to center-\/of-\/mass frame, update p.\+x
+
+Update rjk, A, Pot, d\+Wdr, W for half X (dependence\+: pf, force, p.\+m, p.\+x, X)
+
+Update chain list order if necessary, update list, X, V (dependence\+: p.\+x, X, V)
+
+Get time step dt(\+V) (dependence\+: Pot, W)
+
+Step forward V (dependence\+: dt(\+V), V, A)
+
+Get averaged velocity, update p.\+x, p.\+v, ave\+\_\+v (dependence\+: X, V)
+
+forward B and w (dependence\+: dt(\+V), ave\+\_\+v, p.\+m, p.\+v, force, d\+Wdr, pf)
+
+Calcuale Kinetic energy (dependence\+: p.\+m, p.\+v)
+
+step forward for t (dependence\+: Ekin, B, w)
+
+step forward for X (dependence\+: X, V)
+
+for interpolation polynomial coefficient (difference) middle difference (first array is used to store the f\+\_\+1/2)
+
+edge difference
+
+resolve X at last, update p.\+x (dependence\+: X)
+
+Update rjk, A, Pot, d\+Wdr, W (notice A will be incorrect since pf is not updated)
+
+update chain list order and calculate potential
+
+clear memory \hypertarget{classchain_a573ade699785fd4f3d5433aaed7381d0}{}\label{classchain_a573ade699785fd4f3d5433aaed7381d0} 
+\index{chain@{chain}!print@{print}}
+\index{print@{print}!chain@{chain}}
+\subsubsection{\texorpdfstring{print()}{print()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::print (\begin{DoxyParamCaption}\item[{const int}]{width = {\ttfamily 15} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+print function\+: print all data argument\+: width of each output value 
+
+\hypertarget{classchain_afcf23f66ae1f2a8a20787c9767d01a99}{}\label{classchain_afcf23f66ae1f2a8a20787c9767d01a99} 
+\index{chain@{chain}!removeP@{removeP}}
+\index{removeP@{removeP}!chain@{chain}}
+\subsubsection{\texorpdfstring{remove\+P()}{removeP()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::removeP (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i,  }\item[{bool}]{option = {\ttfamily true} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+remove particle function\+: remove particle from p argument\+: i\+: particle index option\+: true\+: shift last particle to current position (defaulted); false\+: shift all right particle to left by one 
+
+\hypertarget{classchain_a3b80366fe18fc80159b4c5c5168d010c}{}\label{classchain_a3b80366fe18fc80159b4c5c5168d010c} 
+\index{chain@{chain}!remove\+Pext@{remove\+Pext}}
+\index{remove\+Pext@{remove\+Pext}!chain@{chain}}
+\subsubsection{\texorpdfstring{remove\+Pext()}{removePext()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::remove\+Pext (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i,  }\item[{bool}]{option = {\ttfamily true} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+remove particle function\+: remove particle from p argument\+: i\+: particle index option\+: true\+: shift last particle to current position (defaulted); false\+: shift all right particle to left by one 
+
+\hypertarget{classchain_a6450983197baedc6f5c8f0cb59702340}{}\label{classchain_a6450983197baedc6f5c8f0cb59702340} 
+\index{chain@{chain}!restore@{restore}}
+\index{restore@{restore}!chain@{chain}}
+\subsubsection{\texorpdfstring{restore()}{restore()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::restore (\begin{DoxyParamCaption}\item[{double $\ast$}]{db }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+restore function\+: restore integration data from one dimensional array argument\+: db\+: data array (size should be 6$\ast$num-\/3) 
+
+\hypertarget{classchain_a84a64c135620027cdc63cb1a72be6e37}{}\label{classchain_a84a64c135620027cdc63cb1a72be6e37} 
+\index{chain@{chain}!set\+\_\+X@{set\+\_\+X}}
+\index{set\+\_\+X@{set\+\_\+X}!chain@{chain}}
+\subsubsection{\texorpdfstring{set\+\_\+\+X()}{set\_X()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::set\+\_\+X (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i,  }\item[{const std\+::size\+\_\+t}]{k,  }\item[{const double}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+set\+\_\+X function\+: modify X argument\+: i\+: the index of X k\+: axis-\/0\+:x,1\+:y,2\+:z value\+: new value 
+
+\hypertarget{classchain_ac605b407a47aa202afe6f5bd0a3163ec}{}\label{classchain_ac605b407a47aa202afe6f5bd0a3163ec} 
+\index{chain@{chain}!update\+\_\+r\+A\+PW@{update\+\_\+r\+A\+PW}}
+\index{update\+\_\+r\+A\+PW@{update\+\_\+r\+A\+PW}!chain@{chain}}
+\subsubsection{\texorpdfstring{update\+\_\+r\+A\+P\+W()}{update\_rAPW()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchain}{chain}$<$ particle $>$\+::update\+\_\+r\+A\+PW (\begin{DoxyParamCaption}\item[{const double3 $\ast$}]{force }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+template $<$class particle$>$=\char`\"{}\char`\"{}$>$ 
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classchain_a84dfcd9f0112836152bc6843e8f74505}{}\label{classchain_a84dfcd9f0112836152bc6843e8f74505} 
+\index{chain@{chain}!cm@{cm}}
+\index{cm@{cm}!chain@{chain}}
+\subsubsection{\texorpdfstring{cm}{cm}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+particle \hyperlink{classchain}{chain}$<$ particle $>$\+::cm}
+
+
+
+center mass 
+
+\hypertarget{classchain_a1962dd942432d4f43b5f26e292fa4836}{}\label{classchain_a1962dd942432d4f43b5f26e292fa4836} 
+\index{chain@{chain}!p@{p}}
+\index{p@{p}!chain@{chain}}
+\subsubsection{\texorpdfstring{p}{p}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+\hyperlink{classchainlist}{chainlist}$<$particle$>$ \hyperlink{classchain}{chain}$<$ particle $>$\+::p}
+
+
+
+particle list 
+
+\hypertarget{classchain_ad26d11d20934a500df042ecf333a3f72}{}\label{classchain_ad26d11d20934a500df042ecf333a3f72} 
+\index{chain@{chain}!pext@{pext}}
+\index{pext@{pext}!chain@{chain}}
+\subsubsection{\texorpdfstring{pext}{pext}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+\hyperlink{classchainlist}{chainlist}$<$particle$>$ \hyperlink{classchain}{chain}$<$ particle $>$\+::pext}
+
+
+
+perturber list 
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 
-\hypertarget{classchain_a1962dd942432d4f43b5f26e292fa4836}{
-\hyperlink{classchainlist}{chainlist}$<$ particle $>$ {\bfseries p}}
-\label{classchain_a1962dd942432d4f43b5f26e292fa4836}
-
-\item 
-\hypertarget{classchain_ad26d11d20934a500df042ecf333a3f72}{
-\hyperlink{classchainlist}{chainlist}$<$ particle $>$ {\bfseries pext}}
-\label{classchain_ad26d11d20934a500df042ecf333a3f72}
-
-\end{DoxyCompactItemize}
-\subsubsection*{template$<$class particle$>$ class chain$<$ particle $>$}
-
-
-
-The documentation for this class was generated from the following file:\begin{DoxyCompactItemize}
-\item 
-/home/lwang/code/ARC/include/AR.h\end{DoxyCompactItemize}
+C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\hyperlink{AR_8h}{A\+R.\+h}\end{DoxyCompactItemize}

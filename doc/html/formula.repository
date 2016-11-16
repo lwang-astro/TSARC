@@ -1,0 +1,56 @@
+\form#0:$ wij = mm2$
+\form#1:$\sum_{i<j} m_i*m_j/(N(N-1)/2) $
+\form#2:$wij = m_i*m_j$
+\form#3:$A[1:3] = m_i*m_j X[1:3] / X^3 $
+\form#4:$dW[1:3] = wij X[1:3] /X^3 $
+\form#5:$B += dt * \sum ( - m_k * <v_k> \dot f_k);$
+\form#6:$w += dt * \sum ( dm/dr_k \dot v_k);$
+\form#7:$\sum_{i<j} m_i m_j / (N( N - 1 )/2) $
+\form#8:$w_ij = m_i m_j$
+\form#9:$A[1:3] = m_i m_j X[1:3] / X^3 $
+\form#10:$dW[1:3] = w_ij X[1:3] /X^3 $
+\form#11:$\sum m_i m_j /(N (N-1)/2) (i<j) $
+\form#12:$ dt = ds/[a *(logH) + b * (TTL) + g])$
+\form#13:$ wij = mm2 $
+\form#14:$ mm2 = \sum_{i<j} m_i m_j / (N( N - 1 )/2) $
+\form#15:$ dt = ds/[a *(logH) + b * (TTL) + g]$
+\form#16:$ mm2 = \sum m_i m_j /(N (N-1)/2) (i<j) $
+\form#17:$B += dt * \sum ( - m_k * <v_k> \dot f_k)$
+\form#18:$w += dt * \sum ( dm/dr_k \dot v_k)$
+\form#19:$ dw/dt = \sum_k \frac {\partial W}{\partial \arrow r_k} \dot \arrow v_k $
+\form#20:$ dw/dt = \sum_k \frac {\partial W}{\partial \vec r_k} \dot \vec v_k $
+\form#21:$dW[1:3] = w_{ij} X[1:3] /X^3 $
+\form#22:$ w_{ij} = mm2 $
+\form#23:$w_{ij} = m_i m_j$
+\form#24:$ dw/dt = \sum_k \frac {\partial W}{\partial \vec{r_k} \dot \vec{v_k} $
+\form#25:$ dw/dt = \sum_k \frac {\partial W}{\partial \vec{r_k}} \dot \vec{v_k} $
+\form#26:$ \frac{dw}{dt} = \sum_k \frac{\partial W}{\partial \vec{r_k}} \dot \vec{v_k} $
+\form#27:$ \frac{dw}{dt} = \sum_k \frac{\partial W}{\partial \vec{r_k}} \bullet \vec{v_k} $
+\form#28:$ W = \sum_{i<j} w_{ij} / |r_{ij}| (i<j) $
+\form#29:$ w_{ij} = mm2 = \sum_{i<j} m_i m_j /(N (N-1)/2) $
+\form#30:$ m_i m_j < epi mm2 $
+\form#31:$ w_{ij} = 0 $
+\form#32:$ w_{ij} = m_i m_j $
+\form#33:$ m_i m_j < epi \bullet mm2 $
+\form#34:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{(h_{i-k}/h_i)^2 -1} $
+\form#35:$ t_{i-1,k-1} $
+\form#36:$ t_{i,k-1} $
+\form#37:$ h_{i-k/h_i} $
+\form#38:$ T_{i,k} $
+\form#39:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{\frac{h_{i-k}}{h_i}^2 * [1- (T_{i,k-1} - T_{i-1,k-1})/(T_{i,k-1} - T_{i-1,k-2})] -1} $
+\form#40:$ T_{i-1,k-2} $
+\form#41:$ T_{i-1,k-1} $
+\form#42:$ T_{i,k-1} $
+\form#43:$ T_{n,(1..n)} $
+\form#44:$ T_{n-1,(1...n-1)} $
+\form#45:$ T_{n,1} $
+\form#46:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{\( \frac{h_{i-k}}{h_i} \)^2 * \[1- \frac{T_{i,k-1} - T_{i-1,k-1}}{(T_{i,k-1} - T_{i-1,k-2}}\] -1} $
+\form#47:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{\( \frac{h_{i-k}}{h_i} \)^2 * \(1- \frac{T_{i,k-1} - T_{i-1,k-1}}{(T_{i,k-1} - T_{i-1,k-2}}\) -1} $
+\form#48:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{\( \frac{h_{i-k}}{h_i} \)^2 \(1- \frac{T_{i,k-1} - T_{i-1,k-1}}{T_{i,k-1} - T_{i-1,k-2}}\) -1} $
+\form#49:$ T_{i,k} = T_{i,k-1} + \frac{ T_{i,k-1} - T_{i-1,k-1} }{ \[ \frac{ h_{i-k} }{ h_i } \]^2 \[1- \frac{ T_{i,k-1} - T_{i-1,k-1} }{ T_{i,k-1} - T_{i-1,k-2} } \] -1} $
+\form#50:$ T_{i,k} = T_{i,k-1} + \frac{ T_{i,k-1} - T_{i-1,k-1} }{ \left( \frac{ h_{i-k} }{ h_i } \right)^2 \left( 1- \frac{ T_{i,k-1} - T_{i-1,k-1} }{ T_{i,k-1} - T_{i-1,k-2} } \right) -1} $
+\form#51:$ T_n $
+\form#52:$ T_{n,n} $
+\form#53:$ T_{n,n-1} $
+\form#54:$ 2 \frac{T_{n,n} - T_{n,n-1}}{\sqrt{T_{n,n}^2 + T_{n,n-1}^2}} $
+\form#55:$ T_{x,x} $

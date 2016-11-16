@@ -1,0 +1,319 @@
+\hypertarget{namespaceEP}{}\section{EP Namespace Reference}
+\label{namespaceEP}\index{EP@{EP}}
+
+
+For extrapolation related functions.  
+
+
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{namespaceEP_a6197a74bc7ca232ffcc84872d8f4f779}{seq\+\_\+\+Harmonic} (int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t itermax)
+\begin{DoxyCompactList}\small\item\em Generate Harmonic sequence \{h, h/2, h/3, h/4 ...\}. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_afaef3617ed3fb4ad4627c19e955c5457}{seq\+\_\+\+Romberg} (int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t itermax)
+\begin{DoxyCompactList}\small\item\em Generate Romberg (even) sequence \{h, h/2, h/4, h/8 ...\}. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_a1c85d6f300251929ac82736e54760652}{seq\+\_\+\+BS} (int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t itermax)
+\begin{DoxyCompactList}\small\item\em Generate Bulirsch \& Stoer sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_a691e74f494e1137b68389a2bd93f92c0}{seq\+\_\+\+Hairer} (int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t itermax)
+\begin{DoxyCompactList}\small\item\em Generate E. Hairer (4k) sequences \{h/2, h/6, h/10, h/14 ...\}. \end{DoxyCompactList}\item 
+double \hyperlink{namespaceEP_a8f951202841accc906325f37f9e592af}{polynomial\+\_\+recursive\+\_\+formula} (const double ti1k1, const double tik1, const double hr)
+\begin{DoxyCompactList}\small\item\em Polynomial\+\_\+recursion\+\_\+formula. \end{DoxyCompactList}\item 
+double \hyperlink{namespaceEP_afe6d08bb36343e39ebbbd4406dc9989f}{rational\+\_\+recursive\+\_\+formula} (const double ti1k2, const double ti1k1, const double tik1, const double hr)
+\begin{DoxyCompactList}\small\item\em Rational\+\_\+recursion formula. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_ae89d6690a891336eef708e90e575a2be}{polynomial\+\_\+extrapolation} (double $\ast$$\ast$Tn, double $\ast$Tnew, const int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t Tsize, const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Polynomial extrapolation of Tsize number of data together. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_a069470acd4f6c52b2ebb68afcf4528ab}{rational\+\_\+extrapolation} (double $\ast$$\ast$Tn, double $\ast$Tnew, const int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t Tsize, const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Rational extrapolation of Tsize number of data together. \end{DoxyCompactList}\item 
+double \hyperlink{namespaceEP_ab0499a8ae6cab209fc0cca6a47b166f3}{extrapolation\+\_\+error} (double $\ast$$\ast$Tn, const std\+::size\+\_\+t Tsize, const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Error estimation. \end{DoxyCompactList}\item 
+double \hyperlink{namespaceEP_ac820e20bad3526991885e767a4e11097}{H\+\_\+opt\+\_\+factor} (const double err, const double exp, const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Next step optimized factor estimation (based on the extrapolation order n) \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_a92c709f3757c872402d2fcf954c3e2de}{binomial\+\_\+recursive\+\_\+generator} (int $\ast$bn, const int $\ast$bp, const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Binomial coefficients generator. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_ad1bbde38ef63ce2a0672843d598770b8}{Hermite\+\_\+interpolation\+\_\+coefficients} (double $\ast$$\ast$coff, const double $\ast$x, double $\ast$$\ast$f, double $\ast$$\ast$$\ast$df, const int ndata, const int npoints, const int $\ast$nlev)
+\begin{DoxyCompactList}\small\item\em Hermite interpolation coefficients. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_a10270a1ba230322545fff5bc06d94659}{Hermite\+\_\+interpolation\+\_\+polynomial} (double xn, double $\ast$fxn, double $\ast$$\ast$coff, const double $\ast$x, const int ndata, const int npoints, const int $\ast$nlev)
+\begin{DoxyCompactList}\small\item\em Hermite interpolation polynomial. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+For extrapolation related functions. 
+
+\subsection{Function Documentation}
+\hypertarget{namespaceEP_a92c709f3757c872402d2fcf954c3e2de}{}\label{namespaceEP_a92c709f3757c872402d2fcf954c3e2de} 
+\index{EP@{EP}!binomial\+\_\+recursive\+\_\+generator@{binomial\+\_\+recursive\+\_\+generator}}
+\index{binomial\+\_\+recursive\+\_\+generator@{binomial\+\_\+recursive\+\_\+generator}!EP@{EP}}
+\subsubsection{\texorpdfstring{binomial\+\_\+recursive\+\_\+generator()}{binomial\_recursive\_generator()}}
+{\footnotesize\ttfamily void E\+P\+::binomial\+\_\+recursive\+\_\+generator (\begin{DoxyParamCaption}\item[{int $\ast$}]{bn,  }\item[{const int $\ast$}]{bp,  }\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})}
+
+
+
+Binomial coefficients generator. 
+
+Generate the next binomial sequence (n 1\+:n) based on (n-\/1 1\+:n-\/1) 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em bp} & n-\/1 sequence array (size of n-\/1) \\
+\hline
+\mbox{\tt in}  & {\em bn} & new sequence array (size of n) \\
+\hline
+\mbox{\tt in}  & {\em n} & new sequence index \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceEP_ab0499a8ae6cab209fc0cca6a47b166f3}{}\label{namespaceEP_ab0499a8ae6cab209fc0cca6a47b166f3} 
+\index{EP@{EP}!extrapolation\+\_\+error@{extrapolation\+\_\+error}}
+\index{extrapolation\+\_\+error@{extrapolation\+\_\+error}!EP@{EP}}
+\subsubsection{\texorpdfstring{extrapolation\+\_\+error()}{extrapolation\_error()}}
+{\footnotesize\ttfamily double E\+P\+::extrapolation\+\_\+error (\begin{DoxyParamCaption}\item[{double $\ast$$\ast$}]{Tn,  }\item[{const std\+::size\+\_\+t}]{Tsize,  }\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})}
+
+
+
+Error estimation. 
+
+Error calculation based on $ T_{n,n} $ and $ T_{n,n-1} $ Calculate the value of $ 2 \frac{T_{n,n} - T_{n,n-1}}{\sqrt{T_{n,n}^2 + T_{n,n-1}^2}} $ via looping all Tsize data and select the maximum value as error 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em Tn} & $ T_{n,(1..n)} $ array (two dimensional array with size \mbox{[}n\mbox{]}\mbox{[}Tsize\mbox{]}, where first \mbox{[}\mbox{]} indicate the extrapolation order and second \mbox{[}\mbox{]} indicate individual data \\
+\hline
+\mbox{\tt in}  & {\em Tsize} & data array size \\
+\hline
+\mbox{\tt in}  & {\em n} & iteration step index (count from 0) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+maximum error 
+\end{DoxyReturn}
+\hypertarget{namespaceEP_ac820e20bad3526991885e767a4e11097}{}\label{namespaceEP_ac820e20bad3526991885e767a4e11097} 
+\index{EP@{EP}!H\+\_\+opt\+\_\+factor@{H\+\_\+opt\+\_\+factor}}
+\index{H\+\_\+opt\+\_\+factor@{H\+\_\+opt\+\_\+factor}!EP@{EP}}
+\subsubsection{\texorpdfstring{H\+\_\+opt\+\_\+factor()}{H\_opt\_factor()}}
+{\footnotesize\ttfamily double E\+P\+::\+H\+\_\+opt\+\_\+factor (\begin{DoxyParamCaption}\item[{const double}]{err,  }\item[{const double}]{exp,  }\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})}
+
+
+
+Next step optimized factor estimation (based on the extrapolation order n) 
+
+Calculate the modification factor for next extrapolation intergration step (assume next maximum extrapolation order is n). ~\newline
+(new step size) Hnew $\sim$ (old step size) H $\ast$ ({\itshape exp/{\itshape err})$\ast$$\ast$1/}(2n+3) 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em err} & error of current extrapolation from $ T_{n,n-1} $ to $ T_{n,n} $ \\
+\hline
+\mbox{\tt in}  & {\em exp} & expected error \\
+\hline
+\mbox{\tt in}  & {\em n} & current extrapolation order (count from 0) return\+: optimized factor (H = H$\ast$factor) \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceEP_ad1bbde38ef63ce2a0672843d598770b8}{}\label{namespaceEP_ad1bbde38ef63ce2a0672843d598770b8} 
+\index{EP@{EP}!Hermite\+\_\+interpolation\+\_\+coefficients@{Hermite\+\_\+interpolation\+\_\+coefficients}}
+\index{Hermite\+\_\+interpolation\+\_\+coefficients@{Hermite\+\_\+interpolation\+\_\+coefficients}!EP@{EP}}
+\subsubsection{\texorpdfstring{Hermite\+\_\+interpolation\+\_\+coefficients()}{Hermite\_interpolation\_coefficients()}}
+{\footnotesize\ttfamily void E\+P\+::\+Hermite\+\_\+interpolation\+\_\+coefficients (\begin{DoxyParamCaption}\item[{double $\ast$$\ast$}]{coff,  }\item[{const double $\ast$}]{x,  }\item[{double $\ast$$\ast$}]{f,  }\item[{double $\ast$$\ast$$\ast$}]{df,  }\item[{const int}]{ndata,  }\item[{const int}]{npoints,  }\item[{const int $\ast$}]{nlev }\end{DoxyParamCaption})}
+
+
+
+Hermite interpolation coefficients. 
+
+Generate Hermite interpolation polynomial coefficients (see example in \href{https://en.wikipedia.org/wiki/Hermite_interpolation}{\tt https\+://en.\+wikipedia.\+org/wiki/\+Hermite\+\_\+interpolation}) 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em coff} & two dimensional array storing the interpolation coefficients \mbox{[}ndata\mbox{]}\mbox{[} (nlev\+\_\+j)\mbox{]} \\
+\hline
+\mbox{\tt in}  & {\em x} & one dimensional array that store the positions \mbox{[}npoints\mbox{]} \\
+\hline
+\mbox{\tt in}  & {\em f} & two dimensional array that store the f(x) \mbox{[}npoints\mbox{]}\mbox{[}ndata\mbox{]} \\
+\hline
+\mbox{\tt in}  & {\em df} & three dimensional array that store the f$^\wedge$(k)(x) \mbox{[}k\mbox{]}\mbox{[}npoints\mbox{]}\mbox{[}ndata\mbox{]} \\
+\hline
+\mbox{\tt in}  & {\em ndata} & number of different type of data for interpolation \\
+\hline
+\mbox{\tt in}  & {\em npoints} & number of position points. \\
+\hline
+\mbox{\tt in}  & {\em nlev} & one dimensional array that store the maximum difference level for each position (f$^\wedge$(0)(x) count as 1) \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceEP_a10270a1ba230322545fff5bc06d94659}{}\label{namespaceEP_a10270a1ba230322545fff5bc06d94659} 
+\index{EP@{EP}!Hermite\+\_\+interpolation\+\_\+polynomial@{Hermite\+\_\+interpolation\+\_\+polynomial}}
+\index{Hermite\+\_\+interpolation\+\_\+polynomial@{Hermite\+\_\+interpolation\+\_\+polynomial}!EP@{EP}}
+\subsubsection{\texorpdfstring{Hermite\+\_\+interpolation\+\_\+polynomial()}{Hermite\_interpolation\_polynomial()}}
+{\footnotesize\ttfamily void E\+P\+::\+Hermite\+\_\+interpolation\+\_\+polynomial (\begin{DoxyParamCaption}\item[{double}]{xn,  }\item[{double $\ast$}]{fxn,  }\item[{double $\ast$$\ast$}]{coff,  }\item[{const double $\ast$}]{x,  }\item[{const int}]{ndata,  }\item[{const int}]{npoints,  }\item[{const int $\ast$}]{nlev }\end{DoxyParamCaption})}
+
+
+
+Hermite interpolation polynomial. 
+
+Return the interpolation result based on polynomial coefficients generated from \hyperlink{namespaceEP_ad1bbde38ef63ce2a0672843d598770b8}{E\+P\+::\+Hermite\+\_\+interpolation\+\_\+coefficients()} 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em xn} & position want to get interpolation value \\
+\hline
+\mbox{\tt out}  & {\em fxn} & one dimensional array that store the interpolation results \mbox{[}ndata\mbox{]} \\
+\hline
+\mbox{\tt in}  & {\em coff} & two dimensional array storing the interpolation coefficients \mbox{[}ndata\mbox{]}\mbox{[} (nlev\+\_\+j)\mbox{]} \\
+\hline
+\mbox{\tt in}  & {\em x} & one dimensional array that store the known positions \mbox{[}npoints\mbox{]}. \\
+\hline
+\mbox{\tt in}  & {\em ndata} & number of different type of data for interpolation \\
+\hline
+\mbox{\tt in}  & {\em npoints} & number of position points. \\
+\hline
+\mbox{\tt in}  & {\em nlev} & one dimensional array that store the maximum difference level for each position (f$^\wedge$(0)(x) count as 1) \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceEP_ae89d6690a891336eef708e90e575a2be}{}\label{namespaceEP_ae89d6690a891336eef708e90e575a2be} 
+\index{EP@{EP}!polynomial\+\_\+extrapolation@{polynomial\+\_\+extrapolation}}
+\index{polynomial\+\_\+extrapolation@{polynomial\+\_\+extrapolation}!EP@{EP}}
+\subsubsection{\texorpdfstring{polynomial\+\_\+extrapolation()}{polynomial\_extrapolation()}}
+{\footnotesize\ttfamily void E\+P\+::polynomial\+\_\+extrapolation (\begin{DoxyParamCaption}\item[{double $\ast$$\ast$}]{Tn,  }\item[{double $\ast$}]{Tnew,  }\item[{const int}]{step\mbox{[}$\,$\mbox{]},  }\item[{const std\+::size\+\_\+t}]{Tsize,  }\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})}
+
+
+
+Polynomial extrapolation of Tsize number of data together. 
+
+Iterate $ T_{n,(1..n)} $ based on $ T_{n-1,(1...n-1)} $ and $ T_{n,1} $ Notice the Tsize number of data in {\itshape Tn} and {\itshape Tnew} are independent data that need to be extrapolated individually (each data is an individual $ T_{x,x} $) 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em Tn} & two dimensional array of $ T_{n-1,(1...n-1)} $ (size of \mbox{[}n+1\mbox{]}\mbox{[}Tsize\mbox{]}; first \mbox{[}\mbox{]} indicate the extrapolation order (1...n), second \mbox{[}\mbox{]} indicate the different data), will be updated to $ T_{n,(1..n)} $ \\
+\hline
+\mbox{\tt in,out}  & {\em Tnew} & one dimensional array of $ T_{n,1} $ (size of Tsize with different data), will be updated to $ T_n $ \\
+\hline
+\mbox{\tt in}  & {\em step} & step sequence (from sequence generators) \\
+\hline
+\mbox{\tt in}  & {\em Tsize} & data array size \\
+\hline
+\mbox{\tt in}  & {\em n} & the new iteration step index in {\itshape step} (count from 0) \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceEP_a8f951202841accc906325f37f9e592af}{}\label{namespaceEP_a8f951202841accc906325f37f9e592af} 
+\index{EP@{EP}!polynomial\+\_\+recursive\+\_\+formula@{polynomial\+\_\+recursive\+\_\+formula}}
+\index{polynomial\+\_\+recursive\+\_\+formula@{polynomial\+\_\+recursive\+\_\+formula}!EP@{EP}}
+\subsubsection{\texorpdfstring{polynomial\+\_\+recursive\+\_\+formula()}{polynomial\_recursive\_formula()}}
+{\footnotesize\ttfamily double E\+P\+::polynomial\+\_\+recursive\+\_\+formula (\begin{DoxyParamCaption}\item[{const double}]{ti1k1,  }\item[{const double}]{tik1,  }\item[{const double}]{hr }\end{DoxyParamCaption})}
+
+
+
+Polynomial\+\_\+recursion\+\_\+formula. 
+
+Using Polynomial function\+: $ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{(h_{i-k}/h_i)^2 -1} $ ~\newline
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em ti1k1} & $ t_{i-1,k-1} $ \\
+\hline
+\mbox{\tt in}  & {\em tik1} & $ t_{i,k-1} $ \\
+\hline
+\mbox{\tt in}  & {\em hr} & $ h_{i-k/h_i} $ \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+$ T_{i,k} $ 
+\end{DoxyReturn}
+\hypertarget{namespaceEP_a069470acd4f6c52b2ebb68afcf4528ab}{}\label{namespaceEP_a069470acd4f6c52b2ebb68afcf4528ab} 
+\index{EP@{EP}!rational\+\_\+extrapolation@{rational\+\_\+extrapolation}}
+\index{rational\+\_\+extrapolation@{rational\+\_\+extrapolation}!EP@{EP}}
+\subsubsection{\texorpdfstring{rational\+\_\+extrapolation()}{rational\_extrapolation()}}
+{\footnotesize\ttfamily void E\+P\+::rational\+\_\+extrapolation (\begin{DoxyParamCaption}\item[{double $\ast$$\ast$}]{Tn,  }\item[{double $\ast$}]{Tnew,  }\item[{const int}]{step\mbox{[}$\,$\mbox{]},  }\item[{const std\+::size\+\_\+t}]{Tsize,  }\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})}
+
+
+
+Rational extrapolation of Tsize number of data together. 
+
+Iterate $ T_{n,(1..n)} $ based on $ T_{n-1,(1...n-1)} $ and $ T_{n,1} $ ~\newline
+Notice the Tsize number of data in {\itshape Tn} and {\itshape Tnew} are independent data that need to be extrapolated individually (each data is an individual $ T_{x,x} $) 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em Tn} & two dimensial array of $ T_{n-1,(1...n-1)} $ (size of \mbox{[}n+1\mbox{]}\mbox{[}Tsize\mbox{]}; first \mbox{[}\mbox{]} indicate the extrapolation order (1...n), second \mbox{[}\mbox{]} indicate the different data) will be updated to $ T_{n,(1..n)} $ \\
+\hline
+\mbox{\tt in,out}  & {\em Tnew} & one dimensional array of $ T_{n,1} $ (size of Tsize with different data), will be updated to $ T_n $ \\
+\hline
+\mbox{\tt in}  & {\em step} & step sequence (from sequence generators) \\
+\hline
+\mbox{\tt in}  & {\em Tsize} & data array size \\
+\hline
+\mbox{\tt in}  & {\em n} & the new iteration step index in {\itshape step} (count from 0) \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceEP_afe6d08bb36343e39ebbbd4406dc9989f}{}\label{namespaceEP_afe6d08bb36343e39ebbbd4406dc9989f} 
+\index{EP@{EP}!rational\+\_\+recursive\+\_\+formula@{rational\+\_\+recursive\+\_\+formula}}
+\index{rational\+\_\+recursive\+\_\+formula@{rational\+\_\+recursive\+\_\+formula}!EP@{EP}}
+\subsubsection{\texorpdfstring{rational\+\_\+recursive\+\_\+formula()}{rational\_recursive\_formula()}}
+{\footnotesize\ttfamily double E\+P\+::rational\+\_\+recursive\+\_\+formula (\begin{DoxyParamCaption}\item[{const double}]{ti1k2,  }\item[{const double}]{ti1k1,  }\item[{const double}]{tik1,  }\item[{const double}]{hr }\end{DoxyParamCaption})}
+
+
+
+Rational\+\_\+recursion formula. 
+
+Using rational function\+: $ T_{i,k} = T_{i,k-1} + \frac{ T_{i,k-1} - T_{i-1,k-1} }{ \left( \frac{ h_{i-k} }{ h_i } \right)^2 \left( 1- \frac{ T_{i,k-1} - T_{i-1,k-1} }{ T_{i,k-1} - T_{i-1,k-2} } \right) -1} $ 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em ti1k2} & $ T_{i-1,k-2} $ \\
+\hline
+\mbox{\tt in}  & {\em ti1k1} & $ T_{i-1,k-1} $ \\
+\hline
+\mbox{\tt in}  & {\em tik1} & $ T_{i,k-1} $ \\
+\hline
+\mbox{\tt in}  & {\em hr} & $ h_{i-k/h_i} $ \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+$ T_{i,k} $ 
+\end{DoxyReturn}
+\hypertarget{namespaceEP_a1c85d6f300251929ac82736e54760652}{}\label{namespaceEP_a1c85d6f300251929ac82736e54760652} 
+\index{EP@{EP}!seq\+\_\+\+BS@{seq\+\_\+\+BS}}
+\index{seq\+\_\+\+BS@{seq\+\_\+\+BS}!EP@{EP}}
+\subsubsection{\texorpdfstring{seq\+\_\+\+B\+S()}{seq\_BS()}}
+{\footnotesize\ttfamily void E\+P\+::seq\+\_\+\+BS (\begin{DoxyParamCaption}\item[{int}]{step\mbox{[}$\,$\mbox{]},  }\item[{const std\+::size\+\_\+t}]{itermax }\end{DoxyParamCaption})}
+
+
+
+Generate Bulirsch \& Stoer sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em step} & sequence array for storing the division steps \{1, 2, 3, 4, 6 ...\} \\
+\hline
+\mbox{\tt in}  & {\em itermax} & array size \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceEP_a691e74f494e1137b68389a2bd93f92c0}{}\label{namespaceEP_a691e74f494e1137b68389a2bd93f92c0} 
+\index{EP@{EP}!seq\+\_\+\+Hairer@{seq\+\_\+\+Hairer}}
+\index{seq\+\_\+\+Hairer@{seq\+\_\+\+Hairer}!EP@{EP}}
+\subsubsection{\texorpdfstring{seq\+\_\+\+Hairer()}{seq\_Hairer()}}
+{\footnotesize\ttfamily void E\+P\+::seq\+\_\+\+Hairer (\begin{DoxyParamCaption}\item[{int}]{step\mbox{[}$\,$\mbox{]},  }\item[{const std\+::size\+\_\+t}]{itermax }\end{DoxyParamCaption})}
+
+
+
+Generate E. Hairer (4k) sequences \{h/2, h/6, h/10, h/14 ...\}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em step} & sequence array for storing the division steps \{2, 6, 10, 14 ...\} \\
+\hline
+\mbox{\tt in}  & {\em itermax} & array size \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceEP_a6197a74bc7ca232ffcc84872d8f4f779}{}\label{namespaceEP_a6197a74bc7ca232ffcc84872d8f4f779} 
+\index{EP@{EP}!seq\+\_\+\+Harmonic@{seq\+\_\+\+Harmonic}}
+\index{seq\+\_\+\+Harmonic@{seq\+\_\+\+Harmonic}!EP@{EP}}
+\subsubsection{\texorpdfstring{seq\+\_\+\+Harmonic()}{seq\_Harmonic()}}
+{\footnotesize\ttfamily void E\+P\+::seq\+\_\+\+Harmonic (\begin{DoxyParamCaption}\item[{int}]{step\mbox{[}$\,$\mbox{]},  }\item[{const std\+::size\+\_\+t}]{itermax }\end{DoxyParamCaption})}
+
+
+
+Generate Harmonic sequence \{h, h/2, h/3, h/4 ...\}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em step} & sequence array for storing the division steps \{1, 2, 3, 4 ...\} \\
+\hline
+\mbox{\tt in}  & {\em itermax} & array size \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceEP_afaef3617ed3fb4ad4627c19e955c5457}{}\label{namespaceEP_afaef3617ed3fb4ad4627c19e955c5457} 
+\index{EP@{EP}!seq\+\_\+\+Romberg@{seq\+\_\+\+Romberg}}
+\index{seq\+\_\+\+Romberg@{seq\+\_\+\+Romberg}!EP@{EP}}
+\subsubsection{\texorpdfstring{seq\+\_\+\+Romberg()}{seq\_Romberg()}}
+{\footnotesize\ttfamily void E\+P\+::seq\+\_\+\+Romberg (\begin{DoxyParamCaption}\item[{int}]{step\mbox{[}$\,$\mbox{]},  }\item[{const std\+::size\+\_\+t}]{itermax }\end{DoxyParamCaption})}
+
+
+
+Generate Romberg (even) sequence \{h, h/2, h/4, h/8 ...\}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em step} & sequence array for storing the division steps \{1, 2, 4, 8 ...\} \\
+\hline
+\mbox{\tt in}  & {\em itermax} & array size \\
+\hline
+\end{DoxyParams}

@@ -1,0 +1,40 @@
+\hypertarget{extrapolation_8h}{}\section{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/extrapolation.h File Reference}
+\label{extrapolation_8h}\index{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/extrapolation.\+h@{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/extrapolation.\+h}}
+{\ttfamily \#include $<$cstdlib$>$}\newline
+{\ttfamily \#include $<$iostream$>$}\newline
+{\ttfamily \#include $<$cmath$>$}\newline
+{\ttfamily \#include $<$cstring$>$}\newline
+\subsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+ \hyperlink{namespaceEP}{EP}
+\begin{DoxyCompactList}\small\item\em For extrapolation related functions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{namespaceEP_a6197a74bc7ca232ffcc84872d8f4f779}{E\+P\+::seq\+\_\+\+Harmonic} (int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t itermax)
+\begin{DoxyCompactList}\small\item\em Generate Harmonic sequence \{h, h/2, h/3, h/4 ...\}. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_afaef3617ed3fb4ad4627c19e955c5457}{E\+P\+::seq\+\_\+\+Romberg} (int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t itermax)
+\begin{DoxyCompactList}\small\item\em Generate Romberg (even) sequence \{h, h/2, h/4, h/8 ...\}. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_a1c85d6f300251929ac82736e54760652}{E\+P\+::seq\+\_\+\+BS} (int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t itermax)
+\begin{DoxyCompactList}\small\item\em Generate Bulirsch \& Stoer sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_a691e74f494e1137b68389a2bd93f92c0}{E\+P\+::seq\+\_\+\+Hairer} (int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t itermax)
+\begin{DoxyCompactList}\small\item\em Generate E. Hairer (4k) sequences \{h/2, h/6, h/10, h/14 ...\}. \end{DoxyCompactList}\item 
+double \hyperlink{namespaceEP_a8f951202841accc906325f37f9e592af}{E\+P\+::polynomial\+\_\+recursive\+\_\+formula} (const double ti1k1, const double tik1, const double hr)
+\begin{DoxyCompactList}\small\item\em Polynomial\+\_\+recursion\+\_\+formula. \end{DoxyCompactList}\item 
+double \hyperlink{namespaceEP_afe6d08bb36343e39ebbbd4406dc9989f}{E\+P\+::rational\+\_\+recursive\+\_\+formula} (const double ti1k2, const double ti1k1, const double tik1, const double hr)
+\begin{DoxyCompactList}\small\item\em Rational\+\_\+recursion formula. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_ae89d6690a891336eef708e90e575a2be}{E\+P\+::polynomial\+\_\+extrapolation} (double $\ast$$\ast$Tn, double $\ast$Tnew, const int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t Tsize, const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Polynomial extrapolation of Tsize number of data together. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_a069470acd4f6c52b2ebb68afcf4528ab}{E\+P\+::rational\+\_\+extrapolation} (double $\ast$$\ast$Tn, double $\ast$Tnew, const int step\mbox{[}$\,$\mbox{]}, const std\+::size\+\_\+t Tsize, const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Rational extrapolation of Tsize number of data together. \end{DoxyCompactList}\item 
+double \hyperlink{namespaceEP_ab0499a8ae6cab209fc0cca6a47b166f3}{E\+P\+::extrapolation\+\_\+error} (double $\ast$$\ast$Tn, const std\+::size\+\_\+t Tsize, const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Error estimation. \end{DoxyCompactList}\item 
+double \hyperlink{namespaceEP_ac820e20bad3526991885e767a4e11097}{E\+P\+::\+H\+\_\+opt\+\_\+factor} (const double err, const double exp, const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Next step optimized factor estimation (based on the extrapolation order n) \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_a92c709f3757c872402d2fcf954c3e2de}{E\+P\+::binomial\+\_\+recursive\+\_\+generator} (int $\ast$bn, const int $\ast$bp, const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Binomial coefficients generator. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_ad1bbde38ef63ce2a0672843d598770b8}{E\+P\+::\+Hermite\+\_\+interpolation\+\_\+coefficients} (double $\ast$$\ast$coff, const double $\ast$x, double $\ast$$\ast$f, double $\ast$$\ast$$\ast$df, const int ndata, const int npoints, const int $\ast$nlev)
+\begin{DoxyCompactList}\small\item\em Hermite interpolation coefficients. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceEP_a10270a1ba230322545fff5bc06d94659}{E\+P\+::\+Hermite\+\_\+interpolation\+\_\+polynomial} (double xn, double $\ast$fxn, double $\ast$$\ast$coff, const double $\ast$x, const int ndata, const int npoints, const int $\ast$nlev)
+\begin{DoxyCompactList}\small\item\em Hermite interpolation polynomial. \end{DoxyCompactList}\end{DoxyCompactItemize}

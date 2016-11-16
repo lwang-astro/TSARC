@@ -1,59 +1,193 @@
-\hypertarget{classchainlist}{
-\section{chainlist$<$ particle $>$ Class Template Reference}
-\label{classchainlist}\index{chainlist@{chainlist}}
-}
+\hypertarget{classchainlist}{}\section{chainlist$<$ particle $>$ Class Template Reference}
+\label{classchainlist}\index{chainlist$<$ particle $>$@{chainlist$<$ particle $>$}}
+
+
+Generalized list to store chain and \hyperlink{classParticle}{Particle} members.  
+
+
+
+
+{\ttfamily \#include $<$A\+R.\+h$>$}
+
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hypertarget{classchainlist_a633cf4dc2e6d45fcc5a7e304a82dfb9d}{
-{\bfseries chainlist} (const std::size\_\-t \&n)}
-\label{classchainlist_a633cf4dc2e6d45fcc5a7e304a82dfb9d}
-
+\hyperlink{classchainlist_a13b0a9849f6b7739838ff2650f87ab77}{chainlist} ()
+\begin{DoxyCompactList}\small\item\em initialization \end{DoxyCompactList}\item 
+\hyperlink{classchainlist_a83cda067438cef02618f7cb042d8273b}{chainlist} (const std\+::size\+\_\+t n)
 \item 
-\hypertarget{classchainlist_aa09d31dba5afa80c06b63292df2585f0}{
-void {\bfseries init} (const std::size\_\-t \&n)}
-\label{classchainlist_aa09d31dba5afa80c06b63292df2585f0}
-
+void \hyperlink{classchainlist_a5890d32b99e977a9b64e10a1df140353}{init} (const std\+::size\+\_\+t n)
 \item 
-\hypertarget{classchainlist_ab3e3716be84c058ad25637602f1712e0}{
-void {\bfseries clear} ()}
-\label{classchainlist_ab3e3716be84c058ad25637602f1712e0}
-
+void \hyperlink{classchainlist_ab3e3716be84c058ad25637602f1712e0}{clear} ()
 \item 
-\hypertarget{classchainlist_a60969fad2dc9f9546eb4167e1cc17511}{
-std::size\_\-t {\bfseries getN} () const }
-\label{classchainlist_a60969fad2dc9f9546eb4167e1cc17511}
-
+\hyperlink{classchainlist_a94280239766a3dcc0648813fbe14dcc1}{$\sim$chainlist} ()
 \item 
-\hypertarget{classchainlist_a0d56fff164cdb326e41e5f4bfd69cfa7}{
-void {\bfseries add} (particle \&a)}
-\label{classchainlist_a0d56fff164cdb326e41e5f4bfd69cfa7}
-
-\item 
-\hypertarget{classchainlist_a0f1c047208cfcb84350c638289e37f66}{
-void {\bfseries add} (const std::size\_\-t \&n, particle a\mbox{[}$\,$\mbox{]})}
-\label{classchainlist_a0f1c047208cfcb84350c638289e37f66}
-
-\item 
-\hypertarget{classchainlist_a7ef6693832504d519150bf5afff71310}{
-void {\bfseries add} (\hyperlink{classchain}{chain}$<$ particle $>$ \&a)}
-\label{classchainlist_a7ef6693832504d519150bf5afff71310}
-
-\item 
-\hypertarget{classchainlist_aa7cf9be176ccb2534a936be5e7305650}{
-void {\bfseries remove} (std::size\_\-t i, bool option=true)}
-\label{classchainlist_aa7cf9be176ccb2534a936be5e7305650}
-
-\item 
-\hypertarget{classchainlist_a2d266cf975e973d8251c531529c0bca0}{
-particle \& {\bfseries operator\mbox{[}$\,$\mbox{]}} (std::size\_\-t i)}
-\label{classchainlist_a2d266cf975e973d8251c531529c0bca0}
-
+std\+::size\+\_\+t \hyperlink{classchainlist_a828ce844e9b009c9da96a6ea613ebf73}{getN} () const
+\begin{DoxyCompactList}\small\item\em get particle number \end{DoxyCompactList}\item 
+std\+::size\+\_\+t \hyperlink{classchainlist_aeba7adee0d0820d63fd0bb933f4abd57}{get\+Nchain} () const
+\begin{DoxyCompactList}\small\item\em get chain number \end{DoxyCompactList}\item 
+void \hyperlink{classchainlist_a0d56fff164cdb326e41e5f4bfd69cfa7}{add} (particle \&a)
+\begin{DoxyCompactList}\small\item\em add new particle \end{DoxyCompactList}\item 
+void \hyperlink{classchainlist_a7099a6d3ef768761fdcadc796a1aee62}{add} (const std\+::size\+\_\+t n, particle a\mbox{[}$\,$\mbox{]})
+\begin{DoxyCompactList}\small\item\em add particle list \end{DoxyCompactList}\item 
+void \hyperlink{classchainlist_a7ef6693832504d519150bf5afff71310}{add} (\hyperlink{classchain}{chain}$<$ particle $>$ \&a)
+\begin{DoxyCompactList}\small\item\em add new chain particle \end{DoxyCompactList}\item 
+void \hyperlink{classchainlist_a528ffec696df61f2895acf7abbf11cbc}{remove} (const std\+::size\+\_\+t i, bool option=true)
+\begin{DoxyCompactList}\small\item\em remove particle argument\+: option\+: true\+: shift last particle to current position (defaulted); false\+: shift all right particle to left by one i\+: particle index \end{DoxyCompactList}\item 
+particle \& \hyperlink{classchainlist_aa455ef096d73bb70d9b6e2191e2062ce}{operator\mbox{[}$\,$\mbox{]}} (const std\+::size\+\_\+t i)
+\begin{DoxyCompactList}\small\item\em return the particle reference or center-\/of-\/mass particle reference if it is a chain \end{DoxyCompactList}\item 
+bool \hyperlink{classchainlist_a49171f851e7b8e44bcc5022e1e07e433}{is\+Chain} (const std\+::size\+\_\+t i) const
+\begin{DoxyCompactList}\small\item\em ischain function\+: check whether a member is chain argument\+: i\+: index return\+: true\+: chain; false\+: particle \end{DoxyCompactList}\item 
+\hyperlink{classchain}{chain}$<$ particle $>$ $\ast$ \hyperlink{classchainlist_a7c4566c5074a6c1f34b2a5ca3166ce99}{get\+Sub} (const std\+::size\+\_\+t i) const
 \end{DoxyCompactItemize}
-\subsubsection*{template$<$class particle$>$ class chainlist$<$ particle $>$}
+
+
+\subsection{Detailed Description}
+\subsubsection*{template$<$class particle$>$\newline
+class chainlist$<$ particle $>$}
+
+Generalized list to store chain and \hyperlink{classParticle}{Particle} members. 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classchainlist_a13b0a9849f6b7739838ff2650f87ab77}{}\label{classchainlist_a13b0a9849f6b7739838ff2650f87ab77} 
+\index{chainlist@{chainlist}!chainlist@{chainlist}}
+\index{chainlist@{chainlist}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{chainlist()}{chainlist()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+\hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::\hyperlink{classchainlist}{chainlist} (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
-The documentation for this class was generated from the following file:\begin{DoxyCompactItemize}
+initialization 
+
+\hypertarget{classchainlist_a83cda067438cef02618f7cb042d8273b}{}\label{classchainlist_a83cda067438cef02618f7cb042d8273b} 
+\index{chainlist@{chainlist}!chainlist@{chainlist}}
+\index{chainlist@{chainlist}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{chainlist()}{chainlist()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+\hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::\hyperlink{classchainlist}{chainlist} (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\hypertarget{classchainlist_a94280239766a3dcc0648813fbe14dcc1}{}\label{classchainlist_a94280239766a3dcc0648813fbe14dcc1} 
+\index{chainlist@{chainlist}!````~chainlist@{$\sim$chainlist}}
+\index{````~chainlist@{$\sim$chainlist}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{$\sim$chainlist()}{~chainlist()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+\hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::$\sim$\hyperlink{classchainlist}{chainlist} (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classchainlist_a0d56fff164cdb326e41e5f4bfd69cfa7}{}\label{classchainlist_a0d56fff164cdb326e41e5f4bfd69cfa7} 
+\index{chainlist@{chainlist}!add@{add}}
+\index{add@{add}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{add()}{add()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::add (\begin{DoxyParamCaption}\item[{particle \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+add new particle 
+
+\hypertarget{classchainlist_a7099a6d3ef768761fdcadc796a1aee62}{}\label{classchainlist_a7099a6d3ef768761fdcadc796a1aee62} 
+\index{chainlist@{chainlist}!add@{add}}
+\index{add@{add}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{add()}{add()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::add (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n,  }\item[{particle}]{a\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+add particle list 
+
+\hypertarget{classchainlist_a7ef6693832504d519150bf5afff71310}{}\label{classchainlist_a7ef6693832504d519150bf5afff71310} 
+\index{chainlist@{chainlist}!add@{add}}
+\index{add@{add}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{add()}{add()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::add (\begin{DoxyParamCaption}\item[{\hyperlink{classchain}{chain}$<$ particle $>$ \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+add new chain particle 
+
+\hypertarget{classchainlist_ab3e3716be84c058ad25637602f1712e0}{}\label{classchainlist_ab3e3716be84c058ad25637602f1712e0} 
+\index{chainlist@{chainlist}!clear@{clear}}
+\index{clear@{clear}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::clear (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\hypertarget{classchainlist_a828ce844e9b009c9da96a6ea613ebf73}{}\label{classchainlist_a828ce844e9b009c9da96a6ea613ebf73} 
+\index{chainlist@{chainlist}!getN@{getN}}
+\index{getN@{getN}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{get\+N()}{getN()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+std\+::size\+\_\+t \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::getN (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+get particle number 
+
+\hypertarget{classchainlist_aeba7adee0d0820d63fd0bb933f4abd57}{}\label{classchainlist_aeba7adee0d0820d63fd0bb933f4abd57} 
+\index{chainlist@{chainlist}!get\+Nchain@{get\+Nchain}}
+\index{get\+Nchain@{get\+Nchain}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{get\+Nchain()}{getNchain()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+std\+::size\+\_\+t \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::get\+Nchain (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+get chain number 
+
+\hypertarget{classchainlist_a7c4566c5074a6c1f34b2a5ca3166ce99}{}\label{classchainlist_a7c4566c5074a6c1f34b2a5ca3166ce99} 
+\index{chainlist@{chainlist}!get\+Sub@{get\+Sub}}
+\index{get\+Sub@{get\+Sub}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{get\+Sub()}{getSub()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+\hyperlink{classchain}{chain}$<$particle$>$$\ast$ \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::get\+Sub (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\hypertarget{classchainlist_a5890d32b99e977a9b64e10a1df140353}{}\label{classchainlist_a5890d32b99e977a9b64e10a1df140353} 
+\index{chainlist@{chainlist}!init@{init}}
+\index{init@{init}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{init()}{init()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::init (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+\hypertarget{classchainlist_a49171f851e7b8e44bcc5022e1e07e433}{}\label{classchainlist_a49171f851e7b8e44bcc5022e1e07e433} 
+\index{chainlist@{chainlist}!is\+Chain@{is\+Chain}}
+\index{is\+Chain@{is\+Chain}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{is\+Chain()}{isChain()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+bool \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::is\+Chain (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+ischain function\+: check whether a member is chain argument\+: i\+: index return\+: true\+: chain; false\+: particle 
+
+\hypertarget{classchainlist_aa455ef096d73bb70d9b6e2191e2062ce}{}\label{classchainlist_aa455ef096d73bb70d9b6e2191e2062ce} 
+\index{chainlist@{chainlist}!operator\mbox{[}\mbox{]}@{operator[]}}
+\index{operator\mbox{[}\mbox{]}@{operator[]}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{operator[]()}{operator[]()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+particle\& \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::operator\mbox{[}$\,$\mbox{]} (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+return the particle reference or center-\/of-\/mass particle reference if it is a chain 
+
+\hypertarget{classchainlist_a528ffec696df61f2895acf7abbf11cbc}{}\label{classchainlist_a528ffec696df61f2895acf7abbf11cbc} 
+\index{chainlist@{chainlist}!remove@{remove}}
+\index{remove@{remove}!chainlist@{chainlist}}
+\subsubsection{\texorpdfstring{remove()}{remove()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+void \hyperlink{classchainlist}{chainlist}$<$ particle $>$\+::remove (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i,  }\item[{bool}]{option = {\ttfamily true} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+remove particle argument\+: option\+: true\+: shift last particle to current position (defaulted); false\+: shift all right particle to left by one i\+: particle index 
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 
-/home/lwang/code/ARC/include/AR.h\end{DoxyCompactItemize}
+C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\hyperlink{AR_8h}{A\+R.\+h}\end{DoxyCompactItemize}

@@ -1,0 +1,154 @@
+\hypertarget{namespaceARC}{}\section{A\+RC Namespace Reference}
+\label{namespaceARC}\index{A\+RC@{A\+RC}}
+
+
+Algorithmic regularization chain (\hyperlink{namespaceARC}{A\+RC}) namespace.  
+
+
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classARC_1_1chain}{chain}
+\begin{DoxyCompactList}\small\item\em \hyperlink{namespaceARC}{A\+RC} class based on template class particle. \end{DoxyCompactList}\item 
+class \hyperlink{classARC_1_1chainlist}{chainlist}
+\begin{DoxyCompactList}\small\item\em Generalized list to store chain and particle members. \end{DoxyCompactList}\item 
+class \hyperlink{classARC_1_1chainpars}{chainpars}
+\begin{DoxyCompactList}\small\item\em The chain parameter controller class. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef void($\ast$ \hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{pair\+\_\+\+AW}) (double $\ast$, double \&, double $\ast$, double \&, const double $\ast$, const double \&, const double \&, const double \&, const double \&)
+\begin{DoxyCompactList}\small\item\em pair AW\+: acceleration (potential) \& d\+W/dr (W) function function pointer from j to i. \end{DoxyCompactList}\item 
+typedef void($\ast$ \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap}) (double $\ast$, double \&, const double $\ast$, const double $\ast$, const double \&, const double \&)
+\begin{DoxyCompactList}\small\item\em pair Ap\+: acceleration calculation function pointer from j to i. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{namespaceARC_a3c3f20df43ba5df3e21857643130d784}{Newtonian\+\_\+\+AW} (double A\mbox{[}3\mbox{]}, double \&P, double dW\mbox{[}3\mbox{]}, double \&W, const double xjk\mbox{[}3\mbox{]}, const double \&mj, const double \&mk, const double \&mm2, const double \&epi)
+\begin{DoxyCompactList}\small\item\em Newtonian (\hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) acceleration and d\+W/dr from k to j. \end{DoxyCompactList}\item 
+void \hyperlink{namespaceARC_a6b8ee871e0832b6b59968ea9069877e0}{Newtonian\+\_\+\+Ap} (double A\mbox{[}3\mbox{]}, double \&P, const double xi\mbox{[}3\mbox{]}, const double xp\mbox{[}3\mbox{]}, const double \&mi, const double \&mp)
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration (\hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) from p to i. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Algorithmic regularization chain (\hyperlink{namespaceARC}{A\+RC}) namespace. 
+
+All major \hyperlink{namespaceARC}{A\+RC} classes and related acceleration functions (typedef) are defined 
+
+\subsection{Typedef Documentation}
+\hypertarget{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{}\label{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0} 
+\index{A\+RC@{A\+RC}!pair\+\_\+\+Ap@{pair\+\_\+\+Ap}}
+\index{pair\+\_\+\+Ap@{pair\+\_\+\+Ap}!A\+RC@{A\+RC}}
+\subsubsection{\texorpdfstring{pair\+\_\+\+Ap}{pair\_Ap}}
+{\footnotesize\ttfamily typedef void($\ast$ A\+R\+C\+::pair\+\_\+\+Ap) (double $\ast$, double \&, const double $\ast$, const double $\ast$, const double \&, const double \&)}
+
+
+
+pair Ap\+: acceleration calculation function pointer from j to i. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em A} & acceleration vector. \\
+\hline
+\mbox{\tt out}  & {\em P} & potential. \\
+\hline
+\mbox{\tt in}  & {\em pi} & position vector i. \\
+\hline
+\mbox{\tt in}  & {\em pj} & position vector j. \\
+\hline
+\mbox{\tt in}  & {\em mi} & particle mass i. \\
+\hline
+\mbox{\tt in}  & {\em mj} & particle mass j. \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{}\label{namespaceARC_adbfc7c72ce3d25363148027db0641abf} 
+\index{A\+RC@{A\+RC}!pair\+\_\+\+AW@{pair\+\_\+\+AW}}
+\index{pair\+\_\+\+AW@{pair\+\_\+\+AW}!A\+RC@{A\+RC}}
+\subsubsection{\texorpdfstring{pair\+\_\+\+AW}{pair\_AW}}
+{\footnotesize\ttfamily typedef void($\ast$ A\+R\+C\+::pair\+\_\+\+AW) (double $\ast$, double \&, double $\ast$, double \&, const double $\ast$, const double \&, const double \&, const double \&, const double \&)}
+
+
+
+pair AW\+: acceleration (potential) \& d\+W/dr (W) function function pointer from j to i. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em A} & acceleration vector. \\
+\hline
+\mbox{\tt out}  & {\em P} & potential. \\
+\hline
+\mbox{\tt out}  & {\em dW} & d\+W/dr (used for beta$>$0) . \\
+\hline
+\mbox{\tt out}  & {\em W} & time transformation function (used for beta$>$0). \\
+\hline
+\mbox{\tt in}  & {\em X} & relative position (1\+:3). \\
+\hline
+\mbox{\tt in}  & {\em mi} & particle i mass. \\
+\hline
+\mbox{\tt in}  & {\em mj} & particle j mass. \\
+\hline
+\mbox{\tt in}  & {\em mm2} & smooth mass coefficient $\sum m_i m_j /(N (N-1)/2) (i<j) $ (Notice it is only calculated when m\+\_\+smooth is true in chainpars). \\
+\hline
+\mbox{\tt in}  & {\em epi} & adjustable parameter (set in \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars}). \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Function Documentation}
+\hypertarget{namespaceARC_a6b8ee871e0832b6b59968ea9069877e0}{}\label{namespaceARC_a6b8ee871e0832b6b59968ea9069877e0} 
+\index{A\+RC@{A\+RC}!Newtonian\+\_\+\+Ap@{Newtonian\+\_\+\+Ap}}
+\index{Newtonian\+\_\+\+Ap@{Newtonian\+\_\+\+Ap}!A\+RC@{A\+RC}}
+\subsubsection{\texorpdfstring{Newtonian\+\_\+\+Ap()}{Newtonian\_Ap()}}
+{\footnotesize\ttfamily void A\+R\+C\+::\+Newtonian\+\_\+\+Ap (\begin{DoxyParamCaption}\item[{double}]{A\mbox{[}3\mbox{]},  }\item[{double \&}]{P,  }\item[{const double}]{xi\mbox{[}3\mbox{]},  }\item[{const double}]{xp\mbox{[}3\mbox{]},  }\item[{const double \&}]{mi,  }\item[{const double \&}]{mp }\end{DoxyParamCaption})}
+
+
+
+Newtonian acceleration (\hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) from p to i. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em A} & acceleration vector. \\
+\hline
+\mbox{\tt out}  & {\em P} & potential. \\
+\hline
+\mbox{\tt in}  & {\em xi} & position vector i. \\
+\hline
+\mbox{\tt in}  & {\em xp} & position vector p. \\
+\hline
+\mbox{\tt in}  & {\em mi} & particle mass i. \\
+\hline
+\mbox{\tt in}  & {\em mp} & particle mass p. \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceARC_a3c3f20df43ba5df3e21857643130d784}{}\label{namespaceARC_a3c3f20df43ba5df3e21857643130d784} 
+\index{A\+RC@{A\+RC}!Newtonian\+\_\+\+AW@{Newtonian\+\_\+\+AW}}
+\index{Newtonian\+\_\+\+AW@{Newtonian\+\_\+\+AW}!A\+RC@{A\+RC}}
+\subsubsection{\texorpdfstring{Newtonian\+\_\+\+A\+W()}{Newtonian\_AW()}}
+{\footnotesize\ttfamily void A\+R\+C\+::\+Newtonian\+\_\+\+AW (\begin{DoxyParamCaption}\item[{double}]{A\mbox{[}3\mbox{]},  }\item[{double \&}]{P,  }\item[{double}]{dW\mbox{[}3\mbox{]},  }\item[{double \&}]{W,  }\item[{const double}]{xjk\mbox{[}3\mbox{]},  }\item[{const double \&}]{mj,  }\item[{const double \&}]{mk,  }\item[{const double \&}]{mm2,  }\item[{const double \&}]{epi }\end{DoxyParamCaption})}
+
+
+
+Newtonian (\hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) acceleration and d\+W/dr from k to j. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em A} & Newtonian acceleration vector. $A[1:3] = m_i m_j X[1:3] / X^3 $. \\
+\hline
+\mbox{\tt out}  & {\em P} & Newtonian potential. \\
+\hline
+\mbox{\tt out}  & {\em dW} & Newtonian d\+W/dr (used for beta$>$0). $dW[1:3] = w_{ij} X[1:3] /X^3 $ \\
+\hline
+\mbox{\tt out}  & {\em W} & Newtonian time transformation function (used for beta$>$0). \\
+\hline
+\mbox{\tt in}  & {\em xjk} & relative position (1\+:3) from j to k \\
+\hline
+\mbox{\tt in}  & {\em mj} & particle j mass. \\
+\hline
+\mbox{\tt in}  & {\em mk} & particle k mass. \\
+\hline
+\mbox{\tt in}  & {\em mm2} & smooth mass coefficient  m\+\_\+i $\ast$ m\+\_\+j /(N(N-\/1)/2) (i$<$j) (Notice only calculated when A\+R\+C\+::chainpars\+::m\+\_\+smooth is true). \\
+\hline
+\mbox{\tt in}  & {\em epi} & adjustable parameter (A\+R\+C\+::chainpars\+::m\+\_\+epi). If epi$>$0\+: $ w_{ij} = mm2 $ ( $ mm2 = \sum_{i<j} m_i m_j / (N( N - 1 )/2) $) else\+: $w_{ij} = m_i m_j$.~\newline
+\\
+\hline
+\end{DoxyParams}
