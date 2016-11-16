@@ -229,7 +229,7 @@ namespace EP {
 
   //! Hermite interpolation coefficients
   /*! Generate Hermite interpolation polynomial coefficients (see example in https://en.wikipedia.org/wiki/Hermite_interpolation)
-     @param [out] coff: two dimensional array storing the interpolation coefficients [ndata][\sum_j (nlev_j)]
+     @param [out] coff: two dimensional array storing the interpolation coefficients [ndata][\f$\sum_j nlev_j\f$]
      @param [in] x: one dimensional array that store the positions [npoints]
      @param [in] f: two dimensional array that store the f(x) [npoints][ndata]
      @param [in] df: three dimensional array that store the f^(k)(x) [k][npoints][ndata]
@@ -302,7 +302,7 @@ namespace EP {
   /*! Return the interpolation result based on polynomial coefficients generated from EP::Hermite_interpolation_coefficients()
      @param [in] xn: position want to get interpolation value
      @param [out] fxn: one dimensional array that store the interpolation results [ndata]
-     @param [in] coff: two dimensional array storing the interpolation coefficients [ndata][\sum_j (nlev_j)]
+     @param [in] coff: two dimensional array storing the interpolation coefficients [ndata][\f$\sum_j nlev_j\f$]
      @param [in] x: one dimensional array that store the known positions [npoints].
      @param [in] ndata: number of different type of data for interpolation
      @param [in] npoints: number of position points.

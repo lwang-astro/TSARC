@@ -103,7 +103,7 @@ typedef void (*pair_Ap) (double *, double &, const double*, const double*, const
              @param[in] xjk: relative position (1:3) from j to k
              @param[in] mj: particle j mass.
              @param[in] mk: particle k mass.
-             @param[in] mm2: smooth mass coefficient \sum m_i * m_j /(N(N-1)/2) (i<j) (Notice only calculated when ARC::chainpars::m_smooth is true).
+             @param[in] mm2: smooth mass coefficient \f$ \sum_{i<j} m_i  m_j /(N(N-1)/2) \f$ (Notice only calculated when ARC::chainpars::m_smooth is true).
              @param[in] epi: adjustable parameter (ARC::chainpars::m_epi).
                              If epi>0:  \f$ w_{ij} = mm2 \f$ (\f$ mm2 = \sum_{i<j} m_i m_j / (N( N - 1 )/2) \f$) else: \f$w_{ij} = m_i m_j\f$.\n
 */
@@ -232,14 +232,14 @@ public:
                 - a: Logarithmic Hamiltonian (logH) method coefficient (0.0, 1.0)
                 - b: Time-Transformed Leapfrog (TTL) method coefficient (0.0, 1.0)
                 - g: Constant coefficient (no time transformation) 
-    @param [in] e: Smooth mass coefficient parameter (defaulted #m_epi = 0.001)
+    @param [in] eps: Smooth mass coefficient parameter (defaulted #m_epi = 0.001)
     @param [in] mm: Whether to use smooth mass coefficients (defaulted #m_smooth = true)
-    @param [in] error: Phase/energy error limit (#exp_error)
+    @param [in] error: Phase/energy error limit (defaulted #exp_error = 1e-10)
     @param [in] dtm: Minimum physical time step (defaulted #dtmin = 5.4e-20)
     @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
     @param [in] itermax: Maximum extrapolation iteration number (defaulted #exp_itermax = 20)
     @param [in] ext_method: 1: Romberg interpolation method; others: Rational interpolation method (defaulted: Rational)
-    @param [in] ext_sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+    @param [in] ext_sequence: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
     @param [in] optiter: Optimized interation order for auto-adjust integration time step (defaulted #opt_iter = 5)
    */
   chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double eps=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const std::size_t optiter=5) {
@@ -325,7 +325,8 @@ public:
   //! Set extrapolation parameters
   /*! Set extrapolation related parameters as following:
     @param [in] error: phase/energy relative error requirement for extrapolation (defaulted #exp_error = 1e-10)
-    @param [in] dtmin: minimum physical time step allown (defaulted #dtmin = 5.4e-20)
+    @param [in] dtm: minimum physical time step allown (defaulted #dtmin = 5.4e-20)
+    @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
     @param [in] itermax: maximum order (index in sequence) for extrapolation iteration. (defaulted #exp_itermax = 20)
     @param [in] methods: 1: Romberg method; others: Rational interpolation method (defaulted Rational)
     @param [in] sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
@@ -2650,8 +2651,8 @@ public:
   /*! [] Operator overloading, return the i^th particle reference from the particle address list #p
     @param [in] i: the index of member in the list #p
     \return 
-           - if \s i^th member is particle, return particle reference
-           - if \s i^th member is a chain, return the center-of-mass particle in the chain (\ref ARC::chain.cm)
+           - if \a i^th member is particle, return particle reference
+           - if \a i^th member is a chain, return the center-of-mass particle in the chain (\ref ARC::chain.cm)
    */
   particle &operator [](const std::size_t i){
     if (i>=num) {

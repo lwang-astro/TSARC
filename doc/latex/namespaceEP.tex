@@ -113,7 +113,7 @@ Hermite interpolation coefficients.
 
 Generate Hermite interpolation polynomial coefficients (see example in \href{https://en.wikipedia.org/wiki/Hermite_interpolation}{\tt https\+://en.\+wikipedia.\+org/wiki/\+Hermite\+\_\+interpolation}) 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt out}  & {\em coff} & two dimensional array storing the interpolation coefficients \mbox{[}ndata\mbox{]}\mbox{[} (nlev\+\_\+j)\mbox{]} \\
+\mbox{\tt out}  & {\em coff} & two dimensional array storing the interpolation coefficients \mbox{[}ndata\mbox{]}\mbox{[} $\sum_j nlev_j$\mbox{]} \\
 \hline
 \mbox{\tt in}  & {\em x} & one dimensional array that store the positions \mbox{[}npoints\mbox{]} \\
 \hline
@@ -144,7 +144,7 @@ Return the interpolation result based on polynomial coefficients generated from 
 \hline
 \mbox{\tt out}  & {\em fxn} & one dimensional array that store the interpolation results \mbox{[}ndata\mbox{]} \\
 \hline
-\mbox{\tt in}  & {\em coff} & two dimensional array storing the interpolation coefficients \mbox{[}ndata\mbox{]}\mbox{[} (nlev\+\_\+j)\mbox{]} \\
+\mbox{\tt in}  & {\em coff} & two dimensional array storing the interpolation coefficients \mbox{[}ndata\mbox{]}\mbox{[} $\sum_j nlev_j$\mbox{]} \\
 \hline
 \mbox{\tt in}  & {\em x} & one dimensional array that store the known positions \mbox{[}npoints\mbox{]}. \\
 \hline

@@ -84,11 +84,11 @@ constructor
 \item g\+: Constant coefficient (no time transformation) 
 \end{DoxyItemize}\\
 \hline
-\mbox{\tt in}  & {\em e} & Smooth mass coefficient parameter (defaulted \#m\+\_\+epi = 0.\+001) \\
+\mbox{\tt in}  & {\em eps} & Smooth mass coefficient parameter (defaulted \#m\+\_\+epi = 0.\+001) \\
 \hline
 \mbox{\tt in}  & {\em mm} & Whether to use smooth mass coefficients (defaulted \#m\+\_\+smooth = true) \\
 \hline
-\mbox{\tt in}  & {\em error} & Phase/energy error limit (\#exp\+\_\+error) \\
+\mbox{\tt in}  & {\em error} & Phase/energy error limit (defaulted \#exp\+\_\+error = 1e-\/10) \\
 \hline
 \mbox{\tt in}  & {\em dtm} & Minimum physical time step (defaulted \#dtmin = 5.\+4e-\/20) \\
 \hline
@@ -98,7 +98,7 @@ constructor
 \hline
 \mbox{\tt in}  & {\em ext\+\_\+method} & 1\+: Romberg interpolation method; others\+: Rational interpolation method (defaulted\+: Rational) \\
 \hline
-\mbox{\tt in}  & {\em ext\+\_\+sequences} & 1\+: even sequence \{h, h/2, h/4, h/8 ...\}; 2\+: Bulirsch \& Stoer (BS) sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}; 3\+: 4k sequence \{h, h/2, h/6, h/10, h/14 ...\}; others\+: Harmonic sequence \{h, h/2, h/3, h/4 ...\} (defaulted 2. BS sequence) \\
+\mbox{\tt in}  & {\em ext\+\_\+sequence} & 1\+: even sequence \{h, h/2, h/4, h/8 ...\}; 2\+: Bulirsch \& Stoer (BS) sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}; 3\+: 4k sequence \{h, h/2, h/6, h/10, h/14 ...\}; others\+: Harmonic sequence \{h, h/2, h/3, h/4 ...\} (defaulted 2. BS sequence) \\
 \hline
 \mbox{\tt in}  & {\em optiter} & Optimized interation order for auto-\/adjust integration time step (defaulted \#opt\+\_\+iter = 5) \\
 \hline
@@ -167,7 +167,9 @@ Set extrapolation related parameters as following\+:
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em error} & phase/energy relative error requirement for extrapolation (defaulted \#exp\+\_\+error = 1e-\/10) \\
 \hline
-\mbox{\tt in}  & {\em dtmin} & minimum physical time step allown (defaulted \#dtmin = 5.\+4e-\/20) \\
+\mbox{\tt in}  & {\em dtm} & minimum physical time step allown (defaulted \#dtmin = 5.\+4e-\/20) \\
+\hline
+\mbox{\tt in}  & {\em dte} & Time synchronization error limit (defaulted \#dterr = 1e-\/6) \\
 \hline
 \mbox{\tt in}  & {\em itermax} & maximum order (index in sequence) for extrapolation iteration. (defaulted \#exp\+\_\+itermax = 20) \\
 \hline

@@ -284,14 +284,14 @@ Friends</h2></td></tr>
 <li>g: Constant coefficient (no time transformation) </li>
 </ul>
 </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">e</td><td>Smooth mass coefficient parameter (defaulted #m_epi = 0.001) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">eps</td><td>Smooth mass coefficient parameter (defaulted #m_epi = 0.001) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mm</td><td>Whether to use smooth mass coefficients (defaulted #m_smooth = true) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">error</td><td>Phase/energy error limit (#exp_error) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">error</td><td>Phase/energy error limit (defaulted #exp_error = 1e-10) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dtm</td><td>Minimum physical time step (defaulted #dtmin = 5.4e-20) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dte</td><td>Time synchronization error limit (defaulted #dterr = 1e-6) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">itermax</td><td>Maximum extrapolation iteration number (defaulted #exp_itermax = 20) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ext_method</td><td>1: Romberg interpolation method; others: Rational interpolation method (defaulted: Rational) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ext_sequences</td><td>1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch &amp; Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ext_sequence</td><td>1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch &amp; Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">optiter</td><td>Optimized interation order for auto-adjust integration time step (defaulted #opt_iter = 5) </td></tr>
   </table>
   </dd>
@@ -493,7 +493,8 @@ Friends</h2></td></tr>
 <p>Set extrapolation related parameters as following: </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">error</td><td>phase/energy relative error requirement for extrapolation (defaulted #exp_error = 1e-10) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">dtmin</td><td>minimum physical time step allown (defaulted #dtmin = 5.4e-20) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dtm</td><td>minimum physical time step allown (defaulted #dtmin = 5.4e-20) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dte</td><td>Time synchronization error limit (defaulted #dterr = 1e-6) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">itermax</td><td>maximum order (index in sequence) for extrapolation iteration. (defaulted #exp_itermax = 20) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">methods</td><td>1: Romberg method; others: Rational interpolation method (defaulted Rational) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">sequences</td><td>1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch &amp; Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence) </td></tr>

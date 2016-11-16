@@ -328,7 +328,7 @@ Functions</h2></td></tr>
 <p>Hermite interpolation coefficients. </p>
 <p>Generate Hermite interpolation polynomial coefficients (see example in <a href="https://en.wikipedia.org/wiki/Hermite_interpolation">https://en.wikipedia.org/wiki/Hermite_interpolation</a>) </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ (nlev_j)] </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ <img class="formulaInl" alt="$\sum_j nlev_j$" src="form_57.png"/>] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>one dimensional array that store the positions [npoints] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">f</td><td>two dimensional array that store the f(x) [npoints][ndata] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">df</td><td>three dimensional array that store the f^(k)(x) [k][npoints][ndata] </td></tr>
@@ -402,7 +402,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">xn</td><td>position want to get interpolation value </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">fxn</td><td>one dimensional array that store the interpolation results [ndata] </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ (nlev_j)] </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ <img class="formulaInl" alt="$\sum_j nlev_j$" src="form_57.png"/>] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>one dimensional array that store the known positions [npoints]. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ndata</td><td>number of different type of data for interpolation </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">npoints</td><td>number of position points. </td></tr>
