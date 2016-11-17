@@ -2,7 +2,7 @@
 \label{classParticle}\index{Particle@{Particle}}
 
 
-basic particle structure==========================//  
+A sample particle class used for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}.  
 
 
 
@@ -13,41 +13,43 @@ basic particle structure==========================//
 \begin{DoxyCompactItemize}
 \item 
 \hyperlink{classParticle_a40f4c7e248029d72e7714b7802d5e5e1}{Particle} ()
-\begin{DoxyCompactList}\small\item\em instruction=======================================// \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Constructor without initialization. \end{DoxyCompactList}\item 
 \hyperlink{classParticle_a5200252c69608a5cd6bd7be6ff03ae6c}{Particle} (const double m, const double r\mbox{[}3\mbox{]}, const double v\mbox{[}3\mbox{]})
-\item 
+\begin{DoxyCompactList}\small\item\em Constructor with initialization of mass, position and velocity. \end{DoxyCompactList}\item 
 \hyperlink{classParticle_ac189ad370eb0a2c05869249d672a4f06}{Particle} (const double m, const double rx, const double ry, const double rz, const double vx, const double vy, const double vz)
-\item 
+\begin{DoxyCompactList}\small\item\em Constructor with initialization of mass, position and velocity. \end{DoxyCompactList}\item 
 \hyperlink{classParticle_a602b45f0258d4e61d9c07f2c91d4f497}{Particle} (const \hyperlink{classParticle}{Particle} \&a)
-\item 
+\begin{DoxyCompactList}\small\item\em Constructor with initialization based on another \hyperlink{classParticle}{Particle} type data. \end{DoxyCompactList}\item 
 const double \hyperlink{classParticle_a2576aff503f68e78ced91406512b1255}{get\+Mass} () const
-\begin{DoxyCompactList}\small\item\em Get mass (required) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Get mass (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) \end{DoxyCompactList}\item 
 const double $\ast$ \hyperlink{classParticle_a4ec76421cddd91b1f27357fb182f6923}{get\+Pos} () const
-\begin{DoxyCompactList}\small\item\em Get position (required) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Get position (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) \end{DoxyCompactList}\item 
 const double $\ast$ \hyperlink{classParticle_ab3d63df7f8c22f232b096ae33b6ea3ac}{get\+Vel} () const
-\begin{DoxyCompactList}\small\item\em Get velocity (required) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Get velocity (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) \end{DoxyCompactList}\item 
 void \hyperlink{classParticle_a662b86df904c9a664e0e45d93b1f4715}{set} (const double m, const double rx, const double ry, const double rz, const double vx, const double vy, const double vz)
-\begin{DoxyCompactList}\small\item\em set data=========================================// \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Set particle data with mass, position and velocity. \end{DoxyCompactList}\item 
 void \hyperlink{classParticle_a840d9f228177200f22ef062e4cc24851}{set} (const double m, const double r\mbox{[}3\mbox{]}, const double v\mbox{[}3\mbox{]})
-\item 
+\begin{DoxyCompactList}\small\item\em Set particle data with mass, position and velocity vectors. \end{DoxyCompactList}\item 
 void \hyperlink{classParticle_a77b1b13894b46abed113c461270ed927}{set} (const \hyperlink{classParticle}{Particle} \&a)
-\item 
+\begin{DoxyCompactList}\small\item\em Set particle data with \hyperlink{classParticle}{Particle}. \end{DoxyCompactList}\item 
 void \hyperlink{classParticle_a97d76b66aed57834c105b78b10643b81}{set\+Pos} (const double x, const double y, const double z)
-\begin{DoxyCompactList}\small\item\em set position (required) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Set position (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) \end{DoxyCompactList}\item 
 void \hyperlink{classParticle_ab3c50e74691f9264d4d4d2e72a6b9536}{set\+Pos} (const double r\mbox{[}3\mbox{]})
-\begin{DoxyCompactList}\small\item\em set position (required) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Set position with vector. \end{DoxyCompactList}\item 
 void \hyperlink{classParticle_a07c405254ac3f03854e7523ff473c828}{set\+Vel} (const double vx, const double vy, const double vz)
-\begin{DoxyCompactList}\small\item\em set velocity (required) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Set velocity (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) \end{DoxyCompactList}\item 
 void \hyperlink{classParticle_a433720a7673f9645e4e203c32435e301}{set\+Vel} (const double v\mbox{[}3\mbox{]})
-\begin{DoxyCompactList}\small\item\em set position (required) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Set position with vector. \end{DoxyCompactList}\item 
 void \hyperlink{classParticle_a620f479862b90468a77da4e9cf5c0ff5}{set\+Mass} (const double m)
-\begin{DoxyCompactList}\small\item\em set mass (required) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Set mass (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) \end{DoxyCompactList}\item 
 void \hyperlink{classParticle_ab0eea4368ee797652c528949ab4ac563}{clear} ()
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Clear function. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
-basic particle structure==========================// 
+A sample particle class used for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}. 
+
+Notice for the template class of \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}, the supported particle class should contain the public member functions\+: \hyperlink{classParticle_a97d76b66aed57834c105b78b10643b81}{set\+Pos()}, \hyperlink{classParticle_a07c405254ac3f03854e7523ff473c828}{set\+Vel()}, \hyperlink{classParticle_a620f479862b90468a77da4e9cf5c0ff5}{set\+Mass()}, \hyperlink{classParticle_a4ec76421cddd91b1f27357fb182f6923}{get\+Pos()}, \hyperlink{classParticle_ab3d63df7f8c22f232b096ae33b6ea3ac}{get\+Vel()}, \hyperlink{classParticle_a2576aff503f68e78ced91406512b1255}{get\+Mass()} as described in the document 
 
 \subsection{Constructor \& Destructor Documentation}
 \hypertarget{classParticle_a40f4c7e248029d72e7714b7802d5e5e1}{}\label{classParticle_a40f4c7e248029d72e7714b7802d5e5e1} 
@@ -58,26 +60,69 @@ basic particle structure==========================//
 
 
 
-instruction=======================================// 
+Constructor without initialization. 
 
-\hypertarget{classParticle_a5200252c69608a5cd6bd7be6ff03ae6c}{}\label{classParticle_a5200252c69608a5cd6bd7be6ff03ae6c} 
+Notice the position velocity and mass are random values in this case \hypertarget{classParticle_a5200252c69608a5cd6bd7be6ff03ae6c}{}\label{classParticle_a5200252c69608a5cd6bd7be6ff03ae6c} 
 \index{Particle@{Particle}!Particle@{Particle}}
 \index{Particle@{Particle}!Particle@{Particle}}
 \subsubsection{\texorpdfstring{Particle()}{Particle()}\hspace{0.1cm}{\footnotesize\ttfamily [2/4]}}
 {\footnotesize\ttfamily Particle\+::\+Particle (\begin{DoxyParamCaption}\item[{const double}]{m,  }\item[{const double}]{r\mbox{[}3\mbox{]},  }\item[{const double}]{v\mbox{[}3\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
+
+
+Constructor with initialization of mass, position and velocity. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em m} & particle mass \\
+\hline
+\mbox{\tt in}  & {\em r} & particle position vector \\
+\hline
+\mbox{\tt in}  & {\em v} & particle velocity vector \\
+\hline
+\end{DoxyParams}
 \hypertarget{classParticle_ac189ad370eb0a2c05869249d672a4f06}{}\label{classParticle_ac189ad370eb0a2c05869249d672a4f06} 
 \index{Particle@{Particle}!Particle@{Particle}}
 \index{Particle@{Particle}!Particle@{Particle}}
 \subsubsection{\texorpdfstring{Particle()}{Particle()}\hspace{0.1cm}{\footnotesize\ttfamily [3/4]}}
 {\footnotesize\ttfamily Particle\+::\+Particle (\begin{DoxyParamCaption}\item[{const double}]{m,  }\item[{const double}]{rx,  }\item[{const double}]{ry,  }\item[{const double}]{rz,  }\item[{const double}]{vx,  }\item[{const double}]{vy,  }\item[{const double}]{vz }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
+
+
+Constructor with initialization of mass, position and velocity. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em m} & particle mass \\
+\hline
+\mbox{\tt in}  & {\em rx} & particle position in x axis \\
+\hline
+\mbox{\tt in}  & {\em ry} & particle position in y axis \\
+\hline
+\mbox{\tt in}  & {\em rz} & particle position in z axis \\
+\hline
+\mbox{\tt in}  & {\em vx} & particle velocity in x axis \\
+\hline
+\mbox{\tt in}  & {\em vy} & particle velocity in y axis \\
+\hline
+\mbox{\tt in}  & {\em vz} & particle velocity in z axis \\
+\hline
+\end{DoxyParams}
 \hypertarget{classParticle_a602b45f0258d4e61d9c07f2c91d4f497}{}\label{classParticle_a602b45f0258d4e61d9c07f2c91d4f497} 
 \index{Particle@{Particle}!Particle@{Particle}}
 \index{Particle@{Particle}!Particle@{Particle}}
 \subsubsection{\texorpdfstring{Particle()}{Particle()}\hspace{0.1cm}{\footnotesize\ttfamily [4/4]}}
 {\footnotesize\ttfamily Particle\+::\+Particle (\begin{DoxyParamCaption}\item[{const \hyperlink{classParticle}{Particle} \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
+
+
+Constructor with initialization based on another \hyperlink{classParticle}{Particle} type data. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em a} & \hyperlink{classParticle}{Particle} type of data used to obtain mass, position and velocity \\
+\hline
+\end{DoxyParams}
 
 
 \subsection{Member Function Documentation}
@@ -87,7 +132,11 @@ instruction=======================================//
 \subsubsection{\texorpdfstring{clear()}{clear()}}
 {\footnotesize\ttfamily void Particle\+::clear (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
-\hypertarget{classParticle_a2576aff503f68e78ced91406512b1255}{}\label{classParticle_a2576aff503f68e78ced91406512b1255} 
+
+
+Clear function. 
+
+Reset mass, position and velocity to zero. \hypertarget{classParticle_a2576aff503f68e78ced91406512b1255}{}\label{classParticle_a2576aff503f68e78ced91406512b1255} 
 \index{Particle@{Particle}!get\+Mass@{get\+Mass}}
 \index{get\+Mass@{get\+Mass}!Particle@{Particle}}
 \subsubsection{\texorpdfstring{get\+Mass()}{getMass()}}
@@ -95,8 +144,11 @@ instruction=======================================//
 
 
 
-Get mass (required) 
+Get mass (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) 
 
+\begin{DoxyReturn}{Returns}
+mass 
+\end{DoxyReturn}
 \hypertarget{classParticle_a4ec76421cddd91b1f27357fb182f6923}{}\label{classParticle_a4ec76421cddd91b1f27357fb182f6923} 
 \index{Particle@{Particle}!get\+Pos@{get\+Pos}}
 \index{get\+Pos@{get\+Pos}!Particle@{Particle}}
@@ -105,8 +157,11 @@ Get mass (required)
 
 
 
-Get position (required) 
+Get position (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) 
 
+\begin{DoxyReturn}{Returns}
+position vector (double\mbox{[}3\mbox{]}) 
+\end{DoxyReturn}
 \hypertarget{classParticle_ab3d63df7f8c22f232b096ae33b6ea3ac}{}\label{classParticle_ab3d63df7f8c22f232b096ae33b6ea3ac} 
 \index{Particle@{Particle}!get\+Vel@{get\+Vel}}
 \index{get\+Vel@{get\+Vel}!Particle@{Particle}}
@@ -115,8 +170,11 @@ Get position (required)
 
 
 
-Get velocity (required) 
+Get velocity (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) 
 
+\begin{DoxyReturn}{Returns}
+velocity vector (double\mbox{[}3\mbox{]}) 
+\end{DoxyReturn}
 \hypertarget{classParticle_a662b86df904c9a664e0e45d93b1f4715}{}\label{classParticle_a662b86df904c9a664e0e45d93b1f4715} 
 \index{Particle@{Particle}!set@{set}}
 \index{set@{set}!Particle@{Particle}}
@@ -125,20 +183,59 @@ Get velocity (required)
 
 
 
-set data=========================================// 
+Set particle data with mass, position and velocity. 
 
+Set particle mass, position and velocity, N\+AN check will be done 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em m} & particle mass \\
+\hline
+\mbox{\tt in}  & {\em rx} & particle position in x axis \\
+\hline
+\mbox{\tt in}  & {\em ry} & particle position in y axis \\
+\hline
+\mbox{\tt in}  & {\em rz} & particle position in z axis \\
+\hline
+\mbox{\tt in}  & {\em vx} & particle velocity in x axis \\
+\hline
+\mbox{\tt in}  & {\em vy} & particle velocity in y axis \\
+\hline
+\mbox{\tt in}  & {\em vz} & particle velocity in z axis \\
+\hline
+\end{DoxyParams}
 \hypertarget{classParticle_a840d9f228177200f22ef062e4cc24851}{}\label{classParticle_a840d9f228177200f22ef062e4cc24851} 
 \index{Particle@{Particle}!set@{set}}
 \index{set@{set}!Particle@{Particle}}
 \subsubsection{\texorpdfstring{set()}{set()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
 {\footnotesize\ttfamily void Particle\+::set (\begin{DoxyParamCaption}\item[{const double}]{m,  }\item[{const double}]{r\mbox{[}3\mbox{]},  }\item[{const double}]{v\mbox{[}3\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
+
+
+Set particle data with mass, position and velocity vectors. 
+
+Set particle mass, position and velocity, N\+AN check will be done 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em m} & particle mass \\
+\hline
+\mbox{\tt in}  & {\em r} & particle position vector \\
+\hline
+\mbox{\tt in}  & {\em v} & particle velocity vector \\
+\hline
+\end{DoxyParams}
 \hypertarget{classParticle_a77b1b13894b46abed113c461270ed927}{}\label{classParticle_a77b1b13894b46abed113c461270ed927} 
 \index{Particle@{Particle}!set@{set}}
 \index{set@{set}!Particle@{Particle}}
 \subsubsection{\texorpdfstring{set()}{set()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
 {\footnotesize\ttfamily void Particle\+::set (\begin{DoxyParamCaption}\item[{const \hyperlink{classParticle}{Particle} \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
+
+
+Set particle data with \hyperlink{classParticle}{Particle}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em a} & \hyperlink{classParticle}{Particle} type of data used to obtain mass, position and velocity \\
+\hline
+\end{DoxyParams}
 \hypertarget{classParticle_a620f479862b90468a77da4e9cf5c0ff5}{}\label{classParticle_a620f479862b90468a77da4e9cf5c0ff5} 
 \index{Particle@{Particle}!set\+Mass@{set\+Mass}}
 \index{set\+Mass@{set\+Mass}!Particle@{Particle}}
@@ -147,8 +244,13 @@ set data=========================================//
 
 
 
-set mass (required) 
+Set mass (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) 
 
+N\+AN check will be done 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em m} & particle mass \\
+\hline
+\end{DoxyParams}
 \hypertarget{classParticle_a97d76b66aed57834c105b78b10643b81}{}\label{classParticle_a97d76b66aed57834c105b78b10643b81} 
 \index{Particle@{Particle}!set\+Pos@{set\+Pos}}
 \index{set\+Pos@{set\+Pos}!Particle@{Particle}}
@@ -157,8 +259,17 @@ set mass (required)
 
 
 
-set position (required) 
+Set position (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) 
 
+N\+AN check will be done 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em x} & particle position in x axis \\
+\hline
+\mbox{\tt in}  & {\em y} & particle position in y axis \\
+\hline
+\mbox{\tt in}  & {\em z} & particle position in z axis \\
+\hline
+\end{DoxyParams}
 \hypertarget{classParticle_ab3c50e74691f9264d4d4d2e72a6b9536}{}\label{classParticle_ab3c50e74691f9264d4d4d2e72a6b9536} 
 \index{Particle@{Particle}!set\+Pos@{set\+Pos}}
 \index{set\+Pos@{set\+Pos}!Particle@{Particle}}
@@ -167,8 +278,13 @@ set position (required)
 
 
 
-set position (required) 
+Set position with vector. 
 
+N\+AN check will be done 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em r} & particle position vector \\
+\hline
+\end{DoxyParams}
 \hypertarget{classParticle_a07c405254ac3f03854e7523ff473c828}{}\label{classParticle_a07c405254ac3f03854e7523ff473c828} 
 \index{Particle@{Particle}!set\+Vel@{set\+Vel}}
 \index{set\+Vel@{set\+Vel}!Particle@{Particle}}
@@ -177,8 +293,17 @@ set position (required)
 
 
 
-set velocity (required) 
+Set velocity (required for \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}) 
 
+N\+AN check will be done 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em vx} & particle velocity in x axis \\
+\hline
+\mbox{\tt in}  & {\em vy} & particle velocity in y axis \\
+\hline
+\mbox{\tt in}  & {\em vz} & particle velocity in z axis \\
+\hline
+\end{DoxyParams}
 \hypertarget{classParticle_a433720a7673f9645e4e203c32435e301}{}\label{classParticle_a433720a7673f9645e4e203c32435e301} 
 \index{Particle@{Particle}!set\+Vel@{set\+Vel}}
 \index{set\+Vel@{set\+Vel}!Particle@{Particle}}
@@ -187,8 +312,13 @@ set velocity (required)
 
 
 
-set position (required) 
+Set position with vector. 
 
+N\+AN check will be done 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em v} & particle velocity vector \\
+\hline
+\end{DoxyParams}
 
 
 The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}

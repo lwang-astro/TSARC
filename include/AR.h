@@ -378,6 +378,7 @@ public:
 //! ARC class based on template class particle
 /*!
   Major class for ARC integration of few bodies
+  It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in Particle::setPos(), Particle::setVel(), Particle::setMass(), Particle::getPos(), Particle::getVel(), Particle::getMass())
  */
 template <class particle>
 class chain{
@@ -1246,8 +1247,8 @@ private:
     cmv[2] /= cmm;
 
     cm.setMass(cmm);
-    cm.setPos(cmr);
-    cm.setVel(cmv);
+    cm.setPos(cmr[0],cmr[1],cmr[2]);
+    cm.setVel(cmv[0],cmv[1],cmv[2]);
 
     // shifting
     for (std::size_t i=0;i<num;i++) {

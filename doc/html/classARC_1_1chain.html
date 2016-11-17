@@ -204,7 +204,7 @@ Public Attributes</h2></td></tr>
 class ARC::chain&lt; particle &gt;</h3>
 
 <p><a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> class based on template class particle. </p>
-<p>Major class for <a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> integration of few bodies </p>
+<p>Major class for <a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> integration of few bodies It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in <a class="el" href="classParticle.html#a97d76b66aed57834c105b78b10643b81" title="Set position (required for ARC::chain) ">Particle::setPos()</a>, <a class="el" href="classParticle.html#a07c405254ac3f03854e7523ff473c828" title="Set velocity (required for ARC::chain) ">Particle::setVel()</a>, <a class="el" href="classParticle.html#a620f479862b90468a77da4e9cf5c0ff5" title="Set mass (required for ARC::chain) ">Particle::setMass()</a>, <a class="el" href="classParticle.html#a4ec76421cddd91b1f27357fb182f6923" title="Get position (required for ARC::chain) ">Particle::getPos()</a>, <a class="el" href="classParticle.html#ab3d63df7f8c22f232b096ae33b6ea3ac" title="Get velocity (required for ARC::chain) ">Particle::getVel()</a>, <a class="el" href="classParticle.html#a2576aff503f68e78ced91406512b1255" title="Get mass (required for ARC::chain) ">Particle::getMass()</a>) </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a38fc886b32c9496571b1649e784583a3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a38fc886b32c9496571b1649e784583a3">&sect;&nbsp;</a></span>chain() <span class="overload">[1/2]</span></h2>
@@ -1084,7 +1084,7 @@ template&lt;class particle&gt; </div>
 </div><div class="memdoc">
 
 <p>Indicator of changes in particle list <a class="el" href="classARC_1_1chain.html#af1793b656e139e1f87c2e0a55f87514b" title="particle list ">p</a>. </p>
-<p>Reture true if particle list is modifed, in this case, the chain may need to be initialized again </p><dl class="section return"><dt>Returns</dt><dd>true: <a class="el" href="classParticle.html" title="basic particle structure==========================// ">Particle</a> list is modified </dd></dl>
+<p>Reture true if particle list is modifed, in this case, the chain may need to be initialized again </p><dl class="section return"><dt>Returns</dt><dd>true: <a class="el" href="classParticle.html" title="A sample particle class used for ARC::chain. ">Particle</a> list is modified </dd></dl>
 
 </div>
 </div>
