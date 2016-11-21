@@ -59,7 +59,7 @@ constructor with defaulted parameters
 \item Time synchronization error limit \#dterr = 1e-\/6.
 \item Maximum extrapolation iteration number \#exp\+\_\+itermax = 20
 \item Bulirsch \& Stoer sequence \{h, h/2, h/3, h/4, h/6...\} is used
-\item Optimized interation order for auto-\/adjust integration time step \#opt\+\_\+iter = 5 
+\item Optimized extrapolation interation order for auto-\/adjust integration step size \#opt\+\_\+iter = 5 
 \end{DoxyItemize}\hypertarget{classARC_1_1chainpars_a6495ce7c673679d5768e309887e0d502}{}\label{classARC_1_1chainpars_a6495ce7c673679d5768e309887e0d502} 
 \index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!chainpars@{chainpars}}
 \index{chainpars@{chainpars}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
@@ -100,7 +100,7 @@ constructor
 \hline
 \mbox{\tt in}  & {\em ext\+\_\+sequence} & 1\+: even sequence \{h, h/2, h/4, h/8 ...\}; 2\+: Bulirsch \& Stoer (BS) sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}; 3\+: 4k sequence \{h, h/2, h/6, h/10, h/14 ...\}; others\+: Harmonic sequence \{h, h/2, h/3, h/4 ...\} (defaulted 2. BS sequence) \\
 \hline
-\mbox{\tt in}  & {\em optiter} & Optimized interation order for auto-\/adjust integration time step (defaulted \#opt\+\_\+iter = 5) \\
+\mbox{\tt in}  & {\em optiter} & Optimized extrapolation interation order for auto-\/adjust integration step size (defaulted \#opt\+\_\+iter = 5) \\
 \hline
 \end{DoxyParams}
 \hypertarget{classARC_1_1chainpars_a032873f782645efb6e60dc77f6d425dc}{}\label{classARC_1_1chainpars_a032873f782645efb6e60dc77f6d425dc} 

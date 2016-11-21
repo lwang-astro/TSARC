@@ -1,6 +1,14 @@
 var NAVTREE =
 [
   [ "Algorithmic Regularization Chain (ARC)", "index.html", [
+    [ "ARC Introduction", "index.html", [
+      [ "Algorithmic Regularization (AR)", "index.html#AR_sec", [
+        [ "Hamiltonian in Extended Phase Space", "index.html#H_sec", null ],
+        [ "Time transformation for Separable Hamiltonian", "index.html#T_sec", [
+          [ "Logarithmic Hamintonian method", "index.html#logH_sec", null ]
+        ] ]
+      ] ]
+    ] ],
     [ "Namespaces", null, [
       [ "Namespace List", "namespaces.html", "namespaces" ],
       [ "Namespace Members", "namespacemembers.html", [

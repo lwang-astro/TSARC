@@ -89,7 +89,20 @@ class A\+R\+C\+::chain$<$ particle $>$}
 
 \hyperlink{namespaceARC}{A\+RC} class based on template class particle. 
 
-Major class for \hyperlink{namespaceARC}{A\+RC} integration of few bodies It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in \hyperlink{classParticle_a97d76b66aed57834c105b78b10643b81}{Particle\+::set\+Pos()}, \hyperlink{classParticle_a07c405254ac3f03854e7523ff473c828}{Particle\+::set\+Vel()}, \hyperlink{classParticle_a620f479862b90468a77da4e9cf5c0ff5}{Particle\+::set\+Mass()}, \hyperlink{classParticle_a4ec76421cddd91b1f27357fb182f6923}{Particle\+::get\+Pos()}, \hyperlink{classParticle_ab3d63df7f8c22f232b096ae33b6ea3ac}{Particle\+::get\+Vel()}, \hyperlink{classParticle_a2576aff503f68e78ced91406512b1255}{Particle\+::get\+Mass()}) 
+Major class for \hyperlink{namespaceARC}{A\+RC} integration of few bodies
+
+It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in \hyperlink{classParticle_a97d76b66aed57834c105b78b10643b81}{Particle\+::set\+Pos()}, \hyperlink{classParticle_a07c405254ac3f03854e7523ff473c828}{Particle\+::set\+Vel()}, \hyperlink{classParticle_a620f479862b90468a77da4e9cf5c0ff5}{Particle\+::set\+Mass()}, \hyperlink{classParticle_a4ec76421cddd91b1f27357fb182f6923}{Particle\+::get\+Pos()}, \hyperlink{classParticle_ab3d63df7f8c22f232b096ae33b6ea3ac}{Particle\+::get\+Vel()}, \hyperlink{classParticle_a2576aff503f68e78ced91406512b1255}{Particle\+::get\+Mass()})
+
+The basic way to use \hyperlink{namespaceARC}{A\+RC} integration is shown as following\+:
+\begin{DoxyEnumerate}
+\item Construct a chain class with template class particle and a parameter controller of \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars}. (The \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars} should be configured first before doing integration. see its document for detail).
+\item Add existed particle \textquotesingle{}A\textquotesingle{} (or a list of particles, or a chain type particle) into chain particle list (\hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{chain\+::p}) using \hyperlink{classARC_1_1chain_a0f91c399beb1e5c0db6ed7e2b4d00477}{chain.\+add\+P()}. Notice the \hyperlink{classARC_1_1chain_a0f91c399beb1e5c0db6ed7e2b4d00477}{chain.\+add\+P()} only registers the particle A\textquotesingle{}s memory address into \hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{chain\+::p} without copying data. The chain integration will directly modify the position and velocity of particle A.
+\item Add perturbers into chain perturber list (\hyperlink{classARC_1_1chain_a6e4f41c7d3f8d44a4a01734ff4ab20cf}{chain\+::pext}) using \hyperlink{classARC_1_1chain_a029906394e7b73881c0980c00bf978f7}{chain.\+add\+Pext()} (also only register the particle address)
+\item Initialization chain with \hyperlink{classARC_1_1chain_aa016cf633d19079dca24565b80a36a3f}{chain.\+init()}. Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{chain\+::p} will be shifted from their original frame to their center-\/of-\/mass frame. The particle type member variable \hyperlink{classARC_1_1chain_ae9f6a5cbf7aac2b33c7274e7e10916ed}{chain\+::cm} stores the center-\/of-\/mass data of these particles (the mass of \hyperlink{classARC_1_1chain_ae9f6a5cbf7aac2b33c7274e7e10916ed}{chain\+::cm} is the total mass of all member particles).
+\item Call integration functions (\hyperlink{classARC_1_1chain_a82b26731761231d86fd2e0b4529df6fa}{chain.\+Leapfrog\+\_\+step\+\_\+forward()} or \hyperlink{classARC_1_1chain_ab831215debbd09466cadb1b961dd0a18}{chain.\+extrapolation\+\_\+integration()}). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
+\item After call integration functions, the particles are integrated to new time. Because in \hyperlink{namespaceARC}{A\+RC} method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in \hyperlink{classARC_1_1chain_ab831215debbd09466cadb1b961dd0a18}{chain.\+extrapolation\+\_\+integration()} document).
+\item Notice that after \hyperlink{classARC_1_1chain_aa016cf633d19079dca24565b80a36a3f}{chain.\+init()} and integration, the particles are always in the center-\/of-\/mass frame. If you want to shift them back to the original frame, the \hyperlink{classARC_1_1chain_a52edc1843550578f5be5590b7403ef97}{chain.\+center\+\_\+shift\+\_\+inverse()} should be used. But after this function is used, you should use \hyperlink{classARC_1_1chain_a68ae268afb418455bfdd6e8101b3b4eb}{chain.\+center\+\_\+shift()} before the next integration. 
+\end{DoxyEnumerate}
 
 \subsection{Constructor \& Destructor Documentation}
 \hypertarget{classARC_1_1chain_a38fc886b32c9496571b1649e784583a3}{}\label{classARC_1_1chain_a38fc886b32c9496571b1649e784583a3} 
@@ -324,7 +337,9 @@ double \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle $>$\+::extrap
 
 Extrapolation integration. 
 
-Use extrapolation method to get highly accurate integration based on \hyperlink{classARC_1_1chain_a82b26731761231d86fd2e0b4529df6fa}{Leapfrog\+\_\+step\+\_\+forward()} 
+Use extrapolation method to get highly accurate integration based on \hyperlink{classARC_1_1chain_a82b26731761231d86fd2e0b4529df6fa}{Leapfrog\+\_\+step\+\_\+forward()}. The auto-\/determination of extrapolation orders based on the accuracy requirement is used.
+
+
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em ds} & integration step size \\
 \hline

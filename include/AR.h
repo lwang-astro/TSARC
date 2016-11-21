@@ -72,9 +72,9 @@ template <class particle> class chain;
 template <class particle> class chainlist;
 class chainpars;
 
-//! pair AW: acceleration (potential) & dW/dr (W) function function pointer from j to i.
+//! Function pointer type to function for calculation of acceleration (potential) and time transformation function dW/dr (W) from particle j to particle i.
 /*!          @param[out] A: acceleration vector.
-             @param[out] P: potential.
+             @param[out] P: potential (positive value).
              @param[out] dW: dW/dr (used for beta>0) .
              @param[out] W: time transformation function (used for beta>0).
              @param[in] X: relative position (1:3).
@@ -85,9 +85,9 @@ class chainpars;
  */
 typedef void (*pair_AW) (double *, double &, double *, double &, const double *, const double &, const double &, const double &, const double &);
 
-//! pair Ap: acceleration calculation function pointer from j to i.
+//! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.
 /*!         @param[out]  A: acceleration vector.
-            @param[out]  P: potential.
+            @param[out]  P: potential (positive value).
             @param[in]  pi: position vector i.
             @param[in]  pj: position vector j.
             @param[in]  mi: particle mass i.
@@ -95,17 +95,17 @@ typedef void (*pair_AW) (double *, double &, double *, double &, const double *,
  */
 typedef void (*pair_Ap) (double *, double &, const double*, const double*, const double&, const double&);
 
-//! Newtonian (\link #ARC::pair_AW \endlink) acceleration and dW/dr from k to j.
-/*!          @param[out] A: Newtonian acceleration vector. \f$A[1:3] = m_i m_j X[1:3] / X^3 \f$.
-             @param[out] P: Newtonian potential.
-             @param[out] dW: Newtonian dW/dr (used for beta>0). \f$dW[1:3] = w_{ij} X[1:3] /X^3 \f$
-             @param[out] W: Newtonian time transformation function (used for beta>0).
-             @param[in] xjk: relative position (1:3) from j to k
+//! Newtonian acceleration and dW/dr from particle k to particle j (function type of \link #ARC::pair_AW \endlink) 
+/*!          @param[out] A: Newtonian acceleration vector. \f$A[1:3] = m_j m_k xjk[1:3] / |xjk|^3 \f$.
+             @param[out] P: Newtonian potential. \f$ P = m_j m_k /|xjk| \f$
+             @param[out] dW: TTL time transformation function derivates based on position vector dW/dr (used for TTL method). \f$dW[1:3] = w_{jk} xjk[1:3] /|xjk|^3 \f$
+             @param[out] W: TTL time transformation function (used for TTL method) \f$ W = \sum_{j<k} w_{jk} /|xjk| \f$
+             @param[in] xjk: relative position vector [1:3] from particle j to particle k
              @param[in] mj: particle j mass.
              @param[in] mk: particle k mass.
-             @param[in] mm2: smooth mass coefficient \f$ \sum_{i<j} m_i  m_j /(N(N-1)/2) \f$ (Notice only calculated when ARC::chainpars::m_smooth is true).
+             @param[in] mm2: smooth mass coefficient \f$ \sum_{j<k} m_j m_k /(N(N-1)/2) \f$ (Notice in \ref ARC::chain, it is only calculated when ARC::chainpars::m_smooth is true).
              @param[in] epi: adjustable parameter (ARC::chainpars::m_epi).
-                             If epi>0:  \f$ w_{ij} = mm2 \f$ (\f$ mm2 = \sum_{i<j} m_i m_j / (N( N - 1 )/2) \f$) else: \f$w_{ij} = m_i m_j\f$.\n
+                             If epi>0:  \f$ w_{jk} = mm2 \f$ (\f$ mm2 = \sum_{j<k} m_j m_k / (N( N - 1 )/2) \f$) else: \f$w_{jk} = m_j m_k\f$.\n
 */
 void Newtonian_AW (double A[3], double &P, double dW[3], double &W, const double xjk[3], const double &mj, const double &mk, const double &mm2, const double &epi) {
 
@@ -142,10 +142,10 @@ void Newtonian_AW (double A[3], double &P, double dW[3], double &W, const double
   
 }
 
-//! Newtonian acceleration (::ARC::pair_Ap) from p to i
+//! Newtonian acceleration from particle p to particle i (function type of ::ARC::pair_Ap)
 /*! 
-  @param[out]  A: acceleration vector.
-  @param[out]  P: potential.
+  @param[out]  A: acceleration vector. \f$A[1:3] = m_i m_p (xp[1:3]-xi[1:3]) / |xp-xi|^3 \f$.
+  @param[out]  P: potential. \f$ P = m_i m_p /|xp-xi|^3\f$
   @param[in]  xi: position vector i.
   @param[in]  xp: position vector p.
   @param[in]  mi: particle mass i.
@@ -214,7 +214,7 @@ public:
       - Time synchronization error limit #dterr = 1e-6.
       - Maximum extrapolation iteration number #exp_itermax = 20
       - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
-      - Optimized interation order for auto-adjust integration time step #opt_iter = 5
+      - Optimized extrapolation interation order for auto-adjust integration step size #opt_iter = 5
    */
   chainpars(): alpha(1.0), beta(0.0), gamma(0.0), m_epi(0.001), m_smooth(true) {
     step = NULL;
@@ -240,7 +240,7 @@ public:
     @param [in] itermax: Maximum extrapolation iteration number (defaulted #exp_itermax = 20)
     @param [in] ext_method: 1: Romberg interpolation method; others: Rational interpolation method (defaulted: Rational)
     @param [in] ext_sequence: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
-    @param [in] optiter: Optimized interation order for auto-adjust integration time step (defaulted #opt_iter = 5)
+    @param [in] optiter: Optimized extrapolation interation order for auto-adjust integration step size (defaulted #opt_iter = 5)
    */
   chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double eps=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const std::size_t optiter=5) {
     step = NULL;
@@ -378,7 +378,17 @@ public:
 //! ARC class based on template class particle
 /*!
   Major class for ARC integration of few bodies
+  
   It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in Particle::setPos(), Particle::setVel(), Particle::setMass(), Particle::getPos(), Particle::getVel(), Particle::getMass())
+
+  The basic way to use ARC integration is shown as following:
+  1. Construct a chain class with template class particle and a parameter controller of \ref ARC::chainpars. (The \ref ARC::chainpars should be configured first before doing integration. see its document for detail).
+  2. Add existed particle 'A' (or a list of particles, or a chain type particle) into chain particle list (\ref chain.p) using chain.addP(). Notice the chain.addP() only registers the particle A's memory address into \ref chain.p without copying data. The chain integration will directly modify the position and velocity of particle A.
+  3. Add perturbers into chain perturber list (\ref chain.pext) using chain.addPext() (also only register the particle address)
+  4. Initialization chain with chain.init(). Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \ref chain.p will be shifted from their original frame to their center-of-mass frame. The particle type member variable \ref chain.cm stores the center-of-mass data of these particles (the mass of \ref chain.cm is the total mass of all member particles).
+  5. Call integration functions (chain.Leapfrog_step_forward() or chain.extrapolation_integration()). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
+  6. After call integration functions, the particles are integrated to new time. Because in ARC method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in chain.extrapolation_integration() document).
+  7. Notice that after chain.init() and integration, the particles are always in the center-of-mass frame. If you want to shift them back to the original frame, the chain.center_shift_inverse() should be used. But after this function is used, you should use chain.center_shift() before the next integration.
  */
 template <class particle>
 class chain{
@@ -1918,7 +1928,9 @@ public:
   }
 
   //! Extrapolation integration
-  /*! Use extrapolation method to get highly accurate integration based on Leapfrog_step_forward()
+  /*! Use extrapolation method to get highly accurate integration based on Leapfrog_step_forward().
+    The auto-determination of extrapolation orders based on the accuracy requirement is used. 
+
      @param [in] ds: integration step size
      @param [in] toff: ending physical time
                       - if value is negative, it means integration will be done with fixed step size \a ds

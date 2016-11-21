@@ -5,5 +5,6 @@ var searchData=
   ['addpext',['addPext',['../classARC_1_1chain.html#a029906394e7b73881c0980c00bf978f7',1,'ARC::chain::addPext(particle &amp;a)'],['../classARC_1_1chain.html#a5ab3934ce4a203cd57bfabcc3caf54b3',1,'ARC::chain::addPext(chain&lt; particle &gt; &amp;a)'],['../classARC_1_1chain.html#a71c8d6ac1e58694b8207aabc7266110f',1,'ARC::chain::addPext(const std::size_t n, particle a[])']]],
   ['allocate',['allocate',['../classARC_1_1chain.html#ac0bbd32e714913e1e8eb36eb2e8c3fd4',1,'ARC::chain']]],
   ['ar_2eh',['AR.h',['../AR_8h.html',1,'']]],
-  ['arc',['ARC',['../namespaceARC.html',1,'']]]
+  ['arc',['ARC',['../namespaceARC.html',1,'']]],
+  ['arc_20introduction',['ARC Introduction',['../index.html',1,'']]]
 ];

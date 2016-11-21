@@ -18,16 +18,16 @@ class \hyperlink{classARC_1_1chainpars}{chainpars}
 \begin{DoxyCompactItemize}
 \item 
 typedef void($\ast$ \hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{pair\+\_\+\+AW}) (double $\ast$, double \&, double $\ast$, double \&, const double $\ast$, const double \&, const double \&, const double \&, const double \&)
-\begin{DoxyCompactList}\small\item\em pair AW\+: acceleration (potential) \& d\+W/dr (W) function function pointer from j to i. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation of acceleration (potential) and time transformation function d\+W/dr (W) from particle j to particle i. \end{DoxyCompactList}\item 
 typedef void($\ast$ \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap}) (double $\ast$, double \&, const double $\ast$, const double $\ast$, const double \&, const double \&)
-\begin{DoxyCompactList}\small\item\em pair Ap\+: acceleration calculation function pointer from j to i. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation of acceleration (potential) from particle j to particle i. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
 void \hyperlink{namespaceARC_a3c3f20df43ba5df3e21857643130d784}{Newtonian\+\_\+\+AW} (double A\mbox{[}3\mbox{]}, double \&P, double dW\mbox{[}3\mbox{]}, double \&W, const double xjk\mbox{[}3\mbox{]}, const double \&mj, const double \&mk, const double \&mm2, const double \&epi)
-\begin{DoxyCompactList}\small\item\em Newtonian (\hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) acceleration and d\+W/dr from k to j. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration and d\+W/dr from particle k to particle j (function type of \hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) \end{DoxyCompactList}\item 
 void \hyperlink{namespaceARC_a6b8ee871e0832b6b59968ea9069877e0}{Newtonian\+\_\+\+Ap} (double A\mbox{[}3\mbox{]}, double \&P, const double xi\mbox{[}3\mbox{]}, const double xp\mbox{[}3\mbox{]}, const double \&mi, const double \&mp)
-\begin{DoxyCompactList}\small\item\em Newtonian acceleration (\hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) from p to i. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration from particle p to particle i (function type of \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -44,13 +44,13 @@ All major \hyperlink{namespaceARC}{A\+RC} classes and related acceleration funct
 
 
 
-pair Ap\+: acceleration calculation function pointer from j to i. 
+Function pointer type to function for calculation of acceleration (potential) from particle j to particle i. 
 
 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt out}  & {\em A} & acceleration vector. \\
 \hline
-\mbox{\tt out}  & {\em P} & potential. \\
+\mbox{\tt out}  & {\em P} & potential (positive value). \\
 \hline
 \mbox{\tt in}  & {\em pi} & position vector i. \\
 \hline
@@ -69,13 +69,13 @@ pair Ap\+: acceleration calculation function pointer from j to i.
 
 
 
-pair AW\+: acceleration (potential) \& d\+W/dr (W) function function pointer from j to i. 
+Function pointer type to function for calculation of acceleration (potential) and time transformation function d\+W/dr (W) from particle j to particle i. 
 
 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt out}  & {\em A} & acceleration vector. \\
 \hline
-\mbox{\tt out}  & {\em P} & potential. \\
+\mbox{\tt out}  & {\em P} & potential (positive value). \\
 \hline
 \mbox{\tt out}  & {\em dW} & d\+W/dr (used for beta$>$0) . \\
 \hline
@@ -103,13 +103,13 @@ pair AW\+: acceleration (potential) \& d\+W/dr (W) function function pointer fro
 
 
 
-Newtonian acceleration (\hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) from p to i. 
+Newtonian acceleration from particle p to particle i (function type of \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) 
 
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt out}  & {\em A} & acceleration vector. \\
+\mbox{\tt out}  & {\em A} & acceleration vector. $A[1:3] = m_i m_p (xp[1:3]-xi[1:3]) / |xp-xi|^3 $. \\
 \hline
-\mbox{\tt out}  & {\em P} & potential. \\
+\mbox{\tt out}  & {\em P} & potential. $ P = m_i m_p /|xp-xi|^3$ \\
 \hline
 \mbox{\tt in}  & {\em xi} & position vector i. \\
 \hline
@@ -128,27 +128,27 @@ Newtonian acceleration (\hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e
 
 
 
-Newtonian (\hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) acceleration and d\+W/dr from k to j. 
+Newtonian acceleration and d\+W/dr from particle k to particle j (function type of \hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) 
 
 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt out}  & {\em A} & Newtonian acceleration vector. $A[1:3] = m_i m_j X[1:3] / X^3 $. \\
+\mbox{\tt out}  & {\em A} & Newtonian acceleration vector. $A[1:3] = m_j m_k xjk[1:3] / |xjk|^3 $. \\
 \hline
-\mbox{\tt out}  & {\em P} & Newtonian potential. \\
+\mbox{\tt out}  & {\em P} & Newtonian potential. $ P = m_j m_k /|xjk| $ \\
 \hline
-\mbox{\tt out}  & {\em dW} & Newtonian d\+W/dr (used for beta$>$0). $dW[1:3] = w_{ij} X[1:3] /X^3 $ \\
+\mbox{\tt out}  & {\em dW} & T\+TL time transformation function derivates based on position vector d\+W/dr (used for T\+TL method). $dW[1:3] = w_{jk} xjk[1:3] /|xjk|^3 $ \\
 \hline
-\mbox{\tt out}  & {\em W} & Newtonian time transformation function (used for beta$>$0). \\
+\mbox{\tt out}  & {\em W} & T\+TL time transformation function (used for T\+TL method) $ W = \sum_{j<k} w_{jk} /|xjk| $ \\
 \hline
-\mbox{\tt in}  & {\em xjk} & relative position (1\+:3) from j to k \\
+\mbox{\tt in}  & {\em xjk} & relative position vector \mbox{[}1\+:3\mbox{]} from particle j to particle k \\
 \hline
 \mbox{\tt in}  & {\em mj} & particle j mass. \\
 \hline
 \mbox{\tt in}  & {\em mk} & particle k mass. \\
 \hline
-\mbox{\tt in}  & {\em mm2} & smooth mass coefficient $ \sum_{i<j} m_i m_j /(N(N-1)/2) $ (Notice only calculated when A\+R\+C\+::chainpars\+::m\+\_\+smooth is true). \\
+\mbox{\tt in}  & {\em mm2} & smooth mass coefficient $ \sum_{j<k} m_j m_k /(N(N-1)/2) $ (Notice in \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}, it is only calculated when A\+R\+C\+::chainpars\+::m\+\_\+smooth is true). \\
 \hline
-\mbox{\tt in}  & {\em epi} & adjustable parameter (A\+R\+C\+::chainpars\+::m\+\_\+epi). If epi$>$0\+: $ w_{ij} = mm2 $ ( $ mm2 = \sum_{i<j} m_i m_j / (N( N - 1 )/2) $) else\+: $w_{ij} = m_i m_j$.~\newline
+\mbox{\tt in}  & {\em epi} & adjustable parameter (A\+R\+C\+::chainpars\+::m\+\_\+epi). If epi$>$0\+: $ w_{jk} = mm2 $ ( $ mm2 = \sum_{j<k} m_j m_k / (N( N - 1 )/2) $) else\+: $w_{jk} = m_j m_k$.~\newline
 \\
 \hline
 \end{DoxyParams}

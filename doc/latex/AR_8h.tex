@@ -28,13 +28,13 @@ class \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist$<$ particle $>$}
 \begin{DoxyCompactItemize}
 \item 
 typedef void($\ast$ \hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) (double $\ast$, double \&, double $\ast$, double \&, const double $\ast$, const double \&, const double \&, const double \&, const double \&)
-\begin{DoxyCompactList}\small\item\em pair AW\+: acceleration (potential) \& d\+W/dr (W) function function pointer from j to i. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation of acceleration (potential) and time transformation function d\+W/dr (W) from particle j to particle i. \end{DoxyCompactList}\item 
 typedef void($\ast$ \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) (double $\ast$, double \&, const double $\ast$, const double $\ast$, const double \&, const double \&)
-\begin{DoxyCompactList}\small\item\em pair Ap\+: acceleration calculation function pointer from j to i. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation of acceleration (potential) from particle j to particle i. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
 void \hyperlink{namespaceARC_a3c3f20df43ba5df3e21857643130d784}{A\+R\+C\+::\+Newtonian\+\_\+\+AW} (double A\mbox{[}3\mbox{]}, double \&P, double dW\mbox{[}3\mbox{]}, double \&W, const double xjk\mbox{[}3\mbox{]}, const double \&mj, const double \&mk, const double \&mm2, const double \&epi)
-\begin{DoxyCompactList}\small\item\em Newtonian (\hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) acceleration and d\+W/dr from k to j. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration and d\+W/dr from particle k to particle j (function type of \hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) \end{DoxyCompactList}\item 
 void \hyperlink{namespaceARC_a6b8ee871e0832b6b59968ea9069877e0}{A\+R\+C\+::\+Newtonian\+\_\+\+Ap} (double A\mbox{[}3\mbox{]}, double \&P, const double xi\mbox{[}3\mbox{]}, const double xp\mbox{[}3\mbox{]}, const double \&mi, const double \&mp)
-\begin{DoxyCompactList}\small\item\em Newtonian acceleration (\hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) from p to i. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration from particle p to particle i (function type of \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) \end{DoxyCompactList}\end{DoxyCompactItemize}
