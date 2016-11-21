@@ -126,7 +126,7 @@ Friends</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The chain parameter controller class. </p>
-<p>This class control the acceleration function (<a class="el" href="namespaceARC.html#adbfc7c72ce3d25363148027db0641abf" title="pair AW: acceleration (potential) &amp; dW/dr (W) function function pointer from j to i...">ARC::pair_AW</a>, <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="pair Ap: acceleration calculation function pointer from j to i. ">ARC::pair_Ap</a>), integration methods and error parameters for <a class="el" href="classARC_1_1chain.html">chain</a>. </p>
+<p>This class control the acceleration function (<a class="el" href="namespaceARC.html#adbfc7c72ce3d25363148027db0641abf" title="Function pointer type to function for calculation of acceleration (potential) and time transformation...">ARC::pair_AW</a>, <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a>), integration methods and error parameters for <a class="el" href="classARC_1_1chain.html">chain</a>. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a2019a609d85e2b801f306ac8c7f268ab"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2019a609d85e2b801f306ac8c7f268ab">&sect;&nbsp;</a></span>chainpars() <span class="overload">[1/2]</span></h2>
@@ -153,7 +153,7 @@ Friends</h2></td></tr>
 
 <p>constructor with defaulted parameters </p>
 <ul>
-<li>Acceleration function use <a class="el" href="namespaceARC.html#a3c3f20df43ba5df3e21857643130d784" title="Newtonian (ARC::pair_AW) acceleration and dW/dr from k to j. ">ARC::Newtonian_AW()</a> and <a class="el" href="namespaceARC.html#a6b8ee871e0832b6b59968ea9069877e0" title="Newtonian acceleration (ARC::pair_Ap) from p to i. ">ARC::Newtonian_Ap()</a>.</li>
+<li>Acceleration function use <a class="el" href="namespaceARC.html#a3c3f20df43ba5df3e21857643130d784" title="Newtonian acceleration and dW/dr from particle k to particle j (function type of ARC::pair_AW) ...">ARC::Newtonian_AW()</a> and <a class="el" href="namespaceARC.html#a6b8ee871e0832b6b59968ea9069877e0" title="Newtonian acceleration from particle p to particle i (function type of ARC::pair_Ap) ...">ARC::Newtonian_Ap()</a>.</li>
 <li><a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> method use logarithmic Hamiltonian (logH) (#alpha = 1.0, #beta = 0.0 #gamma = 0.0).</li>
 <li>Smooth mass cofficients is used (#m_smooth = true) with smooth parameter #m_epi = 0.001.</li>
 <li>Phase/energy error limit #exp_error = 1e-10.</li>
@@ -161,7 +161,7 @@ Friends</h2></td></tr>
 <li>Time synchronization error limit #dterr = 1e-6.</li>
 <li>Maximum extrapolation iteration number #exp_itermax = 20</li>
 <li>Bulirsch &amp; Stoer sequence {h, h/2, h/3, h/4, h/6...} is used</li>
-<li>Optimized interation order for auto-adjust integration time step #opt_iter = 5 </li>
+<li>Optimized extrapolation interation order for auto-adjust integration step size #opt_iter = 5 </li>
 </ul>
 
 </div>
@@ -275,9 +275,9 @@ Friends</h2></td></tr>
 <p>constructor </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">aw</td><td>acceleration and dW/dr of two particle calculation function pointer with <a class="el" href="namespaceARC.html#adbfc7c72ce3d25363148027db0641abf" title="pair AW: acceleration (potential) &amp; dW/dr (W) function function pointer from j to i...">ARC::pair_AW</a> type. (interaction between memebrs) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ap</td><td>acceleration calculation function pointer with <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="pair Ap: acceleration calculation function pointer from j to i. ">ARC::pair_Ap</a> type. (interaction between member and perturber) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">a,b,g</td><td><a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> time transformation method coefficients ( <img class="formulaInl" alt="$ dt = ds/[a *(logH) + b * (TTL) + g])$" src="form_12.png"/>. <br />
+    <tr><td class="paramdir">[in]</td><td class="paramname">aw</td><td>acceleration and dW/dr of two particle calculation function pointer with <a class="el" href="namespaceARC.html#adbfc7c72ce3d25363148027db0641abf" title="Function pointer type to function for calculation of acceleration (potential) and time transformation...">ARC::pair_AW</a> type. (interaction between memebrs) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ap</td><td>acceleration calculation function pointer with <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a> type. (interaction between member and perturber) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a,b,g</td><td><a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> time transformation method coefficients ( <img class="formulaInl" alt="$ dt = ds/[a *(logH) + b * (TTL) + g])$" src="form_11.png"/>. <br />
 <ul>
 <li>a: Logarithmic Hamiltonian (logH) method coefficient (0.0, 1.0)</li>
 <li>b: Time-Transformed Leapfrog (TTL) method coefficient (0.0, 1.0)</li>
@@ -292,7 +292,7 @@ Friends</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">itermax</td><td>Maximum extrapolation iteration number (defaulted #exp_itermax = 20) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ext_method</td><td>1: Romberg interpolation method; others: Rational interpolation method (defaulted: Rational) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ext_sequence</td><td>1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch &amp; Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">optiter</td><td>Optimized interation order for auto-adjust integration time step (defaulted #opt_iter = 5) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">optiter</td><td>Optimized extrapolation interation order for auto-adjust integration step size (defaulted #opt_iter = 5) </td></tr>
   </table>
   </dd>
 </dl>
@@ -364,8 +364,8 @@ Friends</h2></td></tr>
 <p>Set acceleration (dW/dr) function. </p>
 <p>Set pair acceleration (dW/dr) function for interaction between chain members and from perturbers </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">aw</td><td>acceleration and dW/dr of two particle calculation function pointer with <a class="el" href="namespaceARC.html#adbfc7c72ce3d25363148027db0641abf" title="pair AW: acceleration (potential) &amp; dW/dr (W) function function pointer from j to i...">ARC::pair_AW</a> type. (interaction between memebrs) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ap</td><td>acceleration calculation function pointer with <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="pair Ap: acceleration calculation function pointer from j to i. ">ARC::pair_Ap</a> type. (interaction between member and perturber) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">aw</td><td>acceleration and dW/dr of two particle calculation function pointer with <a class="el" href="namespaceARC.html#adbfc7c72ce3d25363148027db0641abf" title="Function pointer type to function for calculation of acceleration (potential) and time transformation...">ARC::pair_AW</a> type. (interaction between memebrs) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ap</td><td>acceleration calculation function pointer with <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a> type. (interaction between member and perturber) </td></tr>
   </table>
   </dd>
 </dl>
@@ -413,7 +413,7 @@ Friends</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Set time step transformation parameter. </p>
-<p>Set parameter a,b,g where physical time step <img class="formulaInl" alt="$ dt = ds/[a *(logH) + b * (TTL) + g]$" src="form_15.png"/> <br />
+<p>Set parameter a,b,g where physical time step <img class="formulaInl" alt="$ dt = ds/[a *(logH) + b * (TTL) + g]$" src="form_12.png"/> <br />
 </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">a</td><td>Logarithmic Hamiltonian (logH) method coefficient (0.0, 1.0) </td></tr>
@@ -541,7 +541,7 @@ Friends</h2></td></tr>
 
 <p>Set smooth mass coefficient parameter. </p>
 <p>Set smooth mass coefficient parameter epi and determine whether use this (#m_smooth) <br />
- The smooth mass coefficient is defined as <img class="formulaInl" alt="$ mm2 = \sum m_i m_j /(N (N-1)/2) (i&lt;j) $" src="form_16.png"/>. </p><dl class="params"><dt>Parameters</dt><dd>
+ The smooth mass coefficient is defined as <img class="formulaInl" alt="$ mm2 = \sum m_i m_j /(N (N-1)/2) (i&lt;j) $" src="form_13.png"/>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">epi</td><td>smooth parameter </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mm</td><td>m_smooth (whether use smooth mass coefficients) </td></tr>
