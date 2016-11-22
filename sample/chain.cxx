@@ -21,6 +21,7 @@ int main(int argc, char **argv){
   char* sq=NULL;        // extrapolation sequence, 'rom' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}; '4k' for {h/2, h/6, h/10, h/14 ...}; 'hm' for {h, h/2, h/3, h/4 ...}
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
   double err=1e-10; // phase error requirement
+  double terr=1e-12; // time synchronization error
   double s=0.5;    // step size
   double dtmin=5.4e-20; // mimimum physical time step
   double t=0.0;    // initial physical time
@@ -48,6 +49,7 @@ int main(int argc, char **argv){
     {"extra-seq",required_argument, 0, 'q'},
     {"iter-max",required_argument, 0, 0},
     {"error",required_argument, 0, 'e'},
+    {"t-error",required_argument, 0, 0},
     {"dtmin",required_argument, 0, 'd'},
     {"print-width",required_argument, 0, 0},
     {"print-precision",required_argument, 0, 0},
@@ -87,10 +89,13 @@ int main(int argc, char **argv){
           abort();
         }
         break;*/
-      case 10:
-        w = atof(optarg);
+      case 9:
+        terr = atof(optarg);
         break;
       case 11:
+        w = atof(optarg);
+        break;
+      case 12:
         pre = atoi(optarg);
         break;
       default:
@@ -180,6 +185,7 @@ int main(int argc, char **argv){
                <<"          --iter-max (same as -i)\n"
                <<"    -e [double]:  phase and energy error limit ("<<err<<")\n"
                <<"          --error (same as -e)\n"
+               <<"          --t-error [double]: time synchronization error limit ("<<terr<<")\n"
                <<"    -d [double]: [double]:  minimum physical time step ("<<dtmin<<")\n"
                <<"          --dtmin (same as -d)\n"
                <<"    -f :          use constant external force for each particles (read fx, fy, fz after reading each particle data in data file)\n"
@@ -249,7 +255,7 @@ int main(int argc, char **argv){
     if (strcmp(sw,"linear")==0) ms=1;
     else if (strcmp(sw,"none")==0) ms=0;
   }
-  pars.setEXP(err,dtmin,1e-12,itermax,ms,msq,nlev);
+  pars.setEXP(err,dtmin,terr,itermax,ms,msq,nlev);
 
   ARC::chain<Particle> c(n,pars);
   Particle *p=new Particle[n];
@@ -307,7 +313,11 @@ int main(int argc, char **argv){
       std::cout<<std::endl;
     }
 
-    if ((tend<0&&i==nstep)||(tend>0&&std::abs(c.getTime()-tend)<1e-12)) break;
+#ifdef DEBUG
+    std::cerr<<"Time error: "<<c.getTime()-tend<<std::endl;
+#endif
+    
+    if ((tend<0&&i==nstep)||(tend>0&&std::abs(c.getTime()-tend)<terr)) break;
     i++;
 
     if (ms) {
