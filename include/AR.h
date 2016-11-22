@@ -1346,6 +1346,9 @@ private:
           for (std::size_t j=0; j<nmax; j++) if(i==0) std::memset(dpoly[j],0,dsize*sizeof(double));
         }
         else if(i==0) for (std::size_t j=0; j<nmax; j++) dpoly[j][0] = 0.0;
+
+        // dt/ds
+        double dts=(pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
         
         int** binI = pars->bin_index;
         // formula delta^n f(x) = sum_ik=0,n (-1)^(n-ik) (n n-ik) f(x+2*ik*h)
@@ -1363,7 +1366,7 @@ private:
 #ifdef DEBUG
               std::cerr<<"Poly_coff: n= "<<n<<"; i="<<i<<"; ik="<<ik<<"; coff="<<coff<<std::endl;
 #endif
-              dpoly[j][0] += coff * t;
+              dpoly[j][0] += coff * dts;
               if (!tflag) {
                 dpoly[j][1] += coff * B;
                 dpoly[j][2] += coff * w;
@@ -1893,8 +1896,11 @@ public:
       // for interpolation polynomial coefficient (difference)
       // middle difference (first array is used to store the f_1/2)
       if(pars->exp_sequence==3) {
-        if (i==n/2) dpoly[0][0]=t; // f(x)
-        mid_diff_calc(&dpoly[1],ndmax-1,i+1,n);
+        if (i==n/2) {
+          dpoly[0][0]=t; // y
+          dpoly[1][0]=2.0*dt/ds; // f(x)
+        }
+        mid_diff_calc(&dpoly[2],ndmax-1,i+1,n);
       }
       // edge difference
       else edge_diff_calc(dpoly,ndmax,i+1,n);
@@ -2035,8 +2041,8 @@ public:
 
       // Dense output
       if (ip_flag) {
-        // middle difference case: difference order from 1 to 2*intcount+1 (2*kappa-1; kappa=intcount+1), first one is used to storage f(x)        
-        if(pars->exp_sequence==3) ndmax[intcount] = 2*intcount+2;
+        // middle difference case: difference order from 1 to 2*intcount+2 (2*kappa-2; kappa=intcount+1), first one is used to storage f(x)        
+        if(pars->exp_sequence==3) ndmax[intcount] = 2*intcount+3;
         // edge difference case: difference order from 1 to intcount+1
         else ndmax[intcount] = intcount+1;
         
@@ -2141,9 +2147,9 @@ public:
         double h;
         if(pars->exp_sequence==3) {
           // middle difference case first element is f(x)
-          pdptr=&pd[i][1];
+          pdptr=&pd[i][2];
           // differece order number should be reduced by one
-          dpsize = ndmax[i]-1;
+          dpsize = ndmax[i]-2;
           // step size
           h = 2*ds/(double)step[i];
         }
@@ -2215,7 +2221,7 @@ public:
 
         nlev=new int[npoints];
         nlev[0] = 1;
-        nlev[1] = 2*(int)intcount;
+        nlev[1] = ndmax[intcount-1];
         nlev[2] = 1;
 
         fpoint=new double*[npoints];
@@ -2224,7 +2230,7 @@ public:
         fpoint[2] = dn[intcount-1];
 
         // \sum nlev = 2*intcount+2;
-        pcoff = new double[2*intcount+2];
+        pcoff = new double[ndmax[intcount-1]+2];
 
         dfptr=new double**[nlev[1]-1];
         for (int i=0;i<nlev[1]-1;i++) {
