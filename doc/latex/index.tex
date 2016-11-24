@@ -8,7 +8,7 @@ Defining the general coordinates as $ \mathbf{q} = \{q_i\}, (i=1,n) $ with freed
 
 (1) $ \frac{d \mathbf{q}}{d t} = \frac{\partial H}{\partial \mathbf{p}}$; $ \frac{d \mathbf{p}}{d t} = - \frac{\partial H}{\partial \mathbf{q}} $
 
-Here the dt is used as a differetial varaible. For the propuse as we discussed above, we want to use a new variable s replacing the function of time $t$. In this case, the time is treated as a new general coordinate. And the corresponding time momentum $Pt$ should be also added.
+Here the dt is used as a differetial varaible. For the propuse as we discussed above, we want to use a new variable $s$ replacing the function of time $t$. In this case, the time is treated as a new general coordinate. And the corresponding time momentum $Pt$ should be also added.
 
 We extend the coordiantes to $ \mathbf{Q} = (t, \mathbf{q}) $ and the momentums to $ \mathbf{P} = (Pt, \mathbf{p})$ with total freedom of $2(n+1)$.
 
@@ -36,7 +36,7 @@ The Principle of least action require the action
 
 should take the mimimum path, thus any function variation $ \delta S $ should makes $ S + \delta S$ increase. Thus when $ \delta L(\mathbf{p},\mathbf{q},t) = 0 $, this condition is satisfied. This leads to the Lagrangian equations and also the Hamitonian equations.
 
-Here the integration takes from $ t_1 $ to $ t_2 $ and the time is used as integration variable. Now we treat (t, Pt) as new coordinate and momemtum, H\textquotesingle{} as new Hamitonian, and use s as new integration variable. Then $S$ can be rewrited as\+:
+Here the integration takes from $ t_1 $ to $ t_2 $ and the time is used as integration variable. Now we treat $(t, Pt)$ as new coordinate and momemtum, $H'$ as new Hamitonian, and use $s$ as new integration variable. Then $S$ can be rewrited as\+:
 
 (7) $ S = \int_{s_1}^{s_2} \left[ \sum_{i=1}^n p_i \frac{d q_i} {d s} + Pt \frac{d t}{d s} - (H(\mathbf{p},\mathbf{q},t) + Pt) \frac{d t}{d s} \right] ds = \int_{s_1}^{s_2} \left[ \sum_{i=1}^{n+1} P_i \frac{d Q_i}{d s} - H'(\mathbf{P},\mathbf{Q}) \frac{d t}{d s}\right] ds $
 
@@ -65,9 +65,34 @@ Then the equation of motions are\+:
 
 (12) $ \frac{d \mathbf{q} }{d s} = f'(T(\mathbf{p})+Pt) \frac{\partial T(\mathbf{p})}{\partial {\mathbf{p}}} $; $ \frac{d t }{d s} = f'(T(\mathbf{p})+Pt) $; $ \frac{d \mathbf{p} }{d s} = f'(-U(\mathbf{q},t)) \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{q}}} $; $ \frac{d Pt}{d s} = f'(-U(\mathbf{q},t)) \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{t}}} $;
 
+where $ f'(x) = \frac{d f(x)}{d x} $.
+
 Since $Pt = -H(t)$, $H'=H+Pt = T(\mathbf{P}) + U(\mathbf{Q}) = 0 $. Thus during integration, $T(\mathbf{P}) \approx -U(\mathbf{Q}) $. This requires $ f(T(\mathbf{P})) - f(-U(\mathbf{Q})) \approx 0 $. With Taylor expansion, we can obtain\+:
 
 (13) $ f(T(\mathbf{P})) = f(-U(\mathbf{Q})) + \left[T(\mathbf{P}) + U(\mathbf{Q})\right] f'(-U(\mathbf{Q})) + O\left[T(\mathbf{P}) + U(\mathbf{Q})\right]^2 $
 
-Thus $ g(\mathbf{Q},\mathbf{P}) \approx f'(-U(\mathbf{Q})) $\hypertarget{index_logH_sec}{}\subsubsection{Logarithmic Hamintonian method}\label{index_logH_sec}
-Mikkola \& Tanikawa (1999) suggests to use the function $ f(x) = \log{x} $ (Logarithmic Hamintonian method). 
+Thus
+
+(14) $ g(\mathbf{Q},\mathbf{P}) \approx f'(-U(\mathbf{Q})) $\hypertarget{index_logH_sec}{}\subsubsection{Logarithmic Hamintonian method (\+Log\+H)}\label{index_logH_sec}
+Mikkola \& Tanikawa (1999) suggests to use the function $ f(x) = \log{x} $ (Logarithmic Hamintonian method). In this case, the time transformation based on (14) is\+:
+
+(15) $ g(\mathbf{Q},\mathbf{P}) \approx \frac{1}{-U(\mathbf{Q})} $
+
+Then the equation of motions can be written as\+:
+
+(16) $ \frac{d \mathbf{q} }{d s} = \frac{1}{T(\mathbf{p})+Pt} \frac{\partial T(\mathbf{p})}{\partial {\mathbf{p}}} $; $ \frac{d t }{d s} = \frac{1}{T(\mathbf{p})+Pt} $; $ \frac{d \mathbf{p} }{d s} = \frac{1}{-U(\mathbf{q},t)} \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{q}}} $; $ \frac{d Pt}{d s} = \frac{1}{-U(\mathbf{q},t)} \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{t}}} $;
+
+For the point mass systems with Newtonian gravity
+
+(17) $ T(\mathbf{p}) = \frac{1}{2} \mathbf{p} \cdot \mathbf{q} $; $ U(\mathbf{q},t) = - \sum_{i<j,i=1,j=1}^{i\rightarrow n,j\rightarrow n} \frac{G m_i m_j}{|\mathbf{q_i}-\mathbf{q_j}|} $
+
+where G is gravitational constant and $ m_i, m_j $ are masses of point-\/mass particles.
+
+From (17) we see $ \frac{d Pt}{d s} = 0 $. This is only for the isolated system. If the system has external force from perturbers or external potential. The energy of system ( $-Pt$) may not be conserved any more. Thus the energy change should be added into $Pt$ during the integration.\hypertarget{index_TTL_sec}{}\subsection{Time-\/\+Transformed Leapfrog (\+T\+T\+L)}\label{index_TTL_sec}
+The regularization methods where energy explicitly appear in the equation of motions cannot solve the few-\/body systems with large mass ratio (for example, planetary systems and super massive black hole with surrounding stars), because the energy is dominated by the massive bodies, and this introduce the systematic error during the integration. To solve this kind of issue, \href{http://adsabs.harvard.edu/abs/2002CeMDA..84..343M}{\tt Mikkola \& Aarseth (2002)} developed the so-\/called Time-\/\+Transformed Leapfrog (T\+TL) method. This method is also based on time transformation. The major difference compared with the LogH method is that the time transformation function also need to be integrated.
+
+Consider the systems with positions $\mathbf{r}$, velocity $\mathbf{v}$ and acceleration $\mathbf{F}(\mathbf{r})$ and the time transformation function $ \frac{d t}{d s} = \frac{1}{\Omega(\mathbf(r))} $. The equation of motions can be described as\+:
+
+(18) $ \frac{d \mathbf{r}} {d s} = \frac{\mathbf{v}}{\Omega(\mathbf(r))} $; $ \frac{d t}{d s} = \frac{1}{\Omega(\mathbf(r))}$ ; $ \frac{d \mathbf{v}}{d s} = \frac{\mathbf{F}(\mathbf{r})}{\Omega(\mathbf(r))} $
+
+As discussed in 

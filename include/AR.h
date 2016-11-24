@@ -72,18 +72,17 @@ template <class particle> class chain;
 template <class particle> class chainlist;
 class chainpars;
 
-//! Function pointer type to function for calculation of acceleration (potential) and time transformation function dW/dr (W) from particle j to particle i.
+//! Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ from particle j to particle i.
 /*!          @param[out] A: acceleration vector.
              @param[out] P: potential (positive value).
-             @param[out] dW: dW/dr (used for beta>0) .
-             @param[out] W: time transformation function (used for beta>0).
+             @param[out] dW: time transformation function partial derivate \f$\partial W/\partial r\f$ (component from j to i; used when #beta>0; see ARC::chainpars.setabg()) .
+             @param[out] W: time transformation function (component from j to i; used when #beta>0; notice in \ref ARC::chain the cumulative W only count the case of j>i).
              @param[in] X: relative position (1:3).
              @param[in] mi: particle i mass.
              @param[in] mj: particle j mass.
-             @param[in] mm2: smooth mass coefficient \f$\sum m_i  m_j /(N (N-1)/2) (i<j) \f$ (Notice it is only calculated when m_smooth is true in chainpars).
-             @param[in] epi: adjustable parameter (set in ARC::chainpars).
+             @param[in] pars: extra parameters' array (one dimensional array with type of double)
  */
-typedef void (*pair_AW) (double *, double &, double *, double &, const double *, const double &, const double &, const double &, const double &);
+typedef void (*pair_AW) (double*, double &, double *, double &, const double*, const double &, const double &, const double*);
 
 //! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.
 /*!         @param[out]  A: acceleration vector.
@@ -98,34 +97,40 @@ typedef void (*pair_Ap) (double *, double &, const double*, const double*, const
 //! Newtonian acceleration and dW/dr from particle k to particle j (function type of \link #ARC::pair_AW \endlink) 
 /*!          @param[out] A: Newtonian acceleration vector. \f$A[1:3] = m_j m_k xjk[1:3] / |xjk|^3 \f$.
              @param[out] P: Newtonian potential. \f$ P = m_j m_k /|xjk| \f$
-             @param[out] dW: TTL time transformation function derivates based on position vector dW/dr (used for TTL method). \f$dW[1:3] = w_{jk} xjk[1:3] /|xjk|^3 \f$
-             @param[out] W: TTL time transformation function (used for TTL method) \f$ W = \sum_{j<k} w_{jk} /|xjk| \f$
+             @param[out] dW: TTL time transformation function derivates based on position vector (component of j,k) \f$\partial W/\partial r\f$ (used for TTL method). \f$dW[1:3] = mm_{jk} xjk[1:3] /|xjk|^3 \f$. (Total value is \f$\frac{\partial W}{\partial \mathbf{x}_j} = \sum_{k} mm_{jk} \mathbf{x}_{jk}/|\mathbf{x}_{jk}|^3\f$)
+             @param[out] W: TTL time transformation function component with j,k (used for TTL method) \f$W = mm_{jk} /|xjk|^3\f$ total value is \f$ W = \sum_{j<k} mm_{jk} /|xjk| \f$
              @param[in] xjk: relative position vector [1:3] from particle j to particle k
              @param[in] mj: particle j mass.
              @param[in] mk: particle k mass.
-             @param[in] mm2: smooth mass coefficient \f$ \sum_{j<k} m_j m_k /(N(N-1)/2) \f$ (Notice in \ref ARC::chain, it is only calculated when ARC::chainpars::m_smooth is true).
-             @param[in] epi: adjustable parameter (ARC::chainpars::m_epi).
-                             If epi>0:  \f$ w_{jk} = mm2 \f$ (\f$ mm2 = \sum_{j<k} m_j m_k / (N( N - 1 )/2) \f$) else: \f$w_{jk} = m_j m_k\f$.\n
+             @param[in] smpars: array of double[2]. 
+             - First element is smooth mass coefficient mm2 \f$ \sum_{j<k} m_j m_k /(N(N-1)/2) \f$ (can be calculated by calc_mm2()); \n
+             - Second element is adjustable parameter epi. 
+             1) If epi>0: if \f$m_j m_k < epi mm2\f$:  \f$ mm_{jk} = mm2\f$  else: \f$ mm_jk = 0\f$
+             2) If epi<0: \f$mm_{jk} = m_j m_k\f$.\n
 */
-void Newtonian_AW (double A[3], double &P, double dW[3], double &W, const double xjk[3], const double &mj, const double &mk, const double &mm2, const double &epi) {
+void Newtonian_AW (double A[3], double &P, double dW[3], double &W, const double xjk[3], const double &mj, const double &mk, const double* smpars) {
 
   // distance
   double rjk = std::sqrt(xjk[0]*xjk[0]+xjk[1]*xjk[1]+xjk[2]*xjk[2]);  
 
+  // smooth coefficients
+  double mm2=smpars[0];
+  double epi=smpars[1];
+
   // mass parameters
-  double mmjk = mj*mk; // m_i*m_j
-  double wjk;
+  double mjmk = mj*mk; // m_i*m_j
+  double mmjk;
   if (mm2>0 && epi>0) {
     // Wjk = mm2 if m_i*m_j < epi*m'^2; 0 otherwise;
-    if (mmjk<epi*mm2) wjk = mm2;
-    else wjk = 0;
+    if (mjmk<epi*mm2) mmjk = mm2;
+    else mmjk = 0;
   }
   else {
-    wjk = mmjk;    // Wjk = m_i*m_j
+    mmjk = mjmk;    // Wjk = m_i*m_j
   }
   
-  P = mmjk / rjk;  // Potential energy
-  W = wjk / rjk;   // Transformation coefficient
+  P = mjmk / rjk;  // Potential energy
+  W = mmjk / rjk;   // Transformation coefficient
         
   // Acceleration
   double rjk3 = rjk*rjk*rjk;
@@ -135,7 +140,7 @@ void Newtonian_AW (double A[3], double &P, double dW[3], double &W, const double
   A[2] = mor3 * xjk[2];
 
   // dW/dr
-  mor3 = wjk / rjk3;
+  mor3 = mmjk / rjk3;
   dW[0] = mor3 * xjk[0];
   dW[1] = mor3 * xjk[1];
   dW[2] = mor3 * xjk[2];
@@ -167,10 +172,29 @@ void Newtonian_Ap (double A[3], double &P, const double xi[3], const double xp[3
   P = mi*mp / dr;
   
 }
+
+//! Calculate smooth particle coefficient
+/*! Get smooth particle coefficient \f$ mm2 = \sum m_i  m_j /(N (N-1)/2) (i<j) \f$ where \f$m_i\f$ and \f$m_j\f$ are particle masses
+  @param[in] p: \ref ARC::chainlist variable which store the particles, the template class is passed to chainlist.
+  \return smooth particle coefficient
+ */
+template <class particle> 
+double calc_mm2(chainlist<particle> &p) {
+  // calcualte m'^2
+  int num = p.getN();
+  double mm2 = 0;
+  for (std::size_t i=0;i<num;i++) {
+    for (std::size_t j=i+1;j<num;j++) {
+      mm2 += p[i].getMass() * p[j].getMass();
+    }
+  }
+  mm2 /= num * (num - 1) / 2;
+  return mm2;
+}    
  
 //! The chain parameter controller class
 /*!
-  This class control the acceleration function (::ARC::pair_AW, ::ARC::pair_Ap), integration methods and error parameters for \ref chain.
+  This class control the acceleration function and time transformation function (::ARC::pair_AW, ::ARC::pair_Ap), integration methods and error parameters for \ref chain.
  */
 class chainpars{
 template <class T> friend class chain;
@@ -183,10 +207,6 @@ private:
   double alpha; ///< logH cofficient
   double beta;  ///< TTL cofficient
   double gamma; ///< constant
-
-  // mass coefficients parameter
-  double m_epi; ///< smooth parameter
-  bool m_smooth; ///< whether to use smooth mass coefficients
 
   // time step
   double dtmin; ///< minimum physical time step
@@ -208,7 +228,6 @@ public:
   //! constructor with defaulted parameters
   /*! - Acceleration function use ARC::Newtonian_AW() and ARC::Newtonian_Ap().
       - ARC method use logarithmic Hamiltonian (logH) (#alpha = 1.0, #beta = 0.0 #gamma = 0.0).
-      - Smooth mass cofficients is used (#m_smooth = true) with smooth parameter #m_epi = 0.001.
       - Phase/energy error limit #exp_error = 1e-10.
       - Minimum physical time step #dtmin = 5.4e-20.
       - Time synchronization error limit #dterr = 1e-6.
@@ -216,7 +235,7 @@ public:
       - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
       - Optimized extrapolation interation order for auto-adjust integration step size #opt_iter = 5
    */
-  chainpars(): alpha(1.0), beta(0.0), gamma(0.0), m_epi(0.001), m_smooth(true) {
+  chainpars(): alpha(1.0), beta(0.0), gamma(0.0) {
     step = NULL;
     bin_index = NULL;
     setEXP(1E-10, 5.4E-20, 1E-6, 20, 2, 2, 5);
@@ -229,11 +248,9 @@ public:
     @param [in] aw: acceleration and dW/dr of two particle calculation function pointer with ::ARC::pair_AW type. (interaction between memebrs)
     @param [in] ap: acceleration calculation function pointer with ::ARC::pair_Ap type. (interaction between member and perturber)
     @param [in] a,b,g: ARC time transformation method coefficients (\f$ dt = ds/[a *(logH) + b * (TTL) + g])\f$. \n
-                - a: Logarithmic Hamiltonian (logH) method coefficient (0.0, 1.0)
-                - b: Time-Transformed Leapfrog (TTL) method coefficient (0.0, 1.0)
-                - g: Constant coefficient (no time transformation) 
-    @param [in] eps: Smooth mass coefficient parameter (defaulted #m_epi = 0.001)
-    @param [in] mm: Whether to use smooth mass coefficients (defaulted #m_smooth = true)
+                - a: Logarithmic Hamiltonian (logH) method coefficient #alpha (0.0, 1.0)
+                - b: Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0)
+                - g: Constant coefficient (no time transformation) #gamma
     @param [in] error: Phase/energy error limit (defaulted #exp_error = 1e-10)
     @param [in] dtm: Minimum physical time step (defaulted #dtmin = 5.4e-20)
     @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
@@ -242,11 +259,10 @@ public:
     @param [in] ext_sequence: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
     @param [in] optiter: Optimized extrapolation interation order for auto-adjust integration step size (defaulted #opt_iter = 5)
    */
-  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double eps=0.001, const bool mm=true, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const std::size_t optiter=5) {
+  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const std::size_t optiter=5) {
     step = NULL;
     bin_index = NULL;
     setabg(a,b,g);
-    setM(eps,mm);
     setEXP(error,dtm,dte,itermax,ext_method,ext_sequence,optiter);
     setA(aw,ap);
   }
@@ -262,10 +278,10 @@ public:
     }
   }
 
-  //! Set acceleration (dW/dr) function
-  /*! Set pair acceleration (dW/dr) function for interaction between chain members and from perturbers
-    @param [in] aw: acceleration and dW/dr of two particle calculation function pointer with ::ARC::pair_AW type. (interaction between memebrs)
-    @param [in] ap: acceleration calculation function pointer with ::ARC::pair_Ap type. (interaction between member and perturber)
+  //! Set acceleration, potential, time transformation function \f$partial W/\partial r\f$ and \f$W\f$ calculator
+  /*! Set acceleration, potential, time transformation function \f$partial W/\partial r\f$ and \f$W\f$ for two particles. This is the basic functions used for interaction between chain members and from perturbers.
+    @param [in] aw: acceleration, potential and time transformation function \f$\partial W/\partial r\f$, \f$W\f$ of two particles calculation function pointer with ::ARC::pair_AW type. (interaction between memebrs). Notice this function defines \f$\partial W/\partial r\f$ and \f$W\f$, and these time transformation functions are only used when #beta>0 (see setabg()).
+    @param [in] ap: acceleration calculation function pointer with ::ARC::pair_Ap type. (interaction between members and perturbers)
   */
   void setA(pair_AW aw, pair_Ap ap) {
     pp_AW = aw;
@@ -285,9 +301,9 @@ public:
   //! Set time step transformation parameter
   /*!
       Set parameter a,b,g where physical time step \f$ dt = ds/[a *(logH) + b * (TTL) + g]\f$ \n
-      @param [in] a: Logarithmic Hamiltonian (logH) method coefficient (0.0, 1.0)
-      @param [in] b: Time-Transformed Leapfrog (TTL) method coefficient (0.0, 1.0)
-      @param [in] g: Constant coefficient (no time transformation) 
+      @param [in] a: Logarithmic Hamiltonian (logH) method coefficient #alpha (0.0, 1.0)
+      @param [in] b: Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0)
+      @param [in] g: Constant coefficient (no time transformation) #gamma
   */
   void setabg(const double a=1.0, const double b=0.0, const double g=0.0) {
     alpha = a;
@@ -297,28 +313,6 @@ public:
     if (alpha==0&&beta==0&&gamma==0) {
       std::cerr<<"Error: alpha, beta and gamma cannot be all zero!\n";
       abort();
-    }
-    if (alpha==0&&gamma==0&&m_smooth) {
-      std::cerr<<"TTL method is used with gamma=0, thus smooth mass coefficient is forced to be switched off\n";
-      setM(0.001,false);
-    }
-  }
-
-  //! Set smooth mass coefficient parameter
-  /*! Set smooth mass coefficient parameter epi and determine whether use this (#m_smooth) \n
-      The smooth mass coefficient is defined as \f$ mm2 = \sum m_i  m_j /(N (N-1)/2) (i<j) \f$.
-     @param[in] epi: smooth parameter 
-     @param[in] mm: m_smooth (whether use smooth mass coefficients)
-  */
-  void setM(const double epi=0.001, const bool mm=true) {
-    m_epi = epi;
-    m_smooth = mm;
-    if (m_epi==0&&m_smooth) {
-      std::cerr<<"Error: smooth mass coefficients are used, but smooth coefficient epi is zero!\n";
-      abort();
-    }
-    if (alpha==0&&gamma==0) {
-      std::cerr<<"Warning: alpha=0 and gamma=0, the smooth mass coefficients may cause initial w = 0 and result in zero time step!";
     }
   }
 
@@ -385,10 +379,17 @@ public:
   1. Construct a chain class with template class particle and a parameter controller of \ref ARC::chainpars. (The \ref ARC::chainpars should be configured first before doing integration. see its document for detail).
   2. Add existed particle 'A' (or a list of particles, or a chain type particle) into chain particle list (\ref chain.p) using chain.addP(). Notice the chain.addP() only registers the particle A's memory address into \ref chain.p without copying data. The chain integration will directly modify the position and velocity of particle A.
   3. Add perturbers into chain perturber list (\ref chain.pext) using chain.addPext() (also only register the particle address)
-  4. Initialization chain with chain.init(). Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \ref chain.p will be shifted from their original frame to their center-of-mass frame. The particle type member variable \ref chain.cm stores the center-of-mass data of these particles (the mass of \ref chain.cm is the total mass of all member particles).
-  5. Call integration functions (chain.Leapfrog_step_forward() or chain.extrapolation_integration()). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
-  6. After call integration functions, the particles are integrated to new time. Because in ARC method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in chain.extrapolation_integration() document).
-  7. Notice that after chain.init() and integration, the particles are always in the center-of-mass frame. If you want to shift them back to the original frame, the chain.center_shift_inverse() should be used. But after this function is used, you should use chain.center_shift() before the next integration.
+  4. Initialize pair_AW_pars used for ::ARC::pair_AW if necessary (see the case of ARC::Newtonian_AW())
+  5. Initialize chain with chain.init(). Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \ref chain.p will be shifted from their original frame to their center-of-mass frame. The particle type member variable \ref chain.cm stores the center-of-mass data of these particles (the mass of \ref chain.cm is the total mass of all member particles).
+  6. Call integration functions (chain.Leapfrog_step_forward() or chain.extrapolation_integration()). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
+  7. After call integration functions, the particles are integrated to new time. Because in ARC method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in chain.extrapolation_integration() document).
+  8. Notice that after chain.init() and integration, the particles are always in the center-of-mass frame. If you want to shift them back to the original frame, the chain.center_shift_inverse() should be used. But after this function is used, you should use chain.center_shift() before the next integration.
+
+  Because of time now is an integrated variable, the time after integration cannot be predicted. 
+  Thus if you want to stop the integration at a certain physical time, you need to use chain.extrapolation_integration() with dense output.
+  To get better accuracy of physical time from intepolation, the 4k sequences (set in chainpars.setEXP()) is strongly suggested to be used. 
+  If 4k sequences are used, the dense output method for GBS is used and the accuracy of time intepolation is close to the accuracy of integration.
+  Please check the document of chain.extrapolation_integration() for detail.
  */
 template <class particle>
 class chain{
@@ -402,14 +403,13 @@ class chain{
 
   //integration parameters=======================================//
   double t;    ///< time
-  double w;    ///< time transformation parameter
-  double B;    ///< Binding energy (time momentum)
+  double Pt;    ///< Binding energy (time momentum)
+  double w;    ///< integrated time transformation function
 
   //template parameters==========================================//
   double W;     ///< time transformation function
   double Ekin;  ///< kinetic energy
   double Pot;   ///< potential
-  double mm2;   ///< mean mass production \sum m_i*m_j/(N(N-1)/2) (i<j)
 
   //number =======================================================//
   std::size_t num;      ///< total number of chain particles
@@ -426,6 +426,7 @@ public:
   particle cm;              ///< center mass particle
   chainlist<particle> p;    ///< particle list
   chainlist<particle> pext; ///< perturber list
+  double* pair_AW_pars;     ///< pair acceleration parameter array (used as last argument of ::ARC::pair_AW)
 
 #ifdef TIME_PROFILE
   timeprofile profile;
@@ -438,7 +439,6 @@ public:
    */
   chain(std::size_t n, const chainpars &par):  pars(&par) {
     nmax=0;
-    mm2=-std::numeric_limits<double>::infinity();
     allocate(n);
   }
 
@@ -446,9 +446,7 @@ public:
   /*! Construct chain without memory allocate, need to call allocate() later. 
      @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const chainpars &par): pars(&par), F_Pmod(false), F_Porigin(1), num(0), nmax(0) {
-    mm2=-std::numeric_limits<double>::infinity();
-  }
+  chain(const chainpars &par): pars(&par), F_Pmod(false), F_Porigin(1), num(0), nmax(0) {}
 
   //! Allocate memory
   /*! Allocate memory for maximum particle number n
@@ -470,7 +468,6 @@ public:
     p.init(n);
     F_Pmod=false;
     F_Porigin=1;
-    mm2=-std::numeric_limits<double>::infinity();
   }
 
   //! Clear function
@@ -489,7 +486,6 @@ public:
     }
     F_Pmod=false;
     F_Porigin=1;
-    mm2=-std::numeric_limits<double>::infinity();
   }
 
   //! destructor
@@ -580,21 +576,6 @@ private:
   }
 
 
-  //! Calculate smooth particle coefficient
-  /*! Get smooth particle coefficient \f$ mm2 = \sum m_i  m_j /(N (N-1)/2) (i<j) \f$ based on masses of particles in #p
-   */
-  void calc_mm2() {
-    // calcualte m'^2
-    mm2 = 0;
-    for (std::size_t i=0;i<num;i++) {
-      for (std::size_t j=i+1;j<num;j++) {
-        mm2 += p[i].getMass() * p[j].getMass();
-      }
-    }
-    mm2 /= num * (num - 1) / 2;
-  }    
-
-  
   //! Calculate acceleration (potential) and transformation parameter
   /*! Get distance Matrix, acceleration, dm/dr, potential and transformation parameter
       based on particle masses in #p, using current #X, #V
@@ -659,7 +640,7 @@ private:
         const double mk=pk->getMass();
 
         // force calculation function from k to j
-        pars->pp_AW(At, Pt, dWt, Wt, xjk, mj, mk, mm2, pars->m_epi);
+        pars->pp_AW(At, Pt, dWt, Wt, xjk, mj, mk, pair_AW_pars);
 
         // resolve sub-chain
         if(resolve_flag && p.isChain(lk)) {
@@ -738,7 +719,7 @@ private:
   */
   double calc_dt_X(const double ds) {
     // determine the physical time step
-    double dt = ds / (pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
+    double dt = ds / (pars->alpha * (Ekin + Pt) + pars->beta * w + pars->gamma);
     if (std::abs(dt) < pars->dtmin) {
       std::cerr<<"Warning!: physical time step too small: "<<dt<<std::endl;
       abort();
@@ -784,9 +765,9 @@ private:
     }
   }
 
-  //! Step forward of B and w
-  /*! One step integration of B and w.
-      - \f$B += dt * \sum ( - m_k * <v_k> \dot f_k)\f$ 
+  //! Step forward of Pt and w
+  /*! One step integration of Pt and w.
+      - \f$Pt += dt * \sum ( - m_k * <v_k> \dot f_k)\f$ 
       - \f$w += dt * \sum ( dm/dr_k \dot v_k)\f$ 
      @param [in] dt: time step for V
      @param [in] ave_v: averaged velocity
@@ -794,18 +775,18 @@ private:
      @param [in] p: particle list (only use mass)
      @param [in] fpf: if perturber force is not zero, it is true
    */
-  void step_forward_Bw(const double dt, const double3* ave_v, const double3* force, const bool fpf) {
-    double dB = 0.0;
+  void step_forward_Ptw(const double dt, const double3* ave_v, const double3* force, const bool fpf) {
+    double dPt = 0.0;
     double dw = 0.0;
     if (force!=NULL||fpf||pars->beta>0) {
       for (std::size_t i=0;i<num;i++) {
         if (force!=NULL) {
-          dB -= p[i].getMass() * ( ave_v[i][0] * (pf[i][0] + force[i][0]) 
+          dPt -= p[i].getMass() * ( ave_v[i][0] * (pf[i][0] + force[i][0]) 
                             + ave_v[i][1] * (pf[i][1] + force[i][1]) 
                             + ave_v[i][2] * (pf[i][2] + force[i][2]));
         }
         else if (fpf){
-          dB -= p[i].getMass() * ( ave_v[i][0] * pf[i][0] 
+          dPt -= p[i].getMass() * ( ave_v[i][0] * pf[i][0] 
                             + ave_v[i][1] * pf[i][1] 
                             + ave_v[i][2] * pf[i][2]);
         }
@@ -817,7 +798,7 @@ private:
         }
       }
     }
-    B += dt * dB;
+    Pt += dt * dPt;
     w += dt * dw;
   }
 
@@ -1348,7 +1329,7 @@ private:
         if(i==0) for (std::size_t j=0; j<nmax; j++) dpoly[j][0] = 0.0;
 
         // dt/ds
-        double dts=1/(pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
+        double dts=1/(pars->alpha * (Ekin + Pt) + pars->beta * w + pars->gamma);
         
         int** binI = pars->bin_index;
         // formula delta^n f(x) = sum_ik=0,n (-1)^(n-ik) (n n-ik) f(x+2*ik*h)
@@ -1368,7 +1349,7 @@ private:
 #endif
               dpoly[j][0] += coff * dts;
 //              if (!tflag) {
-//                dpoly[j][1] += coff * B;
+//                dpoly[j][1] += coff * Pt;
 //                dpoly[j][2] += coff * w;
 //                for (std::size_t k=0; k<num-1; k++) {
 //                  for (std::size_t kk=0; kk<3; kk++) {
@@ -1417,7 +1398,7 @@ t)
 
       if (i<=nmax||i>=ndiv-nmax) {
         // dt/ds
-        double dts=1.0/(pars->alpha * (Ekin + B) + pars->beta * w + pars->gamma);
+        double dts=1.0/(pars->alpha * (Ekin + Pt) + pars->beta * w + pars->gamma);
 
         int** binI = pars->bin_index;
         for (int j=0; j<nmax; j++) {
@@ -1430,7 +1411,7 @@ t)
             double coff = ((ileft%2)?-1:1)*binI[n][ileft];
             dpoly[j][0] += coff * dts;
 //            if (!tflag) {
-//              dpoly[j][1] += coff * B;
+//              dpoly[j][1] += coff * Pt;
 //              dpoly[j][2] += coff * w;
 //              for (std::size_t k=0; k<num-1; k++) {
 //                for (std::size_t kk=0; kk<3; kk++) {
@@ -1452,7 +1433,7 @@ t)
 //            if (!tflag) {
 //              const std::size_t ir = 6*num-3;
 //              dpoly[j][0+ir] += coff * t;
-//              dpoly[j][1+ir] += coff * B;
+//              dpoly[j][1+ir] += coff * Pt;
 //              dpoly[j][2+ir] += coff * w;
 //              for (std::size_t k=0; k<num-1; k++) {
 //                for (std::size_t kk=0; kk<3; kk++) {
@@ -1591,7 +1572,7 @@ public:
   
   //! Initialization
   /*! Initialize chain based on particle list #p. After this function, positions and velocities of particles in #p will be shifted to their center-of-mass frame. \n
-      Chain order list #list, relative position #X, velocity #V, initial system energy #B and initial time transformation parameter #w are calculated.
+      Chain order list #list, relative position #X, velocity #V, initial system energy #Pt and initial time transformation parameter #w are calculated.
       The particle modification indicator (isPmod()) will be set to false.
     @param [in] time: current time of particle system
     @param [in] force: external force
@@ -1616,9 +1597,6 @@ public:
     // set member relative position and velocity
     calc_XV();
     
-    // if smooth mass coefficients are used, calculate mm2;
-    if (pars->m_smooth) calc_mm2();
-
     // set relative distance matrix, acceleration, potential and transformation parameter
     calc_rAPW(force);
 
@@ -1629,7 +1607,7 @@ public:
     calc_Ekin();
 
     // initial time step parameter
-    B = Pot - Ekin;
+    Pt = Pot - Ekin;
     w = W;
 
     // set F_Pmod to false
@@ -1649,7 +1627,7 @@ public:
       for (int k=0;k<3;k++) std::cerr<<std::setw(WIDTH)<<X[i][k];
       for (int k=0;k<3;k++) std::cerr<<std::setw(WIDTH)<<V[i][k];
     }
-    std::cerr<<std::setw(WIDTH)<<Ekin<<std::setw(WIDTH)<<Pot<<std::setw(WIDTH)<<B+Ekin-Pot<<std::setw(WIDTH)<<B<<std::setw(WIDTH)<<w<<std::endl;
+    std::cerr<<std::setw(WIDTH)<<Ekin<<std::setw(WIDTH)<<Pot<<std::setw(WIDTH)<<Pt+Ekin-Pot<<std::setw(WIDTH)<<Pt<<std::setw(WIDTH)<<w<<std::endl;
     #endif*/
     
   }
@@ -1709,10 +1687,10 @@ public:
     }      
   }
 
-  //! Backup chain data (#t, #B, #w, #X, #V)
+  //! Backup chain data (#t, #Pt, #w, #X, #V)
   /*! Backup chain data to one dimensional array. 
       - #t : current physical time
-      - #B : current system energy
+      - #Pt : current time momentum (system binding energy)
       - #w : current time transformation parameter
       - #X : current relative position array
       - #V : current relative velocite array
@@ -1726,16 +1704,16 @@ public:
     }
     const std::size_t ndata=3*(num-1);
     db[0] = t;
-    db[1] = B;
+    db[1] = Pt;
     db[2] = w;
     std::memcpy(&db[3], X, ndata*sizeof(double));
     std::memcpy(&db[3+ndata], V, ndata*sizeof(double));
   }
      
-  //! Restore chain data (#t, #B, #w, #X, #V)
-  /*! Restore integration data from one dimensional array, the order of data should be #t, #B, #w, #X[#num][3], #V[#num][3]
+  //! Restore chain data (#t, #Pt, #w, #X, #V)
+  /*! Restore integration data from one dimensional array, the order of data should be #t, #Pt, #w, #X[#num][3], #V[#num][3]
       - #t : current physical time
-      - #B : current system energy
+      - #Pt : current time momentum (system binding energy)
       - #w : current time transformation parameter
       - #X : current relative position array
       - #V : current relative velocite array
@@ -1749,7 +1727,7 @@ public:
     }
     const std::size_t ndata=3*(num-1);
     t = db[0];
-    B = db[1];
+    Pt = db[1];
     w = db[2];
     std::memcpy(X, &db[3], ndata*sizeof(double));
     std::memcpy(V, &db[3+ndata], ndata*sizeof(double));
@@ -1791,10 +1769,6 @@ public:
       std::cerr<<"Error: particles are modified, initialization required!"<<std::endl;
       abort();
     }
-    if (pars->m_smooth&&mm2==-std::numeric_limits<double>::infinity()) {
-      std::cerr<<"Error: smooth mass coefficients are used, but averaged mass coefficient mm2 is not calculated!\n";
-      abort();
-    }
 
     double ds = s/double(n);
     double3* ave_v=new double3[num];  // average velocity
@@ -1814,7 +1788,7 @@ public:
     
     // integration loop
     for (std::size_t i=0;i<n;i++) {
-      // half step forward for t (dependence: Ekin, B, w)
+      // half step forward for t (dependence: Ekin, Pt, w)
       double dt = calc_dt_X(ds*0.5);
 
       // step_forward time
@@ -1887,13 +1861,13 @@ public:
       // Get averaged velocity, update p.x, p.v, ave_v (dependence: X, V)
       resolve_XV(ave_v);
 
-      // forward B and w (dependence: dt(V), ave_v, p.m, p.v, force, dWdr, pf)
-      step_forward_Bw(dvt,ave_v,force,fpf);
+      // forward Pt and w (dependence: dt(V), ave_v, p.m, p.v, force, dWdr, pf)
+      step_forward_Ptw(dvt,ave_v,force,fpf);
 
       // Calcuale Kinetic energy (dependence: p.m, p.v)
       calc_Ekin();
 
-      // step forward for t (dependence: Ekin, B, w)
+      // step forward for t (dependence: Ekin, Pt, w)
       dt = calc_dt_X(ds*0.5);
       t += dt;
 
@@ -1935,7 +1909,7 @@ public:
 //      for (int k=0;k<3;k++) std::cerr<<std::setw(WIDTH)<<X[i][k];
 //      for (int k=0;k<3;k++) std::cerr<<std::setw(WIDTH)<<V[i][k];
 //    }
-//    std::cerr<<std::setw(WIDTH)<<Ekin<<std::setw(WIDTH)<<Pot<<std::setw(WIDTH)<<B+Ekin-Pot<<std::setw(WIDTH)<<B<<std::setw(WIDTH)<<w<<std::endl;
+//    std::cerr<<std::setw(WIDTH)<<Ekin<<std::setw(WIDTH)<<Pot<<std::setw(WIDTH)<<Pt+Ekin-Pot<<std::setw(WIDTH)<<Pt<<std::setw(WIDTH)<<w<<std::endl;
 //#endif
       
     // update chain list order and calculate potential
@@ -1955,11 +1929,11 @@ public:
      @param [in] ds: integration step size
      @param [in] toff: ending physical time
                       - if value is negative, it means integration will be done with fixed step size \a ds
-                      - if value is positive and after step \a ds, the ending physical time is larger than \a toff, the interpolation of physical time #t will be done instead of integration. In this case, positions and velocites of particles in #p and chain data are not changed, instead, returning value is the ds modification factor (negative value), which can be used to modified current \a ds and redo the integration by calling this function again with new ds to approach ending physical time of \a toff.
+                      - if value is positive and after step \a ds, the ending physical time is larger than \a toff, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, positions and velocites of particles in #p and chain data are not changed, instead, returning value is the ds modification factor (negative value), which can be used to modified current \a ds and redo the integration by calling this function again with new ds to approach ending physical time of \a toff. Notice if the required time sychronization criterion (set in chainpars.setEXP()) is small (<phase and energy error criterion), several iteration may be needed to get the physical time below this criterion.
      @param [in] force: external force (not perturber forces which are calculated in pert_force)
      \return factor
             - if factor is positive, it is optimized step size modification factor for next step (\a ds *= factor)
-            - if factor is negative and \a toff>0; the -factor is used for calculate new ds' = -factor * \a ds. Thus this function should be called again with new step size ds'. Thus the new result should have ending physical time close to \a toff.
+            - if factor is negative and \a toff>0; the -factor is used for calculate new ds' = -factor * \a ds. Thus this function should be called again with new step size ds' and the new result should have ending physical time close to \a toff.
    */
   double extrapolation_integration(const double ds, const double toff=-1.0, const double3* force=NULL) {
     // get parameters
@@ -1979,7 +1953,7 @@ public:
     // const std::size_t psize=dsize*2;
     
     // for storage
-    // for convenient, the data are storaged in one array with size (2*nrel+1)*3, which represents t, B, w, X[3][nrel], V[3][nrel]
+    // for convenient, the data are storaged in one array with size (2*nrel+1)*3, which represents t, Pt, w, X[3][nrel], V[3][nrel]
     double d0[dsize+1],dtemp[dsize+1];
     double* dn[itermax];
     d0[dsize] = (double)dsize;    // label for safety check
@@ -2007,7 +1981,7 @@ public:
     // error for step estimation
     double werrmax=std::numeric_limits<double>::max();
 
-    // backup initial values (t, B, w, X, V, Ekin)
+    // backup initial values (t, Pt, w, X, V, Ekin)
     backup(d0);
     Ekin0 = Ekin;
 
@@ -2047,7 +2021,7 @@ public:
       }
       
       if (intcount>0) {
-        // reset the initial data (t, B, w, X, V, Ekin)
+        // reset the initial data (t, Pt, w, X, V, Ekin)
         restore(d0);
         Ekin = Ekin0;
         // reset velocity to get correct w
@@ -2063,7 +2037,7 @@ public:
         
         // pd[][*]: * storage f(x) and difference
         pd[intcount] = new double*[ndmax[intcount]];
-        // pd[][][*]: * storage data (t, B, w, X, V)
+        // pd[][][*]: * storage data (t, Pt, w, X, V)
         for (std::size_t j=0;j<ndmax[intcount];j++) pd[intcount][j] = new double[pnn];
       }
       else pd[intcount] = NULL;
@@ -2135,14 +2109,14 @@ public:
         cxerr0 = cxerr;
         cxerr = std::sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
         eerr0 = eerr;
-        eerr = (Ekin-Pot+B)/B;
+        eerr = (Ekin-Pot+Pt)/Pt;
         std::memcpy(CX,CXN,3*sizeof(double));
       }
       
       intcount++;
 #ifdef DEBUG
       std::cerr<<std::setprecision(6)<<"Iter.= "<<intcount<<" Dep.= "<<step[intcount]<<" P-err.= "<<cxerr;
-      std::cerr<<" E-err.="<<(Ekin-Pot+B)/B<<" B ="<<std::setprecision(12)<<B<<std::endl;
+      std::cerr<<" E-err.="<<(Ekin-Pot+Pt)/Pt<<" Pt ="<<std::setprecision(12)<<Pt<<std::endl;
 #endif 
     }
 
@@ -2370,7 +2344,7 @@ public:
         
 //        std::cerr<<"Loop: "<<dsm;
 //        std::cerr<<" "<<std::setprecision(15)<<tpre;
-//        std::cerr<<" "<<(Ekin-Pot+B)/B;
+//        std::cerr<<" "<<(Ekin-Pot+Pt)/Pt;
 //        for (std::size_t i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
 //        std::cerr<<std::endl;
 //      }
@@ -2437,28 +2411,25 @@ public:
     return -Pot;
   }
 
-  //! Get current system energy
-  /*! \return current system energy #B (negative value for bounded systems)
+  //! Get current time momemtum \f$Pt\f$ (current system binding energy)
+  /*! \return time momemtum \f$Pt\f$ (current system binding energy \f$(-H(t))\f$)
   */
-  double getB() const {
-    return B;
+  double getPt() const {
+    return Pt;
   }
   
-  //! Get current time transformation parameter #w
-  /*! #w: \f$ \frac{dw}{dt} = \sum_k \frac{\partial W}{\partial \vec{r_k}} \bullet \vec{v_k} \f$
+  //! Get current integrated time transformation function value \f$w\f$
+  /*! \f$w\f$: \f$ \frac{dw}{dt} = \sum_k \frac{\partial W}{\partial \vec{r_k}} \bullet \vec{v_k} \f$
       (see W in getW();)
-       \return current time transformation parameter
+      \return \f$w\f$
   */
   double getw() const {
     return w;
   }
 
-  //! Get current time transformation parameter #W
-  /*! #W: \f$ W = \sum_{i<j} w_{ij} / |r_{ij}| (i<j) \f$ 
-      - if smooth mass coefficient is used (ARC::chainpars.setM()):  \f$ w_{ij} = mm2 = \sum_{i<j} m_i  m_j /(N (N-1)/2) \f$ if \f$ m_i m_j < epi \bullet mm2 \f$ and \f$ w_{ij} = 0 \f$ otherwise.
-      - else: \f$ w_{ij} = m_i m_j \f$ 
-
-      \return current time transforamtion parameter #W
+  //! Get current time transformation function value \f$W\f$
+  /*! The \f$W\f$ is defined in ::ARC::pair_AW().
+      \return \f$W\f$
   */
   double getW() const {
     return W;
@@ -2529,7 +2500,7 @@ public:
              <<"Potential energy Pot:"<<std::setw(width)<<Pot<<std::endl
              <<"Transformation factor Omega:"<<std::setw(width)<<W<<std::endl
              <<"---Integration parameters: "<<std::endl
-             <<"Time momentum B:"<<std::setw(width)<<B<<std::endl
+             <<"Time momentum Pt:"<<std::setw(width)<<Pt<<std::endl
              <<"Transformation coefficient omega:"<<std::setw(width)<<w<<std::endl
              <<"---Time step coefficients:"<<std::endl
              <<"alpha: "<<std::setw(width)<<pars->alpha<<std::endl

@@ -5,8 +5,9 @@ var NAVTREE =
       [ "Algorithmic Regularization (AR)", "index.html#AR_sec", [
         [ "Hamiltonian in Extended Phase Space", "index.html#H_sec", null ],
         [ "Time transformation for Separable Hamiltonian", "index.html#T_sec", [
-          [ "Logarithmic Hamintonian method", "index.html#logH_sec", null ]
-        ] ]
+          [ "Logarithmic Hamintonian method (LogH)", "index.html#logH_sec", null ]
+        ] ],
+        [ "Time-Transformed Leapfrog (TTL)", "index.html#TTL_sec", null ]
       ] ]
     ] ],
     [ "Namespaces", null, [
@@ -30,7 +31,6 @@ var NAVTREE =
       [ "File List", "files.html", "files" ],
       [ "File Members", "globals.html", [
         [ "All", "globals.html", null ],
-        [ "Functions", "globals_func.html", null ],
         [ "Macros", "globals_defs.html", null ]
       ] ]
     ] ]

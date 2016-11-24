@@ -15,9 +15,9 @@ var classARC_1_1chain =
     [ "center_shift_inverse", "classARC_1_1chain.html#a52edc1843550578f5be5590b7403ef97", null ],
     [ "clear", "classARC_1_1chain.html#a5299fa50788dc7e5d15504c33f76333f", null ],
     [ "extrapolation_integration", "classARC_1_1chain.html#ab831215debbd09466cadb1b961dd0a18", null ],
-    [ "getB", "classARC_1_1chain.html#ad8fb6968ef54eed5dc792200a2841bbb", null ],
     [ "getEkin", "classARC_1_1chain.html#ad7e8b3a20521f095a6935845f8a2ee53", null ],
     [ "getPot", "classARC_1_1chain.html#ae59c00c676af34f22c650076eb0aa83a", null ],
+    [ "getPt", "classARC_1_1chain.html#adbda281b80afe23f4b23d6a775046121", null ],
     [ "getTime", "classARC_1_1chain.html#a48bde99d89b99df54844e1331d4814bb", null ],
     [ "getw", "classARC_1_1chain.html#a122985d69620f87c68ae43f4c87e4f00", null ],
     [ "getW", "classARC_1_1chain.html#a43f7ea8573dcbc4849232c97be26456f", null ],
@@ -32,5 +32,6 @@ var classARC_1_1chain =
     [ "restore", "classARC_1_1chain.html#a2e7873b3a50ba9276d9a7595cb1d768d", null ],
     [ "cm", "classARC_1_1chain.html#ae9f6a5cbf7aac2b33c7274e7e10916ed", null ],
     [ "p", "classARC_1_1chain.html#af1793b656e139e1f87c2e0a55f87514b", null ],
+    [ "pair_AW_pars", "classARC_1_1chain.html#a8c5f29c3d307bb216fdc68641b412c72", null ],
     [ "pext", "classARC_1_1chain.html#a6e4f41c7d3f8d44a4a01734ff4ab20cf", null ]
 ];

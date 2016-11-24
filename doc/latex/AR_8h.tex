@@ -27,14 +27,16 @@ class \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist$<$ particle $>$}
 \subsection*{Typedefs}
 \begin{DoxyCompactItemize}
 \item 
-typedef void($\ast$ \hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) (double $\ast$, double \&, double $\ast$, double \&, const double $\ast$, const double \&, const double \&, const double \&, const double \&)
-\begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation of acceleration (potential) and time transformation function d\+W/dr (W) from particle j to particle i. \end{DoxyCompactList}\item 
+typedef void($\ast$ \hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+AW}) (double $\ast$, double \&, double $\ast$, double \&, const double $\ast$, const double \&, const double \&, const double $\ast$)
+\begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function $\partial W/\partial r$ and $W$ from particle j to particle i. \end{DoxyCompactList}\item 
 typedef void($\ast$ \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) (double $\ast$, double \&, const double $\ast$, const double $\ast$, const double \&, const double \&)
 \begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation of acceleration (potential) from particle j to particle i. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-void \hyperlink{namespaceARC_a3c3f20df43ba5df3e21857643130d784}{A\+R\+C\+::\+Newtonian\+\_\+\+AW} (double A\mbox{[}3\mbox{]}, double \&P, double dW\mbox{[}3\mbox{]}, double \&W, const double xjk\mbox{[}3\mbox{]}, const double \&mj, const double \&mk, const double \&mm2, const double \&epi)
-\begin{DoxyCompactList}\small\item\em Newtonian acceleration and d\+W/dr from particle k to particle j (function type of \hyperlink{namespaceARC_adbfc7c72ce3d25363148027db0641abf}{A\+R\+C\+::pair\+\_\+\+AW}) \end{DoxyCompactList}\item 
+void \hyperlink{namespaceARC_a0f1e14e6d00b38d9f98f0eecf523feaa}{A\+R\+C\+::\+Newtonian\+\_\+\+AW} (double A\mbox{[}3\mbox{]}, double \&P, double dW\mbox{[}3\mbox{]}, double \&W, const double xjk\mbox{[}3\mbox{]}, const double \&mj, const double \&mk, const double $\ast$smpars)
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration and d\+W/dr from particle k to particle j (function type of \hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+AW}) \end{DoxyCompactList}\item 
 void \hyperlink{namespaceARC_a6b8ee871e0832b6b59968ea9069877e0}{A\+R\+C\+::\+Newtonian\+\_\+\+Ap} (double A\mbox{[}3\mbox{]}, double \&P, const double xi\mbox{[}3\mbox{]}, const double xp\mbox{[}3\mbox{]}, const double \&mi, const double \&mp)
-\begin{DoxyCompactList}\small\item\em Newtonian acceleration from particle p to particle i (function type of \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration from particle p to particle i (function type of \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}) \end{DoxyCompactList}\item 
+{\footnotesize template$<$class particle $>$ }\\double \hyperlink{namespaceARC_a8d6c876e9d20067d0e8a5c1c4c2c4be6}{A\+R\+C\+::calc\+\_\+mm2} (chainlist$<$ particle $>$ \&p)
+\begin{DoxyCompactList}\small\item\em Calculate smooth particle coefficient. \end{DoxyCompactList}\end{DoxyCompactItemize}

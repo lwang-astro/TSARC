@@ -51,9 +51,9 @@ void \hyperlink{classARC_1_1chain_a52edc1843550578f5be5590b7403ef97}{center\+\_\
 void \hyperlink{classARC_1_1chain_a68ae268afb418455bfdd6e8101b3b4eb}{center\+\_\+shift} ()
 \begin{DoxyCompactList}\small\item\em Center-\/of-\/mass frame shift for particles. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chain_a587009b6c6db0490c0f335aba732d77a}{backup} (double $\ast$db)
-\begin{DoxyCompactList}\small\item\em Backup chain data (\#t, \#B, \#w, \#X, \#V) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Backup chain data (\#t, \#\+Pt, \#w, \#X, \#V) \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chain_a2e7873b3a50ba9276d9a7595cb1d768d}{restore} (double $\ast$db)
-\begin{DoxyCompactList}\small\item\em Restore chain data (\#t, \#B, \#w, \#X, \#V) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Restore chain data (\#t, \#\+Pt, \#w, \#X, \#V) \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chain_a82b26731761231d86fd2e0b4529df6fa}{Leapfrog\+\_\+step\+\_\+forward} (const double s, const int n, const double3 $\ast$force=N\+U\+LL, int check\+\_\+flag=1, double $\ast$$\ast$dpoly=N\+U\+LL, const int ndmax=0)
 \begin{DoxyCompactList}\small\item\em Leapfrog integrator. \end{DoxyCompactList}\item 
 double \hyperlink{classARC_1_1chain_ab831215debbd09466cadb1b961dd0a18}{extrapolation\+\_\+integration} (const double ds, const double toff=-\/1.\+0, const double3 $\ast$force=N\+U\+LL)
@@ -64,12 +64,12 @@ double \hyperlink{classARC_1_1chain_ad7e8b3a20521f095a6935845f8a2ee53}{get\+Ekin
 \begin{DoxyCompactList}\small\item\em Get current kinetic energy. \end{DoxyCompactList}\item 
 double \hyperlink{classARC_1_1chain_ae59c00c676af34f22c650076eb0aa83a}{get\+Pot} () const
 \begin{DoxyCompactList}\small\item\em Get current potential energy. \end{DoxyCompactList}\item 
-double \hyperlink{classARC_1_1chain_ad8fb6968ef54eed5dc792200a2841bbb}{getB} () const
-\begin{DoxyCompactList}\small\item\em Get current system energy. \end{DoxyCompactList}\item 
+double \hyperlink{classARC_1_1chain_adbda281b80afe23f4b23d6a775046121}{get\+Pt} () const
+\begin{DoxyCompactList}\small\item\em Get current time momemtum $Pt$ (current system binding energy) \end{DoxyCompactList}\item 
 double \hyperlink{classARC_1_1chain_a122985d69620f87c68ae43f4c87e4f00}{getw} () const
-\begin{DoxyCompactList}\small\item\em Get current time transformation parameter \#w. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Get current integrated time transformation function value $w$. \end{DoxyCompactList}\item 
 double \hyperlink{classARC_1_1chain_a43f7ea8573dcbc4849232c97be26456f}{getW} () const
-\begin{DoxyCompactList}\small\item\em Get current time transformation parameter \#W. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Get current time transformation function value $W$. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chain_abe6da3d96c25981fc34f07e40d6a82b6}{print} (const int width=15)
 \begin{DoxyCompactList}\small\item\em \mbox{[}D\+E\+B\+UG\mbox{]} print chain data \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Public Attributes}
@@ -80,7 +80,9 @@ particle \hyperlink{classARC_1_1chain_ae9f6a5cbf7aac2b33c7274e7e10916ed}{cm}
 \hyperlink{classARC_1_1chainlist}{chainlist}$<$ particle $>$ \hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{p}
 \begin{DoxyCompactList}\small\item\em particle list \end{DoxyCompactList}\item 
 \hyperlink{classARC_1_1chainlist}{chainlist}$<$ particle $>$ \hyperlink{classARC_1_1chain_a6e4f41c7d3f8d44a4a01734ff4ab20cf}{pext}
-\begin{DoxyCompactList}\small\item\em perturber list \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em perturber list \end{DoxyCompactList}\item 
+double $\ast$ \hyperlink{classARC_1_1chain_a8c5f29c3d307bb216fdc68641b412c72}{pair\+\_\+\+A\+W\+\_\+pars}
+\begin{DoxyCompactList}\small\item\em pair acceleration parameter array (used as last argument of \hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+AW}) \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -98,11 +100,14 @@ The basic way to use \hyperlink{namespaceARC}{A\+RC} integration is shown as fol
 \item Construct a chain class with template class particle and a parameter controller of \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars}. (The \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars} should be configured first before doing integration. see its document for detail).
 \item Add existed particle \textquotesingle{}A\textquotesingle{} (or a list of particles, or a chain type particle) into chain particle list (\hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{chain\+::p}) using \hyperlink{classARC_1_1chain_a0f91c399beb1e5c0db6ed7e2b4d00477}{chain.\+add\+P()}. Notice the \hyperlink{classARC_1_1chain_a0f91c399beb1e5c0db6ed7e2b4d00477}{chain.\+add\+P()} only registers the particle A\textquotesingle{}s memory address into \hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{chain\+::p} without copying data. The chain integration will directly modify the position and velocity of particle A.
 \item Add perturbers into chain perturber list (\hyperlink{classARC_1_1chain_a6e4f41c7d3f8d44a4a01734ff4ab20cf}{chain\+::pext}) using \hyperlink{classARC_1_1chain_a029906394e7b73881c0980c00bf978f7}{chain.\+add\+Pext()} (also only register the particle address)
-\item Initialization chain with \hyperlink{classARC_1_1chain_aa016cf633d19079dca24565b80a36a3f}{chain.\+init()}. Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{chain\+::p} will be shifted from their original frame to their center-\/of-\/mass frame. The particle type member variable \hyperlink{classARC_1_1chain_ae9f6a5cbf7aac2b33c7274e7e10916ed}{chain\+::cm} stores the center-\/of-\/mass data of these particles (the mass of \hyperlink{classARC_1_1chain_ae9f6a5cbf7aac2b33c7274e7e10916ed}{chain\+::cm} is the total mass of all member particles).
+\item Initialize pair\+\_\+\+A\+W\+\_\+pars used for \hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+AW} if necessary (see the case of \hyperlink{namespaceARC_a0f1e14e6d00b38d9f98f0eecf523feaa}{A\+R\+C\+::\+Newtonian\+\_\+\+A\+W()})
+\item Initialize chain with \hyperlink{classARC_1_1chain_aa016cf633d19079dca24565b80a36a3f}{chain.\+init()}. Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{chain\+::p} will be shifted from their original frame to their center-\/of-\/mass frame. The particle type member variable \hyperlink{classARC_1_1chain_ae9f6a5cbf7aac2b33c7274e7e10916ed}{chain\+::cm} stores the center-\/of-\/mass data of these particles (the mass of \hyperlink{classARC_1_1chain_ae9f6a5cbf7aac2b33c7274e7e10916ed}{chain\+::cm} is the total mass of all member particles).
 \item Call integration functions (\hyperlink{classARC_1_1chain_a82b26731761231d86fd2e0b4529df6fa}{chain.\+Leapfrog\+\_\+step\+\_\+forward()} or \hyperlink{classARC_1_1chain_ab831215debbd09466cadb1b961dd0a18}{chain.\+extrapolation\+\_\+integration()}). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
 \item After call integration functions, the particles are integrated to new time. Because in \hyperlink{namespaceARC}{A\+RC} method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in \hyperlink{classARC_1_1chain_ab831215debbd09466cadb1b961dd0a18}{chain.\+extrapolation\+\_\+integration()} document).
-\item Notice that after \hyperlink{classARC_1_1chain_aa016cf633d19079dca24565b80a36a3f}{chain.\+init()} and integration, the particles are always in the center-\/of-\/mass frame. If you want to shift them back to the original frame, the \hyperlink{classARC_1_1chain_a52edc1843550578f5be5590b7403ef97}{chain.\+center\+\_\+shift\+\_\+inverse()} should be used. But after this function is used, you should use \hyperlink{classARC_1_1chain_a68ae268afb418455bfdd6e8101b3b4eb}{chain.\+center\+\_\+shift()} before the next integration. 
+\item Notice that after \hyperlink{classARC_1_1chain_aa016cf633d19079dca24565b80a36a3f}{chain.\+init()} and integration, the particles are always in the center-\/of-\/mass frame. If you want to shift them back to the original frame, the \hyperlink{classARC_1_1chain_a52edc1843550578f5be5590b7403ef97}{chain.\+center\+\_\+shift\+\_\+inverse()} should be used. But after this function is used, you should use \hyperlink{classARC_1_1chain_a68ae268afb418455bfdd6e8101b3b4eb}{chain.\+center\+\_\+shift()} before the next integration.
 \end{DoxyEnumerate}
+
+Because of time now is an integrated variable, the time after integration cannot be predicted. Thus if you want to stop the integration at a certain physical time, you need to use \hyperlink{classARC_1_1chain_ab831215debbd09466cadb1b961dd0a18}{chain.\+extrapolation\+\_\+integration()} with dense output. To get better accuracy of physical time from intepolation, the 4k sequences (set in \hyperlink{classARC_1_1chainpars_a5ead29e9b2005ba1933821deb96a5876}{chainpars.\+set\+E\+X\+P()}) is strongly suggested to be used. If 4k sequences are used, the dense output method for G\+BS is used and the accuracy of time intepolation is close to the accuracy of integration. Please check the document of \hyperlink{classARC_1_1chain_ab831215debbd09466cadb1b961dd0a18}{chain.\+extrapolation\+\_\+integration()} for detail. 
 
 \subsection{Constructor \& Destructor Documentation}
 \hypertarget{classARC_1_1chain_a38fc886b32c9496571b1649e784583a3}{}\label{classARC_1_1chain_a38fc886b32c9496571b1649e784583a3} 
@@ -278,12 +283,12 @@ void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle $>$\+::backup (
 
 
 
-Backup chain data (\#t, \#B, \#w, \#X, \#V) 
+Backup chain data (\#t, \#\+Pt, \#w, \#X, \#V) 
 
 Backup chain data to one dimensional array.
 \begin{DoxyItemize}
 \item \#t \+: current physical time
-\item \#B \+: current system energy
+\item \#\+Pt \+: current time momentum (system binding energy)
 \item \#w \+: current time transformation parameter
 \item \#X \+: current relative position array
 \item \#V \+: current relative velocite array 
@@ -346,7 +351,7 @@ Use extrapolation method to get highly accurate integration based on \hyperlink{
 \mbox{\tt in}  & {\em toff} & ending physical time
 \begin{DoxyItemize}
 \item if value is negative, it means integration will be done with fixed step size {\itshape ds} 
-\item if value is positive and after step {\itshape ds}, the ending physical time is larger than {\itshape toff}, the interpolation of physical time \#t will be done instead of integration. In this case, positions and velocites of particles in \hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{p} and chain data are not changed, instead, returning value is the ds modification factor (negative value), which can be used to modified current {\itshape ds} and redo the integration by calling this function again with new ds to approach ending physical time of {\itshape toff}. 
+\item if value is positive and after step {\itshape ds}, the ending physical time is larger than {\itshape toff}, the interpolation of physical time \#t (dense output) will be done instead of integration. In this case, positions and velocites of particles in \hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{p} and chain data are not changed, instead, returning value is the ds modification factor (negative value), which can be used to modified current {\itshape ds} and redo the integration by calling this function again with new ds to approach ending physical time of {\itshape toff}. Notice if the required time sychronization criterion (set in \hyperlink{classARC_1_1chainpars_a5ead29e9b2005ba1933821deb96a5876}{chainpars.\+set\+E\+X\+P()}) is small ($<$phase and energy error criterion), several iteration may be needed to get the physical time below this criterion. 
 \end{DoxyItemize}\\
 \hline
 \mbox{\tt in}  & {\em force} & external force (not perturber forces which are calculated in pert\+\_\+force) \\
@@ -356,22 +361,8 @@ Use extrapolation method to get highly accurate integration based on \hyperlink{
 factor
 \begin{DoxyItemize}
 \item if factor is positive, it is optimized step size modification factor for next step ({\itshape ds} $\ast$= factor)
-\item if factor is negative and {\itshape toff$>$0}; the -\/factor is used for calculate new ds\textquotesingle{} = -\/factor $\ast$ {\itshape ds}. Thus this function should be called again with new step size ds\textquotesingle{}. Thus the new result should have ending physical time close to {\itshape toff}. 
+\item if factor is negative and {\itshape toff$>$0}; the -\/factor is used for calculate new ds\textquotesingle{} = -\/factor $\ast$ {\itshape ds}. Thus this function should be called again with new step size ds\textquotesingle{} and the new result should have ending physical time close to {\itshape toff}. 
 \end{DoxyItemize}
-\end{DoxyReturn}
-\hypertarget{classARC_1_1chain_ad8fb6968ef54eed5dc792200a2841bbb}{}\label{classARC_1_1chain_ad8fb6968ef54eed5dc792200a2841bbb} 
-\index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!getB@{getB}}
-\index{getB@{getB}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
-\subsubsection{\texorpdfstring{get\+B()}{getB()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-double \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle $>$\+::getB (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
-
-
-
-Get current system energy. 
-
-\begin{DoxyReturn}{Returns}
-current system energy \#B (negative value for bounded systems) 
 \end{DoxyReturn}
 \hypertarget{classARC_1_1chain_ad7e8b3a20521f095a6935845f8a2ee53}{}\label{classARC_1_1chain_ad7e8b3a20521f095a6935845f8a2ee53} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!get\+Ekin@{get\+Ekin}}
@@ -401,6 +392,20 @@ Get current potential energy.
 \begin{DoxyReturn}{Returns}
 current potetnial energy (negative value for bounded systems) 
 \end{DoxyReturn}
+\hypertarget{classARC_1_1chain_adbda281b80afe23f4b23d6a775046121}{}\label{classARC_1_1chain_adbda281b80afe23f4b23d6a775046121} 
+\index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!get\+Pt@{get\+Pt}}
+\index{get\+Pt@{get\+Pt}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
+\subsubsection{\texorpdfstring{get\+Pt()}{getPt()}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+double \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle $>$\+::get\+Pt (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get current time momemtum $Pt$ (current system binding energy) 
+
+\begin{DoxyReturn}{Returns}
+time momemtum $Pt$ (current system binding energy $(-H(t))$) 
+\end{DoxyReturn}
 \hypertarget{classARC_1_1chain_a48bde99d89b99df54844e1331d4814bb}{}\label{classARC_1_1chain_a48bde99d89b99df54844e1331d4814bb} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!get\+Time@{get\+Time}}
 \index{get\+Time@{get\+Time}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
@@ -424,10 +429,10 @@ double \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle $>$\+::getw (
 
 
 
-Get current time transformation parameter \#w. 
+Get current integrated time transformation function value $w$. 
 
-\#w\+: $ \frac{dw}{dt} = \sum_k \frac{\partial W}{\partial \vec{r_k}} \bullet \vec{v_k} $ (see W in \hyperlink{classARC_1_1chain_a43f7ea8573dcbc4849232c97be26456f}{get\+W()};) \begin{DoxyReturn}{Returns}
-current time transformation parameter 
+$w$\+: $ \frac{dw}{dt} = \sum_k \frac{\partial W}{\partial \vec{r_k}} \bullet \vec{v_k} $ (see W in \hyperlink{classARC_1_1chain_a43f7ea8573dcbc4849232c97be26456f}{get\+W()};) \begin{DoxyReturn}{Returns}
+$w$ 
 \end{DoxyReturn}
 \hypertarget{classARC_1_1chain_a43f7ea8573dcbc4849232c97be26456f}{}\label{classARC_1_1chain_a43f7ea8573dcbc4849232c97be26456f} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!getW@{getW}}
@@ -438,16 +443,10 @@ double \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle $>$\+::getW (
 
 
 
-Get current time transformation parameter \#W. 
+Get current time transformation function value $W$. 
 
-\#W\+: $ W = \sum_{i<j} w_{ij} / |r_{ij}| (i<j) $
-\begin{DoxyItemize}
-\item if smooth mass coefficient is used (\hyperlink{classARC_1_1chainpars_a184e18fe97349573348e887940a82948}{A\+R\+C\+::chainpars.\+set\+M()})\+: $ w_{ij} = mm2 = \sum_{i<j} m_i m_j /(N (N-1)/2) $ if $ m_i m_j < epi \bullet mm2 $ and $ w_{ij} = 0 $ otherwise.
-\item else\+: $ w_{ij} = m_i m_j $
-\end{DoxyItemize}
-
-\begin{DoxyReturn}{Returns}
-current time transforamtion parameter \#W 
+The $W$ is defined in \hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+A\+W()}. \begin{DoxyReturn}{Returns}
+$W$ 
 \end{DoxyReturn}
 \hypertarget{classARC_1_1chain_aa016cf633d19079dca24565b80a36a3f}{}\label{classARC_1_1chain_aa016cf633d19079dca24565b80a36a3f} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!init@{init}}
@@ -461,7 +460,7 @@ void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle $>$\+::init (\b
 Initialization. 
 
 Initialize chain based on particle list \hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{p}. After this function, positions and velocities of particles in \hyperlink{classARC_1_1chain_af1793b656e139e1f87c2e0a55f87514b}{p} will be shifted to their center-\/of-\/mass frame. ~\newline
- Chain order list \#list, relative position \#X, velocity \#V, initial system energy \#B and initial time transformation parameter \#w are calculated. The particle modification indicator (\hyperlink{classARC_1_1chain_a9ed7067050141069bc98dccf8f7ab9d0}{is\+Pmod()}) will be set to false. 
+ Chain order list \#list, relative position \#X, velocity \#V, initial system energy \#\+Pt and initial time transformation parameter \#w are calculated. The particle modification indicator (\hyperlink{classARC_1_1chain_a9ed7067050141069bc98dccf8f7ab9d0}{is\+Pmod()}) will be set to false. 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em time} & current time of particle system \\
 \hline
@@ -612,12 +611,12 @@ void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle $>$\+::restore 
 
 
 
-Restore chain data (\#t, \#B, \#w, \#X, \#V) 
+Restore chain data (\#t, \#\+Pt, \#w, \#X, \#V) 
 
-Restore integration data from one dimensional array, the order of data should be \#t, \#B, \#w, \#X\mbox{[}\#num\mbox{]}\mbox{[}3\mbox{]}, \#V\mbox{[}\#num\mbox{]}\mbox{[}3\mbox{]}
+Restore integration data from one dimensional array, the order of data should be \#t, \#\+Pt, \#w, \#X\mbox{[}\#num\mbox{]}\mbox{[}3\mbox{]}, \#V\mbox{[}\#num\mbox{]}\mbox{[}3\mbox{]}
 \begin{DoxyItemize}
 \item \#t \+: current physical time
-\item \#B \+: current system energy
+\item \#\+Pt \+: current time momentum (system binding energy)
 \item \#w \+: current time transformation parameter
 \item \#X \+: current relative position array
 \item \#V \+: current relative velocite array 
@@ -650,6 +649,17 @@ center mass particle
 
 
 particle list 
+
+\hypertarget{classARC_1_1chain_a8c5f29c3d307bb216fdc68641b412c72}{}\label{classARC_1_1chain_a8c5f29c3d307bb216fdc68641b412c72} 
+\index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!pair\+\_\+\+A\+W\+\_\+pars@{pair\+\_\+\+A\+W\+\_\+pars}}
+\index{pair\+\_\+\+A\+W\+\_\+pars@{pair\+\_\+\+A\+W\+\_\+pars}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
+\subsubsection{\texorpdfstring{pair\+\_\+\+A\+W\+\_\+pars}{pair\_AW\_pars}}
+{\footnotesize\ttfamily template$<$class particle$>$ \\
+double$\ast$ \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle $>$\+::pair\+\_\+\+A\+W\+\_\+pars}
+
+
+
+pair acceleration parameter array (used as last argument of \hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+AW}) 
 
 \hypertarget{classARC_1_1chain_a6e4f41c7d3f8d44a4a01734ff4ab20cf}{}\label{classARC_1_1chain_a6e4f41c7d3f8d44a4a01734ff4ab20cf} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!pext@{pext}}

@@ -212,9 +212,9 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Error estimation. </p>
-<p>Error calculation based on <img class="formulaInl" alt="$ T_{n,n} $" src="form_36.png"/> and <img class="formulaInl" alt="$ T_{n,n-1} $" src="form_37.png"/> Calculate the value of <img class="formulaInl" alt="$ 2 \frac{T_{n,n} - T_{n,n-1}}{\sqrt{T_{n,n}^2 + T_{n,n-1}^2}} $" src="form_38.png"/> via looping all Tsize data and select the maximum value as error </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Error calculation based on <img class="formulaInl" alt="$ T_{n,n} $" src="form_41.png"/> and <img class="formulaInl" alt="$ T_{n,n-1} $" src="form_42.png"/> Calculate the value of <img class="formulaInl" alt="$ 2 \frac{T_{n,n} - T_{n,n-1}}{\sqrt{T_{n,n}^2 + T_{n,n-1}^2}} $" src="form_43.png"/> via looping all Tsize data and select the maximum value as error </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">Tn</td><td><img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_31.png"/> array (two dimensional array with size [n][Tsize], where first [] indicate the extrapolation order and second [] indicate individual data </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Tn</td><td><img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_36.png"/> array (two dimensional array with size [n][Tsize], where first [] indicate the extrapolation order and second [] indicate individual data </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Tsize</td><td>data array size </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n</td><td>iteration step index (count from 0) </td></tr>
   </table>
@@ -260,7 +260,7 @@ Functions</h2></td></tr>
 <p>Calculate the modification factor for next extrapolation intergration step (assume next maximum extrapolation order is n). <br />
 (new step size) Hnew ~ (old step size) H * (<em>exp/<em>err</em>)**1/</em>(2n+3) </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">err</td><td>error of current extrapolation from <img class="formulaInl" alt="$ T_{n,n-1} $" src="form_37.png"/> to <img class="formulaInl" alt="$ T_{n,n} $" src="form_36.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">err</td><td>error of current extrapolation from <img class="formulaInl" alt="$ T_{n,n-1} $" src="form_42.png"/> to <img class="formulaInl" alt="$ T_{n,n} $" src="form_41.png"/> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">exp</td><td>expected error </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n</td><td>current extrapolation order (count from 0) return: optimized factor (H = H*factor) </td></tr>
   </table>
@@ -328,7 +328,7 @@ Functions</h2></td></tr>
 <p>Hermite interpolation coefficients. </p>
 <p>Generate Hermite interpolation polynomial coefficients (see example in <a href="https://en.wikipedia.org/wiki/Hermite_interpolation">https://en.wikipedia.org/wiki/Hermite_interpolation</a>) </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ <img class="formulaInl" alt="$\sum_j nlev_j$" src="form_39.png"/>] </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ <img class="formulaInl" alt="$\sum_j nlev_j$" src="form_44.png"/>] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>one dimensional array that store the positions [npoints] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">f</td><td>two dimensional array that store the f(x) [npoints][ndata] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">df</td><td>three dimensional array that store the f^(k)(x) [k][npoints][ndata] </td></tr>
@@ -402,7 +402,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">xn</td><td>position want to get interpolation value </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">fxn</td><td>one dimensional array that store the interpolation results [ndata] </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ <img class="formulaInl" alt="$\sum_j nlev_j$" src="form_39.png"/>] </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ <img class="formulaInl" alt="$\sum_j nlev_j$" src="form_44.png"/>] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>one dimensional array that store the known positions [npoints]. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ndata</td><td>number of different type of data for interpolation </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">npoints</td><td>number of position points. </td></tr>
@@ -458,10 +458,10 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Polynomial extrapolation of Tsize number of data together. </p>
-<p>Iterate <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_31.png"/> based on <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_32.png"/> and <img class="formulaInl" alt="$ T_{n,1} $" src="form_33.png"/> Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent data that need to be extrapolated individually (each data is an individual <img class="formulaInl" alt="$ T_{x,x} $" src="form_34.png"/>) </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Iterate <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_36.png"/> based on <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_37.png"/> and <img class="formulaInl" alt="$ T_{n,1} $" src="form_38.png"/> Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent data that need to be extrapolated individually (each data is an individual <img class="formulaInl" alt="$ T_{x,x} $" src="form_39.png"/>) </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tn</td><td>two dimensional array of <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_32.png"/> (size of [n+1][Tsize]; first [] indicate the extrapolation order (1...n), second [] indicate the different data), will be updated to <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_31.png"/> </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tnew</td><td>one dimensional array of <img class="formulaInl" alt="$ T_{n,1} $" src="form_33.png"/> (size of Tsize with different data), will be updated to <img class="formulaInl" alt="$ T_n $" src="form_35.png"/> </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tn</td><td>two dimensional array of <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_37.png"/> (size of [n+1][Tsize]; first [] indicate the extrapolation order (1...n), second [] indicate the different data), will be updated to <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_36.png"/> </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tnew</td><td>one dimensional array of <img class="formulaInl" alt="$ T_{n,1} $" src="form_38.png"/> (size of Tsize with different data), will be updated to <img class="formulaInl" alt="$ T_n $" src="form_40.png"/> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">step</td><td>step sequence (from sequence generators) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Tsize</td><td>data array size </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n</td><td>the new iteration step index in <em>step</em> (count from 0) </td></tr>
@@ -504,16 +504,16 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Polynomial_recursion_formula. </p>
-<p>Using Polynomial function: <img class="formulaInl" alt="$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{(h_{i-k}/h_i)^2 -1} $" src="form_22.png"/> <br />
+<p>Using Polynomial function: <img class="formulaInl" alt="$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{(h_{i-k}/h_i)^2 -1} $" src="form_27.png"/> <br />
 </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k1</td><td><img class="formulaInl" alt="$ t_{i-1,k-1} $" src="form_23.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">tik1</td><td><img class="formulaInl" alt="$ t_{i,k-1} $" src="form_24.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hr</td><td><img class="formulaInl" alt="$ h_{i-k/h_i} $" src="form_25.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k1</td><td><img class="formulaInl" alt="$ t_{i-1,k-1} $" src="form_28.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tik1</td><td><img class="formulaInl" alt="$ t_{i,k-1} $" src="form_29.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hr</td><td><img class="formulaInl" alt="$ h_{i-k/h_i} $" src="form_30.png"/> </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><img class="formulaInl" alt="$ T_{i,k} $" src="form_26.png"/> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><img class="formulaInl" alt="$ T_{i,k} $" src="form_31.png"/> </dd></dl>
 
 </div>
 </div>
@@ -562,11 +562,11 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Rational extrapolation of Tsize number of data together. </p>
-<p>Iterate <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_31.png"/> based on <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_32.png"/> and <img class="formulaInl" alt="$ T_{n,1} $" src="form_33.png"/> <br />
-Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent data that need to be extrapolated individually (each data is an individual <img class="formulaInl" alt="$ T_{x,x} $" src="form_34.png"/>) </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Iterate <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_36.png"/> based on <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_37.png"/> and <img class="formulaInl" alt="$ T_{n,1} $" src="form_38.png"/> <br />
+Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent data that need to be extrapolated individually (each data is an individual <img class="formulaInl" alt="$ T_{x,x} $" src="form_39.png"/>) </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tn</td><td>two dimensial array of <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_32.png"/> (size of [n+1][Tsize]; first [] indicate the extrapolation order (1...n), second [] indicate the different data) will be updated to <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_31.png"/> </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tnew</td><td>one dimensional array of <img class="formulaInl" alt="$ T_{n,1} $" src="form_33.png"/> (size of Tsize with different data), will be updated to <img class="formulaInl" alt="$ T_n $" src="form_35.png"/> </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tn</td><td>two dimensial array of <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_37.png"/> (size of [n+1][Tsize]; first [] indicate the extrapolation order (1...n), second [] indicate the different data) will be updated to <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_36.png"/> </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tnew</td><td>one dimensional array of <img class="formulaInl" alt="$ T_{n,1} $" src="form_38.png"/> (size of Tsize with different data), will be updated to <img class="formulaInl" alt="$ T_n $" src="form_40.png"/> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">step</td><td>step sequence (from sequence generators) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Tsize</td><td>data array size </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n</td><td>the new iteration step index in <em>step</em> (count from 0) </td></tr>
@@ -615,16 +615,16 @@ Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent
 </div><div class="memdoc">
 
 <p>Rational_recursion formula. </p>
-<p>Using rational function: <img class="formulaInl" alt="$ T_{i,k} = T_{i,k-1} + \frac{ T_{i,k-1} - T_{i-1,k-1} }{ \left( \frac{ h_{i-k} }{ h_i } \right)^2 \left( 1- \frac{ T_{i,k-1} - T_{i-1,k-1} }{ T_{i,k-1} - T_{i-1,k-2} } \right) -1} $" src="form_27.png"/> </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Using rational function: <img class="formulaInl" alt="$ T_{i,k} = T_{i,k-1} + \frac{ T_{i,k-1} - T_{i-1,k-1} }{ \left( \frac{ h_{i-k} }{ h_i } \right)^2 \left( 1- \frac{ T_{i,k-1} - T_{i-1,k-1} }{ T_{i,k-1} - T_{i-1,k-2} } \right) -1} $" src="form_32.png"/> </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k2</td><td><img class="formulaInl" alt="$ T_{i-1,k-2} $" src="form_28.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k1</td><td><img class="formulaInl" alt="$ T_{i-1,k-1} $" src="form_29.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">tik1</td><td><img class="formulaInl" alt="$ T_{i,k-1} $" src="form_30.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hr</td><td><img class="formulaInl" alt="$ h_{i-k/h_i} $" src="form_25.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k2</td><td><img class="formulaInl" alt="$ T_{i-1,k-2} $" src="form_33.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k1</td><td><img class="formulaInl" alt="$ T_{i-1,k-1} $" src="form_34.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tik1</td><td><img class="formulaInl" alt="$ T_{i,k-1} $" src="form_35.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hr</td><td><img class="formulaInl" alt="$ h_{i-k/h_i} $" src="form_30.png"/> </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><img class="formulaInl" alt="$ T_{i,k} $" src="form_26.png"/> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd><img class="formulaInl" alt="$ T_{i,k} $" src="form_31.png"/> </dd></dl>
 
 </div>
 </div>

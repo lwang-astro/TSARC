@@ -237,12 +237,14 @@ int main(int argc, char **argv){
   }
 
   ARC::chainpars pars;
+  double smpars[2];
   if (method)
     if (strcmp(method,"ttl")==0) {
-      pars.setM(0.003,false);
+      smpars[1]=-1; // switch of smooth mass in TTL method to avoid NAN
       pars.setabg(0.0,1.0,0.0);
     }
-
+    else smpars[1]=0.003;
+  
   int msq=2;
   if (sq) {
     if (strcmp(sq,"rom")==0) msq=1;
@@ -272,6 +274,9 @@ int main(int argc, char **argv){
   }
   c.addP(n,p);
 
+  c.pair_AW_pars=smpars;
+  smpars[0] = ARC::calc_mm2<Particle>(c.p); //mm2
+
   c.init(t);
   std::cout<<std::setprecision(pre);
 
@@ -295,10 +300,10 @@ int main(int argc, char **argv){
   while (true) {
     if (flag_out) {
       std::cout<<c.getTime()
-               <<std::setw(w)<<(c.getEkin()+c.getPot()+c.getB())/c.getB()
+               <<std::setw(w)<<(c.getEkin()+c.getPot()+c.getPt())/c.getPt()
                <<std::setw(w)<<c.getEkin()
                <<std::setw(w)<<c.getPot()
-               <<std::setw(w)<<c.getB()
+               <<std::setw(w)<<c.getPt()
                <<std::setw(w)<<c.getw()
                <<std::setw(w)<<c.getW();
       for (std::size_t j=0;j<n;j++) {
