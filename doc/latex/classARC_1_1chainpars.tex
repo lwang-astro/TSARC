@@ -19,7 +19,7 @@ The chain parameter controller class.
 \hyperlink{classARC_1_1chainpars_a032873f782645efb6e60dc77f6d425dc}{$\sim$chainpars} ()
 \begin{DoxyCompactList}\small\item\em destructor \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chainpars_af639f7bc8cfbb2a0330f079df2fd556e}{setA} (\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW} aw, \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap} ap)
-\begin{DoxyCompactList}\small\item\em Set acceleration, potential, time transformation function $partial W/\partial r$ and $W$ calculator. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Set acceleration, potential, time transformation function $\partial W/\partial r$ and $W$ calculator. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chainpars_a37f8af288217cbfc61a3593e21976d06}{setabg} (const double a=1.\+0, const double b=0.\+0, const double g=0.\+0)
 \begin{DoxyCompactList}\small\item\em Set time step transformation parameter. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chainpars_a5ead29e9b2005ba1933821deb96a5876}{set\+E\+XP} (const double error=1\+E-\/10, const double dtm=5.\+4e-\/20, const double dte=1e-\/6, const std\+::size\+\_\+t itermax=20, const int methods=2, const int sequences=2, const std\+::size\+\_\+t optiter=5)
@@ -89,9 +89,9 @@ constructor
 \hline
 \mbox{\tt in}  & {\em itermax} & Maximum extrapolation iteration number (defaulted \#exp\+\_\+itermax = 20) \\
 \hline
-\mbox{\tt in}  & {\em ext\+\_\+method} & 1\+: Romberg interpolation method; others\+: Rational interpolation method (defaulted\+: Rational) \\
+\mbox{\tt in}  & {\em ext\+\_\+method} & 1\+: Polynomial interpolation method; others\+: Rational interpolation method (defaulted\+: Rational) \\
 \hline
-\mbox{\tt in}  & {\em ext\+\_\+sequence} & 1\+: even sequence \{h, h/2, h/4, h/8 ...\}; 2\+: Bulirsch \& Stoer (BS) sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}; 3\+: 4k sequence \{h, h/2, h/6, h/10, h/14 ...\}; others\+: Harmonic sequence \{h, h/2, h/3, h/4 ...\} (defaulted 2. BS sequence) \\
+\mbox{\tt in}  & {\em ext\+\_\+sequence} & 1\+: Romberg sequence \{h, h/2, h/4, h/8 ...\}; 2\+: Bulirsch \& Stoer (BS) sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}; 3\+: 4k sequence \{h, h/2, h/6, h/10, h/14 ...\}; others\+: Harmonic sequence \{h, h/2, h/3, h/4 ...\} (defaulted 2. BS sequence) \\
 \hline
 \mbox{\tt in}  & {\em optiter} & Optimized extrapolation interation order for auto-\/adjust integration step size (defaulted \#opt\+\_\+iter = 5) \\
 \hline
@@ -117,9 +117,9 @@ destructor
 
 
 
-Set acceleration, potential, time transformation function $partial W/\partial r$ and $W$ calculator. 
+Set acceleration, potential, time transformation function $\partial W/\partial r$ and $W$ calculator. 
 
-Set acceleration, potential, time transformation function $partial W/\partial r$ and $W$ for two particles. This is the basic functions used for interaction between chain members and from perturbers. 
+Set acceleration, potential, time transformation function $\partial W/\partial r$ and $W$ for two particles. This is the basic functions used for interaction between chain members and from perturbers. 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em aw} & acceleration, potential and time transformation function $\partial W/\partial r$, $W$ of two particles calculation function pointer with \hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+AW} type. (interaction between memebrs). Notice this function defines $\partial W/\partial r$ and $W$, and these time transformation functions are only used when \#beta$>$0 (see \hyperlink{classARC_1_1chainpars_a37f8af288217cbfc61a3593e21976d06}{setabg()}). \\
 \hline
@@ -166,9 +166,9 @@ Set extrapolation related parameters as following\+:
 \hline
 \mbox{\tt in}  & {\em itermax} & maximum order (index in sequence) for extrapolation iteration. (defaulted \#exp\+\_\+itermax = 20) \\
 \hline
-\mbox{\tt in}  & {\em methods} & 1\+: Romberg method; others\+: Rational interpolation method (defaulted Rational) \\
+\mbox{\tt in}  & {\em methods} & 1\+: Polynomial method; others\+: Rational interpolation method (defaulted Rational) \\
 \hline
-\mbox{\tt in}  & {\em sequences} & 1\+: even sequence \{h, h/2, h/4, h/8 ...\}; 2\+: Bulirsch \& Stoer (BS) sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}; 3\+: 4k sequence \{h, h/2, h/6, h/10, h/14 ...\}; others\+: Harmonic sequence \{h, h/2, h/3, h/4 ...\} (defaulted 2. BS sequence) \\
+\mbox{\tt in}  & {\em sequences} & 1\+: Romberg sequence \{h, h/2, h/4, h/8 ...\}; 2\+: Bulirsch \& Stoer (BS) sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}; 3\+: 4k sequence \{h, h/2, h/6, h/10, h/14 ...\}; others\+: Harmonic sequence \{h, h/2, h/3, h/4 ...\} (defaulted 2. BS sequence) \\
 \hline
 \mbox{\tt in}  & {\em optiter} & Optimized interation order for auto-\/adjust integration time step (defaulted \#opt\+\_\+iter = 5) \\
 \hline

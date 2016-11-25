@@ -215,8 +215,8 @@ private:
   // extrapolation control parameter
   double exp_error;        ///< relative error requirement for extrapolation
   std::size_t exp_itermax; ///< maximum times for iteration.
-  int exp_method;         ///< 1: Romberg method; others: Rational interpolation method
-  int exp_sequence;       ///< 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other. 4k sequence {h/2, h/6, h/10, h/14 ...}
+  int exp_method;         ///< 1: Polynomial method; others: Rational interpolation method
+  int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other. 4k sequence {h/2, h/6, h/10, h/14 ...}
 
   int* step; ///< substep sequence
   std::size_t  opt_iter; ///< optimized iteration index
@@ -255,8 +255,8 @@ public:
     @param [in] dtm: Minimum physical time step (defaulted #dtmin = 5.4e-20)
     @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
     @param [in] itermax: Maximum extrapolation iteration number (defaulted #exp_itermax = 20)
-    @param [in] ext_method: 1: Romberg interpolation method; others: Rational interpolation method (defaulted: Rational)
-    @param [in] ext_sequence: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+    @param [in] ext_method: 1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational)
+    @param [in] ext_sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
     @param [in] optiter: Optimized extrapolation interation order for auto-adjust integration step size (defaulted #opt_iter = 5)
    */
   chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const std::size_t optiter=5) {
@@ -278,8 +278,8 @@ public:
     }
   }
 
-  //! Set acceleration, potential, time transformation function \f$partial W/\partial r\f$ and \f$W\f$ calculator
-  /*! Set acceleration, potential, time transformation function \f$partial W/\partial r\f$ and \f$W\f$ for two particles. This is the basic functions used for interaction between chain members and from perturbers.
+  //! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ calculator
+  /*! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ for two particles. This is the basic functions used for interaction between chain members and from perturbers.
     @param [in] aw: acceleration, potential and time transformation function \f$\partial W/\partial r\f$, \f$W\f$ of two particles calculation function pointer with ::ARC::pair_AW type. (interaction between memebrs). Notice this function defines \f$\partial W/\partial r\f$ and \f$W\f$, and these time transformation functions are only used when #beta>0 (see setabg()).
     @param [in] ap: acceleration calculation function pointer with ::ARC::pair_Ap type. (interaction between members and perturbers)
   */
@@ -322,8 +322,8 @@ public:
     @param [in] dtm: minimum physical time step allown (defaulted #dtmin = 5.4e-20)
     @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
     @param [in] itermax: maximum order (index in sequence) for extrapolation iteration. (defaulted #exp_itermax = 20)
-    @param [in] methods: 1: Romberg method; others: Rational interpolation method (defaulted Rational)
-    @param [in] sequences: 1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+    @param [in] methods: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
+    @param [in] sequences: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
     @param [in] optiter: Optimized interation order for auto-adjust integration time step (defaulted #opt_iter = 5)
   */
   void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2, const std::size_t optiter=5) {
@@ -2065,7 +2065,7 @@ public:
         backup(dtemp);
         
         // iteration
-        // Using Romberg method
+        // Using Polynomial method
         if (method==1) EP::polynomial_extrapolation(dn,dtemp,step,dsize,intcount);
         // Using Rational interpolation method
         else EP::rational_extrapolation(dn,dtemp,step,dsize,intcount);

@@ -17,112 +17,164 @@
 \form#16:$m_i$
 \form#17:$m_j$
 \form#18:$ dt = ds/[a *(logH) + b * (TTL) + g])$
-\form#19:$partial W/\partial r$
-\form#20:$ dt = ds/[a *(logH) + b * (TTL) + g]$
-\form#21:$Pt += dt * \sum ( - m_k * <v_k> \dot f_k)$
-\form#22:$w += dt * \sum ( dm/dr_k \dot v_k)$
-\form#23:$Pt$
-\form#24:$(-H(t))$
-\form#25:$w$
-\form#26:$ \frac{dw}{dt} = \sum_k \frac{\partial W}{\partial \vec{r_k}} \bullet \vec{v_k} $
-\form#27:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{(h_{i-k}/h_i)^2 -1} $
-\form#28:$ t_{i-1,k-1} $
-\form#29:$ t_{i,k-1} $
-\form#30:$ h_{i-k/h_i} $
-\form#31:$ T_{i,k} $
-\form#32:$ T_{i,k} = T_{i,k-1} + \frac{ T_{i,k-1} - T_{i-1,k-1} }{ \left( \frac{ h_{i-k} }{ h_i } \right)^2 \left( 1- \frac{ T_{i,k-1} - T_{i-1,k-1} }{ T_{i,k-1} - T_{i-1,k-2} } \right) -1} $
-\form#33:$ T_{i-1,k-2} $
-\form#34:$ T_{i-1,k-1} $
-\form#35:$ T_{i,k-1} $
-\form#36:$ T_{n,(1..n)} $
-\form#37:$ T_{n-1,(1...n-1)} $
-\form#38:$ T_{n,1} $
-\form#39:$ T_{x,x} $
-\form#40:$ T_n $
-\form#41:$ T_{n,n} $
-\form#42:$ T_{n,n-1} $
-\form#43:$ 2 \frac{T_{n,n} - T_{n,n-1}}{\sqrt{T_{n,n}^2 + T_{n,n-1}^2}} $
-\form#44:$\sum_j nlev_j$
-\form#45:$t$
-\form#46:$ s$
-\form#47:$ \mathbf{q} = \{q_i\}, (i=1,n) $
-\form#48:$n$
-\form#49:$ \mathbf{p} $
-\form#50:$ \frac{d \mathbf{q}}{d t} = \frac{\partial H}{\partial \mathbf{p}}$
-\form#51:$ \frac{d \mathbf{p}}{d t} = - \frac{\partial H}{\partial \mathbf{q}} $
-\form#52:$s$
-\form#53:$ \mathbf{Q} = (t, \mathbf{q}) $
-\form#54:$ \mathbf{P} = (Pt, \mathbf{p})$
-\form#55:$2(n+1)$
-\form#56:$H'$
-\form#57:$(t, Pt)$
-\form#58:$ \frac{d t}{d t} = \frac{\partial H'}{\partial Pt} = 1 $
-\form#59:$ \frac{d Pt}{d t} = - \frac{\partial H'}{\partial t} = - \frac{\partial H}{\partial t}$
-\form#60:$ H' = H + Pt $
-\form#61:$-H(t)$
-\form#62:$ ds$
-\form#63:$ g(\mathbf{Q},\mathbf{P}) = \frac{dt}{ds} $
-\form#64:$ds$
-\form#65:$(\mathbf{Q}, \mathbf{P})$
-\form#66:$ \frac{d \mathbf{Q}}{d s} = g(\mathbf{Q},\mathbf{P}) \frac{\partial H'}{\partial \mathbf{P}} $
-\form#67:$ \frac{d \mathbf{P}}{d s} = - g(\mathbf{Q},\mathbf{P}) \frac{\partial H'}{\partial \mathbf{Q}} $
-\form#68:$\Gamma(\mathbf{P},\mathbf{Q})$
-\form#69:$ \frac{d \mathbf{Q}}{d s} = \frac{\partial \Gamma}{\partial \mathbf{P}} $
-\form#70:$ \frac{d \mathbf{P}}{d s} = -\frac{\partial \Gamma}{\partial \mathbf{Q}} $
-\form#71:$H(\mathbf{p},\mathbf{q},t)$
-\form#72:$L(\mathbf{p},\mathbf{q},t)$
-\form#73:$ H(\mathbf{p},\mathbf{q},t) = \sum_{i=1}^n p_i \dot{q_i} - L(\mathbf{p},\mathbf{q},t) $
-\form#74:$ S = \int_{t_1}^{t_2} L(\mathbf{p},\mathbf{q},t) dt = \int_{t_1}^{t_2} \left[ \sum_{i=1}^n p_i \dot{q_i} - H(\mathbf{p},\mathbf{q},t) \right] dt $
-\form#75:$ \delta S $
-\form#76:$ S + \delta S$
-\form#77:$ \delta L(\mathbf{p},\mathbf{q},t) = 0 $
-\form#78:$ t_1 $
-\form#79:$ t_2 $
-\form#80:$S$
-\form#81:$ S = \int_{s_1}^{s_2} \left[ \sum_{i=1}^n p_i \frac{d q_i} {d s} + Pt \frac{d t}{d s} - (H(\mathbf{p},\mathbf{q},t) + Pt) \frac{d t}{d s} \right] ds = \int_{s_1}^{s_2} \left[ \sum_{i=1}^{n+1} P_i \frac{d Q_i}{d s} - H'(\mathbf{P},\mathbf{Q}) \frac{d t}{d s}\right] ds $
-\form#82:$ \Gamma(\mathbf{P},\mathbf{Q}) = H'(\mathbf{P},\mathbf{Q}) \frac{d t}{d s} = g(\mathbf{Q},\mathbf{P}) (H(\mathbf{p},\mathbf{q},t) + Pt) $
-\form#83:$ \Gamma(\mathbf{P},\mathbf{Q}) $
-\form#84:$ (\mathbf{P},\mathbf{Q}) $
-\form#85:$\Gamma$
-\form#86:$H$
-\form#87:$\frac{\partial \Gamma}{\partial s}$
-\form#88:$ \Gamma$
-\form#89:$ ds $
-\form#90:$g(\mathbf{Q},\mathbf{P})$
-\form#91:$\Gamma(\mathbf{Q},\mathbf{P})$
-\form#92:$P$
-\form#93:$Q$
-\form#94:$ \Gamma(\mathbf{Q},\mathbf{P}) = a(\mathbf{P}) + b(\mathbf{Q}) $
-\form#95:$ g(\mathbf{Q},\mathbf{P}) = \frac{f(T(\mathbf{P})) - f(-U(\mathbf{Q}))}{T(\mathbf{P}) + U(\mathbf{Q})} $
-\form#96:$ T(\mathbf{P}) = T(\mathbf{p}) + Pt $
-\form#97:$ U(\mathbf{Q}) = U(\mathbf{q},t) $
-\form#98:$ \Gamma = f(T(\mathbf{P})) - f(-U(\mathbf{Q})) $
-\form#99:$ \frac{d \mathbf{q} }{d s} = f'(T(\mathbf{p})+Pt) \frac{\partial T(\mathbf{p})}{\partial {\mathbf{p}}} $
-\form#100:$ \frac{d t }{d s} = f'(T(\mathbf{p})+Pt) $
-\form#101:$ \frac{d \mathbf{p} }{d s} = f'(-U(\mathbf{q},t)) \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{q}}} $
-\form#102:$ \frac{d Pt}{d s} = f'(-U(\mathbf{q},t)) \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{t}}} $
-\form#103:$ f'(x) = \frac{d f(x)}{d x} $
-\form#104:$Pt = -H(t)$
-\form#105:$H'=H+Pt = T(\mathbf{P}) + U(\mathbf{Q}) = 0 $
-\form#106:$T(\mathbf{P}) \approx -U(\mathbf{Q}) $
-\form#107:$ f(T(\mathbf{P})) - f(-U(\mathbf{Q})) \approx 0 $
-\form#108:$ f(T(\mathbf{P})) = f(-U(\mathbf{Q})) + \left[T(\mathbf{P}) + U(\mathbf{Q})\right] f'(-U(\mathbf{Q})) + O\left[T(\mathbf{P}) + U(\mathbf{Q})\right]^2 $
-\form#109:$ g(\mathbf{Q},\mathbf{P}) \approx f'(-U(\mathbf{Q})) $
-\form#110:$ f(x) = \log{x} $
-\form#111:$ g(\mathbf{Q},\mathbf{P}) \approx \frac{1}{-U(\mathbf{Q})} $
-\form#112:$ \frac{d \mathbf{q} }{d s} = \frac{1}{T(\mathbf{p})+Pt} \frac{\partial T(\mathbf{p})}{\partial {\mathbf{p}}} $
-\form#113:$ \frac{d t }{d s} = \frac{1}{T(\mathbf{p})+Pt} $
-\form#114:$ \frac{d \mathbf{p} }{d s} = \frac{1}{-U(\mathbf{q},t)} \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{q}}} $
-\form#115:$ \frac{d Pt}{d s} = \frac{1}{-U(\mathbf{q},t)} \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{t}}} $
-\form#116:$ T(\mathbf{p}) = \frac{1}{2} \mathbf{p} \cdot \mathbf{q} $
-\form#117:$ U(\mathbf{q},t) = - \sum_{i<j,i=1,j=1}^{i\rightarrow n,j\rightarrow n} \frac{G m_i m_j}{|\mathbf{q_i}-\mathbf{q_j}|} $
-\form#118:$ m_i, m_j $
-\form#119:$ \frac{d Pt}{d s} = 0 $
-\form#120:$-Pt$
-\form#121:$\mathbf{r}$
-\form#122:$\mathbf{v}$
-\form#123:$\mathbf{F}(\mathbf{r})$
-\form#124:$ \frac{d t}{d s} = \frac{1}{\Omega(\mathbf(r))} $
-\form#125:$ \frac{d \mathbf{r}} {d s} = \frac{\mathbf{v}}{\Omega(\mathbf(r))} $
-\form#126:$ \frac{d t}{d s} = \frac{1}{\Omega(\mathbf(r))}$
-\form#127:$ \frac{d \mathbf{v}}{d s} = \frac{\mathbf{F}(\mathbf{r})}{\Omega(\mathbf(r))} $
+\form#19:$ dt = ds/[a *(logH) + b * (TTL) + g]$
+\form#20:$Pt += dt * \sum ( - m_k * <v_k> \dot f_k)$
+\form#21:$w += dt * \sum ( dm/dr_k \dot v_k)$
+\form#22:$Pt$
+\form#23:$(-H(t))$
+\form#24:$w$
+\form#25:$ \frac{dw}{dt} = \sum_k \frac{\partial W}{\partial \vec{r_k}} \bullet \vec{v_k} $
+\form#26:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{(h_{i-k}/h_i)^2 -1} $
+\form#27:$ t_{i-1,k-1} $
+\form#28:$ t_{i,k-1} $
+\form#29:$ h_{i-k/h_i} $
+\form#30:$ T_{i,k} $
+\form#31:$ T_{i,k} = T_{i,k-1} + \frac{ T_{i,k-1} - T_{i-1,k-1} }{ \left( \frac{ h_{i-k} }{ h_i } \right)^2 \left( 1- \frac{ T_{i,k-1} - T_{i-1,k-1} }{ T_{i,k-1} - T_{i-1,k-2} } \right) -1} $
+\form#32:$ T_{i-1,k-2} $
+\form#33:$ T_{i-1,k-1} $
+\form#34:$ T_{i,k-1} $
+\form#35:$ T_{n,(1..n)} $
+\form#36:$ T_{n-1,(1...n-1)} $
+\form#37:$ T_{n,1} $
+\form#38:$ T_{x,x} $
+\form#39:$ T_n $
+\form#40:$ T_{n,n} $
+\form#41:$ T_{n,n-1} $
+\form#42:$ 2 \frac{T_{n,n} - T_{n,n-1}}{\sqrt{T_{n,n}^2 + T_{n,n-1}^2}} $
+\form#43:$\sum_j nlev_j$
+\form#44:$t$
+\form#45:$ s$
+\form#46:$ \mathbf{q} = \{q_i\}, (i=1,n) $
+\form#47:$n$
+\form#48:$ \mathbf{p} $
+\form#49:$ \frac{d \mathbf{q}}{d t} = \frac{\partial H}{\partial \mathbf{p}}$
+\form#50:$ \frac{d \mathbf{p}}{d t} = - \frac{\partial H}{\partial \mathbf{q}} $
+\form#51:$s$
+\form#52:$ \mathbf{Q} = (t, \mathbf{q}) $
+\form#53:$ \mathbf{P} = (Pt, \mathbf{p})$
+\form#54:$2(n+1)$
+\form#55:$H'$
+\form#56:$(t, Pt)$
+\form#57:$ \frac{d t}{d t} = \frac{\partial H'}{\partial Pt} = 1 $
+\form#58:$ \frac{d Pt}{d t} = - \frac{\partial H'}{\partial t} = - \frac{\partial H}{\partial t}$
+\form#59:$ H' = H + Pt $
+\form#60:$-H(t)$
+\form#61:$ ds$
+\form#62:$ g(\mathbf{Q},\mathbf{P}) = \frac{dt}{ds} $
+\form#63:$ds$
+\form#64:$(\mathbf{Q}, \mathbf{P})$
+\form#65:$ \frac{d \mathbf{Q}}{d s} = g(\mathbf{Q},\mathbf{P}) \frac{\partial H'}{\partial \mathbf{P}} $
+\form#66:$ \frac{d \mathbf{P}}{d s} = - g(\mathbf{Q},\mathbf{P}) \frac{\partial H'}{\partial \mathbf{Q}} $
+\form#67:$\Gamma(\mathbf{P},\mathbf{Q})$
+\form#68:$ \frac{d \mathbf{Q}}{d s} = \frac{\partial \Gamma}{\partial \mathbf{P}} $
+\form#69:$ \frac{d \mathbf{P}}{d s} = -\frac{\partial \Gamma}{\partial \mathbf{Q}} $
+\form#70:$H(\mathbf{p},\mathbf{q},t)$
+\form#71:$L(\mathbf{p},\mathbf{q},t)$
+\form#72:$ H(\mathbf{p},\mathbf{q},t) = \sum_{i=1}^n p_i \dot{q_i} - L(\mathbf{p},\mathbf{q},t) $
+\form#73:$ S = \int_{t_1}^{t_2} L(\mathbf{p},\mathbf{q},t) dt = \int_{t_1}^{t_2} \left[ \sum_{i=1}^n p_i \dot{q_i} - H(\mathbf{p},\mathbf{q},t) \right] dt $
+\form#74:$ \delta S $
+\form#75:$ S + \delta S$
+\form#76:$ \delta L(\mathbf{p},\mathbf{q},t) = 0 $
+\form#77:$ t_1 $
+\form#78:$ t_2 $
+\form#79:$S$
+\form#80:$ S = \int_{s_1}^{s_2} \left[ \sum_{i=1}^n p_i \frac{d q_i} {d s} + Pt \frac{d t}{d s} - (H(\mathbf{p},\mathbf{q},t) + Pt) \frac{d t}{d s} \right] ds = \int_{s_1}^{s_2} \left[ \sum_{i=1}^{n+1} P_i \frac{d Q_i}{d s} - H'(\mathbf{P},\mathbf{Q}) \frac{d t}{d s}\right] ds $
+\form#81:$ \Gamma(\mathbf{P},\mathbf{Q}) = H'(\mathbf{P},\mathbf{Q}) \frac{d t}{d s} = g(\mathbf{Q},\mathbf{P}) (H(\mathbf{p},\mathbf{q},t) + Pt) $
+\form#82:$ \Gamma(\mathbf{P},\mathbf{Q}) $
+\form#83:$ (\mathbf{P},\mathbf{Q}) $
+\form#84:$\Gamma$
+\form#85:$H$
+\form#86:$\frac{\partial \Gamma}{\partial s}$
+\form#87:$ \Gamma$
+\form#88:$ ds $
+\form#89:$g(\mathbf{Q},\mathbf{P})$
+\form#90:$\Gamma(\mathbf{Q},\mathbf{P})$
+\form#91:$P$
+\form#92:$Q$
+\form#93:$ \Gamma(\mathbf{Q},\mathbf{P}) = a(\mathbf{P}) + b(\mathbf{Q}) $
+\form#94:$ g(\mathbf{Q},\mathbf{P}) = \frac{f(T(\mathbf{P})) - f(-U(\mathbf{Q}))}{T(\mathbf{P}) + U(\mathbf{Q})} $
+\form#95:$ T(\mathbf{P}) = T(\mathbf{p}) + Pt $
+\form#96:$ U(\mathbf{Q}) = U(\mathbf{q},t) $
+\form#97:$ \Gamma = f(T(\mathbf{P})) - f(-U(\mathbf{Q})) $
+\form#98:$ \frac{d \mathbf{q} }{d s} = f'(T(\mathbf{p})+Pt) \frac{\partial T(\mathbf{p})}{\partial {\mathbf{p}}} $
+\form#99:$ \frac{d t }{d s} = f'(T(\mathbf{p})+Pt) $
+\form#100:$ \frac{d \mathbf{p} }{d s} = f'(-U(\mathbf{q},t)) \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{q}}} $
+\form#101:$ \frac{d Pt}{d s} = f'(-U(\mathbf{q},t)) \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{t}}} $
+\form#102:$ f'(x) = \frac{d f(x)}{d x} $
+\form#103:$Pt = -H(t)$
+\form#104:$H'=H+Pt = T(\mathbf{P}) + U(\mathbf{Q}) = 0 $
+\form#105:$T(\mathbf{P}) \approx -U(\mathbf{Q}) $
+\form#106:$ f(T(\mathbf{P})) - f(-U(\mathbf{Q})) \approx 0 $
+\form#107:$ f(T(\mathbf{P})) = f(-U(\mathbf{Q})) + \left[T(\mathbf{P}) + U(\mathbf{Q})\right] f'(-U(\mathbf{Q})) + O\left[T(\mathbf{P}) + U(\mathbf{Q})\right]^2 $
+\form#108:$ g(\mathbf{Q},\mathbf{P}) \approx f'(-U(\mathbf{Q})) $
+\form#109:$ f(x) = \log{x} $
+\form#110:$ g(\mathbf{Q},\mathbf{P}) \approx \frac{1}{-U(\mathbf{Q})} $
+\form#111:$ \frac{d \mathbf{q} }{d s} = \frac{1}{T(\mathbf{p})+Pt} \frac{\partial T(\mathbf{p})}{\partial {\mathbf{p}}} $
+\form#112:$ \frac{d t }{d s} = \frac{1}{T(\mathbf{p})+Pt} $
+\form#113:$ \frac{d \mathbf{p} }{d s} = \frac{1}{-U(\mathbf{q},t)} \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{q}}} $
+\form#114:$ \frac{d Pt}{d s} = \frac{1}{-U(\mathbf{q},t)} \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{t}}} $
+\form#115:$ T(\mathbf{p}) = \sum_{i=1}^{n} \frac{\mathbf{p_i}^2}{2m} $
+\form#116:$ U(\mathbf{q},t) = - \sum_{i<j,i=1,j=1}^{i\rightarrow n,j\rightarrow n} \frac{G m_i m_j}{|\mathbf{q_i}-\mathbf{q_j}|} $
+\form#117:$ m_i, m_j $
+\form#118:$ \frac{d Pt}{d s} = 0 $
+\form#119:$-Pt$
+\form#120:$ f'(T(\mathbf{p})+Pt) $
+\form#121:$ f'(-U(\mathbf{q},t))$
+\form#122:$ -U(\mathbf{q},t) $
+\form#123:$ W(\mathbf{q})$
+\form#124:$ w(\mathbf{p}) $
+\form#125:$ f(w(\mathbf{p})) - f(W(\mathbf{q})) \approx 0 $
+\form#126:$ g(\mathbf{Q},\mathbf{P}) = \frac{f(w(\mathbf{p})) - f(W(\mathbf{q}))}{T(\mathbf{P}) + U(\mathbf{Q})} \approx f'(W(\mathbf{q})) $
+\form#127:$ \frac{d W(\mathbf{q})}{d s} = \frac{\partial W(\mathbf{q})}{\partial \mathbf{q}} \cdot \frac{d \mathbf{q}} {d s} $
+\form#128:$ w(\mathbf{p}) = \int \frac{d W(\mathbf{q})}{d s} d s$
+\form#129:$ \frac{d \mathbf{p} }{d s} $
+\form#130:$ \frac{d \mathbf{q}}{d s} = \frac{d \mathbf{q}}{d t} \frac{d t}{d s} = \frac {\mathbf{p}}{m} f'(W(\mathbf{q}))$
+\form#131:$ \frac{d W(\mathbf{q})}{d s} $
+\form#132:$ \langle \mathbf{p} \rangle $
+\form#133:$\mathbf{q}$
+\form#134:$ f(x) = \log{x}$
+\form#135:$ \frac{d \mathbf{q} }{d s} = \frac{1}{w} \frac{\partial T(\mathbf{p})}{\partial {\mathbf{p}}} $
+\form#136:$ \frac{d t }{d s} = \frac{1}{w} $
+\form#137:$ \frac{d \mathbf{p} }{d s} = \frac{1}{W(\mathbf{q})} \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{q}}} $
+\form#138:$ \frac{d w}{d s} = \frac{1}{W(\mathbf{q})} \frac{\partial W(\mathbf{q})}{\partial \mathbf{q}} \cdot \frac{\langle \mathbf{p} \rangle} {m} $
+\form#139:$ W(\mathbf{q}) $
+\form#140:$ X $
+\form#141:$ V $
+\form#142:$ \mathbf{X}_i = \mathbf{q}_{i+1} - \mathbf{q}_i $
+\form#143:$ \mathbf{V}_i = \mathbf{v}_{i+1} - \mathbf{v}_i $
+\form#144:$ \frac{d \mathbf{X}_i}{d t} = \mathbf{V}_i $
+\form#145:$ \frac{d \mathbf{V}_i}{d t} = \mathbf{A}_{i+1} - \mathbf{A}_i $
+\form#146:$ \mathbf{A}_i $
+\form#147:$ i$
+\form#148:$ \Delta t = \Delta s / (\alpha (T(\mathbf{p}) + Pt) + \beta w + \gamma) $
+\form#149:$ t += \Delta t $
+\form#150:$ \mathbf{X}_i += \Delta t \mathbf{V}_i $
+\form#151:$ \delta t = \Delta s / (\alpha U(\mathbf{q},t) + \beta W(\mathbf{q}) + \gamma) $
+\form#152:$ \mathbf{V}_i += \delta t (\mathbf{A}_{i+1} - \mathbf{A}_{i}) $
+\form#153:$ Pt += \delta t \sum_i (-m_i \langle \mathbf{v}_i \rangle \cdot f_{ext,i}) $
+\form#154:$ w += \delta t \sum_i \frac{\partial W}{\partial \mathbf{q}_i} \cdot \langle \mathbf{v}_i \rangle $
+\form#155:$ f_{ext,i} $
+\form#156:$ \mathbf{v}_i $
+\form#157:$ \alpha, \beta, \gamma $
+\form#158:$ \alpha=0$
+\form#159:$ \alpha =1, \beta=0, \gamma=0 $
+\form#160:$ Pt $
+\form#161:$ U(\mathbf{q},t) - T(\mathbf{p}) $
+\form#162:$ w$
+\form#163:$ D(s/2)K(s)D(s)....K(s)D(s/2) $
+\form#164:$ n $
+\form#165:$ (n_1, n_2, n_3 ...)$
+\form#166:$ n_{i+1}>n_i$
+\form#167:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{( h_{i-k} / {h_i} )^2 -1} $
+\form#168:$ 1 \le k \le i \le m $
+\form#169:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{\left[ \frac{h_{i-k}}{h_i} \right]^2 \left[ 1 - \frac{T_{i,k-1} - T_{i-1,k-1}}{T_{i,k-1}- T_{i-1,k-2}} \right]-1} $
+\form#170:$ h_i = s/n_i$
+\form#171:$ k $
+\form#172:$ T_{i,0} $
+\form#173:$ T_{i,i} $
+\form#174:$ k=1 $
+\form#175:$ k=i $
+\form#176:$ T_{i+1,i+1} $
+\form#177:$ T_{i,k}, k=0\sim i $
+\form#178:$ T_{i+1,0} $
+\form#179:$ n_i $

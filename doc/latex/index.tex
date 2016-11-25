@@ -84,15 +84,103 @@ Then the equation of motions can be written as\+:
 
 For the point mass systems with Newtonian gravity
 
-(17) $ T(\mathbf{p}) = \frac{1}{2} \mathbf{p} \cdot \mathbf{q} $; $ U(\mathbf{q},t) = - \sum_{i<j,i=1,j=1}^{i\rightarrow n,j\rightarrow n} \frac{G m_i m_j}{|\mathbf{q_i}-\mathbf{q_j}|} $
+(17) $ T(\mathbf{p}) = \sum_{i=1}^{n} \frac{\mathbf{p_i}^2}{2m} $; $ U(\mathbf{q},t) = - \sum_{i<j,i=1,j=1}^{i\rightarrow n,j\rightarrow n} \frac{G m_i m_j}{|\mathbf{q_i}-\mathbf{q_j}|} $
 
 where G is gravitational constant and $ m_i, m_j $ are masses of point-\/mass particles.
 
-From (17) we see $ \frac{d Pt}{d s} = 0 $. This is only for the isolated system. If the system has external force from perturbers or external potential. The energy of system ( $-Pt$) may not be conserved any more. Thus the energy change should be added into $Pt$ during the integration.\hypertarget{index_TTL_sec}{}\subsection{Time-\/\+Transformed Leapfrog (\+T\+T\+L)}\label{index_TTL_sec}
+From (17) we see $ \frac{d Pt}{d s} = 0 $. This is only for the isolated system. If the system has external force from perturbers or external potential. The energy of system ( $-Pt$) may not be conserved any more. Thus the energy change should be added into $Pt$ during the integration.\hypertarget{index_TTL_sec}{}\subsubsection{Time-\/\+Transformed Leapfrog (\+T\+T\+L)}\label{index_TTL_sec}
 The regularization methods where energy explicitly appear in the equation of motions cannot solve the few-\/body systems with large mass ratio (for example, planetary systems and super massive black hole with surrounding stars), because the energy is dominated by the massive bodies, and this introduce the systematic error during the integration. To solve this kind of issue, \href{http://adsabs.harvard.edu/abs/2002CeMDA..84..343M}{\tt Mikkola \& Aarseth (2002)} developed the so-\/called Time-\/\+Transformed Leapfrog (T\+TL) method. This method is also based on time transformation. The major difference compared with the LogH method is that the time transformation function also need to be integrated.
 
-Consider the systems with positions $\mathbf{r}$, velocity $\mathbf{v}$ and acceleration $\mathbf{F}(\mathbf{r})$ and the time transformation function $ \frac{d t}{d s} = \frac{1}{\Omega(\mathbf(r))} $. The equation of motions can be described as\+:
+The time transformation (10) leads to the equations of motion (12) where time transformation $ f'(T(\mathbf{p})+Pt) $ and $ f'(-U(\mathbf{q},t))$ explicitly depend on kinetic energy, binding energy and potential. If we want to replace $ -U(\mathbf{q},t) $ to other quantity $ W(\mathbf{q})$, considering the requirement $ f(T(\mathbf{P})) - f(-U(\mathbf{Q})) \approx 0 $, we should also find another quantity $ w(\mathbf{p}) $ that allow $ f(w(\mathbf{p})) - f(W(\mathbf{q})) \approx 0 $. and
 
-(18) $ \frac{d \mathbf{r}} {d s} = \frac{\mathbf{v}}{\Omega(\mathbf(r))} $; $ \frac{d t}{d s} = \frac{1}{\Omega(\mathbf(r))}$ ; $ \frac{d \mathbf{v}}{d s} = \frac{\mathbf{F}(\mathbf{r})}{\Omega(\mathbf(r))} $
+(18) $ g(\mathbf{Q},\mathbf{P}) = \frac{f(w(\mathbf{p})) - f(W(\mathbf{q}))}{T(\mathbf{P}) + U(\mathbf{Q})} \approx f'(W(\mathbf{q})) $
 
-As discussed in 
+Instead of finding the $ w(\mathbf{p}) $ for each kind of $ W(\mathbf{q})$, Mikkola \& Aarseth (2002) suggest to use the differential equation
+
+(19) $ \frac{d W(\mathbf{q})}{d s} = \frac{\partial W(\mathbf{q})}{\partial \mathbf{q}} \cdot \frac{d \mathbf{q}} {d s} $
+
+and integrate this equation to approximate $ w(\mathbf{p}) = \int \frac{d W(\mathbf{q})}{d s} d s$ simultaneously with integration of $ \frac{d \mathbf{p} }{d s} $.
+
+However
+
+(20) $ \frac{d \mathbf{q}}{d s} = \frac{d \mathbf{q}}{d t} \frac{d t}{d s} = \frac {\mathbf{p}}{m} f'(W(\mathbf{q}))$
+
+Thus $ \frac{d W(\mathbf{q})}{d s} $ explicitly depends on the momemtum. The integration in principle are not separatable. To solve this issue, Mikkole \& Aarseth (2002) recommend to use averaged momemtums $ \langle \mathbf{p} \rangle $ (velocities) between previous and current step\textquotesingle{}s during the Leapfrog integration, because the averaged values can represent the momemtums at the D (half) step when $\mathbf{q}$ is integrated.
+
+Then if we take $ f(x) = \log{x}$ again, we have the equations of motion like\+:
+
+(21) $ \frac{d \mathbf{q} }{d s} = \frac{1}{w} \frac{\partial T(\mathbf{p})}{\partial {\mathbf{p}}} $; $ \frac{d t }{d s} = \frac{1}{w} $; $ \frac{d \mathbf{p} }{d s} = \frac{1}{W(\mathbf{q})} \frac{\partial U(\mathbf{q},t)}{\partial {\mathbf{q}}} $; $ \frac{d w}{d s} = \frac{1}{W(\mathbf{q})} \frac{\partial W(\mathbf{q})}{\partial \mathbf{q}} \cdot \frac{\langle \mathbf{p} \rangle} {m} $;
+
+This solution avoid use the energy (potential) as a time transformation dependence, thus with a suitable choice of $ W(\mathbf{q}) $, the high mass ratio systems can be integrated with high accuracy.\hypertarget{index_code_sec}{}\section{Implementation of A\+RC}\label{index_code_sec}
+We implememted AR method together with Chain (discussed below) for few-\/body systems by using C++ programming Language. The idea is make the integrator a C++ class thus can be easily used as a module for other codes. In this section we describe the details of the implementation.\hypertarget{index_chain_sec}{}\subsection{Particle Chain}\label{index_chain_sec}
+If the bounded few-\/body systems are inside a big cluster enviroment, the average distance between these particles can be much smaller than the scale of cluster. Thus the round off error can be large if the positions of these particles are in the cluster center-\/of-\/mass frame. To avoid this issue, \href{http://adsabs.harvard.edu/abs/1993CeMDA..57..439M}{\tt Mikkola \& Aarseth (1993)} suggested to use Chain method.
+
+The idea is to connect all particles in one chain and using relative position and velocity for integration. Firstly, one particle is selected as a starting point of the chain, then the nearest particle is selected as the next chain member, the relative position $ X $ and velocity $ V $ between these neighbors are calculated and stored. After that, we found the nearest particle to this second member from the remaining particles and calculate relative positions and velocites and do this iterately until all particles are connected in this chain. The relative positions and velocites can be described by absolute positions and velocities in a ordered chain as\+:
+
+(22) $ \mathbf{X}_i = \mathbf{q}_{i+1} - \mathbf{q}_i $; $ \mathbf{V}_i = \mathbf{v}_{i+1} - \mathbf{v}_i $
+
+The integration is done with these relative quantities to reduce round off error. The equations of motion can be written as
+
+(23) $ \frac{d \mathbf{X}_i}{d t} = \mathbf{V}_i $; $ \frac{d \mathbf{V}_i}{d t} = \mathbf{A}_{i+1} - \mathbf{A}_i $
+
+where $ \mathbf{A}_i $ is the acceleration of particle $ i$.
+
+When the particles are moved, the nearest neighbor of each particle may become different, thus the update of chain order should be performed with a suitable time interval.\hypertarget{index_leap_sec}{}\subsection{Leapfrog Integrator}\label{index_leap_sec}
+By combining the AR algorithm and Chain scheme, we can construct a Leapfrog integrator of equations of motion for \$N\$-\/body systems like\+:
+\begin{DoxyItemize}
+\item D mode\+:
+\end{DoxyItemize}
+
+(24) $ \Delta t = \Delta s / (\alpha (T(\mathbf{p}) + Pt) + \beta w + \gamma) $; $ t += \Delta t $; $ \mathbf{X}_i += \Delta t \mathbf{V}_i $
+
+
+\begin{DoxyItemize}
+\item K mode\+:
+\end{DoxyItemize}
+
+(25) $ \delta t = \Delta s / (\alpha U(\mathbf{q},t) + \beta W(\mathbf{q}) + \gamma) $; $ \mathbf{V}_i += \delta t (\mathbf{A}_{i+1} - \mathbf{A}_{i}) $; $ Pt += \delta t \sum_i (-m_i \langle \mathbf{v}_i \rangle \cdot f_{ext,i}) $; $ w += \delta t \sum_i \frac{\partial W}{\partial \mathbf{q}_i} \cdot \langle \mathbf{v}_i \rangle $
+
+where $ f_{ext,i} $ is the external force from outside the system (e.\+g., perturber force or tidal force) of each particle $ i$, and  \{v\}\+\_\+i  is obtained by averaging the velocities of the initial and the final $ \mathbf{v}_i $ of this K mode step. $ \alpha, \beta, \gamma $ are the coefficients representing the weights of the LogH, T\+TL and non-\/time-\/transformation modes separately. For example, if $ \alpha=0$, then no LogH will be performed, and if $ \alpha =1, \beta=0, \gamma=0 $ it is LogH \hyperlink{namespaceARC}{A\+RC}.
+
+The initial value of $ Pt $ should be the initial binding energy of the system $ U(\mathbf{q},t) - T(\mathbf{p}) $. If the system is isolated, $ Pt $ is constant. The initial value of $ w$ is set to initial $ W(\mathbf{q}) $.
+
+The Leapfrog step start with half-\/step D and then loop full-\/step K-\/\+D-\/K and stop with half-\/step D\+:
+
+(26) $ D(s/2)K(s)D(s)....K(s)D(s/2) $
+
+This provide a second order integrator of \hyperlink{namespaceARC}{A\+RC}. Trying this integrator for a two-\/body bounded system can result in an energy and eccentricity conserved kepler orbit. Only the time phase can have cumulative error after long-\/term integration.\hypertarget{index_extrapolation_sec}{}\subsection{Extrapolation Integrator}\label{index_extrapolation_sec}
+The Leapfrog integrator only has second order accuracy, which is not enough for many applications. One can reduce the step size of integration to obtain higher accuracy. However, as energy is always conserved for two-\/body motions, we don\textquotesingle{}t have good checker to indicate whether the integration is accurate enough. A better and more efficient way is to extrapolate the integration results to obtain high order accuracy. The idea of extrapolation integration is well summarized in \href{http://link.springer.com/book/10.1007%2F978-0-387-21738-3}{\tt Stoer \& Bulirsch}. Here the basic algorithm is shown.
+
+First, if we integrate the equations of motion with Leapfrog integrator by step $ s$. we get the first result with a certain accuracy. Now we keep the total step constant but divide the integration into several sub-\/steps with equal sizes by $ n $, we can obtain higher accuracy of the integration. When we use a sequence of dividers $ (n_1, n_2, n_3 ...)$ ( $ n_{i+1}>n_i$) and do the integration with each of them, we can obtain a series of results with increasing accuracy. Then we can extrapolate these results to get an even higher accurate one.
+
+There are two major methods of extrapolation\+: polynomial and rational. Both methods can be described as recursive functions\+:
+
+
+\begin{DoxyItemize}
+\item Polynomial\+:
+\end{DoxyItemize}
+
+(27) $ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{( h_{i-k} / {h_i} )^2 -1} $, $ 1 \le k \le i \le m $
+
+
+\begin{DoxyItemize}
+\item Rational\+:
+\end{DoxyItemize}
+
+(28) $ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{\left[ \frac{h_{i-k}}{h_i} \right]^2 \left[ 1 - \frac{T_{i,k-1} - T_{i-1,k-1}}{T_{i,k-1}- T_{i-1,k-2}} \right]-1} $, $ 1 \le k \le i \le m $
+
+Here $ i$ indicate the integration with sub-\/step size $ h_i = s/n_i$, and $ k $ indicate the extrapolation order. The $ T_{i,0} $ are results of Leapfrog integrations, and for each order $ i$, the $ T_{i,i} $ is final extrapolation result we want. The $ T_{i,i} $ can be obtained by calculating $ T_{i,k} $ from $ k=1 $ to $ k=i $ using the recursive functions.
+
+One benefit of these recursive functions is that a higher order extrapolation $ T_{i+1,i+1} $ can be established based on current existing $ T_{i,k}, k=0\sim i $ with a new higher order integration result $ T_{i+1,0} $. Then it is easy to estimate the error by comparing $ T_{i+1,i+1} $ and $ T_{i,i} $ to determine whether another higher order result is necessary. For example, in \hyperlink{namespaceARC}{A\+RC} integration, we can check the time or position phase error and energy error to determine how many orders we need to integrate and extrapolate due to the accuracy requirment.
+
+The sequences of dividers $ n_i $ have several choices for different applications\+:
+\begin{DoxyItemize}
+\item \href{https://en.wikipedia.org/wiki/Romberg's_method}{\tt Romberg}\+: (1, 2, 4, 8 ...)
+\item \href{http://link.springer.com/article/10.1007%2FBF02165234}{\tt Bulirsch \& Stoer} (BS)\+: (1, 2, 3, 4, 6, 8 ...)
+\item \href{http://link.springer.com/article/10.1007%2FBF01385634}{\tt Hairer} (4k)\+: (2, 6, 10, 14 ...)
+\item Harmonic\+: (1, 2, 3, 4 ...)
+\end{DoxyItemize}
+
+Different seuqnces and recursive functions can be combined together for extrapolation integration. We implement all sequences shown above. Later we discuss the special application of some sequences.\hypertarget{index_dense_sec}{}\subsection{Dense Output for Time Synchronization}\label{index_dense_sec}
+\hypertarget{index_step_sec}{}\subsection{Integration Step Control}\label{index_step_sec}
+\hypertarget{index_perf_sec}{}\subsection{Performance Analysis}\label{index_perf_sec}

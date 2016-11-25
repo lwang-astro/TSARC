@@ -106,7 +106,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a032873f782645efb6e60dc77f6d425dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">destructor  <a href="#a032873f782645efb6e60dc77f6d425dc">More...</a><br /></td></tr>
 <tr class="separator:a032873f782645efb6e60dc77f6d425dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af639f7bc8cfbb2a0330f079df2fd556e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#af639f7bc8cfbb2a0330f079df2fd556e">setA</a> (<a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c">pair_AW</a> aw, <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0">pair_Ap</a> ap)</td></tr>
-<tr class="memdesc:af639f7bc8cfbb2a0330f079df2fd556e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set acceleration, potential, time transformation function <img class="formulaInl" alt="$partial W/\partial r$" src="form_19.png"/> and <img class="formulaInl" alt="$W$" src="form_1.png"/> calculator.  <a href="#af639f7bc8cfbb2a0330f079df2fd556e">More...</a><br /></td></tr>
+<tr class="memdesc:af639f7bc8cfbb2a0330f079df2fd556e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set acceleration, potential, time transformation function <img class="formulaInl" alt="$\partial W/\partial r$" src="form_0.png"/> and <img class="formulaInl" alt="$W$" src="form_1.png"/> calculator.  <a href="#af639f7bc8cfbb2a0330f079df2fd556e">More...</a><br /></td></tr>
 <tr class="separator:af639f7bc8cfbb2a0330f079df2fd556e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37f8af288217cbfc61a3593e21976d06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a37f8af288217cbfc61a3593e21976d06">setabg</a> (const double a=1.0, const double b=0.0, const double g=0.0)</td></tr>
 <tr class="memdesc:a37f8af288217cbfc61a3593e21976d06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set time step transformation parameter.  <a href="#a37f8af288217cbfc61a3593e21976d06">More...</a><br /></td></tr>
@@ -272,8 +272,8 @@ Friends</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dtm</td><td>Minimum physical time step (defaulted #dtmin = 5.4e-20) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dte</td><td>Time synchronization error limit (defaulted #dterr = 1e-6) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">itermax</td><td>Maximum extrapolation iteration number (defaulted #exp_itermax = 20) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ext_method</td><td>1: Romberg interpolation method; others: Rational interpolation method (defaulted: Rational) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ext_sequence</td><td>1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch &amp; Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ext_method</td><td>1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ext_sequence</td><td>1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch &amp; Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">optiter</td><td>Optimized extrapolation interation order for auto-adjust integration step size (defaulted #opt_iter = 5) </td></tr>
   </table>
   </dd>
@@ -343,8 +343,8 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Set acceleration, potential, time transformation function <img class="formulaInl" alt="$partial W/\partial r$" src="form_19.png"/> and <img class="formulaInl" alt="$W$" src="form_1.png"/> calculator. </p>
-<p>Set acceleration, potential, time transformation function <img class="formulaInl" alt="$partial W/\partial r$" src="form_19.png"/> and <img class="formulaInl" alt="$W$" src="form_1.png"/> for two particles. This is the basic functions used for interaction between chain members and from perturbers. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Set acceleration, potential, time transformation function <img class="formulaInl" alt="$\partial W/\partial r$" src="form_0.png"/> and <img class="formulaInl" alt="$W$" src="form_1.png"/> calculator. </p>
+<p>Set acceleration, potential, time transformation function <img class="formulaInl" alt="$\partial W/\partial r$" src="form_0.png"/> and <img class="formulaInl" alt="$W$" src="form_1.png"/> for two particles. This is the basic functions used for interaction between chain members and from perturbers. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">aw</td><td>acceleration, potential and time transformation function <img class="formulaInl" alt="$\partial W/\partial r$" src="form_0.png"/>, <img class="formulaInl" alt="$W$" src="form_1.png"/> of two particles calculation function pointer with <a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c" title="Function pointer type to function for calculation of acceleration (potential) and the component of ti...">ARC::pair_AW</a> type. (interaction between memebrs). Notice this function defines <img class="formulaInl" alt="$\partial W/\partial r$" src="form_0.png"/> and <img class="formulaInl" alt="$W$" src="form_1.png"/>, and these time transformation functions are only used when #beta&gt;0 (see <a class="el" href="classARC_1_1chainpars.html#a37f8af288217cbfc61a3593e21976d06" title="Set time step transformation parameter. ">setabg()</a>). </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ap</td><td>acceleration calculation function pointer with <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a> type. (interaction between members and perturbers) </td></tr>
@@ -395,7 +395,7 @@ Friends</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Set time step transformation parameter. </p>
-<p>Set parameter a,b,g where physical time step <img class="formulaInl" alt="$ dt = ds/[a *(logH) + b * (TTL) + g]$" src="form_20.png"/> <br />
+<p>Set parameter a,b,g where physical time step <img class="formulaInl" alt="$ dt = ds/[a *(logH) + b * (TTL) + g]$" src="form_19.png"/> <br />
 </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">a</td><td>Logarithmic Hamiltonian (logH) method coefficient #alpha (0.0, 1.0) </td></tr>
@@ -478,8 +478,8 @@ Friends</h2></td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dtm</td><td>minimum physical time step allown (defaulted #dtmin = 5.4e-20) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dte</td><td>Time synchronization error limit (defaulted #dterr = 1e-6) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">itermax</td><td>maximum order (index in sequence) for extrapolation iteration. (defaulted #exp_itermax = 20) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">methods</td><td>1: Romberg method; others: Rational interpolation method (defaulted Rational) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">sequences</td><td>1: even sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch &amp; Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">methods</td><td>1: Polynomial method; others: Rational interpolation method (defaulted Rational) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">sequences</td><td>1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch &amp; Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">optiter</td><td>Optimized interation order for auto-adjust integration time step (defaulted #opt_iter = 5) </td></tr>
   </table>
   </dd>

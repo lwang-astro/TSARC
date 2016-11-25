@@ -17,7 +17,7 @@ int main(int argc, char **argv){
   int nstep=1000; // total step size
   int nsubstep=128;  // sub-step number if direct LF method is used
   int itermax=20;  //iteration maximum number for extrapolation methods
-  char* sw=NULL;        // if not 'none', use extrapolation method, 'linear' for Romberg method; 'rational'  for rational interpolation method
+  char* sw=NULL;        // if not 'none', use extrapolation method, 'linear' for polynomial method; 'rational'  for rational interpolation method
   char* sq=NULL;        // extrapolation sequence, 'rom' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}; '4k' for {h/2, h/6, h/10, h/14 ...}; 'hm' for {h, h/2, h/3, h/4 ...}
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
   double err=1e-10; // phase error requirement
@@ -171,7 +171,7 @@ int main(int argc, char **argv){
                <<"                  'ttl': Time-transformed Leapfrog\n"
                <<"          --AR-method (same as -r)\n"
                <<"    -m [string]:  use extrapolation method to get high accuracy (rational)\n"
-               <<"                  'linear':   Romberg linear interpolation method;\n"
+               <<"                  'linear':   polynomial interpolation method;\n"
                <<"                  'rational': rational interpolation method;\n"
                <<"                  'none':     no extrapolation\n"
                <<"          --extra-method (same as -m)\n"

@@ -5,9 +5,17 @@ var NAVTREE =
       [ "Algorithmic Regularization (AR)", "index.html#AR_sec", [
         [ "Hamiltonian in Extended Phase Space", "index.html#H_sec", null ],
         [ "Time transformation for Separable Hamiltonian", "index.html#T_sec", [
-          [ "Logarithmic Hamintonian method (LogH)", "index.html#logH_sec", null ]
-        ] ],
-        [ "Time-Transformed Leapfrog (TTL)", "index.html#TTL_sec", null ]
+          [ "Logarithmic Hamintonian method (LogH)", "index.html#logH_sec", null ],
+          [ "Time-Transformed Leapfrog (TTL)", "index.html#TTL_sec", null ]
+        ] ]
+      ] ],
+      [ "Implementation of ARC", "index.html#code_sec", [
+        [ "Particle Chain", "index.html#chain_sec", null ],
+        [ "Leapfrog Integrator", "index.html#leap_sec", null ],
+        [ "Extrapolation Integrator", "index.html#extrapolation_sec", null ],
+        [ "Dense Output for Time Synchronization", "index.html#dense_sec", null ],
+        [ "Integration Step Control", "index.html#step_sec", null ],
+        [ "Performance Analysis", "index.html#perf_sec", null ]
       ] ]
     ] ],
     [ "Namespaces", null, [
