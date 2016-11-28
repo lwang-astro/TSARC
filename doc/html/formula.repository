@@ -161,20 +161,114 @@
 \form#160:$ Pt $
 \form#161:$ U(\mathbf{q},t) - T(\mathbf{p}) $
 \form#162:$ w$
-\form#163:$ D(s/2)K(s)D(s)....K(s)D(s/2) $
-\form#164:$ n $
-\form#165:$ (n_1, n_2, n_3 ...)$
-\form#166:$ n_{i+1}>n_i$
-\form#167:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{( h_{i-k} / {h_i} )^2 -1} $
-\form#168:$ 1 \le k \le i \le m $
-\form#169:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{\left[ \frac{h_{i-k}}{h_i} \right]^2 \left[ 1 - \frac{T_{i,k-1} - T_{i-1,k-1}}{T_{i,k-1}- T_{i-1,k-2}} \right]-1} $
-\form#170:$ h_i = s/n_i$
-\form#171:$ k $
-\form#172:$ T_{i,0} $
-\form#173:$ T_{i,i} $
-\form#174:$ k=1 $
-\form#175:$ k=i $
-\form#176:$ T_{i+1,i+1} $
-\form#177:$ T_{i,k}, k=0\sim i $
-\form#178:$ T_{i+1,0} $
-\form#179:$ n_i $
+\form#163:$ D(\Delta s/2)K(\Delta s)D(\Delta s)....K(\Delta s)D(\Delta s/2) $
+\form#164:$ \Delta s\approx 0$
+\form#165:$ \Delta s$
+\form#166:$ n $
+\form#167:$ (n_1, n_2, n_3 ...)$
+\form#168:$ n_{i+1}>n_i$
+\form#169:$ \Delta s/n_{\infty}=0 $
+\form#170:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{( h_{i-k} / {h_i} )^2 -1} $
+\form#171:$ 1 \le k \le i \le m $
+\form#172:$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{\left[ \frac{h_{i-k}}{h_i} \right]^2 \left[ 1 - \frac{T_{i,k-1} - T_{i-1,k-1}}{T_{i,k-1}- T_{i-1,k-2}} \right]-1} $
+\form#173:$ h_i = s/n_i$
+\form#174:$ k $
+\form#175:$ T_{i,0} $
+\form#176:$ T_{i,i} $
+\form#177:$ k=1 $
+\form#178:$ k=i $
+\form#179:$ T_{i+1,i+1} $
+\form#180:$ T_{i,k}, k=0\sim i $
+\form#181:$ T_{i+1,0} $
+\form#182:$ n_i $
+\form#183:$ t$
+\form#184:$ s $
+\form#185:$ T(s) $
+\form#186:$ t_{off} $
+\form#187:$ T(s)=t_{off} $
+\form#188:$\Delta s_{off} $
+\form#189:$\Delta s_{off}$
+\form#190:$\mathbf{p}$
+\form#191:$<=4$
+\form#192:$ y $
+\form#193:$ f $
+\form#194:$ n_i = i$
+\form#195:$ y_i(0) $
+\form#196:$ y_i(\Delta s) $
+\form#197:$ f_i(\Delta s* k/n_i) (k=0,n_i)$
+\form#198:$ f_i $
+\form#199:$ f_i^{(k)}(0) = \left[\frac{n_i}{\Delta s}\right]^k \sum_{j=0}^k (-1)^j B_j^k f( \Delta s*\frac{k-j}{n_i}) $
+\form#200:$ f_i^{(k)}(\Delta s) = \left[\frac{n_i}{\Delta s}\right]^k \sum_{j=0}^k (-1)^j B_j^k f(\Delta s*(1-\frac{j}{n_i})) $
+\form#201:$(k=1, n_i) $
+\form#202:$ B_j^k = \frac{j!}{k!(j-k)!}$
+\form#203:$i=\kappa$
+\form#204:$ n_\kappa$
+\form#205:$ f_i^{(k)}(0) $
+\form#206:$ f_i^{(k)}(\Delta s)$
+\form#207:$ k=1,n_\kappa$
+\form#208:$(\Delta s/n_i)$
+\form#209:$ i=k,n_\kappa$
+\form#210:$y(\Delta s)$
+\form#211:$f^{(k)}(0)$
+\form#212:$f^{(k)}(\Delta s)$
+\form#213:$ y(0)$
+\form#214:$ Y(x) $
+\form#215:$ Y(x) - y(x) = O(\Delta s^{n_\kappa+1}) $
+\form#216:$ n_\kappa = \kappa $
+\form#217:$\Delta s/2$
+\form#218:$ n_i$
+\form#219:$k+1$
+\form#220:$ n_i = 6 $
+\form#221:$ \Delta s*j/n_i $
+\form#222:$j=0,6$
+\form#223:$ k = 3 $
+\form#224:$ f_i^{(3)}(\Delta s/2) $
+\form#225:$ \Delta s/2 $
+\form#226:$ j = 0,2,4,6 $
+\form#227:$ k = 4 $
+\form#228:$ j= 1,2,3,4,5$
+\form#229:$ k$
+\form#230:$ f_i^{(k)}(\Delta s/2) = \left[ \frac{2n_i}{\Delta s} \right]^k \sum_{j=0}^k (-1)^j B_j^k f(\Delta s*(\frac{1}{2}+\frac{z_j-2j}{n_i})) $
+\form#231:$ k=1,2i-1 $
+\form#232:$k$
+\form#233:$ z_j = k+1 $
+\form#234:$ z_j = k $
+\form#235:$ n_i =(2, 6, 10, 14 ...) $
+\form#236:$ y(\Delta s/2) $
+\form#237:$ y(0) $
+\form#238:$ y(\Delta s) $
+\form#239:$ f^{(k)}(\Delta s/2) $
+\form#240:$ k =1,2\kappa-1 $
+\form#241:$ Y(x) - y(x) = O(\Delta s^{2\kappa-1}) $
+\form#242:$\kappa $
+\form#243:$\Delta s$
+\form#244:$ \kappa $
+\form#245:$ err_i = \frac{2|T_{i,i-1} - T_{i,i}|}{\sqrt{T_{i,i-1}^2 + T_{i,i}^2}}$
+\form#246:$ i = k $
+\form#247:$ \frac{\Delta s_{new}}{\Delta s} \approx \left(\frac{exp}{err_{k}}\right)^{1/(2n_i+1)} $
+\form#248:$ err_{k} $
+\form#249:$ err_i \propto (\Delta s)^{2n_i} $
+\form#250:$ \mathbf{q} $
+\form#251:$ t $
+\form#252:$ w $
+\form#253:$ \mathbf{A} $
+\form#254:$ N $
+\form#255:$ C_{LF} = C_{A,P}*N^2 + C_{Pt}*N + C_{w}*N + 2C_{p}*N + 2*C_{t} + C_{T}*N $
+\form#256:$ C_* $
+\form#257:$ C_{Pt} = 0$
+\form#258:$ C_{w} = 0$
+\form#259:$ C_{EINT} = \sum_{i=1}^\kappa n_i*(C_{LF} + C_{EX}*(6N+3))$
+\form#260:$ C_{EX} $
+\form#261:$ (6N+3) $
+\form#262:$ dt/ds $
+\form#263:$ C_{DEN} = \sum_{i=1}^\kappa \sum_{j=1}^{2i-1} [2j*C_{DIFF} + C_{EX}] $
+\form#264:$ C_{DIFF} $
+\form#265:$ f(x) $
+\form#266:$ C_{DEN}*(6N+3) $
+\form#267:$ \frac{C_{DEN}}{C_{EINT}} \approx \frac{O(\kappa^3)}{O(\langle n_i\rangle*N)} $
+\form#268:$\langle n_i\rangle$
+\form#269:$ i=1,\kappa$
+\form#270:$\langle n_i\rangle \propto \kappa^2$
+\form#271:$\kappa$
+\form#272:$ \kappa>4 $
+\form#273:$ N < 5 $

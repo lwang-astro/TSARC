@@ -217,7 +217,7 @@ The initial value of \f$ w\f$ is set to initial \f$ W(\mathbf{q}) \f$.
 
 The Leapfrog step start with half-step D and then loop full-step K-D-K and stop with half-step D:
 
-(26) \f$ D(s/2)K(s)D(s)....K(s)D(s/2) \f$
+(26) \f$ D(\Delta s/2)K(\Delta s)D(\Delta s)....K(\Delta s)D(\Delta s/2) \f$
 
 This provide a second order integrator of ARC. Trying this integrator for a two-body bounded system can result in an energy and eccentricity conserved kepler orbit. Only the time phase can have cumulative error after long-term integration.
 
@@ -225,12 +225,12 @@ This provide a second order integrator of ARC. Trying this integrator for a two-
 
 The Leapfrog integrator only has second order accuracy, which is not enough for many applications. One can reduce the step size of integration to obtain higher accuracy. 
 However, as energy is always conserved for two-body motions, we don't have good checker to indicate whether the integration is accurate enough. 
-A better and more efficient way is to extrapolate the integration results to obtain high order accuracy.
+A better and more efficient way is to extrapolate the integration results to infinite small step \f$ \Delta s\approx 0\f$, thus the high accuracy result can be obtained.
 The idea of extrapolation integration is well summarized in <A HREF="http://link.springer.com/book/10.1007%2F978-0-387-21738-3"> Stoer & Bulirsch</A>. 
 Here the basic algorithm is shown.
 
-First, if we integrate the equations of motion with Leapfrog integrator by step \f$ s\f$. 
-we get the first result with a certain accuracy. Now we keep the total step constant but divide the integration into several sub-steps with equal sizes by \f$ n \f$, we can obtain higher accuracy of the integration. When we use a sequence of dividers \f$ (n_1, n_2, n_3 ...)\f$ (\f$ n_{i+1}>n_i\f$) and do the integration with each of them, we can obtain a series of results with increasing accuracy. Then we can extrapolate these results to get an even higher accurate one.
+First, if we integrate the equations of motion with Leapfrog integrator by step \f$ \Delta s\f$. 
+we get the first result with a certain accuracy. Now we keep the total step constant but divide the integration into several sub-steps with equal sizes by \f$ n \f$, we can obtain higher accuracy of the integration. When we use a sequence of dividers \f$ (n_1, n_2, n_3 ...)\f$ (\f$ n_{i+1}>n_i\f$) and do the integration with each of them, we can obtain a series of results with increasing accuracy. Then we can extrapolate these results to obtain the value of \f$ \Delta s/n_{\infty}=0 \f$.
 
 There are two major methods of extrapolation: polynomial and rational.
 Both methods can be described as recursive functions:
@@ -262,16 +262,125 @@ We implement all sequences shown above. Later we discuss the special application
 
 \subsection dense_sec Dense Output for Time Synchronization
 
+Although the ARC can make the integration of $N$-body systems accurately, the side-effect of time transformation is that the physical time become unpredictable.
+With the Leapfrog integrator, we cannot know what will be the final physical time before one integration step finish.
+This result in difficulty if we want to use the ARC together with a $N$-body code to simulate a particle cluster including dense sub-systems.
+The integration of the motions of particles surrounding this sub-system need to obtain the acceleration from this sub-system at a certain physical time, but with ARC the integration of this sub-system cannot exactly reach the required time.
+Especially with extrapolation method, the large integration step is used frequently, thus the physical time error can be significant.
+
+To solve this issue, we apply the dense output of extrapolation method introduced by <A HREF="http://link.springer.com/article/10.1007%2FBF01385634">Hairer & Ostermann (1990)</A>. 
+The idea of this scheme is using interpolation to obtain the integrated variable at any sub-step inside an extrapolation integration step.
+The interpolation should have the similar order of accuracy as the extrapolation and the internal integration results during extrapolation should be used for interpolation to save computational effort.
+
+The physical time \f$ t\f$ as a function of integration step variable \f$ s \f$ then can be interpolated as \f$ T(s) \f$. 
+If the required ending physical time \f$ t_{off} \f$ is inside one integration step, we can solve the equation \f$ T(s)=t_{off} \f$ to obtain the correct step size \f$\Delta s_{off} \f$ to reach the exact \f$ t_{off} \f$.
+Then by redoing this integration step with \f$\Delta s_{off}\f$, we can get correct results.
+
+One can also try to do dense ouput for all variables (\f$t\f$, \f$Pt\f$, \f$w\f$, \f$\mathbf{q}\f$, \f$\mathbf{p}\f$), thus the results at correct physical time can be directly calculated instead of redoing the integration.
+However, as the computation of dense output is quite heavy (many extrapolation is needed; see below), redoing the integration can be cheaper if particle number is not large (\f$<=4\f$).
+
+
+Hairer & Ostermann (1990) introduced two dense output methods.
+One is for explicit Euler integrator using Harmonic sequences and another is for Gragg-Bulirsch-Stoer (GBS) method with 4k sequences (shown above).
+Here the brief algorithms are shown without mathematical proof.
+
+\subsubsection euler_dense_sec Dense Output for explicit Euler
+
+If the integrated variable is \f$ y \f$ and its first derivate (acceleration) is \f$ f \f$ which can be calculated directly, we can use explicit Euler together with Harmonic sequence \f$ n_i = i\f$ for extrapolation.
+Then during each integration step, we have the initial \f$ y_i(0) \f$ and the final \f$ y_i(\Delta s) \f$.
+In addition, \f$ f_i(\Delta s* k/n_i) (k=0,n_i)\f$ are also calculated.
+Thus we can obtain the high order derivates of \f$ f_i \f$ at the left and right edges using forward and backward differences:
+
+(29) \f$ f_i^{(k)}(0) = \left[\frac{n_i}{\Delta s}\right]^k \sum_{j=0}^k (-1)^j B_j^k f( \Delta s*\frac{k-j}{n_i}) \f$;  \f$ f_i^{(k)}(\Delta s) = \left[\frac{n_i}{\Delta s}\right]^k \sum_{j=0}^k (-1)^j B_j^k f(\Delta s*(1-\frac{j}{n_i})) \f$; \f$(k=1, n_i) \f$
+
+where \f$ B_j^k = \frac{j!}{k!(j-k)!}\f$ is the binomial sequence.
+
+Then if the last sequence index used in extrapolation is \f$i=\kappa\f$, the maximum order of derivate is \f$ n_\kappa\f$.
+Besides, for each order of derivate \f$ f_i^{(k)}(0) \f$ and \f$ f_i^{(k)}(\Delta s)\f$ (\f$ k=1,n_\kappa\f$), we also have the values of different order of accuracy corresponding to difference step size \f$(\Delta s/n_i)\f$ (\f$ i=k,n_\kappa\f$). 
+Thus the extrapolation can be done with these different order of accuracy (the same way as the extrapolation of \f$y(\Delta s)\f$) to get high accurate derivates \f$f^{(k)}(0)\f$ and \f$f^{(k)}(\Delta s)\f$.
+
+Since now the \f$ y(0)\f$, \f$y(\Delta s)\f$, \f$f^{(k)}(0)\f$ and \f$f^{(k)}(\Delta s)\f$ are avaiable, then Hermite interpolation can be used to get the interpolation polynomial function \f$ Y(x) \f$ and
+
+(30) \f$ Y(x) - y(x) = O(\Delta s^{n_\kappa+1}) \f$
+
+where \f$ n_\kappa = \kappa \f$ in the case of Harmonic sequence.
+
+\subsubsection gbs_dense_sec Dense Output for Gragg-Bulirsch-Stoer
+
+Similar as the dense output method described above, for mordified middle point integrator used in GBS method, we can construct the interpolation using high order derivates of \f$ f \f$ at the middle position (\f$\Delta s/2\f$) instead of edges.
+However, differing from the edge differences, the middle difference is sensitive to the data point number.
+If \f$ n_i\f$ is even, to obtain the derivate order with odd \f$ k \f$ (which means \f$k+1\f$ points are needed), we have to use values every two sub-steps.
+
+For example, when \f$ n_i = 6 \f$, there are 6 sub-steps and 7 points (\f$ \Delta s*j/n_i \f$ with \f$j=0,6\f$).
+If \f$ k = 3 \f$, 4 points are needed to obtain the derivate \f$ f_i^{(3)}(\Delta s/2) \f$. 
+Since we need the derivate at \f$ \Delta s/2 \f$, only \f$ f \f$ at \f$ j = 0,2,4,6 \f$ can be used.
+If \f$ k = 4 \f$, values at \f$ j= 1,2,3,4,5\f$ are OK.
+But the difference step sizes in this case are different for odd and even \f$ k\f$.
+
+To keep accuracy order consistent, we only allow every two points to be used for both odd and even order of derivates.
+The formular then should be
+
+(31) \f$ f_i^{(k)}(\Delta s/2) = \left[ \frac{2n_i}{\Delta s} \right]^k \sum_{j=0}^k (-1)^j B_j^k f(\Delta s*(\frac{1}{2}+\frac{z_j-2j}{n_i})) \f$; \f$ k=1,2i-1 \f$
+- if \f$k\f$ is odd, \f$ z_j = k+1 \f$
+- if \f$k\f$ is even, \f$ z_j = k \f$
+
+together with the 4k sequence \f$ n_i =(2, 6, 10, 14 ...) \f$.
+
+Then again the extrapolation of the derivates and also the middle point integrated variable \f$ y(\Delta s/2) \f$ can be done and \f$ y(0) \f$, \f$ y(\Delta s) \f$, \f$ y(\Delta s/2) \f$ and derivates \f$ f^{(k)}(\Delta s/2) \f$ (\f$ k =1,2\kappa-1 \f$) are avaiable for Hermite interpolation.
+This method can provide the interpolation polynomial function with accuracy
+
+(32) \f$ Y(x) - y(x) = O(\Delta s^{2\kappa-1}) \f$
 
 \subsection step_sec Integration Step Control
 
+If we use the automatical accuracy order in extrapolation integration (the maximum sequence index \f$\kappa \f$ is determined by the error criterion), the step size \f$\Delta s\f$ can be constant with a suitable initial value.
+On the other hand, we can fixes \f$ \kappa \f$ and adjusts \f$ \Delta s\f$ based on integration error.
+
+The integration error at sequence index \f$ i\f$ can be estimated as
+
+(33) \f$ err_i = \frac{2|T_{i,i-1} - T_{i,i}|}{\sqrt{T_{i,i-1}^2 + T_{i,i}^2}}\f$ 
+
+If we want the expected error appear at sequence index \f$ i = k \f$, which leads to the mimimum computational cost, at the next integration step, the step modification factor can be estimated as:
+
+(34) \f$ \frac{\Delta s_{new}}{\Delta s} \approx \left(\frac{exp}{err_{k}}\right)^{1/(2n_i+1)} \f$
+
+where \f$ err_{k} \f$ is the error at current step.
+Here we assume \f$ err_i \propto (\Delta s)^{2n_i} \f$.
+
 \subsection perf_sec Performance Analysis
-          
-*/
-/*
-Consider the systems with positions \f$\mathbf{r}\f$, velocity \f$\mathbf{v}\f$ and acceleration \f$\mathbf{F}(\mathbf{r})\f$ and the time transformation function \f$ \frac{d t}{d s} = \frac{1}{\Omega(\mathbf(r))} \f$. The equation of motions can be described as:
 
-(18) \f$ \frac{d \mathbf{r}} {d s} = \frac{\mathbf{v}}{\Omega(\mathbf(r))} \f$; \f$ \frac{d t}{d s} = \frac{1}{\Omega(\mathbf(r))}\f$ ; \f$ \frac{d \mathbf{v}}{d s} = \frac{\mathbf{F}(\mathbf{r})}{\Omega(\mathbf(r))} \f$ 
+Here the performance analysis of the code is provided.
+For one step of Leapfrog integration, we need two half-step integration of \f$ \mathbf{q} \f$ and \f$ t \f$, one full-step integration of \f$ \mathbf{p} \f$, \f$ Pt \f$ and \f$ w \f$.
+Before \f$ \mathbf{p} \f$ is integrated, the acceleration \f$ \mathbf{A} \f$ is calculated.
+If the particle number is \f$ N \f$, the computational cost is:
 
-As discussed in 
+(35) \f$ C_{LF} = C_{A,P}*N^2 + C_{Pt}*N + C_{w}*N +  2C_{p}*N + 2*C_{t} + C_{T}*N \f$
+
+where \f$ C_* \f$ correspond to the number of operations of different parts. If there is no perturbation and external force, \f$ Pt \f$ is constant and \f$ C_{Pt} = 0\f$. If TTL method is switched off, \f$ C_{w} = 0\f$.
+
+During the extrapolation integration, the Leapfrog integration is performed many times. After integration finished at each sequence \f$ n_i \f$, the extrapolation is performed.
+Thus the total cost is:
+
+(36) \f$ C_{EINT} = \sum_{i=1}^\kappa n_i*(C_{LF} + C_{EX}*(6N+3))\f$
+
+where \f$ C_{EX} \f$ is the number of operations of (polynomial or rational) extrapolation function. The \f$ (6N+3) \f$ includes the variables of \f$ t \f$, \f$ Pt \f$, \f$ w \f$, \f$ \mathbf{q} \f$ and \f$ \mathbf{p} \f$.
+
+For the dense output, the high order derivates of \f$ dt/ds \f$ and their extrapolation are calculated.
+The cost is:
+
+(37) \f$ C_{DEN} = \sum_{i=1}^\kappa \sum_{j=1}^{2i-1} [2j*C_{DIFF} +  C_{EX}] \f$
+
+where \f$ C_{DIFF} \f$ is the number of operations for adding one \f$ f(x) \f$ value during the computation of difference (31). 
+For the two dense output methods discussed Section \cite dense_sec, the cost formula is similar (but the \f$ \kappa \f$ can be significant difference in practice).
+
+As we discussed in Section \cite dense_sec, we can do interpolation for all variables and the cost of dense output is \f$ C_{DEN}*(6N+3) \f$. 
+Then the cost of dense output over extrapolation integration is
+
+(38) \f$ \frac{C_{DEN}}{C_{EINT}} \approx \frac{O(\kappa^3)}{O(\langle n_i\rangle*N)} \f$
+
+where \f$\langle n_i\rangle\f$ is the average \f$ n_i \f$ from \f$ i=1,\kappa\f$.
+In the case of 4k sequence, \f$\langle n_i\rangle  \propto \kappa^2\f$.
+The value of \f$\kappa\f$ depends on the computational error criterion and the integration step size \f$ \Delta s\f$. 
+Usually \f$ \kappa>4 \f$, thus if \f$ N \f$ is not large (\f$ N < 5 \f$), the full dense output with all variables is can be more computational expensive.
+
 */

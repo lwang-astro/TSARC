@@ -13,7 +13,10 @@ var NAVTREE =
         [ "Particle Chain", "index.html#chain_sec", null ],
         [ "Leapfrog Integrator", "index.html#leap_sec", null ],
         [ "Extrapolation Integrator", "index.html#extrapolation_sec", null ],
-        [ "Dense Output for Time Synchronization", "index.html#dense_sec", null ],
+        [ "Dense Output for Time Synchronization", "index.html#dense_sec", [
+          [ "Dense Output for explicit Euler", "index.html#euler_dense_sec", null ],
+          [ "Dense Output for Gragg-Bulirsch-Stoer", "index.html#gbs_dense_sec", null ]
+        ] ],
         [ "Integration Step Control", "index.html#step_sec", null ],
         [ "Performance Analysis", "index.html#perf_sec", null ]
       ] ]
