@@ -72,12 +72,12 @@ template <class particle> class chain;
 template <class particle> class chainlist;
 class chainpars;
 
-//! Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ from particle j to particle i.
-/*!          @param[out] A: acceleration vector.
-             @param[out] P: potential (positive value).
-             @param[out] dW: time transformation function partial derivate \f$\partial W/\partial r\f$ (component from j to i; used when #beta>0; see ARC::chainpars.setabg()) .
-             @param[out] W: time transformation function (component from j to i; used when #beta>0; notice in \ref ARC::chain the cumulative W only count the case of j>i).
-             @param[in] X: relative position (1:3).
+//! Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ and \f$W_{ij}\f$ (from particle j to particle i).
+/*!          @param[out] Aij: acceleration vector for particle i.
+             @param[out] Pij: potential of particle i from particle j (cumulative total potential only count the case of j>i)
+             @param[out] dWij: time transformation function partial derivate \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (component from j to i; used when #beta>0; see ARC::chainpars.setabg()) .
+             @param[out] Wij: time transformation function component from j to i (used when #beta>0; notice in \ref ARC::chain the cumulative total W only count the case of j>i).
+             @param[in] Xij: relative position (1:3) \f$ \mathbf{x}_j - \mathbf{x}_i \f$
              @param[in] mi: particle i mass.
              @param[in] mj: particle j mass.
              @param[in] pars: extra parameters' array (one dimensional array with type of double)
@@ -85,8 +85,8 @@ class chainpars;
 typedef void (*pair_AW) (double*, double &, double *, double &, const double*, const double &, const double &, const double*);
 
 //! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.
-/*!         @param[out]  A: acceleration vector.
-            @param[out]  P: potential (positive value).
+/*!         @param[out]  Aij: acceleration vector of particle i.
+            @param[out]  Pij: potential of particle i from j
             @param[in]  pi: position vector i.
             @param[in]  pj: position vector j.
             @param[in]  mi: particle mass i.
@@ -94,69 +94,69 @@ typedef void (*pair_AW) (double*, double &, double *, double &, const double*, c
  */
 typedef void (*pair_Ap) (double *, double &, const double*, const double*, const double&, const double&);
 
-//! Newtonian acceleration and dW/dr from particle k to particle j (function type of \link #ARC::pair_AW \endlink) 
-/*!          @param[out] A: Newtonian acceleration vector. \f$A[1:3] = m_j m_k xjk[1:3] / |xjk|^3 \f$.
-             @param[out] P: Newtonian potential. \f$ P = m_j m_k /|xjk| \f$
-             @param[out] dW: TTL time transformation function derivates based on position vector (component of j,k) \f$\partial W/\partial r\f$ (used for TTL method). \f$dW[1:3] = mm_{jk} xjk[1:3] /|xjk|^3 \f$. (Total value is \f$\frac{\partial W}{\partial \mathbf{x}_j} = \sum_{k} mm_{jk} \mathbf{x}_{jk}/|\mathbf{x}_{jk}|^3\f$)
-             @param[out] W: TTL time transformation function component with j,k (used for TTL method) \f$W = mm_{jk} /|xjk|^3\f$ total value is \f$ W = \sum_{j<k} mm_{jk} /|xjk| \f$
-             @param[in] xjk: relative position vector [1:3] from particle j to particle k
+//! Newtonian acceleration and \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ from particle j to particle i (function type of \link #ARC::pair_AW \endlink) 
+/*!          @param[out] Aij: Newtonian acceleration vector for i particle from particle j. \f$Aij[1:3] = m_i m_j xij[1:3] / |xij|^3 \f$.
+             @param[out] Pij: Newtonian potential of i from j. \f$ Pij = -m_i m_j /|xij| \f$
+             @param[out] pWij: TTL time transformation function partial derivates (component from j to i) \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (used for TTL method). \f$pWij[1:3] = mm_{ij} xij[1:3] /|xij|^3 \f$. (Total value is \f$\frac{\partial W}{\partial \mathbf{x}_i} = \sum_{j} mm_{ij} \mathbf{x}_{ij}/|\mathbf{x}_{ij}|^3\f$)
+             @param[out] Wij: TTL time transformation function component with i,j (used for TTL method) \f$Wij = - mm_{ij} /|xij|^3\f$ total value is \f$ W = -\sum_{i<j} mm_{ij} /|xij| \f$
+             @param[in] xij: relative position vector [1:3] \f$ \mathbf{x_j} - \mathbf{x_i} \f$
+             @param[in] mi: particle i mass.
              @param[in] mj: particle j mass.
-             @param[in] mk: particle k mass.
              @param[in] smpars: array of double[2]. 
-             - First element is smooth mass coefficient mm2 \f$ \sum_{j<k} m_j m_k /(N(N-1)/2) \f$ (can be calculated by calc_mm2()); \n
-             - Second element is adjustable parameter epi. 
-             1) If epi>0: if \f$m_j m_k < epi mm2\f$:  \f$ mm_{jk} = mm2\f$  else: \f$ mm_jk = 0\f$
-             2) If epi<0: \f$mm_{jk} = m_j m_k\f$.\n
+             - First element is smooth mass coefficient mm2 \f$ \sum_{i<j} m_i m_j /(N(N-1)/2) \f$ (can be calculated by calc_mm2()); \n
+             - Second element is adiustable parameter epi. 
+             1) If epi>0: if \f$m_i m_j < epi mm2\f$:  \f$ mm_{ij} = mm2\f$  else: \f$ mm_ij = 0\f$
+             2) If epi<0: \f$mm_{ij} = m_i m_j\f$.\n
 */
-void Newtonian_AW (double A[3], double &P, double dW[3], double &W, const double xjk[3], const double &mj, const double &mk, const double* smpars) {
+void Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, const double xij[3], const double &mi, const double &mj, const double* smpars) {
 
   // distance
-  double rjk = std::sqrt(xjk[0]*xjk[0]+xjk[1]*xjk[1]+xjk[2]*xjk[2]);  
+  double rij = std::sqrt(xij[0]*xij[0]+xij[1]*xij[1]+xij[2]*xij[2]);  
 
   // smooth coefficients
   double mm2=smpars[0];
   double epi=smpars[1];
 
   // mass parameters
-  double mjmk = mj*mk; // m_i*m_j
-  double mmjk;
+  double mimj = mi*mj; // m_i*m_i
+  double mmij;
   if (mm2>0 && epi>0) {
-    // Wjk = mm2 if m_i*m_j < epi*m'^2; 0 otherwise;
-    if (mjmk<epi*mm2) mmjk = mm2;
-    else mmjk = 0;
+    // Wij = mm2 if m_i*m_i < epi*m'^2; 0 otherwise;
+    if (mimj<epi*mm2) mmij = mm2;
+    else mmij = 0;
   }
   else {
-    mmjk = mjmk;    // Wjk = m_i*m_j
+    mmij = mimj;    // Wij = m_i*m_i
   }
   
-  P = mjmk / rjk;  // Potential energy
-  W = mmjk / rjk;   // Transformation coefficient
+  Pij = - mimj / rij;  // Potential energy
+  Wij = - mmij / rij;   // Transformation coefficient
         
   // Acceleration
-  double rjk3 = rjk*rjk*rjk;
-  double mor3 = mk / rjk3;
-  A[0] = mor3 * xjk[0];
-  A[1] = mor3 * xjk[1];
-  A[2] = mor3 * xjk[2];
+  double rij3 = rij*rij*rij;
+  double mor3 = mj / rij3;
+  Aij[0] = mor3 * xij[0];
+  Aij[1] = mor3 * xij[1];
+  Aij[2] = mor3 * xij[2];
 
   // dW/dr
-  mor3 = mmjk / rjk3;
-  dW[0] = mor3 * xjk[0];
-  dW[1] = mor3 * xjk[1];
-  dW[2] = mor3 * xjk[2];
+  mor3 = mmij / rij3;
+  pWij[0] = mor3 * xij[0];
+  pWij[1] = mor3 * xij[1];
+  pWij[2] = mor3 * xij[2];
   
 }
 
 //! Newtonian acceleration from particle p to particle i (function type of ::ARC::pair_Ap)
 /*! 
-  @param[out]  A: acceleration vector. \f$A[1:3] = m_i m_p (xp[1:3]-xi[1:3]) / |xp-xi|^3 \f$.
-  @param[out]  P: potential. \f$ P = m_i m_p /|xp-xi|^3\f$
+  @param[out]  Aij: acceleration vector. \f$Aij[1:3] = m_i m_p (xp[1:3]-xi[1:3]) / |xp-xi|^3 \f$.
+  @param[out]  Pij: potential. \f$ Pij = - m_i m_p /|xp-xi|^3\f$
   @param[in]  xi: position vector i.
   @param[in]  xp: position vector p.
   @param[in]  mi: particle mass i.
   @param[in]  mp: particle mass p.
  */
-void Newtonian_Ap (double A[3], double &P, const double xi[3], const double xp[3], const double &mi, const double &mp){
+void Newtonian_Ap (double Aij[3], double &Pij, const double xi[3], const double xp[3], const double &mi, const double &mp){
   double dx = xp[0] - xi[0];
   double dy = xp[1] - xi[1];
   double dz = xp[2] - xi[2];
@@ -165,11 +165,11 @@ void Newtonian_Ap (double A[3], double &P, const double xi[3], const double xp[3
   double dr  = std::sqrt(dr2);
   double dr3 = dr*dr2;
 
-  A[0] = mp * dx / dr3;
-  A[1] = mp * dy / dr3;
-  A[2] = mp * dz / dr3;
+  Aij[0] = mp * dx / dr3;
+  Aij[1] = mp * dy / dr3;
+  Aij[2] = mp * dz / dr3;
 
-  P = mi*mp / dr;
+  Pij = - mi*mp / dr;
   
 }
 
@@ -219,7 +219,6 @@ private:
   int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other. 4k sequence {h/2, h/6, h/10, h/14 ...}
 
   int* step; ///< substep sequence
-  std::size_t  opt_iter; ///< optimized iteration index
 
   int** bin_index; ///< binomial coefficients
 
@@ -230,15 +229,14 @@ public:
       - ARC method use logarithmic Hamiltonian (logH) (#alpha = 1.0, #beta = 0.0 #gamma = 0.0).
       - Phase/energy error limit #exp_error = 1e-10.
       - Minimum physical time step #dtmin = 5.4e-20.
-      - Time synchronization error limit #dterr = 1e-6.
+      - Time synchronization error limit #dterr = 1e-10.
       - Maximum extrapolation iteration number #exp_itermax = 20
       - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
-      - Optimized extrapolation interation order for auto-adjust integration step size #opt_iter = 5
    */
   chainpars(): alpha(1.0), beta(0.0), gamma(0.0) {
     step = NULL;
     bin_index = NULL;
-    setEXP(1E-10, 5.4E-20, 1E-6, 20, 2, 2, 5);
+    setEXP(1E-10, 5.4E-20, 1E-10, 20, 2, 2);
     pp_AW = &Newtonian_AW;
     pp_Ap = &Newtonian_Ap;
   }
@@ -257,13 +255,12 @@ public:
     @param [in] itermax: Maximum extrapolation iteration number (defaulted #exp_itermax = 20)
     @param [in] ext_method: 1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational)
     @param [in] ext_sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
-    @param [in] optiter: Optimized extrapolation interation order for auto-adjust integration step size (defaulted #opt_iter = 5)
    */
-  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const std::size_t optiter=5) {
+  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2) {
     step = NULL;
     bin_index = NULL;
     setabg(a,b,g);
-    setEXP(error,dtm,dte,itermax,ext_method,ext_sequence,optiter);
+    setEXP(error,dtm,dte,itermax,ext_method,ext_sequence);
     setA(aw,ap);
   }
 
@@ -324,15 +321,13 @@ public:
     @param [in] itermax: maximum order (index in sequence) for extrapolation iteration. (defaulted #exp_itermax = 20)
     @param [in] methods: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
     @param [in] sequences: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
-    @param [in] optiter: Optimized interation order for auto-adjust integration time step (defaulted #opt_iter = 5)
   */
-  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2, const std::size_t optiter=5) {
+  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
     exp_error = error;
     exp_method = methods;
     exp_sequence = sequences;
     dterr = dte;
     dtmin = dtm;
-    opt_iter=optiter;
 
     // delete binomial array
     if (bin_index!=NULL) {
@@ -582,9 +577,9 @@ private:
       (notice the acceleration and dW/dr array index follow particle p to avoid additional shift when chain list change).
 
       @param [in] force: external force (acceleration) for each particle, (not perturber forces)
-      @param [in] resolve_flag: flag to determine whether to resolve sub-chain particles for force calculations. (defaulted false)
   */
-  void calc_rAPW (const double3 *force=NULL, const bool resolve_flag=false) {
+  //      @param [in] resolve_flag: flag to determine whether to resolve sub-chain particles for force calculations. (defaulted false)
+  void calc_rAPW (const double3 *force=NULL) {
 #ifdef TIME_PROFILE
     profile.t_apw -= get_wtime();
 #endif
@@ -642,30 +637,30 @@ private:
         // force calculation function from k to j
         pars->pp_AW(At, Pt, dWt, Wt, xjk, mj, mk, pair_AW_pars);
 
-        // resolve sub-chain
-        if(resolve_flag && p.isChain(lk)) {
-          chain<particle>*ck = p.getSub(lk);
-          // center shift to current frame
-          ck->center_shift_inverse_X();
-          const std::size_t cn = ck->p.getN();
-          Pt = 0;
-          for (std::size_t i=0;i<3;i++) At[i]=0.0;
-          for (std::size_t i=0;i<cn;i++) {
-            double Ptemp;
-            double3 Atemp;
-            pars->pp_Ap(Atemp, Ptemp, xj, ck->p[i].getPos(), mj, ck->p[i].getMass());
-
-            // Acceleration
-            At[0] += Atemp[0];
-            At[1] += Atemp[1];
-            At[2] += Atemp[2];
-            
-            // Potential
-            if (k>j) Pt += Ptemp;
-          }
-          // center shift back
-          ck->center_shift_X();
-        }
+//        // resolve sub-chain
+//        if(resolve_flag && p.isChain(lk)) {
+//          chain<particle>*ck = p.getSub(lk);
+//          // center shift to current frame
+//          ck->center_shift_inverse_X();
+//          const std::size_t cn = ck->p.getN();
+//          Pt = 0;
+//          for (std::size_t i=0;i<3;i++) At[i]=0.0;
+//          for (std::size_t i=0;i<cn;i++) {
+//            double Ptemp;
+//            double3 Atemp;
+//            pars->pp_Ap(Atemp, Ptemp, xj, ck->p[i].getPos(), mj, ck->p[i].getMass());
+// 
+//            // Acceleration
+//            At[0] += Atemp[0];
+//            At[1] += Atemp[1];
+//            At[2] += Atemp[2];
+//            
+//            // Potential
+//            if (k>j) Pt += Ptemp;
+//          }
+//          // center shift back
+//          ck->center_shift_X();
+//        }
 
         // Acceleration
         acc[lj][0] += At[0];
@@ -682,17 +677,18 @@ private:
           W_c += Wt;   // Transformation coefficient
         }
       }
-      // add external acceleration
-      if (force!=NULL) {
-        acc[lj][0] += pf[lj][0] + force[lj][0];
-        acc[lj][1] += pf[lj][1] + force[lj][1];
-        acc[lj][2] += pf[lj][2] + force[lj][2];
-      }
-      else {
+      // add perturber force
+      if (pext.getN()>0) {
         acc[lj][0] += pf[lj][0];
         acc[lj][1] += pf[lj][1];
         acc[lj][2] += pf[lj][2];
       }        
+      // add external acceleration
+      if (force!=NULL) {
+        acc[lj][0] += force[lj][0];
+        acc[lj][1] += force[lj][1];
+        acc[lj][2] += force[lj][2];
+      }
     }
 
     // Write potential and w
@@ -734,7 +730,7 @@ private:
   */
   double calc_dt_V(const double ds) {
     // determine velocity integration time step
-    return ds / (pars->alpha * Pot + pars->beta * W + pars->gamma);
+    return ds / (pars->gamma - pars->alpha * Pot - pars->beta * W);
   }
   
   //! Step forward of X
@@ -1607,8 +1603,8 @@ public:
     calc_Ekin();
 
     // initial time step parameter
-    Pt = Pot - Ekin;
-    w = W;
+    Pt = -Pot - Ekin;
+    w = -W;
 
     // set F_Pmod to false
     F_Pmod = false;
@@ -1778,11 +1774,13 @@ public:
 
     // for polynomial coefficient calculation first point
     // middle difference (first array is used to store the f_1/2)
-    if(pars->exp_sequence==3) mid_diff_calc(&dpoly[2],ndmax-2,0,n);
-    // edge difference
-    else {
-      dpoly[0][0]=1.0/(pars->alpha * Pot + pars->beta * W + pars->gamma);
-      edge_diff_calc(&dpoly[1],ndmax-1,0,n);
+    if(dpoly!=NULL) {
+      if (pars->exp_sequence==3) mid_diff_calc(&dpoly[2],ndmax-2,0,n);
+      // edge difference
+      else {
+        dpoly[0][0]=1.0/(pars->gamma - pars->alpha * Pot - pars->beta * W);
+        edge_diff_calc(&dpoly[1],ndmax-1,0,n);
+      }
     }
                                                
     
@@ -1876,18 +1874,20 @@ public:
       
       // for interpolation polynomial coefficient (difference)
       // middle difference (first array is used to store the f_1/2)
-      if(pars->exp_sequence==3) {
-        if (i==n/2-1) {
-          dpoly[0][0]=t; // y
-          dpoly[1][0]=2.0*dt/ds; // f(x)
+      if(dpoly!=NULL) {
+        if(pars->exp_sequence==3) {
+          if (i==n/2-1) {
+            dpoly[0][0]=t; // y
+            dpoly[1][0]=2.0*dt/ds; // f(x)
 #ifdef DEBUG
-          std::cerr<<"Mid time = "<<t<<", n="<<n<<"; i="<<i+1<<std::endl;
+            std::cerr<<"Mid time = "<<t<<", n="<<n<<"; i="<<i+1<<std::endl;
 #endif
+          }
+          mid_diff_calc(&dpoly[2],ndmax-2,i+1,n);
         }
-        mid_diff_calc(&dpoly[2],ndmax-2,i+1,n);
+        // edge difference
+        else edge_diff_calc(&dpoly[1],ndmax-1,i+1,n);
       }
-      // edge difference
-      else edge_diff_calc(&dpoly[1],ndmax-1,i+1,n);
     }
 
     // resolve X at last, update p.x (dependence: X)
@@ -1896,7 +1896,7 @@ public:
     // Update rjk, A, Pot, dWdr, W (notice A will be incorrect since pf is not updated)
     calc_rAPW(force);
 
-    if(pars->exp_sequence!=3) dpoly[0][1]=1.0/(pars->alpha * Pot + pars->beta * W + pars->gamma);
+    if(dpoly!=NULL&&pars->exp_sequence!=3) dpoly[0][1]=1.0/(pars->gamma - pars->alpha * Pot - pars->beta * W );
 
 #ifdef DEBUG
     std::cerr<<"Ending time = "<<t<<", n="<<n<<std::endl;
@@ -1940,6 +1940,7 @@ public:
     const double error = pars->exp_error;
     const std::size_t itermax = pars->exp_itermax;
     const int method = pars->exp_method;
+    const int sq = pars->exp_sequence;
     const int *step = pars->step;
     
 #ifdef TIME_PROFILE
@@ -1969,7 +1970,7 @@ public:
     double** pd[itermax]; // central difference, [*] indicate different accuracy level 
     int ndmax[itermax];   // maximum difference order
     std::size_t pnn;      // data size
-    if(pars->exp_sequence==3) pnn = 1;     // middle difference case
+    if(sq==3) pnn = 1;     // middle difference case
     else pnn = 2;         // edge two points case
 
     // for error check
@@ -2031,7 +2032,7 @@ public:
       // Dense output
       if (ip_flag) {
         // middle difference case: difference order from 1 to 2*intcount+2 (2*kappa-2; kappa=intcount+1), first one is used to storage f(x)        
-        if(pars->exp_sequence==3) ndmax[intcount] = 2*intcount+3;
+        if(sq==3) ndmax[intcount] = 2*intcount+3;
         // edge difference case: difference order from 1 to intcount+1, first store f(x)
         else ndmax[intcount] = intcount+2;
         
@@ -2072,15 +2073,15 @@ public:
 
         // get error estimation
         double ermax=EP::extrapolation_error(dn,dsize,intcount);
-        double dsfactor = EP::H_opt_factor(ermax,error,intcount);
-        double werrn = (double)itercount / dsfactor;
+        double dsfactor = EP::H_opt_factor(ermax,error,step[intcount]);
+        double werrn = (double)itercount/ dsfactor;
         if (ermax>0&&werrn<werrmax) {
           werrmax = werrn;
           dsn = dsfactor;
         //dsn = std::min(dsn,0.9); // not larger than 1.0
         //dsn = std::max(dsn,pars->dtmin); // not too small
 #ifdef DEBUG
-          std::cerr<<"ERR factor update: iterindex="<<intcount<<"; modify factor="<<1.0/dsfactor<<"; ermax="<<ermax<<std::endl;
+          std::cerr<<"ERR factor update: sequence="<<step[intcount]<<"; modify factor="<<1.0/dsfactor<<"; ermax="<<ermax<<std::endl;
 #endif
         }
       
@@ -2109,18 +2110,16 @@ public:
         cxerr0 = cxerr;
         cxerr = std::sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
         eerr0 = eerr;
-        eerr = (Ekin-Pot+Pt)/Pt;
+        eerr = (Ekin+Pot+Pt)/Pt;
         std::memcpy(CX,CXN,3*sizeof(double));
       }
       
       intcount++;
 #ifdef DEBUG
       std::cerr<<std::setprecision(6)<<"Iter.= "<<intcount<<" Dep.= "<<step[intcount]<<" P-err.= "<<cxerr;
-      std::cerr<<" E-err.="<<(Ekin-Pot+Pt)/Pt<<" Pt ="<<std::setprecision(12)<<Pt<<std::endl;
+      std::cerr<<" E-err.="<<(Ekin+Pot+Pt)/Pt<<" Pt ="<<std::setprecision(12)<<Pt<<std::endl;
 #endif 
     }
-
-    if (intcount+1<pars->opt_iter) dsn = std::pow(ds, (2*intcount+3)/(double)(2*pars->opt_iter+1)-1);
 
     // for dense output
     if (toff>0&&toff<t&&std::abs(toff-t)>pars->dterr) {
@@ -2134,7 +2133,7 @@ public:
         double **pdptr;
         int dpsize;
         double h;
-        if(pars->exp_sequence==3) {
+        if(sq==3) {
           // middle difference case first element is f(x)
           pdptr=&pd[i][2];
           // differece order number should be reduced by one
@@ -2202,7 +2201,7 @@ public:
       
 
       // for middle difference case (1 point)
-      if(pars->exp_sequence==3) {
+      if(sq==3) {
 
         npoints=3;
         
@@ -2408,7 +2407,7 @@ public:
   /*! \return current potetnial energy (negative value for bounded systems)
   */
   double getPot() const {
-    return -Pot;
+    return Pot;
   }
 
   //! Get current time momemtum \f$Pt\f$ (current system binding energy)

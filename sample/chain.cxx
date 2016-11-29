@@ -29,21 +29,13 @@ int main(int argc, char **argv){
   int copt;
   bool fflag=false; //external force flag
   double3* f=NULL;  // external force vectors
-  
-  //adjust step size
-  bool dsA=false;   
-  int nlev=8;    // adjust iteration level concentration for auto adjust step
-  //  int nreduce=1;  // adjust reduction for smoothing
-  //  double smooth=2.0;   // adjust smooth factor;
+  bool dsA=false;   //adjust step size switcher
 
 
   static struct option long_options[] = {
     {"t-start", required_argument, 0, 0},
     {"t-end", required_argument, 0, 't'},
     {"nsub", required_argument, 0, 0},
-    {"adjust-iter",required_argument, 0, 0},
-    //    {"adjust-reduce",required_argument, 0, 0},
-    //    {"adjust-smooth",required_argument, 0, 0},
     {"AR-method",required_argument, 0, 'r'},
     {"extra-method",required_argument, 0, 'm'},
     {"extra-seq",required_argument, 0, 'q'},
@@ -71,31 +63,13 @@ int main(int argc, char **argv){
       case 2:
         nsubstep = atoi(optarg);
         break;
-      case 3:
-        nlev = atoi(optarg);
-        if (nlev <=1) {
-          std::cerr<<"Iteration expected level should be larger than 1\n";
-          abort();
-        }
-        break;
-        /*
-      case 4:
-        nreduce = atoi(optarg);
-        break;
-      case 5:
-        smooth = atof(optarg);
-        if (smooth<0) {
-          std::cerr<<"Adjust step smooth factor cannot be negative\n";
-          abort();
-        }
-        break;*/
-      case 9:
+      case 8:
         terr = atof(optarg);
         break;
-      case 11:
+      case 10:
         w = atof(optarg);
         break;
-      case 12:
+      case 11:
         pre = atoi(optarg);
         break;
       default:
@@ -162,10 +136,7 @@ int main(int argc, char **argv){
                <<"          --t-end (same as -t)\n"
                <<"    -s [double]:  step size, not physical time step ("<<s<<")\n"
                <<"          --nsub [int]:       sub-step number if no extrapolation method is used ("<<nsubstep<<")\n"
-               <<"    -a :          adjust step size automatically s *= pow(0.5, max(iter-reduce,0)/smooth) (off)\n"
-               <<"          --adjust-iter   [int]:     iteration expected level for auto-adjust step size mode ("<<nlev<<")\n"
-        //               <<"          --adjust-reduce [int]:     reduiteration expected level for auto-adjust step size mode ("<<nreduce<<")\n"
-        //               <<"          --adjust-smooth [double]:  iteration expected level for auto-adjust step size mode ("<<smooth<<")\n"
+               <<"    -a :          using auto-adjust step size (defaulted not switched on)\n"
                <<"    -r [string]:  algorithmic regularization method (logh)\n"
                <<"                  'logh': Logarithmic Hamitonian\n"
                <<"                  'ttl': Time-transformed Leapfrog\n"
@@ -205,6 +176,7 @@ int main(int argc, char **argv){
   }
 
 #ifdef DEBUG
+  // parameter list
   std::cerr<<"Options:\n"
            <<"N: "<<n<<std::endl
            <<"steps: "<<nstep<<std::endl
@@ -212,10 +184,7 @@ int main(int argc, char **argv){
            <<"t-end: "<<tend<<std::endl
            <<"step size: "<<s<<std::endl
            <<"sub steps: "<<nsubstep<<std::endl
-           <<"adjust: "<<dsA<<std::endl
-           <<"adjust-iter: "<<nlev<<std::endl
-    //           <<"adjust-reduce: "<<nreduce<<std::endl
-    //           <<"adjust-smooth: "<<smooth<<std::endl
+           <<"adjust step size: "<<dsA<<std::endl
            <<"AR-method: "<<(method?method:"logH")<<std::endl
            <<"extra-method: "<<(sw?sw:"rational")<<std::endl
            <<"extra-seq: "<<(sq?sq:"bs")<<std::endl
@@ -226,9 +195,11 @@ int main(int argc, char **argv){
            <<"print width: "<<w<<std::endl
            <<"print precision: "<<pre<<std::endl;
 #endif
-  
+
+  // data file name
   char* filename = argv[argc-1];      
-  
+
+  // open data file
   std::fstream fs;
   fs.open(filename,std::fstream::in);
   if(!fs.is_open()) {
@@ -236,15 +207,19 @@ int main(int argc, char **argv){
     abort();
   }
 
+  // chain controller
   ARC::chainpars pars;
+  // pair_AW extra parameter[2], first is used for smooth mass coefficient control, second is used for adjustable coefficient for smooth mass coefficient
   double smpars[2];
-  if (method)
+  if (method) {
     if (strcmp(method,"ttl")==0) {
-      smpars[1]=-1; // switch of smooth mass in TTL method to avoid NAN
+      smpars[1]=-1; // switch off smooth mass in TTL method to avoid NAN
       pars.setabg(0.0,1.0,0.0);
     }
     else smpars[1]=0.003;
-  
+  }
+
+  // sequence selection
   int msq=2;
   if (sq) {
     if (strcmp(sq,"rom")==0) msq=1;
@@ -252,14 +227,21 @@ int main(int argc, char **argv){
     else if (strcmp(sq,"4k")==0) msq=3;
     else msq=4;
   }
+
+  // extrapolation method selection
   int ms=2;
   if (sw) {
     if (strcmp(sw,"linear")==0) ms=1;
     else if (strcmp(sw,"none")==0) ms=0;
   }
-  pars.setEXP(err,dtmin,terr,itermax,ms,msq,nlev);
 
+  // set extrapolation parameter 
+  pars.setEXP(err,dtmin,terr,itermax,ms,msq);
+
+  // new chain class
   ARC::chain<Particle> c(n,pars);
+
+  // reading particle data
   Particle *p=new Particle[n];
   if (fflag) f=new double3[n];
   for (std::size_t i=0;i<n;i++) {
@@ -274,13 +256,18 @@ int main(int argc, char **argv){
   }
   c.addP(n,p);
 
+  // set pair_AW parameter address
   c.pair_AW_pars=smpars;
+  // calculate smooth mass coefficient
   smpars[0] = ARC::calc_mm2<Particle>(c.p); //mm2
 
+  // initialization of chain system
   c.init(t);
+
+  // printing digital precision
   std::cout<<std::setprecision(pre);
 
-  //print
+  //printing column title
   std::cout<<"Time"
            <<std::setw(w)<<"E_err"
            <<std::setw(w)<<"Ekin"
@@ -289,15 +276,19 @@ int main(int argc, char **argv){
            <<std::setw(w)<<"w"
            <<std::setw(w)<<"W"    
            <<std::setw(w)<<" "<<"mass-x-y-z-vx-vy-vz-for-each-particles"<<std::endl;
+
+  // integration step counter
   int i=0;
 
-  // step 
+  // step size
   double ds = s;
 
   // flag for output
   bool flag_out=true;
-  
+
+  // integration loop
   while (true) {
+    // printing data
     if (flag_out) {
       std::cout<<c.getTime()
                <<std::setw(w)<<(c.getEkin()+c.getPot()+c.getPt())/c.getPt()
@@ -321,21 +312,25 @@ int main(int argc, char **argv){
 #ifdef DEBUG
     std::cerr<<"Time error: "<<c.getTime()-tend<<std::endl;
 #endif
-    
+
+    // if reaching ending time or maximum integration step number, stop
     if ((tend<0&&i==nstep)||(tend>0&&std::abs(c.getTime()-tend)<terr)) break;
+
+    // increasing integration counter
     i++;
 
+    // Extrapolation integration
     if (ms) {
       double dsf=c.extrapolation_integration(ds,tend,f);
+      // indicator whether ending time is reached, if so, modify ds
       if (dsf<0) {
         ds *= -dsf;
         flag_out=false;
       }
+      // auto-adjust step size
       else if (dsA) {
-        /*double factor=std::max(0.0,(std::abs(icount-nlev)-nreduce)/smooth);
-        s *=std::pow(0.5,(icount>nlev?factor:-factor));
-        s = std::min(s,0.9);*/
-        ds = s*std::max(std::min(dsf,8.0),0.125);
+        ds = ds*dsf;
+        //   ds = ds*std::max(std::min(dsf,32.0),0.125);
         flag_out = true;
 #ifdef DEBUG        
         std::cerr<<"S: "<<i<<" "<<ds<< std::endl;
@@ -343,14 +338,14 @@ int main(int argc, char **argv){
       }
       else flag_out = true;
     }
-      
+    // Leapfrog integration
     else c.Leapfrog_step_forward(s,nsubstep,f);
 #ifdef TIME_PROFILE
     std::cerr<<"Time profile: Step: "<<i<<"  Accelaration+Potential(s): "<<c.profile.t_apw<<"  Update_link(s): "<<c.profile.t_uplink<<"  Leap-frog(s): "<<c.profile.t_lf<<"  Extrapolation(s): "<<c.profile.t_ep<<"  Perturbation(s): "<<c.profile.t_pext<<std::endl;
 #endif
   }
   
-
+  // if extrapolation method is used, counting the iteration (maximum sequence index) level
   if (ms) {
     int* stepcount = c.profile.stepcount;
     std::cerr<<"Step histogram:\n I\tCount\tSteps\n";
