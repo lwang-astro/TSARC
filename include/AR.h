@@ -98,7 +98,7 @@ typedef void (*pair_Ap) (double *, double &, const double*, const double*, const
 /*!          @param[out] Aij: Newtonian acceleration vector for i particle from particle j. \f$Aij[1:3] = m_i m_j xij[1:3] / |xij|^3 \f$.
              @param[out] Pij: Newtonian potential of i from j. \f$ Pij = -m_i m_j /|xij| \f$
              @param[out] pWij: TTL time transformation function partial derivates (component from j to i) \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (used for TTL method). \f$pWij[1:3] = mm_{ij} xij[1:3] /|xij|^3 \f$. (Total value is \f$\frac{\partial W}{\partial \mathbf{x}_i} = \sum_{j} mm_{ij} \mathbf{x}_{ij}/|\mathbf{x}_{ij}|^3\f$)
-             @param[out] Wij: TTL time transformation function component with i,j (used for TTL method) \f$Wij = - mm_{ij} /|xij|^3\f$ total value is \f$ W = -\sum_{i<j} mm_{ij} /|xij| \f$
+             @param[out] Wij: TTL time transformation function component with i,j (used for TTL method) \f$Wij = mm_{ij} /|xij|^3\f$ total value is \f$ W = \sum_{i<j} mm_{ij} /|xij| \f$
              @param[in] xij: relative position vector [1:3] \f$ \mathbf{x_j} - \mathbf{x_i} \f$
              @param[in] mi: particle i mass.
              @param[in] mj: particle j mass.
@@ -130,7 +130,7 @@ void Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, cons
   }
   
   Pij = - mimj / rij;  // Potential energy
-  Wij = - mmij / rij;   // Transformation coefficient
+  Wij = mmij / rij;   // Transformation coefficient
         
   // Acceleration
   double rij3 = rij*rij*rij;
@@ -730,7 +730,7 @@ private:
   */
   double calc_dt_V(const double ds) {
     // determine velocity integration time step
-    return ds / (pars->gamma - pars->alpha * Pot - pars->beta * W);
+    return ds / (pars->gamma - pars->alpha * Pot + pars->beta * W);
   }
   
   //! Step forward of X
@@ -1604,7 +1604,7 @@ public:
 
     // initial time step parameter
     Pt = -Pot - Ekin;
-    w = -W;
+    w = W;
 
     // set F_Pmod to false
     F_Pmod = false;
@@ -1778,7 +1778,7 @@ public:
       if (pars->exp_sequence==3) mid_diff_calc(&dpoly[2],ndmax-2,0,n);
       // edge difference
       else {
-        dpoly[0][0]=1.0/(pars->gamma - pars->alpha * Pot - pars->beta * W);
+        dpoly[0][0]=1.0/(pars->gamma - pars->alpha * Pot + pars->beta * W);
         edge_diff_calc(&dpoly[1],ndmax-1,0,n);
       }
     }
@@ -1896,7 +1896,7 @@ public:
     // Update rjk, A, Pot, dWdr, W (notice A will be incorrect since pf is not updated)
     calc_rAPW(force);
 
-    if(dpoly!=NULL&&pars->exp_sequence!=3) dpoly[0][1]=1.0/(pars->gamma - pars->alpha * Pot - pars->beta * W );
+    if(dpoly!=NULL&&pars->exp_sequence!=3) dpoly[0][1]=1.0/(pars->gamma - pars->alpha * Pot + pars->beta * W );
 
 #ifdef DEBUG
     std::cerr<<"Ending time = "<<t<<", n="<<n<<std::endl;

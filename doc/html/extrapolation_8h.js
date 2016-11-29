@@ -2,7 +2,7 @@ var extrapolation_8h =
 [
     [ "binomial_recursive_generator", "extrapolation_8h.html#a92c709f3757c872402d2fcf954c3e2de", null ],
     [ "extrapolation_error", "extrapolation_8h.html#ab0499a8ae6cab209fc0cca6a47b166f3", null ],
-    [ "H_opt_factor", "extrapolation_8h.html#ac820e20bad3526991885e767a4e11097", null ],
+    [ "H_opt_factor", "extrapolation_8h.html#a6d54b765511d661bb4267799ff1a804f", null ],
     [ "Hermite_interpolation_coefficients", "extrapolation_8h.html#ad1bbde38ef63ce2a0672843d598770b8", null ],
     [ "Hermite_interpolation_polynomial", "extrapolation_8h.html#a10270a1ba230322545fff5bc06d94659", null ],
     [ "polynomial_extrapolation", "extrapolation_8h.html#ae89d6690a891336eef708e90e575a2be", null ],

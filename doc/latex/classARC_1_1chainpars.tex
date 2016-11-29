@@ -14,7 +14,7 @@ The chain parameter controller class.
 \item 
 \hyperlink{classARC_1_1chainpars_a2019a609d85e2b801f306ac8c7f268ab}{chainpars} ()
 \begin{DoxyCompactList}\small\item\em constructor with defaulted parameters \end{DoxyCompactList}\item 
-\hyperlink{classARC_1_1chainpars_a91f5e98d8c936357b88a85e91924d2a2}{chainpars} (\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW} aw, \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap} ap, const double a, const double b, const double g, const double error=1\+E-\/10, const double dtm=5.\+4e-\/20, const double dte=1e-\/6, const std\+::size\+\_\+t itermax=20, const int ext\+\_\+method=2, const int ext\+\_\+sequence=2, const std\+::size\+\_\+t optiter=5)
+\hyperlink{classARC_1_1chainpars_a6ae47a82b6c68f80015cec4eb51fd1c4}{chainpars} (\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW} aw, \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap} ap, const double a, const double b, const double g, const double error=1\+E-\/10, const double dtm=5.\+4e-\/20, const double dte=1e-\/6, const std\+::size\+\_\+t itermax=20, const int ext\+\_\+method=2, const int ext\+\_\+sequence=2)
 \begin{DoxyCompactList}\small\item\em constructor \end{DoxyCompactList}\item 
 \hyperlink{classARC_1_1chainpars_a032873f782645efb6e60dc77f6d425dc}{$\sim$chainpars} ()
 \begin{DoxyCompactList}\small\item\em destructor \end{DoxyCompactList}\item 
@@ -22,7 +22,7 @@ void \hyperlink{classARC_1_1chainpars_af639f7bc8cfbb2a0330f079df2fd556e}{setA} (
 \begin{DoxyCompactList}\small\item\em Set acceleration, potential, time transformation function $\partial W/\partial r$ and $W$ calculator. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chainpars_a37f8af288217cbfc61a3593e21976d06}{setabg} (const double a=1.\+0, const double b=0.\+0, const double g=0.\+0)
 \begin{DoxyCompactList}\small\item\em Set time step transformation parameter. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainpars_a5ead29e9b2005ba1933821deb96a5876}{set\+E\+XP} (const double error=1\+E-\/10, const double dtm=5.\+4e-\/20, const double dte=1e-\/6, const std\+::size\+\_\+t itermax=20, const int methods=2, const int sequences=2, const std\+::size\+\_\+t optiter=5)
+void \hyperlink{classARC_1_1chainpars_a1cacdcfc2d5b91f27cbc3c58cc8d3447}{set\+E\+XP} (const double error=1\+E-\/10, const double dtm=5.\+4e-\/20, const double dte=1e-\/6, const std\+::size\+\_\+t itermax=20, const int methods=2, const int sequences=2)
 \begin{DoxyCompactList}\small\item\em Set extrapolation parameters. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Friends}
 \begin{DoxyCompactItemize}
@@ -49,19 +49,18 @@ constructor with defaulted parameters
 
 
 \begin{DoxyItemize}
-\item Acceleration function use \hyperlink{namespaceARC_a0f1e14e6d00b38d9f98f0eecf523feaa}{A\+R\+C\+::\+Newtonian\+\_\+\+A\+W()} and \hyperlink{namespaceARC_a6b8ee871e0832b6b59968ea9069877e0}{A\+R\+C\+::\+Newtonian\+\_\+\+Ap()}.
+\item Acceleration function use \hyperlink{namespaceARC_ab9fc6518902e918927d8c6bd3d51401d}{A\+R\+C\+::\+Newtonian\+\_\+\+A\+W()} and \hyperlink{namespaceARC_a1010e9fd74a49633259d623839639d67}{A\+R\+C\+::\+Newtonian\+\_\+\+Ap()}.
 \item \hyperlink{namespaceARC}{A\+RC} method use logarithmic Hamiltonian (logH) (\#alpha = 1.\+0, \#beta = 0.\+0 \#gamma = 0.\+0).
 \item Phase/energy error limit \#exp\+\_\+error = 1e-\/10.
 \item Minimum physical time step \#dtmin = 5.\+4e-\/20.
-\item Time synchronization error limit \#dterr = 1e-\/6.
+\item Time synchronization error limit \#dterr = 1e-\/10.
 \item Maximum extrapolation iteration number \#exp\+\_\+itermax = 20
-\item Bulirsch \& Stoer sequence \{h, h/2, h/3, h/4, h/6...\} is used
-\item Optimized extrapolation interation order for auto-\/adjust integration step size \#opt\+\_\+iter = 5 
-\end{DoxyItemize}\hypertarget{classARC_1_1chainpars_a91f5e98d8c936357b88a85e91924d2a2}{}\label{classARC_1_1chainpars_a91f5e98d8c936357b88a85e91924d2a2} 
+\item Bulirsch \& Stoer sequence \{h, h/2, h/3, h/4, h/6...\} is used 
+\end{DoxyItemize}\hypertarget{classARC_1_1chainpars_a6ae47a82b6c68f80015cec4eb51fd1c4}{}\label{classARC_1_1chainpars_a6ae47a82b6c68f80015cec4eb51fd1c4} 
 \index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!chainpars@{chainpars}}
 \index{chainpars@{chainpars}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
 \subsubsection{\texorpdfstring{chainpars()}{chainpars()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
-{\footnotesize\ttfamily A\+R\+C\+::chainpars\+::chainpars (\begin{DoxyParamCaption}\item[{\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW}}]{aw,  }\item[{\hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap}}]{ap,  }\item[{const double}]{a,  }\item[{const double}]{b,  }\item[{const double}]{g,  }\item[{const double}]{error = {\ttfamily 1E-\/10},  }\item[{const double}]{dtm = {\ttfamily 5.4e-\/20},  }\item[{const double}]{dte = {\ttfamily 1e-\/6},  }\item[{const std\+::size\+\_\+t}]{itermax = {\ttfamily 20},  }\item[{const int}]{ext\+\_\+method = {\ttfamily 2},  }\item[{const int}]{ext\+\_\+sequence = {\ttfamily 2},  }\item[{const std\+::size\+\_\+t}]{optiter = {\ttfamily 5} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily A\+R\+C\+::chainpars\+::chainpars (\begin{DoxyParamCaption}\item[{\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW}}]{aw,  }\item[{\hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap}}]{ap,  }\item[{const double}]{a,  }\item[{const double}]{b,  }\item[{const double}]{g,  }\item[{const double}]{error = {\ttfamily 1E-\/10},  }\item[{const double}]{dtm = {\ttfamily 5.4e-\/20},  }\item[{const double}]{dte = {\ttfamily 1e-\/6},  }\item[{const std\+::size\+\_\+t}]{itermax = {\ttfamily 20},  }\item[{const int}]{ext\+\_\+method = {\ttfamily 2},  }\item[{const int}]{ext\+\_\+sequence = {\ttfamily 2} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -92,8 +91,6 @@ constructor
 \mbox{\tt in}  & {\em ext\+\_\+method} & 1\+: Polynomial interpolation method; others\+: Rational interpolation method (defaulted\+: Rational) \\
 \hline
 \mbox{\tt in}  & {\em ext\+\_\+sequence} & 1\+: Romberg sequence \{h, h/2, h/4, h/8 ...\}; 2\+: Bulirsch \& Stoer (BS) sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}; 3\+: 4k sequence \{h, h/2, h/6, h/10, h/14 ...\}; others\+: Harmonic sequence \{h, h/2, h/3, h/4 ...\} (defaulted 2. BS sequence) \\
-\hline
-\mbox{\tt in}  & {\em optiter} & Optimized extrapolation interation order for auto-\/adjust integration step size (defaulted \#opt\+\_\+iter = 5) \\
 \hline
 \end{DoxyParams}
 \hypertarget{classARC_1_1chainpars_a032873f782645efb6e60dc77f6d425dc}{}\label{classARC_1_1chainpars_a032873f782645efb6e60dc77f6d425dc} 
@@ -146,11 +143,11 @@ Set parameter a,b,g where physical time step $ dt = ds/[a *(logH) + b * (TTL) + 
 \mbox{\tt in}  & {\em g} & Constant coefficient (no time transformation) \#gamma \\
 \hline
 \end{DoxyParams}
-\hypertarget{classARC_1_1chainpars_a5ead29e9b2005ba1933821deb96a5876}{}\label{classARC_1_1chainpars_a5ead29e9b2005ba1933821deb96a5876} 
+\hypertarget{classARC_1_1chainpars_a1cacdcfc2d5b91f27cbc3c58cc8d3447}{}\label{classARC_1_1chainpars_a1cacdcfc2d5b91f27cbc3c58cc8d3447} 
 \index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!set\+E\+XP@{set\+E\+XP}}
 \index{set\+E\+XP@{set\+E\+XP}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
 \subsubsection{\texorpdfstring{set\+E\+X\+P()}{setEXP()}}
-{\footnotesize\ttfamily void A\+R\+C\+::chainpars\+::set\+E\+XP (\begin{DoxyParamCaption}\item[{const double}]{error = {\ttfamily 1E-\/10},  }\item[{const double}]{dtm = {\ttfamily 5.4e-\/20},  }\item[{const double}]{dte = {\ttfamily 1e-\/6},  }\item[{const std\+::size\+\_\+t}]{itermax = {\ttfamily 20},  }\item[{const int}]{methods = {\ttfamily 2},  }\item[{const int}]{sequences = {\ttfamily 2},  }\item[{const std\+::size\+\_\+t}]{optiter = {\ttfamily 5} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily void A\+R\+C\+::chainpars\+::set\+E\+XP (\begin{DoxyParamCaption}\item[{const double}]{error = {\ttfamily 1E-\/10},  }\item[{const double}]{dtm = {\ttfamily 5.4e-\/20},  }\item[{const double}]{dte = {\ttfamily 1e-\/6},  }\item[{const std\+::size\+\_\+t}]{itermax = {\ttfamily 20},  }\item[{const int}]{methods = {\ttfamily 2},  }\item[{const int}]{sequences = {\ttfamily 2} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -169,8 +166,6 @@ Set extrapolation related parameters as following\+:
 \mbox{\tt in}  & {\em methods} & 1\+: Polynomial method; others\+: Rational interpolation method (defaulted Rational) \\
 \hline
 \mbox{\tt in}  & {\em sequences} & 1\+: Romberg sequence \{h, h/2, h/4, h/8 ...\}; 2\+: Bulirsch \& Stoer (BS) sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}; 3\+: 4k sequence \{h, h/2, h/6, h/10, h/14 ...\}; others\+: Harmonic sequence \{h, h/2, h/3, h/4 ...\} (defaulted 2. BS sequence) \\
-\hline
-\mbox{\tt in}  & {\em optiter} & Optimized interation order for auto-\/adjust integration time step (defaulted \#opt\+\_\+iter = 5) \\
 \hline
 \end{DoxyParams}
 

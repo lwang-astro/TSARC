@@ -140,9 +140,9 @@ This is only for the isolated system. If the system has external force from pert
 The regularization methods where energy explicitly appear in the equation of motions cannot solve the few-body systems with large mass ratio (for example, planetary systems and super massive black hole with surrounding stars), because the energy is dominated by the massive bodies, and this introduce the systematic error during the integration. To solve this kind of issue, <A HREF="http://adsabs.harvard.edu/abs/2002CeMDA..84..343M">Mikkola & Aarseth (2002)</A> developed the so-called Time-Transformed Leapfrog (TTL) method. This method is also based on time transformation. The major difference compared with the LogH method is that the time transformation function also need to be integrated.
 
 The time transformation (10) leads to the equations of motion (12) where time transformation \f$ f'(T(\mathbf{p})+Pt) \f$ and \f$ f'(-U(\mathbf{q},t))\f$ explicitly depend on kinetic energy, binding energy and potential. 
-If we want to replace \f$ -U(\mathbf{q},t) \f$ to other quantity \f$ W(\mathbf{q})\f$, considering the requirement \f$ f(T(\mathbf{P})) - f(-U(\mathbf{Q})) \approx 0 \f$, we should also find another quantity \f$ w(\mathbf{p}) \f$ that allow \f$ f(w(\mathbf{p})) - f(W(\mathbf{q})) \approx 0 \f$. and 
+If we want to replace \f$ -U(\mathbf{q},t) \f$ to other quantity \f$ W(\mathbf{q})\f$ (here \f$ W(\mathbf{q})\f$ is positive), considering the requirement \f$ f(T(\mathbf{P})) - f(-U(\mathbf{Q})) \approx 0 \f$, we should also find another quantity \f$ w(\mathbf{p}) \f$ that allow \f$ f(w(\mathbf{p})) - f(W(\mathbf{q})) \approx 0 \f$. and 
 
-(18) \f$ g(\mathbf{Q},\mathbf{P}) = \frac{f(w(\mathbf{p})) - f(W(\mathbf{q}))}{T(\mathbf{P}) + U(\mathbf{Q})} \approx f'(W(\mathbf{q})) \f$
+(18) \f$ g(\mathbf{Q},\mathbf{P}) = \frac{f(w(\mathbf{p})) - f(-W(\mathbf{q}))}{T(\mathbf{P}) + U(\mathbf{Q})} \approx f'(W(\mathbf{q})) \f$
 
 Instead of finding the \f$ w(\mathbf{p}) \f$ for each kind of \f$ W(\mathbf{q})\f$, Mikkola & Aarseth (2002) suggest to use the differential equation 
 
@@ -209,7 +209,7 @@ By combining the AR algorithm and Chain scheme, we can construct a Leapfrog inte
           \f$ Pt += \delta t \sum_i (-m_i \langle \mathbf{v}_i \rangle \cdot f_{ext,i}) \f$;
           \f$ w += \delta t \sum_i \frac{\partial W}{\partial \mathbf{q}_i} \cdot \langle \mathbf{v}_i \rangle \f$ 
 
-where \f$ f_{ext,i} \f$ is the external force from outside the system (e.g., perturber force or tidal force) of each particle \f$ i\f$, and \langle \mathbf{v}_i \rangle is obtained by averaging the velocities of the initial and the final \f$ \mathbf{v}_i \f$ of this K mode step. \f$ \alpha, \beta, \gamma \f$ are the coefficients representing the weights of the LogH, TTL and non-time-transformation modes separately. For example, if \f$ \alpha=0\f$, then no LogH will be performed, and if \f$ \alpha =1, \beta=0, \gamma=0 \f$ it is LogH ARC.
+where \f$ f_{ext,i} \f$ is the external force from outside the system (e.g., perturber force or tidal force) of each particle \f$ i\f$, and \f$ \langle \mathbf{v}_i \rangle\f$ is obtained by averaging the velocities of the initial and the final \f$ \mathbf{v}_i \f$ of this K mode step. \f$ \alpha, \beta, \gamma \f$ are the coefficients representing the weights of the LogH, TTL and non-time-transformation modes separately. For example, if \f$ \alpha=0\f$, then no LogH will be performed, and if \f$ \alpha =1, \beta=0, \gamma=0 \f$ it is LogH ARC.
 
 The initial value of \f$ Pt \f$ should be the initial binding energy of the system \f$ U(\mathbf{q},t) - T(\mathbf{p}) \f$. 
 If the system is isolated, \f$ Pt \f$ is constant.
@@ -334,18 +334,19 @@ This method can provide the interpolation polynomial function with accuracy
 \subsection step_sec Integration Step Control
 
 If we use the automatical accuracy order in extrapolation integration (the maximum sequence index \f$\kappa \f$ is determined by the error criterion), the step size \f$\Delta s\f$ can be constant with a suitable initial value.
-On the other hand, we can fixes \f$ \kappa \f$ and adjusts \f$ \Delta s\f$ based on integration error.
+On the other hand, \f$ \Delta s\f$ can be also adjusted based on integration error to approach better performance.
 
 The integration error at sequence index \f$ i\f$ can be estimated as
 
 (33) \f$ err_i = \frac{2|T_{i,i-1} - T_{i,i}|}{\sqrt{T_{i,i-1}^2 + T_{i,i}^2}}\f$ 
 
-If we want the expected error appear at sequence index \f$ i = k \f$, which leads to the mimimum computational cost, at the next integration step, the step modification factor can be estimated as:
+If we want the expected error appear at sequence index \f$ i\f$ after the next integration step, the step modification factor can be estimated as:
 
-(34) \f$ \frac{\Delta s_{new}}{\Delta s} \approx \left(\frac{exp}{err_{k}}\right)^{1/(2n_i+1)} \f$
+(34) \f$ \frac{\Delta s_{new}}{\Delta s} \approx \left(\frac{exp}{err_{i}}\right)^{2/n_i} \f$
 
-where \f$ err_{k} \f$ is the error at current step.
-Here we assume \f$ err_i \propto (\Delta s)^{2n_i} \f$.
+with the assumption \f$ err_i \propto (\Delta s)^{n_i/2} \f$. 
+This relation is experimental and obtained by measuring \f$ err_i(n_i) \f$ of test simulations.
+This auto-step adjustment method is simple and independent of physical parameters of the $N$-body systems.
 
 \subsection perf_sec Performance Analysis
 
@@ -371,15 +372,15 @@ The cost is:
 (37) \f$ C_{DEN} = \sum_{i=1}^\kappa \sum_{j=1}^{2i-1} [2j*C_{DIFF} +  C_{EX}] \f$
 
 where \f$ C_{DIFF} \f$ is the number of operations for adding one \f$ f(x) \f$ value during the computation of difference (31). 
-For the two dense output methods discussed Section \cite dense_sec, the cost formula is similar (but the \f$ \kappa \f$ can be significant difference in practice).
+For the two dense output methods discussed Section \ref dense_sec, the cost formula is similar (but the \f$ \kappa \f$ can be significant difference in practice).
 
-As we discussed in Section \cite dense_sec, we can do interpolation for all variables and the cost of dense output is \f$ C_{DEN}*(6N+3) \f$. 
+As we discussed in Section \ref dense_sec, we can do interpolation for all variables and the cost of dense output is \f$ C_{DEN}*(6N+3) \f$. 
 Then the cost of dense output over extrapolation integration is
 
 (38) \f$ \frac{C_{DEN}}{C_{EINT}} \approx \frac{O(\kappa^3)}{O(\langle n_i\rangle*N)} \f$
 
 where \f$\langle n_i\rangle\f$ is the average \f$ n_i \f$ from \f$ i=1,\kappa\f$.
-In the case of 4k sequence, \f$\langle n_i\rangle  \propto \kappa^2\f$.
+In the case of 4k sequence, \f$\langle n_i\rangle  \propto \kappa\f$.
 The value of \f$\kappa\f$ depends on the computational error criterion and the integration step size \f$ \Delta s\f$. 
 Usually \f$ \kappa>4 \f$, thus if \f$ N \f$ is not large (\f$ N < 5 \f$), the full dense output with all variables is can be more computational expensive.
 

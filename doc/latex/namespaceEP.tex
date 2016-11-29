@@ -26,7 +26,7 @@ void \hyperlink{namespaceEP_a069470acd4f6c52b2ebb68afcf4528ab}{rational\+\_\+ext
 \begin{DoxyCompactList}\small\item\em Rational extrapolation of Tsize number of data together. \end{DoxyCompactList}\item 
 double \hyperlink{namespaceEP_ab0499a8ae6cab209fc0cca6a47b166f3}{extrapolation\+\_\+error} (double $\ast$$\ast$Tn, const std\+::size\+\_\+t Tsize, const std\+::size\+\_\+t n)
 \begin{DoxyCompactList}\small\item\em Error estimation. \end{DoxyCompactList}\item 
-double \hyperlink{namespaceEP_ac820e20bad3526991885e767a4e11097}{H\+\_\+opt\+\_\+factor} (const double err, const double exp, const std\+::size\+\_\+t n)
+double \hyperlink{namespaceEP_a6d54b765511d661bb4267799ff1a804f}{H\+\_\+opt\+\_\+factor} (const double err, const double exp, const int n)
 \begin{DoxyCompactList}\small\item\em Next step optimized factor estimation (based on the extrapolation order n) \end{DoxyCompactList}\item 
 void \hyperlink{namespaceEP_a92c709f3757c872402d2fcf954c3e2de}{binomial\+\_\+recursive\+\_\+generator} (int $\ast$bn, const int $\ast$bp, const std\+::size\+\_\+t n)
 \begin{DoxyCompactList}\small\item\em Binomial coefficients generator. \end{DoxyCompactList}\item 
@@ -81,11 +81,11 @@ Error calculation based on $ T_{n,n} $ and $ T_{n,n-1} $ Calculate the value of 
 \begin{DoxyReturn}{Returns}
 maximum error 
 \end{DoxyReturn}
-\hypertarget{namespaceEP_ac820e20bad3526991885e767a4e11097}{}\label{namespaceEP_ac820e20bad3526991885e767a4e11097} 
+\hypertarget{namespaceEP_a6d54b765511d661bb4267799ff1a804f}{}\label{namespaceEP_a6d54b765511d661bb4267799ff1a804f} 
 \index{EP@{EP}!H\+\_\+opt\+\_\+factor@{H\+\_\+opt\+\_\+factor}}
 \index{H\+\_\+opt\+\_\+factor@{H\+\_\+opt\+\_\+factor}!EP@{EP}}
 \subsubsection{\texorpdfstring{H\+\_\+opt\+\_\+factor()}{H\_opt\_factor()}}
-{\footnotesize\ttfamily double E\+P\+::\+H\+\_\+opt\+\_\+factor (\begin{DoxyParamCaption}\item[{const double}]{err,  }\item[{const double}]{exp,  }\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily double E\+P\+::\+H\+\_\+opt\+\_\+factor (\begin{DoxyParamCaption}\item[{const double}]{err,  }\item[{const double}]{exp,  }\item[{const int}]{n }\end{DoxyParamCaption})}
 
 
 
@@ -98,7 +98,7 @@ Calculate the modification factor for next extrapolation intergration step (assu
 \hline
 \mbox{\tt in}  & {\em exp} & expected error \\
 \hline
-\mbox{\tt in}  & {\em n} & current extrapolation order (count from 0) return\+: optimized factor (H = H$\ast$factor) \\
+\mbox{\tt in}  & {\em n} & current sub-\/step number return\+: optimized factor (H = H$\ast$factor) \\
 \hline
 \end{DoxyParams}
 \hypertarget{namespaceEP_ad1bbde38ef63ce2a0672843d598770b8}{}\label{namespaceEP_ad1bbde38ef63ce2a0672843d598770b8} 

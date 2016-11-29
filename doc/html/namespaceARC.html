@@ -107,7 +107,7 @@ Classes</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:a5c4308ca4a8d0e0ff59fdce30f00274c"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c">pair_AW</a>) (double *, double &amp;, double *, double &amp;, const double *, const double &amp;, const double &amp;, const double *)</td></tr>
-<tr class="memdesc:a5c4308ca4a8d0e0ff59fdce30f00274c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function <img class="formulaInl" alt="$\partial W/\partial r$" src="form_0.png"/> and <img class="formulaInl" alt="$W$" src="form_1.png"/> from particle j to particle i.  <a href="#a5c4308ca4a8d0e0ff59fdce30f00274c">More...</a><br /></td></tr>
+<tr class="memdesc:a5c4308ca4a8d0e0ff59fdce30f00274c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function <img class="formulaInl" alt="$\partial W_{ij}/\partial \mathbf{x}_i$" src="form_0.png"/> and <img class="formulaInl" alt="$W_{ij}$" src="form_1.png"/> (from particle j to particle i).  <a href="#a5c4308ca4a8d0e0ff59fdce30f00274c">More...</a><br /></td></tr>
 <tr class="separator:a5c4308ca4a8d0e0ff59fdce30f00274c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a819446c4644b3a3af7ef11574d0b55e0"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0">pair_Ap</a>) (double *, double &amp;, const double *, const double *, const double &amp;, const double &amp;)</td></tr>
 <tr class="memdesc:a819446c4644b3a3af7ef11574d0b55e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.  <a href="#a819446c4644b3a3af7ef11574d0b55e0">More...</a><br /></td></tr>
@@ -115,12 +115,12 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:a0f1e14e6d00b38d9f98f0eecf523feaa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceARC.html#a0f1e14e6d00b38d9f98f0eecf523feaa">Newtonian_AW</a> (double A[3], double &amp;P, double dW[3], double &amp;W, const double xjk[3], const double &amp;mj, const double &amp;mk, const double *smpars)</td></tr>
-<tr class="memdesc:a0f1e14e6d00b38d9f98f0eecf523feaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration and dW/dr from particle k to particle j (function type of <a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c">ARC::pair_AW</a>)  <a href="#a0f1e14e6d00b38d9f98f0eecf523feaa">More...</a><br /></td></tr>
-<tr class="separator:a0f1e14e6d00b38d9f98f0eecf523feaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b8ee871e0832b6b59968ea9069877e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceARC.html#a6b8ee871e0832b6b59968ea9069877e0">Newtonian_Ap</a> (double A[3], double &amp;P, const double xi[3], const double xp[3], const double &amp;mi, const double &amp;mp)</td></tr>
-<tr class="memdesc:a6b8ee871e0832b6b59968ea9069877e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration from particle p to particle i (function type of <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a>)  <a href="#a6b8ee871e0832b6b59968ea9069877e0">More...</a><br /></td></tr>
-<tr class="separator:a6b8ee871e0832b6b59968ea9069877e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab9fc6518902e918927d8c6bd3d51401d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceARC.html#ab9fc6518902e918927d8c6bd3d51401d">Newtonian_AW</a> (double Aij[3], double &amp;Pij, double pWij[3], double &amp;Wij, const double xij[3], const double &amp;mi, const double &amp;mj, const double *smpars)</td></tr>
+<tr class="memdesc:ab9fc6518902e918927d8c6bd3d51401d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration and <img class="formulaInl" alt="$\partial W_{ij}/\partial \mathbf{x}_i$" src="form_0.png"/> from particle j to particle i (function type of <a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c">ARC::pair_AW</a>)  <a href="#ab9fc6518902e918927d8c6bd3d51401d">More...</a><br /></td></tr>
+<tr class="separator:ab9fc6518902e918927d8c6bd3d51401d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1010e9fd74a49633259d623839639d67"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceARC.html#a1010e9fd74a49633259d623839639d67">Newtonian_Ap</a> (double Aij[3], double &amp;Pij, const double xi[3], const double xp[3], const double &amp;mi, const double &amp;mp)</td></tr>
+<tr class="memdesc:a1010e9fd74a49633259d623839639d67"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration from particle p to particle i (function type of <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a>)  <a href="#a1010e9fd74a49633259d623839639d67">More...</a><br /></td></tr>
+<tr class="separator:a1010e9fd74a49633259d623839639d67"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d6c876e9d20067d0e8a5c1c4c2c4be6"><td class="memTemplParams" colspan="2">template&lt;class particle &gt; </td></tr>
 <tr class="memitem:a8d6c876e9d20067d0e8a5c1c4c2c4be6"><td class="memTemplItemLeft" align="right" valign="top">double&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceARC.html#a8d6c876e9d20067d0e8a5c1c4c2c4be6">calc_mm2</a> (<a class="el" href="classARC_1_1chainlist.html">chainlist</a>&lt; particle &gt; &amp;p)</td></tr>
 <tr class="memdesc:a8d6c876e9d20067d0e8a5c1c4c2c4be6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate smooth particle coefficient.  <a href="#a8d6c876e9d20067d0e8a5c1c4c2c4be6">More...</a><br /></td></tr>
@@ -145,8 +145,8 @@ Functions</h2></td></tr>
 <p>Function pointer type to function for calculation of acceleration (potential) from particle j to particle i. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">A</td><td>acceleration vector. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">P</td><td>potential (positive value). </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Aij</td><td>acceleration vector of particle i. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Pij</td><td>potential of particle i from j </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">pi</td><td>position vector i. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">pj</td><td>position vector j. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mi</td><td>particle mass i. </td></tr>
@@ -169,14 +169,14 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function <img class="formulaInl" alt="$\partial W/\partial r$" src="form_0.png"/> and <img class="formulaInl" alt="$W$" src="form_1.png"/> from particle j to particle i. </p>
+<p>Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function <img class="formulaInl" alt="$\partial W_{ij}/\partial \mathbf{x}_i$" src="form_0.png"/> and <img class="formulaInl" alt="$W_{ij}$" src="form_1.png"/> (from particle j to particle i). </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">A</td><td>acceleration vector. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">P</td><td>potential (positive value). </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">dW</td><td>time transformation function partial derivate <img class="formulaInl" alt="$\partial W/\partial r$" src="form_0.png"/> (component from j to i; used when #beta&gt;0; see <a class="el" href="classARC_1_1chainpars.html#a37f8af288217cbfc61a3593e21976d06" title="Set time step transformation parameter. ">ARC::chainpars.setabg()</a>) . </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">W</td><td>time transformation function (component from j to i; used when #beta&gt;0; notice in <a class="el" href="classARC_1_1chain.html">ARC::chain</a> the cumulative W only count the case of j&gt;i). </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">X</td><td>relative position (1:3). </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Aij</td><td>acceleration vector for particle i. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Pij</td><td>potential of particle i from particle j (cumulative total potential only count the case of j&gt;i) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">dWij</td><td>time transformation function partial derivate <img class="formulaInl" alt="$\partial W_{ij}/\partial \mathbf{x}_i$" src="form_0.png"/> (component from j to i; used when #beta&gt;0; see <a class="el" href="classARC_1_1chainpars.html#a37f8af288217cbfc61a3593e21976d06" title="Set time step transformation parameter. ">ARC::chainpars.setabg()</a>) . </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Wij</td><td>time transformation function component from j to i (used when #beta&gt;0; notice in <a class="el" href="classARC_1_1chain.html">ARC::chain</a> the cumulative total W only count the case of j&gt;i). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Xij</td><td>relative position (1:3) <img class="formulaInl" alt="$ \mathbf{x}_j - \mathbf{x}_i $" src="form_2.png"/> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mi</td><td>particle i mass. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mj</td><td>particle j mass. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">pars</td><td>extra parameters' array (one dimensional array with type of double) </td></tr>
@@ -206,7 +206,7 @@ template&lt;class particle &gt; </div>
 </div><div class="memdoc">
 
 <p>Calculate smooth particle coefficient. </p>
-<p>Get smooth particle coefficient <img class="formulaInl" alt="$ mm2 = \sum m_i m_j /(N (N-1)/2) (i&lt;j) $" src="form_15.png"/> where <img class="formulaInl" alt="$m_i$" src="form_16.png"/> and <img class="formulaInl" alt="$m_j$" src="form_17.png"/> are particle masses </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Get smooth particle coefficient <img class="formulaInl" alt="$ mm2 = \sum m_i m_j /(N (N-1)/2) (i&lt;j) $" src="form_17.png"/> where <img class="formulaInl" alt="$m_i$" src="form_18.png"/> and <img class="formulaInl" alt="$m_j$" src="form_19.png"/> are particle masses </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">p</td><td><a class="el" href="classARC_1_1chainlist.html">ARC::chainlist</a> variable which store the particles, the template class is passed to chainlist. </td></tr>
   </table>
@@ -216,8 +216,8 @@ template&lt;class particle &gt; </div>
 
 </div>
 </div>
-<a id="a6b8ee871e0832b6b59968ea9069877e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b8ee871e0832b6b59968ea9069877e0">&sect;&nbsp;</a></span>Newtonian_Ap()</h2>
+<a id="a1010e9fd74a49633259d623839639d67"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1010e9fd74a49633259d623839639d67">&sect;&nbsp;</a></span>Newtonian_Ap()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -226,13 +226,13 @@ template&lt;class particle &gt; </div>
           <td class="memname">void ARC::Newtonian_Ap </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>A</em>[3], </td>
+          <td class="paramname"><em>Aij</em>[3], </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>P</em>, </td>
+          <td class="paramname"><em>Pij</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -269,8 +269,8 @@ template&lt;class particle &gt; </div>
 <p>Newtonian acceleration from particle p to particle i (function type of <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a>) </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">A</td><td>acceleration vector. <img class="formulaInl" alt="$A[1:3] = m_i m_p (xp[1:3]-xi[1:3]) / |xp-xi|^3 $" src="form_13.png"/>. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">P</td><td>potential. <img class="formulaInl" alt="$ P = m_i m_p /|xp-xi|^3$" src="form_14.png"/> </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Aij</td><td>acceleration vector. <img class="formulaInl" alt="$Aij[1:3] = m_i m_p (xp[1:3]-xi[1:3]) / |xp-xi|^3 $" src="form_15.png"/>. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Pij</td><td>potential. <img class="formulaInl" alt="$ Pij = - m_i m_p /|xp-xi|^3$" src="form_16.png"/> </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">xi</td><td>position vector i. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">xp</td><td>position vector p. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mi</td><td>particle mass i. </td></tr>
@@ -281,8 +281,8 @@ template&lt;class particle &gt; </div>
 
 </div>
 </div>
-<a id="a0f1e14e6d00b38d9f98f0eecf523feaa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f1e14e6d00b38d9f98f0eecf523feaa">&sect;&nbsp;</a></span>Newtonian_AW()</h2>
+<a id="ab9fc6518902e918927d8c6bd3d51401d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab9fc6518902e918927d8c6bd3d51401d">&sect;&nbsp;</a></span>Newtonian_AW()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -291,43 +291,43 @@ template&lt;class particle &gt; </div>
           <td class="memname">void ARC::Newtonian_AW </td>
           <td>(</td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>A</em>[3], </td>
+          <td class="paramname"><em>Aij</em>[3], </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>P</em>, </td>
+          <td class="paramname"><em>Pij</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double&#160;</td>
-          <td class="paramname"><em>dW</em>[3], </td>
+          <td class="paramname"><em>pWij</em>[3], </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">double &amp;&#160;</td>
-          <td class="paramname"><em>W</em>, </td>
+          <td class="paramname"><em>Wij</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double&#160;</td>
-          <td class="paramname"><em>xjk</em>[3], </td>
+          <td class="paramname"><em>xij</em>[3], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double &amp;&#160;</td>
+          <td class="paramname"><em>mi</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double &amp;&#160;</td>
           <td class="paramname"><em>mj</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const double &amp;&#160;</td>
-          <td class="paramname"><em>mk</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -343,20 +343,20 @@ template&lt;class particle &gt; </div>
       </table>
 </div><div class="memdoc">
 
-<p>Newtonian acceleration and dW/dr from particle k to particle j (function type of <a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c">ARC::pair_AW</a>) </p>
+<p>Newtonian acceleration and <img class="formulaInl" alt="$\partial W_{ij}/\partial \mathbf{x}_i$" src="form_0.png"/> from particle j to particle i (function type of <a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c">ARC::pair_AW</a>) </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">A</td><td>Newtonian acceleration vector. <img class="formulaInl" alt="$A[1:3] = m_j m_k xjk[1:3] / |xjk|^3 $" src="form_2.png"/>. </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">P</td><td>Newtonian potential. <img class="formulaInl" alt="$ P = m_j m_k /|xjk| $" src="form_3.png"/> </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">dW</td><td>TTL time transformation function derivates based on position vector (component of j,k) <img class="formulaInl" alt="$\partial W/\partial r$" src="form_0.png"/> (used for TTL method). <img class="formulaInl" alt="$dW[1:3] = mm_{jk} xjk[1:3] /|xjk|^3 $" src="form_4.png"/>. (Total value is <img class="formulaInl" alt="$\frac{\partial W}{\partial \mathbf{x}_j} = \sum_{k} mm_{jk} \mathbf{x}_{jk}/|\mathbf{x}_{jk}|^3$" src="form_5.png"/>) </td></tr>
-    <tr><td class="paramdir">[out]</td><td class="paramname">W</td><td>TTL time transformation function component with j,k (used for TTL method) <img class="formulaInl" alt="$W = mm_{jk} /|xjk|^3$" src="form_6.png"/> total value is <img class="formulaInl" alt="$ W = \sum_{j&lt;k} mm_{jk} /|xjk| $" src="form_7.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">xjk</td><td>relative position vector [1:3] from particle j to particle k </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Aij</td><td>Newtonian acceleration vector for i particle from particle j. <img class="formulaInl" alt="$Aij[1:3] = m_i m_j xij[1:3] / |xij|^3 $" src="form_3.png"/>. </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Pij</td><td>Newtonian potential of i from j. <img class="formulaInl" alt="$ Pij = -m_i m_j /|xij| $" src="form_4.png"/> </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">pWij</td><td>TTL time transformation function partial derivates (component from j to i) <img class="formulaInl" alt="$\partial W_{ij}/\partial \mathbf{x}_i$" src="form_0.png"/> (used for TTL method). <img class="formulaInl" alt="$pWij[1:3] = mm_{ij} xij[1:3] /|xij|^3 $" src="form_5.png"/>. (Total value is <img class="formulaInl" alt="$\frac{\partial W}{\partial \mathbf{x}_i} = \sum_{j} mm_{ij} \mathbf{x}_{ij}/|\mathbf{x}_{ij}|^3$" src="form_6.png"/>) </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">Wij</td><td>TTL time transformation function component with i,j (used for TTL method) <img class="formulaInl" alt="$Wij = mm_{ij} /|xij|^3$" src="form_7.png"/> total value is <img class="formulaInl" alt="$ W = \sum_{i&lt;j} mm_{ij} /|xij| $" src="form_8.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">xij</td><td>relative position vector [1:3] <img class="formulaInl" alt="$ \mathbf{x_j} - \mathbf{x_i} $" src="form_9.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">mi</td><td>particle i mass. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">mj</td><td>particle j mass. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mk</td><td>particle k mass. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">smpars</td><td>array of double[2].<ul>
-<li>First element is smooth mass coefficient mm2 <img class="formulaInl" alt="$ \sum_{j&lt;k} m_j m_k /(N(N-1)/2) $" src="form_8.png"/> (can be calculated by <a class="el" href="namespaceARC.html#a8d6c876e9d20067d0e8a5c1c4c2c4be6" title="Calculate smooth particle coefficient. ">calc_mm2()</a>); <br />
+<li>First element is smooth mass coefficient mm2 <img class="formulaInl" alt="$ \sum_{i&lt;j} m_i m_j /(N(N-1)/2) $" src="form_10.png"/> (can be calculated by <a class="el" href="namespaceARC.html#a8d6c876e9d20067d0e8a5c1c4c2c4be6" title="Calculate smooth particle coefficient. ">calc_mm2()</a>); <br />
 </li>
-<li>Second element is adjustable parameter epi. 1) If epi&gt;0: if <img class="formulaInl" alt="$m_j m_k &lt; epi mm2$" src="form_9.png"/>: <img class="formulaInl" alt="$ mm_{jk} = mm2$" src="form_10.png"/> else: <img class="formulaInl" alt="$ mm_jk = 0$" src="form_11.png"/> 2) If epi&lt;0: <img class="formulaInl" alt="$mm_{jk} = m_j m_k$" src="form_12.png"/>.<br />
+<li>Second element is adiustable parameter epi. 1) If epi&gt;0: if <img class="formulaInl" alt="$m_i m_j &lt; epi mm2$" src="form_11.png"/>: <img class="formulaInl" alt="$ mm_{ij} = mm2$" src="form_12.png"/> else: <img class="formulaInl" alt="$ mm_ij = 0$" src="form_13.png"/> 2) If epi&lt;0: <img class="formulaInl" alt="$mm_{ij} = m_i m_j$" src="form_14.png"/>.<br />
 </li>
 </ul>
 </td></tr>
