@@ -229,9 +229,13 @@ The integration error at sequence index $ i$ can be estimated as
 
 If we want the expected error appear at sequence index $ i$ after the next integration step, the step modification factor can be estimated as\+:
 
-(34) $ \frac{\Delta s_{new}}{\Delta s} \approx \left(\frac{exp}{err_{i}}\right)^{2/n_i} $
+(34) $ \frac{\Delta s_{new,i}}{\Delta s} \approx \left(\frac{exp}{err_{i}}\right)^{1/(2i-1)} $
 
-with the assumption $ err_i \propto (\Delta s)^{n_i/2} $. This relation is experimental and obtained by measuring $ err_i(n_i) $ of test simulations. This auto-\/step adjustment method is simple and independent of physical parameters of the \$N\$-\/body systems.\hypertarget{index_perf_sec}{}\subsection{Performance Analysis}\label{index_perf_sec}
+with the assumption $ err_i \propto (\Delta s)^{2i-1} $. To determine which $ i$ is best for performance, the computational effort
+
+(35) $ C_i = \frac{\sum_{k=0}^i n_i}{\Delta s_{new,i}} $
+
+is calculated for each $ i $, then we choose index $ i=k $ which corresponds to the mimimum $ C_i $. The next step is $ \Delta s_{new,i} $. This method should work with fixed accuracy order ( $ \kappa $ is constant).\hypertarget{index_perf_sec}{}\subsection{Performance Analysis}\label{index_perf_sec}
 Here the performance analysis of the code is provided. For one step of Leapfrog integration, we need two half-\/step integration of $ \mathbf{q} $ and $ t $, one full-\/step integration of $ \mathbf{p} $, $ Pt $ and $ w $. Before $ \mathbf{p} $ is integrated, the acceleration $ \mathbf{A} $ is calculated. If the particle number is $ N $, the computational cost is\+:
 
 (35) $ C_{LF} = C_{A,P}*N^2 + C_{Pt}*N + C_{w}*N + 2C_{p}*N + 2*C_{t} + C_{T}*N $

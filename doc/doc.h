@@ -342,11 +342,16 @@ The integration error at sequence index \f$ i\f$ can be estimated as
 
 If we want the expected error appear at sequence index \f$ i\f$ after the next integration step, the step modification factor can be estimated as:
 
-(34) \f$ \frac{\Delta s_{new}}{\Delta s} \approx \left(\frac{exp}{err_{i}}\right)^{2/n_i} \f$
+(34) \f$ \frac{\Delta s_{new,i}}{\Delta s} \approx \left(\frac{exp}{err_{i}}\right)^{1/(2i-1)} \f$
 
-with the assumption \f$ err_i \propto (\Delta s)^{n_i/2} \f$. 
-This relation is experimental and obtained by measuring \f$ err_i(n_i) \f$ of test simulations.
-This auto-step adjustment method is simple and independent of physical parameters of the $N$-body systems.
+with the assumption \f$ err_i \propto (\Delta s)^{2i-1} \f$. 
+To determine which \f$ i\f$ is best for performance, the computational effort 
+
+(35) \f$ C_i = \frac{\sum_{k=0}^i n_i}{\Delta s_{new,i}} \f$
+
+is calculated for each \f$ i \f$, then we choose index \f$ i=k \f$ which corresponds to the mimimum \f$ C_i \f$.
+The next step is \f$ \Delta s_{new,i} \f$.
+This method should work with fixed accuracy order (\f$ \kappa \f$ is constant).
 
 \subsection perf_sec Performance Analysis
 
