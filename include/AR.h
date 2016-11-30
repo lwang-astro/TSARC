@@ -1963,7 +1963,7 @@ public:
       dn[i] = new double[dsize+1];
       dn[i][dsize] = (double)dsize; // label for safety check
     }
-    double Ekin0;
+    double Ekin0,Pot0;
 
     // for dense output polynomial
     bool ip_flag = true;  // interpolation coefficient calculation flag
@@ -1985,6 +1985,7 @@ public:
     // backup initial values (t, Pt, w, X, V, Ekin)
     backup(d0);
     Ekin0 = Ekin;
+    Pot0 = Pot;
 
     // new step
     double dsn = 1.0;
@@ -2071,20 +2072,6 @@ public:
         // Using Rational interpolation method
         else EP::rational_extrapolation(dn,dtemp,step,dsize,intcount);
 
-        // get error estimation
-        double ermax=EP::extrapolation_error(dn,dsize,intcount);
-        double dsfactor = EP::H_opt_factor(ermax,error,step[intcount]);
-        double werrn = (double)itercount/ dsfactor;
-        if (ermax>0&&werrn<werrmax) {
-          werrmax = werrn;
-          dsn = dsfactor;
-        //dsn = std::min(dsn,0.9); // not larger than 1.0
-        //dsn = std::max(dsn,pars->dtmin); // not too small
-#ifdef DEBUG
-          std::cerr<<"ERR factor update: sequence="<<step[intcount]<<"; modify factor="<<1.0/dsfactor<<"; ermax="<<ermax<<std::endl;
-#endif
-        }
-      
         // set final results back to chain array
         restore(dn[intcount]);
  
@@ -2110,8 +2097,24 @@ public:
         cxerr0 = cxerr;
         cxerr = std::sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
         eerr0 = eerr;
-        eerr = (Ekin+Pot+Pt)/Pt;
+        eerr = (Ekin+Pot+Pt-Ekin0-Pot0-d0[1])/Pt;
         std::memcpy(CX,CXN,3*sizeof(double));
+
+        // get error estimation
+        double ermax=std::min(EP::extrapolation_error(dn,dsize,intcount),std::min(eerr,cxerr));
+        double dsfactor = EP::H_opt_factor(ermax,error,intcount+1);
+        double werrn = ((double)itercount+num)/ dsfactor;
+        if (ermax>0&&werrn<werrmax) {
+          werrmax = werrn;
+          dsn = dsfactor;
+          dsn = std::max(std::min(dsn,2.0),0.7);
+        //dsn = std::min(dsn,0.9); // not larger than 1.0
+        //dsn = std::max(dsn,pars->dtmin); // not too small
+#ifdef DEBUG
+          std::cerr<<"ERR factor update: sequence="<<step[intcount]<<"; modify factor="<<dsfactor<<"; ermax="<<ermax<<"; eerr="<<eerr<<"; cxerr="<<cxerr<<std::endl;
+#endif
+        }
+      
       }
       
       intcount++;

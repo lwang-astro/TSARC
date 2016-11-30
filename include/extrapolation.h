@@ -203,11 +203,11 @@ namespace EP {
      (new step size) Hnew ~ (old step size) H * (\a exp/\a err)**1/(2n+3) 
      @param [in] err: error of current extrapolation from \f$ T_{n,n-1} \f$ to \f$ T_{n,n} \f$
      @param [in] exp: expected error
-     @param [in] n: current sub-step number
+     @param [in] n: current sequence index (iteration number)
      return:   optimized factor (H = H*factor)
   */
   double H_opt_factor (const double err, const double exp, const int n) {
-    if (err>0) return std::pow(exp/err, 1/double(n/2));
+    if (err>0) return std::pow(exp/err, 1.0/double(2*n-1));
     else return 1.0;
   }
 
