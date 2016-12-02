@@ -162,9 +162,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a82b26731761231d86fd2e0b4529df6fa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#a82b26731761231d86fd2e0b4529df6fa">Leapfrog_step_forward</a> (const double s, const int n, const double3 *force=NULL, int check_flag=1, double **dpoly=NULL, const int ndmax=0)</td></tr>
 <tr class="memdesc:a82b26731761231d86fd2e0b4529df6fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Leapfrog integrator.  <a href="#a82b26731761231d86fd2e0b4529df6fa">More...</a><br /></td></tr>
 <tr class="separator:a82b26731761231d86fd2e0b4529df6fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab831215debbd09466cadb1b961dd0a18"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#ab831215debbd09466cadb1b961dd0a18">extrapolation_integration</a> (const double ds, const double toff=-1.0, const double3 *force=NULL)</td></tr>
-<tr class="memdesc:ab831215debbd09466cadb1b961dd0a18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extrapolation integration.  <a href="#ab831215debbd09466cadb1b961dd0a18">More...</a><br /></td></tr>
-<tr class="separator:ab831215debbd09466cadb1b961dd0a18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0eb7768cb1b9099bbf66124d4c00164c"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#a0eb7768cb1b9099bbf66124d4c00164c">extrapolation_integration</a> (const double ds, const double toff=-1.0, const double3 *force=NULL, const bool err_ignore=false)</td></tr>
+<tr class="memdesc:a0eb7768cb1b9099bbf66124d4c00164c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extrapolation integration.  <a href="#a0eb7768cb1b9099bbf66124d4c00164c">More...</a><br /></td></tr>
+<tr class="separator:a0eb7768cb1b9099bbf66124d4c00164c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48bde99d89b99df54844e1331d4814bb"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#a48bde99d89b99df54844e1331d4814bb">getTime</a> () const</td></tr>
 <tr class="memdesc:a48bde99d89b99df54844e1331d4814bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current physical time.  <a href="#a48bde99d89b99df54844e1331d4814bb">More...</a><br /></td></tr>
 <tr class="separator:a48bde99d89b99df54844e1331d4814bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -215,11 +215,11 @@ class ARC::chain&lt; particle &gt;</h3>
 <li>Add perturbers into chain perturber list (<a class="el" href="classARC_1_1chain.html#a6e4f41c7d3f8d44a4a01734ff4ab20cf">chain::pext</a>) using <a class="el" href="classARC_1_1chain.html#a029906394e7b73881c0980c00bf978f7" title="Add one perturber particle. ">chain.addPext()</a> (also only register the particle address)</li>
 <li>Initialize pair_AW_pars used for <a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c" title="Function pointer type to function for calculation of acceleration (potential) and the component of ti...">ARC::pair_AW</a> if necessary (see the case of <a class="el" href="namespaceARC.html#ab9fc6518902e918927d8c6bd3d51401d" title="Newtonian acceleration and  from particle j to particle i (function type of ARC::pair_AW) ...">ARC::Newtonian_AW()</a>)</li>
 <li>Initialize chain with <a class="el" href="classARC_1_1chain.html#aa016cf633d19079dca24565b80a36a3f" title="Initialization. ">chain.init()</a>. Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in <a class="el" href="classARC_1_1chain.html#af1793b656e139e1f87c2e0a55f87514b">chain::p</a> will be shifted from their original frame to their center-of-mass frame. The particle type member variable <a class="el" href="classARC_1_1chain.html#ae9f6a5cbf7aac2b33c7274e7e10916ed">chain::cm</a> stores the center-of-mass data of these particles (the mass of <a class="el" href="classARC_1_1chain.html#ae9f6a5cbf7aac2b33c7274e7e10916ed">chain::cm</a> is the total mass of all member particles).</li>
-<li>Call integration functions (<a class="el" href="classARC_1_1chain.html#a82b26731761231d86fd2e0b4529df6fa" title="Leapfrog integrator. ">chain.Leapfrog_step_forward()</a> or <a class="el" href="classARC_1_1chain.html#ab831215debbd09466cadb1b961dd0a18" title="Extrapolation integration. ">chain.extrapolation_integration()</a>). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.</li>
-<li>After call integration functions, the particles are integrated to new time. Because in <a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in <a class="el" href="classARC_1_1chain.html#ab831215debbd09466cadb1b961dd0a18" title="Extrapolation integration. ">chain.extrapolation_integration()</a> document).</li>
+<li>Call integration functions (<a class="el" href="classARC_1_1chain.html#a82b26731761231d86fd2e0b4529df6fa" title="Leapfrog integrator. ">chain.Leapfrog_step_forward()</a> or <a class="el" href="classARC_1_1chain.html#a0eb7768cb1b9099bbf66124d4c00164c" title="Extrapolation integration. ">chain.extrapolation_integration()</a>). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.</li>
+<li>After call integration functions, the particles are integrated to new time. Because in <a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in <a class="el" href="classARC_1_1chain.html#a0eb7768cb1b9099bbf66124d4c00164c" title="Extrapolation integration. ">chain.extrapolation_integration()</a> document).</li>
 <li>Notice that after <a class="el" href="classARC_1_1chain.html#aa016cf633d19079dca24565b80a36a3f" title="Initialization. ">chain.init()</a> and integration, the particles are always in the center-of-mass frame. If you want to shift them back to the original frame, the <a class="el" href="classARC_1_1chain.html#a52edc1843550578f5be5590b7403ef97" title="Inversed center-of-mass frame shift for particles. ">chain.center_shift_inverse()</a> should be used. But after this function is used, you should use <a class="el" href="classARC_1_1chain.html#a68ae268afb418455bfdd6e8101b3b4eb" title="Center-of-mass frame shift for particles. ">chain.center_shift()</a> before the next integration.</li>
 </ol>
-<p>Because of time now is an integrated variable, the time after integration cannot be predicted. Thus if you want to stop the integration at a certain physical time, you need to use <a class="el" href="classARC_1_1chain.html#ab831215debbd09466cadb1b961dd0a18" title="Extrapolation integration. ">chain.extrapolation_integration()</a> with dense output. To get better accuracy of physical time from intepolation, the 4k sequences (set in <a class="el" href="classARC_1_1chainpars.html#a1cacdcfc2d5b91f27cbc3c58cc8d3447" title="Set extrapolation parameters. ">chainpars.setEXP()</a>) is strongly suggested to be used. If 4k sequences are used, the dense output method for GBS is used and the accuracy of time intepolation is close to the accuracy of integration. Please check the document of <a class="el" href="classARC_1_1chain.html#ab831215debbd09466cadb1b961dd0a18" title="Extrapolation integration. ">chain.extrapolation_integration()</a> for detail. </p>
+<p>Because of time now is an integrated variable, the time after integration cannot be predicted. Thus if you want to stop the integration at a certain physical time, you need to use <a class="el" href="classARC_1_1chain.html#a0eb7768cb1b9099bbf66124d4c00164c" title="Extrapolation integration. ">chain.extrapolation_integration()</a> with dense output. To get better accuracy of physical time from intepolation, the 4k sequences (set in <a class="el" href="classARC_1_1chainpars.html#a1bef542db30755ac35cf064446874f6d" title="Set extrapolation parameters. ">chainpars.setEXP()</a>) is strongly suggested to be used. If 4k sequences are used, the dense output method for GBS is used and the accuracy of time intepolation is close to the accuracy of integration. Please check the document of <a class="el" href="classARC_1_1chain.html#a0eb7768cb1b9099bbf66124d4c00164c" title="Extrapolation integration. ">chain.extrapolation_integration()</a> for detail. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a38fc886b32c9496571b1649e784583a3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a38fc886b32c9496571b1649e784583a3">&sect;&nbsp;</a></span>chain() <span class="overload">[1/2]</span></h2>
@@ -742,8 +742,8 @@ template&lt;class particle&gt; </div>
 
 </div>
 </div>
-<a id="ab831215debbd09466cadb1b961dd0a18"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab831215debbd09466cadb1b961dd0a18">&sect;&nbsp;</a></span>extrapolation_integration()</h2>
+<a id="a0eb7768cb1b9099bbf66124d4c00164c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0eb7768cb1b9099bbf66124d4c00164c">&sect;&nbsp;</a></span>extrapolation_integration()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -769,7 +769,13 @@ template&lt;class particle&gt; </div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double3 *&#160;</td>
-          <td class="paramname"><em>force</em> = <code>NULL</code>&#160;</td>
+          <td class="paramname"><em>force</em> = <code>NULL</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const bool&#160;</td>
+          <td class="paramname"><em>err_ignore</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -791,16 +797,18 @@ template&lt;class particle&gt; </div>
     <tr><td class="paramdir">[in]</td><td class="paramname">ds</td><td>integration step size </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">toff</td><td>ending physical time<ul>
 <li>if value is negative, it means integration will be done with fixed step size <em>ds</em> </li>
-<li>if value is positive and after step <em>ds</em>, the ending physical time is larger than <em>toff</em>, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, positions and velocites of particles in <a class="el" href="classARC_1_1chain.html#af1793b656e139e1f87c2e0a55f87514b" title="particle list ">p</a> and chain data are not changed, instead, returning value is the ds modification factor (negative value), which can be used to modified current <em>ds</em> and redo the integration by calling this function again with new ds to approach ending physical time of <em>toff</em>. Notice if the required time sychronization criterion (set in <a class="el" href="classARC_1_1chainpars.html#a1cacdcfc2d5b91f27cbc3c58cc8d3447" title="Set extrapolation parameters. ">chainpars.setEXP()</a>) is small (&lt;phase and energy error criterion), several iteration may be needed to get the physical time below this criterion. </li>
+<li>if value is positive and after step <em>ds</em>, the ending physical time is larger than <em>toff</em>, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, the data are kept as initial values. Instead, the returning value is the ds modification factor (negative value), which can be used to modified current <em>ds</em> and redo the integration by calling this function again with new ds to approach ending physical time of <em>toff</em>. Notice if the required time sychronization criterion (set in <a class="el" href="classARC_1_1chainpars.html#a1bef542db30755ac35cf064446874f6d" title="Set extrapolation parameters. ">chainpars.setEXP()</a>) is small (&lt;phase and energy error criterion), several iteration may be needed to get the physical time below this criterion. </li>
 </ul>
 </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">force</td><td>external force (not perturber forces which are calculated in pert_force) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">err_ignore</td><td>if true, force integration and ignore error criterion (default false) </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>factor<ul>
 <li>if factor is positive, it is optimized step size modification factor for next step (<em>ds</em> *= factor)</li>
-<li>if factor is negative and <em>toff&gt;0</em>; the -factor is used for calculate new ds' = -factor * <em>ds</em>. Thus this function should be called again with new step size ds' and the new result should have ending physical time close to <em>toff</em>. </li>
+<li>if factor is negative and <em>toff&gt;0</em>; the -factor is used for calculate new ds' = -factor * <em>ds</em>. Thus this function should be called again with new step size ds' and the new result should have ending physical time close to <em>toff</em>.</li>
+<li>if factor is zero, maximum extrapolation sequence index (accuracy order/iteration times) is fixed (<a class="el" href="classARC_1_1chainpars.html">ARC::chainpars</a>) and err_ingore is false, it means the error criterion cannot be satisfied with current maximum sequence index. In this case no integration is done and the data are kept as initial values. User should reduce the integration step and re-call this function. </li>
 </ul>
 </dd></dl>
 

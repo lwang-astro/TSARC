@@ -352,6 +352,8 @@ To determine which \f$ i\f$ is best for performance, the computational effort
 is calculated for each \f$ i \f$, then we choose index \f$ i=k \f$ which corresponds to the mimimum \f$ C_i \f$.
 The next step is \f$ \Delta s_{new,i} \f$.
 This method should work with fixed accuracy order (\f$ \kappa \f$ is constant).
+But in some critial situation (close encounter), the step change may not be reduced enough to obtain accurate results. 
+This need to be treated carefully during the simulations.
 
 \subsection perf_sec Performance Analysis
 

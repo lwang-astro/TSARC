@@ -235,7 +235,7 @@ with the assumption $ err_i \propto (\Delta s)^{2i-1} $. To determine which $ i$
 
 (35) $ C_i = \frac{\sum_{k=0}^i n_i}{\Delta s_{new,i}} $
 
-is calculated for each $ i $, then we choose index $ i=k $ which corresponds to the mimimum $ C_i $. The next step is $ \Delta s_{new,i} $. This method should work with fixed accuracy order ( $ \kappa $ is constant).\hypertarget{index_perf_sec}{}\subsection{Performance Analysis}\label{index_perf_sec}
+is calculated for each $ i $, then we choose index $ i=k $ which corresponds to the mimimum $ C_i $. The next step is $ \Delta s_{new,i} $. This method should work with fixed accuracy order ( $ \kappa $ is constant). But in some critial situation (close encounter), the step change may not be reduced enough to obtain accurate results. This need to be treated carefully during the simulations.\hypertarget{index_perf_sec}{}\subsection{Performance Analysis}\label{index_perf_sec}
 Here the performance analysis of the code is provided. For one step of Leapfrog integration, we need two half-\/step integration of $ \mathbf{q} $ and $ t $, one full-\/step integration of $ \mathbf{p} $, $ Pt $ and $ w $. Before $ \mathbf{p} $ is integrated, the acceleration $ \mathbf{A} $ is calculated. If the particle number is $ N $, the computational cost is\+:
 
 (35) $ C_{LF} = C_{A,P}*N^2 + C_{Pt}*N + C_{w}*N + 2C_{p}*N + 2*C_{t} + C_{T}*N $

@@ -14,7 +14,7 @@ var classARC_1_1chain =
     [ "center_shift", "classARC_1_1chain.html#a68ae268afb418455bfdd6e8101b3b4eb", null ],
     [ "center_shift_inverse", "classARC_1_1chain.html#a52edc1843550578f5be5590b7403ef97", null ],
     [ "clear", "classARC_1_1chain.html#a5299fa50788dc7e5d15504c33f76333f", null ],
-    [ "extrapolation_integration", "classARC_1_1chain.html#ab831215debbd09466cadb1b961dd0a18", null ],
+    [ "extrapolation_integration", "classARC_1_1chain.html#a0eb7768cb1b9099bbf66124d4c00164c", null ],
     [ "getEkin", "classARC_1_1chain.html#ad7e8b3a20521f095a6935845f8a2ee53", null ],
     [ "getPot", "classARC_1_1chain.html#ae59c00c676af34f22c650076eb0aa83a", null ],
     [ "getPt", "classARC_1_1chain.html#adbda281b80afe23f4b23d6a775046121", null ],
