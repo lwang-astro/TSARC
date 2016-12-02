@@ -215,6 +215,7 @@ private:
   // extrapolation control parameter
   double exp_error;        ///< relative error requirement for extrapolation
   std::size_t exp_itermax; ///< maximum times for iteration.
+  bool exp_fix_iter;       ///< flag showing whether the times of iteration is fixed or not
   int exp_method;         ///< 1: Polynomial method; others: Rational interpolation method
   int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other. 4k sequence {h/2, h/6, h/10, h/14 ...}
 
@@ -230,13 +231,14 @@ public:
       - Phase/energy error limit #exp_error = 1e-10.
       - Minimum physical time step #dtmin = 5.4e-20.
       - Time synchronization error limit #dterr = 1e-10.
-      - Maximum extrapolation iteration number #exp_itermax = 20
+      - Maximum extrapolation sequence index (accuracy order/iteration times) #exp_itermax = 20
+      - The maximum sequence index (iteration times) is adjusted by error criterion
       - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
    */
   chainpars(): alpha(1.0), beta(0.0), gamma(0.0) {
     step = NULL;
     bin_index = NULL;
-    setEXP(1E-10, 5.4E-20, 1E-10, 20, 2, 2);
+    setEXP(1E-10, 5.4E-20, 1E-10, 20, 2, 2, false);
     pp_AW = &Newtonian_AW;
     pp_Ap = &Newtonian_Ap;
   }
@@ -252,15 +254,16 @@ public:
     @param [in] error: Phase/energy error limit (defaulted #exp_error = 1e-10)
     @param [in] dtm: Minimum physical time step (defaulted #dtmin = 5.4e-20)
     @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
-    @param [in] itermax: Maximum extrapolation iteration number (defaulted #exp_itermax = 20)
+    @param [in] itermax: Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20)
     @param [in] ext_method: 1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational)
     @param [in] ext_sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+    @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
    */
-  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2) {
+  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const bool ext_iteration_const=false) {
     step = NULL;
     bin_index = NULL;
     setabg(a,b,g);
-    setEXP(error,dtm,dte,itermax,ext_method,ext_sequence);
+    setEXP(error,dtm,dte,itermax,ext_method,ext_sequence,ext_iteration_const);
     setA(aw,ap);
   }
 
@@ -318,14 +321,16 @@ public:
     @param [in] error: phase/energy relative error requirement for extrapolation (defaulted #exp_error = 1e-10)
     @param [in] dtm: minimum physical time step allown (defaulted #dtmin = 5.4e-20)
     @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
-    @param [in] itermax: maximum order (index in sequence) for extrapolation iteration. (defaulted #exp_itermax = 20)
+    @param [in] itermax: Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20)
     @param [in] methods: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
     @param [in] sequences: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+    @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
   */
-  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2) {
+  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2, const bool ext_iteration_const=false) {
     exp_error = error;
     exp_method = methods;
     exp_sequence = sequences;
+    exp_fix_iter = ext_iteration_const;
     dterr = dte;
     dtmin = dtm;
 
@@ -1066,11 +1071,11 @@ private:
 
     // backup current X
     double3* Xbk = new double3[num-1];
-    std::memcpy(Xbk,X,(num-1)*3*sizeof(double));
+    std::memcpy(Xbk[0],X[0],(num-1)*3*sizeof(double));
     
     // backup current V
     double3* Vbk = new double3[num-1];
-    std::memcpy(Vbk,V,(num-1)*3*sizeof(double));
+    std::memcpy(Vbk[0],V[0],(num-1)*3*sizeof(double));
 
     // create mask to avoid dup. check;
     bool* mask = new bool[num];
@@ -1192,6 +1197,7 @@ private:
     delete[] roldlink;
     delete[] listbk;
     delete[] Vbk;
+    delete[] Xbk;
 
 #ifdef DEBUG    
     if(modified) print();
@@ -1340,9 +1346,9 @@ private:
             if (ik>=0&&ik<=2*n) {
               int nk= n-ik/2;  // n-ik
               double coff = ((nk%2)?-1:1)*binI[n][nk];
-#ifdef DEBUG
-              std::cerr<<"Poly_coff: n= "<<n<<"; i="<<i<<"; ik="<<ik<<"; coff="<<coff<<std::endl;
-#endif
+//#ifdef DEBUG
+//              std::cerr<<"Poly_coff: n= "<<n<<"; i="<<i<<"; ik="<<ik<<"; coff="<<coff<<std::endl;
+//#endif
               dpoly[j][0] += coff * dts;
 //              if (!tflag) {
 //                dpoly[j][1] += coff * Pt;
@@ -1702,8 +1708,8 @@ public:
     db[0] = t;
     db[1] = Pt;
     db[2] = w;
-    std::memcpy(&db[3], X, ndata*sizeof(double));
-    std::memcpy(&db[3+ndata], V, ndata*sizeof(double));
+    std::memcpy(&db[3], X[0], ndata*sizeof(double));
+    std::memcpy(&db[3+ndata], V[0], ndata*sizeof(double));
   }
      
   //! Restore chain data (#t, #Pt, #w, #X, #V)
@@ -1725,8 +1731,8 @@ public:
     t = db[0];
     Pt = db[1];
     w = db[2];
-    std::memcpy(X, &db[3], ndata*sizeof(double));
-    std::memcpy(V, &db[3+ndata], ndata*sizeof(double));
+    std::memcpy(X[0], &db[3], ndata*sizeof(double));
+    std::memcpy(V[0], &db[3+ndata], ndata*sizeof(double));
   }
 
   //! Leapfrog integrator
@@ -1879,9 +1885,9 @@ public:
           if (i==n/2-1) {
             dpoly[0][0]=t; // y
             dpoly[1][0]=2.0*dt/ds; // f(x)
-#ifdef DEBUG
-            std::cerr<<"Mid time = "<<t<<", n="<<n<<"; i="<<i+1<<std::endl;
-#endif
+//#ifdef DEBUG
+//            std::cerr<<"Mid time = "<<t<<", n="<<n<<"; i="<<i+1<<std::endl;
+//#endif
           }
           mid_diff_calc(&dpoly[2],ndmax-2,i+1,n);
         }
@@ -1898,9 +1904,9 @@ public:
 
     if(dpoly!=NULL&&pars->exp_sequence!=3) dpoly[0][1]=1.0/(pars->gamma - pars->alpha * Pot + pars->beta * W );
 
-#ifdef DEBUG
-    std::cerr<<"Ending time = "<<t<<", n="<<n<<std::endl;
-#endif
+//#ifdef DEBUG
+//    std::cerr<<"Ending time = "<<t<<", n="<<n<<std::endl;
+//#endif
 //#ifdef DEBUG
 //    std::cerr<<std::setw(WIDTH)<<t;
 //    //      for (int i=0;i<num;i++) 
@@ -1929,13 +1935,15 @@ public:
      @param [in] ds: integration step size
      @param [in] toff: ending physical time
                       - if value is negative, it means integration will be done with fixed step size \a ds
-                      - if value is positive and after step \a ds, the ending physical time is larger than \a toff, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, positions and velocites of particles in #p and chain data are not changed, instead, returning value is the ds modification factor (negative value), which can be used to modified current \a ds and redo the integration by calling this function again with new ds to approach ending physical time of \a toff. Notice if the required time sychronization criterion (set in chainpars.setEXP()) is small (<phase and energy error criterion), several iteration may be needed to get the physical time below this criterion.
+                      - if value is positive and after step \a ds, the ending physical time is larger than \a toff, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, the data are kept as initial values. Instead, the returning value is the ds modification factor (negative value), which can be used to modified current \a ds and redo the integration by calling this function again with new ds to approach ending physical time of \a toff. Notice if the required time sychronization criterion (set in chainpars.setEXP()) is small (<phase and energy error criterion), several iteration may be needed to get the physical time below this criterion.
      @param [in] force: external force (not perturber forces which are calculated in pert_force)
+     @param [in] err_ignore: if true, force integration and ignore error criterion (default false)
      \return factor
             - if factor is positive, it is optimized step size modification factor for next step (\a ds *= factor)
             - if factor is negative and \a toff>0; the -factor is used for calculate new ds' = -factor * \a ds. Thus this function should be called again with new step size ds' and the new result should have ending physical time close to \a toff.
+            - if factor is zero, maximum extrapolation sequence index (accuracy order/iteration times) is fixed (\ref ARC::chainpars) and err_ingore is false, it means the error criterion cannot be satisfied with current maximum sequence index. In this case no integration is done and the data are kept as initial values. User should reduce the integration step and re-call this function.
    */
-  double extrapolation_integration(const double ds, const double toff=-1.0, const double3* force=NULL) {
+  double extrapolation_integration(const double ds, const double toff=-1.0, const double3* force=NULL, const bool err_ignore=false) {
     // get parameters
     const double error = pars->exp_error;
     const std::size_t itermax = pars->exp_itermax;
@@ -1993,27 +2001,63 @@ public:
     std::size_t intcount = 0;  // iteration counter
     std::size_t itercount = 0; // iteration efforts count
     
-    // first step
     
-    while (cxerr > 0.5*error || std::abs(eerr) > 0.1*error) {
+    while (true) {
       // convergency check
-      if (cxerr>=cxerr0 || std::abs(eerr) >= std::abs(eerr0)) {
-        if (cxerr < error && std::abs(eerr) < error) break;
-        else if (intcount > std::min((size_t)10,itermax)){
-          std::cerr<<"Warning: extrapolation cannot converge anymore, energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", try to change the error criterion (notice energy error is cumulative value)\n";
+      if (!pars->exp_fix_iter) {
+        if (cxerr <= 0.5*error && std::abs(eerr) <= 0.1*error) break;
+        
+        if (cxerr>=cxerr0 || std::abs(eerr) >= std::abs(eerr0)) {
+          if (cxerr < error && std::abs(eerr) < error) break;
+          else if (intcount > std::min((size_t)10,itermax)){
+            std::cerr<<"Warning: extrapolation cannot converge anymore, energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", try to change the error criterion (notice energy error is cumulative value)\n";
+            break;
+          }
+        }
+        // if completely converged, check energy error
+        if (cxerr==0) {
+          if (std::abs(eerr) > error)
+            std::cerr<<"Warning: phase error reach zero but energy error "<<eerr<<" cannot reach criterion "<<error<<"!\n";
           break;
         }
-      }
-      // if completely converged, check energy error
-      if (cxerr==0) {
-        if (std::abs(eerr) > error)
-          std::cerr<<"Warning: phase error reach zero but energy error "<<eerr<<" cannot reach criterion "<<error<<"!\n";
-        break;
       }
 
       // iteration limit check
       if (intcount == itermax) {
         if(cxerr < error && std::abs(eerr) < error) break;
+        else if(err_ignore) break;
+        else if(pars->exp_fix_iter) {
+          // reset the initial data (t, Pt, w, X, V, Ekin)
+          restore(d0);
+          Ekin = Ekin0;
+          Pot  = Pot0;
+          // reset velocity to get correct w
+          if (pars->beta>0) resolve_V();
+
+          // clear memory
+          for (std::size_t i=0; i<itermax; i++) {
+            delete[] dn[i];
+          }
+          for (std::size_t i=0; i<intcount-1; i++) {
+            if (pd[i]!=NULL) {
+              for (std::size_t j=0; j<ndmax[i]; j++) delete[] pd[i][j];
+              delete[] pd[i];
+            }
+          }
+
+#ifdef TIME_PROFILE
+          profile.initstep(itermax+1);
+          profile.stepcount[intcount]++;
+          profile.t_ep += get_wtime();
+#endif
+          // if error is big, reduce the integration step and recursive call extrapolation
+          //double dsfactor = std::min(EP::H_opt_factor(std::max(cxerr,std::abs(eerr)),error,intcount),0.01);
+          //std::cerr<<"Accuracy not reached, time="<<t<<"; phase error="<<cxerr<<"; energy error="<<eerr<<"; error criterion="<<error<<"; try reducing step size to "<<ds*dsfactor<<std::endl;
+          //extrapolation_integration(ds*dsfactor,toff,force);
+
+          // indicate of error too large
+          return 0;
+        }
         if (std::abs(eerr) > error) {
           std::cerr<<"Error: maximum iteration step number "<<itermax<<" reached, but energy error "<<eerr<<" is larger than criterion "<<error<<std::endl;
         } else {
@@ -2026,6 +2070,7 @@ public:
         // reset the initial data (t, Pt, w, X, V, Ekin)
         restore(d0);
         Ekin = Ekin0;
+        Pot = Pot0;
         // reset velocity to get correct w
         if (pars->beta>0) resolve_V();
       }
@@ -2111,7 +2156,7 @@ public:
         //dsn = std::min(dsn,0.9); // not larger than 1.0
         //dsn = std::max(dsn,pars->dtmin); // not too small
 #ifdef DEBUG
-          std::cerr<<"ERR factor update: sequence="<<step[intcount]<<"; modify factor="<<dsfactor<<"; ermax="<<ermax<<"; eerr="<<eerr<<"; cxerr="<<cxerr<<std::endl;
+          std::cerr<<"ERR factor update: sequence="<<step[intcount]<<"; modify factor="<<dsfactor<<"; ermax="<<ermax<<"; eerr="<<eerr<<"; cxerr="<<cxerr<<"; ds="<<ds<<std::endl;
 #endif
         }
       
@@ -2120,7 +2165,7 @@ public:
       intcount++;
 #ifdef DEBUG
       std::cerr<<std::setprecision(6)<<"Iter.= "<<intcount<<" Dep.= "<<step[intcount]<<" P-err.= "<<cxerr;
-      std::cerr<<" E-err.="<<(Ekin+Pot+Pt)/Pt<<" Pt ="<<std::setprecision(12)<<Pt<<std::endl;
+      std::cerr<<" E-err.="<<Ekin+Pot+Pt-Ekin0-Pot0-d0[1]<<" Pt ="<<std::setprecision(12)<<Pt<<std::endl;
 #endif 
     }
 
@@ -2280,6 +2325,7 @@ public:
       const double dterr3 = 1000*dterr;  // 1000 * time error criterion
 
       bool rf_method=false;
+      int find_root_count=0;
       do {
         if (rf_method) {
           dsm = (dsi[0]*(tsi[1]-toff)-dsi[1]*(tsi[0]-toff))/(tsi[1]-tsi[0]);  // Use regula falsi method to find accurate ds
@@ -2301,6 +2347,11 @@ public:
 #ifdef DEBUG
         std::cerr<<"Find root: dsm="<<dsm<<"; t="<<tpre<<"; error="<<tpre-toff<<"; ds="<<ds<<std::endl;
 #endif
+        find_root_count++;
+        if (find_root_count>100) {
+          std::cerr<<"Error! can not find ds to reach physical time toff. current searching ds="<<dsm<<"; current interpolated time="<<tpre<<"; toff="<<toff<<"; ds="<<ds<<std::endl;
+          abort();
+        }
       } while (std::abs(tpre-toff)>0.1*dterr);
 
       // Get the interpolation result
@@ -2308,6 +2359,9 @@ public:
 
       // update time factor
       dsn = -(dsm/ds);
+
+      // avoid energy issue
+      //if(cxerr < error && std::abs(eerr) < error) dsn = 0.5*ds;
       
       // update the results
       //restore(dtemp);
@@ -2315,6 +2369,9 @@ public:
       // reset the data to original
       restore(d0);
       Ekin = Ekin0;
+      Pot  = Pot0;
+      // reset velocity to get correct w
+      if (pars->beta>0) resolve_V();
 
 #ifdef DEBUG
       /*std::cerr<<"Getting: ds= "<<dsm;
@@ -2353,13 +2410,6 @@ public:
       
 #endif
 
-      // resolve particle
-      resolve_XV();
-      // recalculate the energy
-      // calc_Ekin();
-      // force, potential and W
-      calc_rAPW(force);
-
       // clear memory
       for (std::size_t i=0; i<intcount; i++) delete[] pn[i];
       for (std::size_t i=0; i<(std::size_t) nlev[1]-1; i++) delete dfptr[i];
@@ -2368,11 +2418,30 @@ public:
       delete[] xpoint;
       delete[] nlev;
       delete[] fpoint;
+
+//      // clear memory
+//      for (std::size_t i=0; i<itermax; i++) {
+//        delete[] dn[i];
+//      }
+//      for (std::size_t i=0; i<intcount; i++) {
+//        if (pd[i]!=NULL) {
+//          for (std::size_t j=0; j<ndmax[i]; j++) delete[] pd[i][j];
+//          delete[] pd[i];
+//        }
+//      }
+//#ifdef TIME_PROFILE
+//      profile.initstep(itermax+1);
+//      profile.stepcount[intcount+1]++;
+//      profile.t_ep += get_wtime();
+//#endif
+//      // recursive calling extrapolation_integrator to get correct time
+//      extrapolation_integration(dsm,toff,force);
+//      
+//      return dsn;
     }
-
     // update chain link order
-    if(num>2) update_link();
-
+    else if(num>2) update_link();
+    
     // clear memory
     for (std::size_t i=0; i<itermax; i++) {
       delete[] dn[i];
@@ -2383,7 +2452,7 @@ public:
         delete[] pd[i];
       }
     }
-    
+
 #ifdef TIME_PROFILE
     profile.initstep(itermax+1);
     profile.stepcount[intcount+1]++;

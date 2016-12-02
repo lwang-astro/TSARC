@@ -9,6 +9,30 @@
 #include <iomanip>
 #include <cmath>
 
+void chain_print(const ARC::chain<Particle> &c, const Particle p[], const double ds, const int n, const double w, const double pre) {
+  // printing digital precision
+  std::cout<<std::setprecision(pre);
+
+  std::cout<<c.getTime()
+           <<std::setw(w)<<(c.getEkin()+c.getPot()+c.getPt())/c.getPt()
+           <<std::setw(w)<<c.getEkin()
+           <<std::setw(w)<<c.getPot()
+           <<std::setw(w)<<c.getPt()
+           <<std::setw(w)<<c.getw()
+           <<std::setw(w)<<c.getW();
+  for (int j=0;j<n;j++) {
+    std::cout<<std::setw(w)<<p[j].getMass();
+    for (int k=0;k<3;k++) {
+      std::cout<<std::setw(w)<<p[j].getPos()[k];
+    }
+    for (int k=0;k<3;k++) {
+      std::cout<<std::setw(w)<<p[j].getVel()[k];
+    }
+  }
+  std::cout<<std::setw(w)<<ds;
+  std::cout<<std::endl;
+}  
+
 int main(int argc, char **argv){
   typedef double double3[3];
   std::size_t n=3; //particle number
@@ -30,6 +54,7 @@ int main(int argc, char **argv){
   bool fflag=false; //external force flag
   double3* f=NULL;  // external force vectors
   bool dsA=false;   //adjust step size switcher
+  bool iterfix=false; //if true, iteration times is fixed to itermax 
 
 
   static struct option long_options[] = {
@@ -190,6 +215,7 @@ int main(int argc, char **argv){
            <<"extra-seq: "<<(sq?sq:"bs")<<std::endl
            <<"itermax: "<<itermax<<std::endl
            <<"error: "<<err<<std::endl
+           <<"terr: "<<terr<<std::endl
            <<"dtmin: "<<dtmin<<std::endl
            <<"extra-force: "<<fflag<<std::endl
            <<"print width: "<<w<<std::endl
@@ -235,8 +261,11 @@ int main(int argc, char **argv){
     else if (strcmp(sw,"none")==0) ms=0;
   }
 
+  // fix iteration flag, switch on if auto-step adjustment is used
+  if (dsA) iterfix=true;
+  
   // set extrapolation parameter 
-  pars.setEXP(err,dtmin,terr,itermax,ms,msq);
+  pars.setEXP(err,dtmin,terr,itermax,ms,msq,iterfix);
 
   // new chain class
   ARC::chain<Particle> c(n,pars);
@@ -264,9 +293,6 @@ int main(int argc, char **argv){
   // initialization of chain system
   c.init(t);
 
-  // printing digital precision
-  std::cout<<std::setprecision(pre);
-
   //printing column title
   std::cout<<"Time"
            <<std::setw(w)<<"E_err"
@@ -283,36 +309,14 @@ int main(int argc, char **argv){
   // step size
   double ds = s;
 
-  // flag for output
-  bool flag_out=true;
+  // printing data
+  chain_print(c,p,0,n,w,pre);
 
   // integration loop
   while (true) {
-    // printing data
-    if (flag_out) {
-      std::cout<<c.getTime()
-               <<std::setw(w)<<(c.getEkin()+c.getPot()+c.getPt())/c.getPt()
-               <<std::setw(w)<<c.getEkin()
-               <<std::setw(w)<<c.getPot()
-               <<std::setw(w)<<c.getPt()
-               <<std::setw(w)<<c.getw()
-               <<std::setw(w)<<c.getW();
-      for (std::size_t j=0;j<n;j++) {
-        std::cout<<std::setw(w)<<p[j].getMass();
-        for (int k=0;k<3;k++) {
-          std::cout<<std::setw(w)<<p[j].getPos()[k];
-        }
-        for (int k=0;k<3;k++) {
-          std::cout<<std::setw(w)<<p[j].getVel()[k];
-        }
-      }
-      std::cout<<std::endl;
-    }
-
 #ifdef DEBUG
     std::cerr<<"Time error: "<<c.getTime()-tend<<std::endl;
 #endif
-
     // if reaching ending time or maximum integration step number, stop
     if ((tend<0&&i==nstep)||(tend>0&&std::abs(c.getTime()-tend)<terr)) break;
 
@@ -323,28 +327,32 @@ int main(int argc, char **argv){
     if (ms) {
       double dsf=c.extrapolation_integration(ds,tend,f);
       // indicator whether ending time is reached, if so, modify ds
-      if (dsf<0) {
-        ds *= -dsf;
-        flag_out=false;
-      }
+      if (dsf<0) ds *= -dsf;
       // auto-adjust step size
       else if (dsA) {
-        ds = ds*dsf;
-        //   ds = ds*std::max(std::min(dsf,32.0),0.125);
-        flag_out = true;
-#ifdef DEBUG        
-        std::cerr<<"S: "<<i<<" "<<ds<< std::endl;
-#endif
+        if (dsf==0) {
+          dsf=c.extrapolation_integration(0.01*ds,tend,f,true);
+          chain_print(c,p,0.01*ds,n,w,pre);
+          if (dsf<0) ds *= -dsf;
+        }
+        else {
+          chain_print(c,p,ds,n,w,pre);
+          ds = ds*dsf;
+        }
       }
-      else flag_out = true;
+      else chain_print(c,p,ds,n,w,pre);
     }
     // Leapfrog integration
-    else c.Leapfrog_step_forward(s,nsubstep,f);
+    else {
+      c.Leapfrog_step_forward(s,nsubstep,f);
+      chain_print(c,p,s,n,w,pre);
+    }
 #ifdef TIME_PROFILE
     std::cerr<<"Time profile: Step: "<<i<<"  Accelaration+Potential(s): "<<c.profile.t_apw<<"  Update_link(s): "<<c.profile.t_uplink<<"  Leap-frog(s): "<<c.profile.t_lf<<"  Extrapolation(s): "<<c.profile.t_ep<<"  Perturbation(s): "<<c.profile.t_pext<<std::endl;
 #endif
   }
   
+#ifdef TIME_PROFILE
   // if extrapolation method is used, counting the iteration (maximum sequence index) level
   if (ms) {
     int* stepcount = c.profile.stepcount;
@@ -376,6 +384,7 @@ int main(int argc, char **argv){
     }
     std::cerr<<"Sum-of-steps: "<<subsum<<" iter-of-steps: "<<itersum<<std::endl;
   }
+#endif
 
   delete[] p;
   if (fflag) delete[] f;
