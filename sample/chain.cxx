@@ -53,7 +53,7 @@ int main(int argc, char **argv){
   int copt;
   bool fflag=false; //external force flag
   double3* f=NULL;  // external force vectors
-  bool dsA=false;   //adjust step size switcher
+  int dsA=0;   //adjust step size switcher
   bool iterfix=false; //if true, iteration times is fixed to itermax 
 
 
@@ -75,7 +75,7 @@ int main(int argc, char **argv){
   };
   
   int option_index;
-  while ((copt = getopt_long(argc, argv, "N:n:t:s:ar:m:q:i:e:d:fh", long_options, &option_index)) != -1)
+  while ((copt = getopt_long(argc, argv, "N:n:t:s:a:r:m:q:i:e:d:fh", long_options, &option_index)) != -1)
     switch (copt) {
     case 0:
 #ifdef DEBUG
@@ -115,7 +115,7 @@ int main(int argc, char **argv){
       s = atof(optarg);
       break;
     case 'a':
-      dsA = true;
+      dsA = atoi(optarg);
       break;
     case 'r':
       method = optarg;
@@ -161,7 +161,10 @@ int main(int argc, char **argv){
                <<"          --t-end (same as -t)\n"
                <<"    -s [double]:  step size, not physical time step ("<<s<<")\n"
                <<"          --nsub [int]:       sub-step number if no extrapolation method is used ("<<nsubstep<<")\n"
-               <<"    -a :          using auto-adjust step size (defaulted not switched on)\n"
+               <<"    -a [int]:     using auto-step adjustment for extrapolation integration (defaulted not switched on)\n"
+               <<"                  0: no auto-step\n"
+               <<"                  1: use extrapolation error to estimate next step\n"
+               <<"                  2: use min(X/(gV),V/(gA)) to estimate next step\n"
                <<"    -r [string]:  algorithmic regularization method (logh)\n"
                <<"                  'logh': Logarithmic Hamitonian\n"
                <<"                  'ttl': Time-transformed Leapfrog\n"
@@ -262,7 +265,10 @@ int main(int argc, char **argv){
   }
 
   // fix iteration flag, switch on if auto-step adjustment is used
-  if (dsA) iterfix=true;
+  if (dsA) {
+    iterfix=true;
+    pars.setAutoStep(dsA);
+  }
   
   // set extrapolation parameter 
   pars.setEXP(err,dtmin,terr,itermax,ms,msq,iterfix);
@@ -286,7 +292,7 @@ int main(int argc, char **argv){
   c.addP(n,p);
 
   // set pair_AW parameter address
-  c.pair_AW_pars=smpars;
+  c.Int_pars=smpars;
   // calculate smooth mass coefficient
   smpars[0] = ARC::calc_mm2<Particle>(c.p); //mm2
 
@@ -331,6 +337,7 @@ int main(int argc, char **argv){
       // auto-adjust step size
       else if (dsA) {
         if (dsf==0) {
+          std::cerr<<"Ds too large"<<std::endl;
           dsf=c.extrapolation_integration(0.01*ds,tend,f,true);
           chain_print(c,p,0.01*ds,n,w,pre);
           if (dsf<0) ds *= -dsf;
@@ -348,41 +355,33 @@ int main(int argc, char **argv){
       chain_print(c,p,s,n,w,pre);
     }
 #ifdef TIME_PROFILE
-    std::cerr<<"Time profile: Step: "<<i<<"  Accelaration+Potential(s): "<<c.profile.t_apw<<"  Update_link(s): "<<c.profile.t_uplink<<"  Leap-frog(s): "<<c.profile.t_lf<<"  Extrapolation(s): "<<c.profile.t_ep<<"  Perturbation(s): "<<c.profile.t_pext<<std::endl;
+    std::cerr<<"Time_profile: Step: "<<i<<"  Acc+Pot(s): "<<c.profile.t_apw<<"  Update_link(s): "<<c.profile.t_uplink<<"  Leap-frog(s): "<<c.profile.t_lf<<"  Extrapolation(s): "<<c.profile.t_ep<<"  Perturbation(s): "<<c.profile.t_pext<<"  Dense_output(s): "<<c.profile.t_dense<<std::endl;
 #endif
   }
   
 #ifdef TIME_PROFILE
   // if extrapolation method is used, counting the iteration (maximum sequence index) level
   if (ms) {
+    int* step=new int[itermax+1];
+    // Romberg (even) sequence {h, h/2, h/4, h/8 ...}
+    if (msq==1) EP::seq_Romberg(step,itermax+1);
+    // Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
+    else if (msq==2) EP::seq_BS(step,itermax+1);
+    // E. Hairer (4k) sequences {h, h/2, h/6, h/10, h/14 ...}
+    else if (msq==3) EP::seq_Hairer(step,itermax+1);
+    // Harmonic sequences {h, h/2, h/3, h/4 ...}
+    else EP::seq_Harmonic(step,itermax+1);
+    
     int* stepcount = c.profile.stepcount;
-    std::cerr<<"Step histogram:\n I\tCount\tSteps\n";
-    int subsum=0;
-    int stepeven=2;
-    int stepodd=3;
-    int step=1;
-    if (msq==3) step=2;
+    std::cerr<<"Step histogram:\n I\tCount\tNstep\tStepsum\n";
     int stepsum=0;
     int itersum=0;
     for (int i=1;i<=itermax;i++) {
-      stepsum +=step;
-      std::cerr<<i<<"\t"<<stepcount[i]<<"\t"<<step<<"\t"<<stepsum<<std::endl;
-      subsum += stepcount[i]*stepsum;
+      stepsum += step[i-1];
+      std::cerr<<i<<"\t"<<stepcount[i]<<"\t"<<step[i-1]<<"\t"<<stepsum<<std::endl;
       itersum += std::max(stepcount[i]*(i-1),0);
-      if (msq==1) step *=2;
-      else if (msq==2) {
-        if (i%2) {
-          step = stepeven;
-          stepeven *=2;
-        }
-        else {
-          step = stepodd;
-          stepodd *=2;
-        }
-      }
-      else step += 4;
     }
-    std::cerr<<"Sum-of-steps: "<<subsum<<" iter-of-steps: "<<itersum<<std::endl;
+    std::cerr<<"Sum-of-steps: "<<c.profile.itercount<<" Sum-of-iterations: "<<itersum<<std::endl;
   }
 #endif
 

@@ -32,17 +32,20 @@ static double get_wtime(){
 }
 
 //! A structure storing time profile 
-struct timeprofile{
+class chainprofile{
 public:
   double t_apw;    ///< APW calculation
   double t_uplink; ///< update link
   double t_lf;     ///< leap-frog
   double t_ep;     ///< extrapolation
   double t_pext;   ///< perturber force
+  double t_dense;  ///< dense output
+  double t_init;   ///< initialization
 
   int* stepcount;  ///< iteration step count in extrapolation
+  int  itercount;  ///< total substep in extrapolation
 
-  timeprofile() {reset_tp();}  ///< initialization 
+  chainprofile() {reset_tp();}  ///< initialization 
 
   void initstep(const std::size_t n) {
     if (!stepcount) {
@@ -58,10 +61,13 @@ public:
     t_lf=0.0;
     t_ep=0.0;
     t_pext=0.0;
+    t_dense=0.0;
+    t_init=0.0;
     stepcount=NULL;
+    itercount=0;
   }
 
-  ~timeprofile() { if (stepcount) delete[] stepcount;}
+  ~chainprofile() { if (stepcount) delete[] stepcount;}
 
 };
 
@@ -91,8 +97,9 @@ typedef void (*pair_AW) (double*, double &, double *, double &, const double*, c
             @param[in]  pj: position vector j.
             @param[in]  mi: particle mass i.
             @param[in]  mj: particle mass j.
+            @param[in]  pars: extra parameters' array (one dimensional array with type of double)
  */
-typedef void (*pair_Ap) (double *, double &, const double*, const double*, const double&, const double&);
+typedef void (*pair_Ap) (double *, double &, const double*, const double*, const double&, const double&, const double*);
 
 //! Newtonian acceleration and \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ from particle j to particle i (function type of \link #ARC::pair_AW \endlink) 
 /*!          @param[out] Aij: Newtonian acceleration vector for i particle from particle j. \f$Aij[1:3] = m_i m_j xij[1:3] / |xij|^3 \f$.
@@ -155,8 +162,9 @@ void Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, cons
   @param[in]  xp: position vector p.
   @param[in]  mi: particle mass i.
   @param[in]  mp: particle mass p.
+  @param[in]  smpars: force calculation parameters (not used)
  */
-void Newtonian_Ap (double Aij[3], double &Pij, const double xi[3], const double xp[3], const double &mi, const double &mp){
+void Newtonian_Ap (double Aij[3], double &Pij, const double xi[3], const double xp[3], const double &mi, const double &mp,  const double* smpars){
   double dx = xp[0] - xi[0];
   double dy = xp[1] - xi[1];
   double dz = xp[2] - xi[2];
@@ -208,6 +216,14 @@ private:
   double beta;  ///< TTL cofficient
   double gamma; ///< constant
 
+  // extrapolation control parameter
+  int exp_method;         ///< 1: Polynomial method; others: Rational interpolation method
+  int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other. 4k sequence {h/2, h/6, h/10, h/14 ...}
+
+  int* step; ///< substep sequence
+  int** bin_index; ///< binomial coefficients
+
+public:
   // time step
   double dtmin; ///< minimum physical time step
   double dterr; ///< physical time error criterion
@@ -216,14 +232,7 @@ private:
   double exp_error;        ///< relative error requirement for extrapolation
   std::size_t exp_itermax; ///< maximum times for iteration.
   bool exp_fix_iter;       ///< flag showing whether the times of iteration is fixed or not
-  int exp_method;         ///< 1: Polynomial method; others: Rational interpolation method
-  int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other. 4k sequence {h/2, h/6, h/10, h/14 ...}
-
-  int* step; ///< substep sequence
-
-  int** bin_index; ///< binomial coefficients
-
-public:
+  int auto_step;           ///< if 0: no auto step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step
 
   //! constructor with defaulted parameters
   /*! - Acceleration function use ARC::Newtonian_AW() and ARC::Newtonian_Ap().
@@ -234,6 +243,7 @@ public:
       - Maximum extrapolation sequence index (accuracy order/iteration times) #exp_itermax = 20
       - The maximum sequence index (iteration times) is adjusted by error criterion
       - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
+      - No auto-step
    */
   chainpars(): alpha(1.0), beta(0.0), gamma(0.0) {
     step = NULL;
@@ -241,6 +251,7 @@ public:
     setEXP(1E-10, 5.4E-20, 1E-10, 20, 2, 2, false);
     pp_AW = &Newtonian_AW;
     pp_Ap = &Newtonian_Ap;
+    setAutoStep(0);
   }
 
   //! constructor
@@ -258,13 +269,15 @@ public:
     @param [in] ext_method: 1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational)
     @param [in] ext_sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
     @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
+    @param [in] auto_step_option: if 0: no auto-step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step modification factor (0)
    */
-  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const bool ext_iteration_const=false) {
+  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const bool ext_iteration_const=false, const int auto_step_option=0) {
     step = NULL;
     bin_index = NULL;
     setabg(a,b,g);
     setEXP(error,dtm,dte,itermax,ext_method,ext_sequence,ext_iteration_const);
     setA(aw,ap);
+    setAutoStep(auto_step_option);
   }
 
   //! destructor
@@ -366,7 +379,21 @@ public:
     }
     exp_itermax = itermax;
   }
-  
+
+  //! Determine auto-step parameter
+  /*! @param[in] option: auto-step method
+    - 0. no auto-step
+    - 1. use extrapolation error to estimate next step
+    - 2. use min(X/(gV),V/(gA)) to estimate next step
+  */
+  void setAutoStep(const int option) {
+    auto_step = option;
+    if (option<0||option>2) {
+      std::cerr<<"Error: autostep options should be set 0, 1, 2, current value: "<<option<<"!\n";
+      abort();
+    }
+  }
+
 };
 
 //! ARC class based on template class particle
@@ -379,7 +406,7 @@ public:
   1. Construct a chain class with template class particle and a parameter controller of \ref ARC::chainpars. (The \ref ARC::chainpars should be configured first before doing integration. see its document for detail).
   2. Add existed particle 'A' (or a list of particles, or a chain type particle) into chain particle list (\ref chain.p) using chain.addP(). Notice the chain.addP() only registers the particle A's memory address into \ref chain.p without copying data. The chain integration will directly modify the position and velocity of particle A.
   3. Add perturbers into chain perturber list (\ref chain.pext) using chain.addPext() (also only register the particle address)
-  4. Initialize pair_AW_pars used for ::ARC::pair_AW if necessary (see the case of ARC::Newtonian_AW())
+  4. Initialize Int_pars used for ::ARC::pair_AW or ::ARC::pair_Ap if necessary (see the case of ARC::Newtonian_AW())
   5. Initialize chain with chain.init(). Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \ref chain.p will be shifted from their original frame to their center-of-mass frame. The particle type member variable \ref chain.cm stores the center-of-mass data of these particles (the mass of \ref chain.cm is the total mass of all member particles).
   6. Call integration functions (chain.Leapfrog_step_forward() or chain.extrapolation_integration()). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
   7. After call integration functions, the particles are integrated to new time. Because in ARC method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in chain.extrapolation_integration() document).
@@ -426,10 +453,10 @@ public:
   particle cm;              ///< center mass particle
   chainlist<particle> p;    ///< particle list
   chainlist<particle> pext; ///< perturber list
-  double* pair_AW_pars;     ///< pair acceleration parameter array (used as last argument of ::ARC::pair_AW)
+  double* Int_pars;     ///< extra parameter array for pair_AW and pair_Ap (used as last argument of ::ARC::pair_AW or ::ARC::pair_Ap)
 
 #ifdef TIME_PROFILE
-  timeprofile profile;
+  chainprofile profile;
 #endif
   
   //! Constructor
@@ -437,7 +464,7 @@ public:
       @param [in] n: maximum number of particles (will be used to allocate memory)
       @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(std::size_t n, const chainpars &par):  pars(&par) {
+  chain(const std::size_t n, const chainpars &par):  pars(&par) {
     nmax=0;
     allocate(n);
   }
@@ -452,7 +479,7 @@ public:
   /*! Allocate memory for maximum particle number n
      @param [in] n: maximum number of particles
    */
-  void allocate(std::size_t n) {
+  void allocate(const std::size_t n) {
     if (nmax) {
       std::cerr<<"Error: chain memory allocation is already done\n";
       abort();
@@ -486,6 +513,9 @@ public:
     }
     F_Pmod=false;
     F_Porigin=1;
+#ifdef TIME_PROFILE
+    profile.reset_tp();
+#endif
   }
 
   //! destructor
@@ -498,6 +528,8 @@ public:
       delete[] pf;
       delete[] dWdr;
     }
+//    p.clear();
+//    pext.clear();
   }
 
 private:
@@ -640,7 +672,7 @@ private:
         const double mk=pk->getMass();
 
         // force calculation function from k to j
-        pars->pp_AW(At, Pt, dWt, Wt, xjk, mj, mk, pair_AW_pars);
+        pars->pp_AW(At, Pt, dWt, Wt, xjk, mj, mk, Int_pars);
 
 //        // resolve sub-chain
 //        if(resolve_flag && p.isChain(lk)) {
@@ -713,31 +745,6 @@ private:
     }
   }
 
-  //! Calculate physical time step for X
-  /*! Calculate physical time step dt for #X based on ds
-     @param [in] ds:  integration step size (not physical time step) 
-     \return     dt:  physical integration time step for #X
-  */
-  double calc_dt_X(const double ds) {
-    // determine the physical time step
-    double dt = ds / (pars->alpha * (Ekin + Pt) + pars->beta * w + pars->gamma);
-    if (std::abs(dt) < pars->dtmin) {
-      std::cerr<<"Warning!: physical time step too small: "<<dt<<std::endl;
-      abort();
-    }
-    return dt;
-  }
-  
-  //! Calculate physical time step for V
-  /*! Calculate physical time step dt for #V based on ds
-     @param [in] ds:  step size s (not physical time step) 
-     \return     dt:  physical integration time step for #V
-  */
-  double calc_dt_V(const double ds) {
-    // determine velocity integration time step
-    return ds / (pars->gamma - pars->alpha * Pot + pars->beta * W);
-  }
-  
   //! Step forward of X
   /*! One step integration of #X 
      @param [in] dt: physical time step dt for #X
@@ -1012,7 +1019,7 @@ private:
                 xk[2] += xc[2];
               }
               double3 Atemp;
-              pars->pp_Ap(Atemp, Pt, xi, xk, mi, cj->p[k].getMass());
+              pars->pp_Ap(Atemp, Pt, xi, xk, mi, cj->p[k].getMass(), Int_pars);
 
               // Acceleration
               At[0] += Atemp[0];
@@ -1022,7 +1029,7 @@ private:
           }
           else {
             // perturber force
-            pars->pp_Ap(At, Pt, xi, pext[j].getPos(), mi, pext[j].getMass());
+            pars->pp_Ap(At, Pt, xi, pext[j].getPos(), mi, pext[j].getMass(), Int_pars);
           }
           
           pf[i][0] += At[0];
@@ -1331,7 +1338,7 @@ private:
         if(i==0) for (std::size_t j=0; j<nmax; j++) dpoly[j][0] = 0.0;
 
         // dt/ds
-        double dts=1/(pars->alpha * (Ekin + Pt) + pars->beta * w + pars->gamma);
+        double dts=calc_dt_X(1.0);
         
         int** binI = pars->bin_index;
         // formula delta^n f(x) = sum_ik=0,n (-1)^(n-ik) (n n-ik) f(x+2*ik*h)
@@ -1400,7 +1407,7 @@ t)
 
       if (i<=nmax||i>=ndiv-nmax) {
         // dt/ds
-        double dts=1.0/(pars->alpha * (Ekin + Pt) + pars->beta * w + pars->gamma);
+        double dts=calc_dt_X(1.0);
 
         int** binI = pars->bin_index;
         for (int j=0; j<nmax; j++) {
@@ -1476,6 +1483,50 @@ t)
   }
 
 public:
+  //! Calculate physical time step for X
+  /*! Calculate physical time step dt for #X based on ds
+     @param [in] ds:  integration step size (not physical time step) 
+     \return     dt:  physical integration time step for #X
+  */
+  double calc_dt_X(const double ds) {
+    // determine the physical time step
+    double dt = ds / (pars->alpha * (Ekin + Pt) + pars->beta * w + pars->gamma);
+    if (std::abs(dt) < pars->dtmin) {
+      std::cerr<<"Error!: physical time step too small: "<<dt<<std::endl;
+      abort();
+    }
+    return dt;
+  }
+  
+  //! Calculate physical time step for V
+  /*! Calculate physical time step dt for #V based on ds
+     @param [in] ds:  step size s (not physical time step) 
+     \return     dt:  physical integration time step for #V
+  */
+  double calc_dt_V(const double ds) {
+    // determine velocity integration time step
+    return ds / (pars->gamma - pars->alpha * Pot + pars->beta * W);
+  }
+  
+
+  //! Calculate next step approximation based on min(X/(gV),V/(gA))
+  /*!
+    \return: approximation of step size ds
+  */
+  double calc_next_step_XVA() {
+    double dsXV=std::numeric_limits<double>::max();
+    double dsVA=std::numeric_limits<double>::max();
+    for (std::size_t i=0; i<num-1; i++) {
+      double r = X[i][0]*X[i][0]+X[i][1]*X[i][1]+X[i][2]*X[i][2];
+      double v = V[i][0]*V[i][0]+V[i][1]*V[i][1]+V[i][2]*V[i][2];
+      double a = acc[i][0]*acc[i][0]+acc[i][1]*acc[i][1]+acc[i][2]*acc[i][2];
+      dsXV = std::min(r/v,dsXV);
+      dsVA = std::min(v/a,dsVA);
+    }
+    return std::min(std::sqrt(dsXV)/calc_dt_X(1.0),std::sqrt(dsVA)/calc_dt_V(1.0));
+  }
+
+  
   //! Add particle
   /*! Add one particle (address pointer) into particle list #p (see ARC::chainlist.add())
      @param [in] a: new particle
@@ -1615,6 +1666,9 @@ public:
     // set F_Pmod to false
     F_Pmod = false;
 
+#ifdef TIME_PROFILE
+    profile.initstep(pars->exp_itermax+1);
+#endif
     /*#ifdef DEBUG
 //    for (int i=0;i<num;i++) {
 //      std::cout<<i<<" m"<<std::setw(WIDTH)<<p[i].getMass()<<std::setw(WIDTH)<<"x";
@@ -1781,12 +1835,18 @@ public:
     // for polynomial coefficient calculation first point
     // middle difference (first array is used to store the f_1/2)
     if(dpoly!=NULL) {
+#ifdef TIME_PROFILE
+      profile.t_dense -= get_wtime();
+#endif
       if (pars->exp_sequence==3) mid_diff_calc(&dpoly[2],ndmax-2,0,n);
       // edge difference
       else {
-        dpoly[0][0]=1.0/(pars->gamma - pars->alpha * Pot + pars->beta * W);
+        dpoly[0][0]=calc_dt_V(1.0);
         edge_diff_calc(&dpoly[1],ndmax-1,0,n);
       }
+#ifdef TIME_PROFILE
+      profile.t_dense += get_wtime();
+#endif
     }
                                                
     
@@ -1881,6 +1941,9 @@ public:
       // for interpolation polynomial coefficient (difference)
       // middle difference (first array is used to store the f_1/2)
       if(dpoly!=NULL) {
+#ifdef TIME_PROFILE
+        profile.t_dense -= get_wtime();
+#endif
         if(pars->exp_sequence==3) {
           if (i==n/2-1) {
             dpoly[0][0]=t; // y
@@ -1893,6 +1956,9 @@ public:
         }
         // edge difference
         else edge_diff_calc(&dpoly[1],ndmax-1,i+1,n);
+#ifdef TIME_PROFILE
+        profile.t_dense += get_wtime();
+#endif
       }
     }
 
@@ -1902,7 +1968,13 @@ public:
     // Update rjk, A, Pot, dWdr, W (notice A will be incorrect since pf is not updated)
     calc_rAPW(force);
 
-    if(dpoly!=NULL&&pars->exp_sequence!=3) dpoly[0][1]=1.0/(pars->gamma - pars->alpha * Pot + pars->beta * W );
+#ifdef TIME_PROFILE
+    profile.t_dense -= get_wtime();
+#endif
+    if(dpoly!=NULL&&pars->exp_sequence!=3) dpoly[0][1]=calc_dt_V(1.0);
+#ifdef TIME_PROFILE
+    profile.t_dense += get_wtime();
+#endif
 
 //#ifdef DEBUG
 //    std::cerr<<"Ending time = "<<t<<", n="<<n<<std::endl;
@@ -1944,6 +2016,9 @@ public:
             - if factor is zero, maximum extrapolation sequence index (accuracy order/iteration times) is fixed (\ref ARC::chainpars) and err_ingore is false, it means the error criterion cannot be satisfied with current maximum sequence index. In this case no integration is done and the data are kept as initial values. User should reduce the integration step and re-call this function.
    */
   double extrapolation_integration(const double ds, const double toff=-1.0, const double3* force=NULL, const bool err_ignore=false) {
+#ifdef TIME_PROFILE
+    profile.t_ep -= get_wtime();
+#endif
     // get parameters
     const double error = pars->exp_error;
     const std::size_t itermax = pars->exp_itermax;
@@ -1951,9 +2026,6 @@ public:
     const int sq = pars->exp_sequence;
     const int *step = pars->step;
     
-#ifdef TIME_PROFILE
-    profile.t_ep -= get_wtime();
-#endif
     // array size indicator for relative position and velocity
     const std::size_t nrel = num-1;
     // data storage size (extra one is used to show the size of the array for safety check)
@@ -1974,15 +2046,22 @@ public:
     double Ekin0,Pot0;
 
     // for dense output polynomial
+#ifdef TIME_PROFILE
+    profile.t_dense -= get_wtime();
+#endif
     bool ip_flag = true;  // interpolation coefficient calculation flag
     double** pd[itermax]; // central difference, [*] indicate different accuracy level 
     int ndmax[itermax];   // maximum difference order
     std::size_t pnn;      // data size
     if(sq==3) pnn = 1;     // middle difference case
     else pnn = 2;         // edge two points case
+#ifdef TIME_PROFILE
+    profile.t_dense += get_wtime();
+#endif
 
     // for error check
-    double3 CX,CXN;
+    double3 CX={};
+    double3 CXN;
     double cxerr=error+1.0;
     double eerr=error+1.0;
     double cxerr0=cxerr+1.0;
@@ -2010,14 +2089,18 @@ public:
         if (cxerr>=cxerr0 || std::abs(eerr) >= std::abs(eerr0)) {
           if (cxerr < error && std::abs(eerr) < error) break;
           else if (intcount > std::min((size_t)10,itermax)){
+#ifdef ARC_WARN            
             std::cerr<<"Warning: extrapolation cannot converge anymore, energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", try to change the error criterion (notice energy error is cumulative value)\n";
+#endif
             break;
           }
         }
         // if completely converged, check energy error
         if (cxerr==0) {
           if (std::abs(eerr) > error)
+#ifdef ARC_WARN            
             std::cerr<<"Warning: phase error reach zero but energy error "<<eerr<<" cannot reach criterion "<<error<<"!\n";
+#endif
           break;
         }
       }
@@ -2046,9 +2129,9 @@ public:
           }
 
 #ifdef TIME_PROFILE
-          profile.initstep(itermax+1);
           profile.stepcount[intcount]++;
           profile.t_ep += get_wtime();
+          profile.itercount +=itercount;
 #endif
           // if error is big, reduce the integration step and recursive call extrapolation
           //double dsfactor = std::min(EP::H_opt_factor(std::max(cxerr,std::abs(eerr)),error,intcount),0.01);
@@ -2076,6 +2159,9 @@ public:
       }
 
       // Dense output
+#ifdef TIME_PROFILE
+      profile.t_dense -= get_wtime();
+#endif
       if (ip_flag) {
         // middle difference case: difference order from 1 to 2*intcount+2 (2*kappa-2; kappa=intcount+1), first one is used to storage f(x)        
         if(sq==3) ndmax[intcount] = 2*intcount+3;
@@ -2088,6 +2174,9 @@ public:
         for (std::size_t j=0;j<ndmax[intcount];j++) pd[intcount][j] = new double[pnn];
       }
       else pd[intcount] = NULL;
+#ifdef TIME_PROFILE
+      profile.t_dense += get_wtime();
+#endif
 
       // intergration
       Leapfrog_step_forward(ds,step[intcount],force,0,pd[intcount],ndmax[intcount]);
@@ -2145,21 +2234,22 @@ public:
         eerr = (Ekin+Pot+Pt-Ekin0-Pot0-d0[1])/Pt;
         std::memcpy(CX,CXN,3*sizeof(double));
 
-        // get error estimation
-        double ermax=std::min(EP::extrapolation_error(dn,dsize,intcount),std::min(eerr,cxerr));
-        double dsfactor = EP::H_opt_factor(ermax,error,intcount+1);
-        double werrn = ((double)itercount+num)/ dsfactor;
-        if (ermax>0&&werrn<werrmax) {
-          werrmax = werrn;
-          dsn = dsfactor;
-          dsn = std::max(std::min(dsn,2.0),0.7);
-        //dsn = std::min(dsn,0.9); // not larger than 1.0
-        //dsn = std::max(dsn,pars->dtmin); // not too small
+        if (pars->auto_step==1) {
+          // get error estimation
+          double ermax=std::min(EP::extrapolation_error(dn,dsize,intcount),std::min(eerr,cxerr));
+          double dsfactor = EP::H_opt_factor(ermax,error,intcount+1);
+          double werrn = ((double)itercount+num)/ dsfactor;
+          if (ermax>0&&werrn<werrmax) {
+            werrmax = werrn;
+            dsn = dsfactor;
+            dsn = std::max(std::min(dsn,2.0),0.7);
+            //dsn = std::min(dsn,0.9); // not larger than 1.0
+            //dsn = std::max(dsn,pars->dtmin); // not too small
 #ifdef DEBUG
-          std::cerr<<"ERR factor update: sequence="<<step[intcount]<<"; modify factor="<<dsfactor<<"; ermax="<<ermax<<"; eerr="<<eerr<<"; cxerr="<<cxerr<<"; ds="<<ds<<std::endl;
+            std::cerr<<"ERR factor update: sequence="<<step[intcount]<<"; modify factor="<<dsfactor<<"; ermax="<<ermax<<"; eerr="<<eerr<<"; cxerr="<<cxerr<<"; ds="<<ds<<std::endl;
 #endif
+          }
         }
-      
       }
       
       intcount++;
@@ -2170,7 +2260,10 @@ public:
     }
 
     // for dense output
-    if (toff>0&&toff<t&&std::abs(toff-t)>pars->dterr) {
+    if (ip_flag&&toff>0&&toff<t&&std::abs(toff-t)>pars->dterr) {
+#ifdef TIME_PROFILE
+      profile.t_dense -= get_wtime();
+#endif
 
 #ifdef DEBUG
       std::cerr<<"ds="<<ds<<" step[0]="<<step[0]<<" terr="<<toff-t<<" t="<<t<<" toff="<<toff<<std::endl;
@@ -2331,26 +2424,29 @@ public:
           dsm = (dsi[0]*(tsi[1]-toff)-dsi[1]*(tsi[0]-toff))/(tsi[1]-tsi[0]);  // Use regula falsi method to find accurate ds
         }
         else {
-          if(std::abs(tpre-toff)<dterr3) rf_method=true;
           dsm = (dsi[0]+dsi[1])*0.5;      // Use bisection method to get approximate region
         }
         
         EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
         if (tpre > toff) {
+          if (dsi[1]==dsm) break;
           dsi[1] = dsm;
           tsi[1] = tpre;
         }
         else {
+          if (dsi[0]==dsm) break;
           dsi[0] = dsm;
           tsi[0] = tpre;
         }
 #ifdef DEBUG
-        std::cerr<<"Find root: dsm="<<dsm<<"; t="<<tpre<<"; error="<<tpre-toff<<"; ds="<<ds<<std::endl;
+        std::cerr<<std::setprecision(15)<<"Find root: dsm="<<dsm<<"; t="<<tpre<<"; error="<<tpre-toff<<"; ds="<<ds<<std::endl;
 #endif
+        if(std::abs(tpre-toff)<dterr3) rf_method=true;
         find_root_count++;
         if (find_root_count>100) {
-          std::cerr<<"Error! can not find ds to reach physical time toff. current searching ds="<<dsm<<"; current interpolated time="<<tpre<<"; toff="<<toff<<"; ds="<<ds<<std::endl;
-          abort();
+          //          std::cerr<<"Error! can not find ds to reach physical time toff. current searching ds="<<dsm<<"; current interpolated time="<<tpre<<"; toff="<<toff<<"; ds="<<ds<<"; err="<<tpre-toff<<std::endl;
+          //          abort();
+          break;
         }
       } while (std::abs(tpre-toff)>0.1*dterr);
 
@@ -2391,20 +2487,20 @@ public:
 //      for (std::size_t i=0; i<=1000; i++) {
 //        dsm = ds/1000*i;
 //        EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
-//        EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,npoints,nlev);
-//        // update the results
-//        restore(dtemp);
-//        // resolve particle
-//        resolve_XV();
-//        // recalculate the energy
-//        calc_Ekin();
-//        // force, potential and W
-//        calc_rAPW(force);
-        
+////        EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,npoints,nlev);
+////        // update the results
+////        restore(dtemp);
+////        // resolve particle
+////        resolve_XV();
+////        // recalculate the energy
+////        calc_Ekin();
+////        // force, potential and W
+////        calc_rAPW(force);
+////      
 //        std::cerr<<"Loop: "<<dsm;
 //        std::cerr<<" "<<std::setprecision(15)<<tpre;
-//        std::cerr<<" "<<(Ekin-Pot+Pt)/Pt;
-//        for (std::size_t i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
+////        std::cerr<<" "<<(Ekin-Pot+Pt)/Pt;
+////        for (std::size_t i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
 //        std::cerr<<std::endl;
 //      }
       
@@ -2430,33 +2526,53 @@ public:
 //        }
 //      }
 //#ifdef TIME_PROFILE
-//      profile.initstep(itermax+1);
 //      profile.stepcount[intcount+1]++;
 //      profile.t_ep += get_wtime();
+//      profile.itercount +=itercount;
 //#endif
 //      // recursive calling extrapolation_integrator to get correct time
 //      extrapolation_integration(dsm,toff,force);
 //      
 //      return dsn;
+#ifdef TIME_PROFILE
+      profile.t_dense += get_wtime();
+#endif
     }
-    // update chain link order
-    else if(num>2) update_link();
+    else {
+      // auto-step
+      if (pars->auto_step==2) {
+        dsn = 0.2*calc_next_step_XVA()/ds;
+        std::cout<<"DSN = "<<dsn<<std::endl;
+        dsn = std::min(std::max(dsn,0.5),2.0);
+      }
+
+      // update chain link order
+      if(num>2) update_link();
+    }
     
     // clear memory
     for (std::size_t i=0; i<itermax; i++) {
       delete[] dn[i];
     }
-    for (std::size_t i=0; i<intcount; i++) {
-      if (pd[i]!=NULL) {
-        for (std::size_t j=0; j<ndmax[i]; j++) delete[] pd[i][j];
-        delete[] pd[i];
+#ifdef TIME_PROFILE
+    profile.t_dense -= get_wtime();
+#endif
+    if (ip_flag) {
+      for (std::size_t i=0; i<intcount; i++) {
+        if (pd[i]!=NULL) {
+          for (std::size_t j=0; j<ndmax[i]; j++) delete[] pd[i][j];
+          delete[] pd[i];
+        }
       }
     }
+#ifdef TIME_PROFILE
+    profile.t_dense += get_wtime();
+#endif
 
 #ifdef TIME_PROFILE
-    profile.initstep(itermax+1);
     profile.stepcount[intcount+1]++;
     profile.t_ep += get_wtime();
+    profile.itercount +=itercount;
 #endif
 
     return dsn;
@@ -2678,7 +2794,7 @@ public:
       num +=n;
     }
     else {
-      std::cerr<<"Error: chainlist overflow! maximum number is "<<nmax<<", try to add "<<n<<std::endl;
+      std::cerr<<"Error: chainlist overflow! maximum number is "<<nmax<<", current number "<<num<<", try to add "<<n<<std::endl;
       abort();
     }
   }
