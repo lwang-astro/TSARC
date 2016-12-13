@@ -1796,8 +1796,8 @@ public:
       @param [in] n: number of sub-steps needed to be divided. Integration step size is (\a s/\a n) and do \a n times as: X(s/2n)V(s/n)X(s/n)V(s/n)..X(s/2n)
       @param [in] force: external force (not perturber forces which are calculated in pert_force)
       @param [in] check_flag: 2: check link every step; 1: check link at then end; 0 :no check
-      @param [in] dpoly: two dimensional array for storing 0 to \a (ndmax-1)'th order central difference of physical time #t at \a s/2 as a function of \a s, array size should be [ndmax][1]
-      @param [in] ndmax: dpoly array size and the maximum difference is ndmax-1
+      @param [in] dpoly: two dimensional array for storing 0 to \a (ndmax-*)'th order central difference of physical time #t at \a s/2 as a function of \a s, array size should be [ndmax][1]
+      @param [in] ndmax: dpoly array size and the maximum difference is ndmax-*
   */             
 //               recur_flag: flag to determine whether to resolve sub-chain particles for force calculations. notice this require the sub-chain to be integrated to current physical time. Thus is this a recursion call (tree-recusion-integration)
 //               upforce: void (const particle * p, const particle *pext, double3* force). function to calculate force based on p and pext, return to force
@@ -1838,10 +1838,12 @@ public:
 #ifdef TIME_PROFILE
       profile.t_dense -= get_wtime();
 #endif
-      if (pars->exp_sequence==3) mid_diff_calc(&dpoly[2],ndmax-2,0,n);
-      // edge difference
+      if (pars->exp_sequence==3) {
+        dpoly[1][0]=calc_dt_V(1.0);  //storage left edge derivate
+        mid_diff_calc(&dpoly[4],ndmax-4,0,n);
+      }
       else {
-        dpoly[0][0]=calc_dt_V(1.0);
+        dpoly[0][0]=calc_dt_V(1.0);  //storage left edge derivate
         edge_diff_calc(&dpoly[1],ndmax-1,0,n);
       }
 #ifdef TIME_PROFILE
@@ -1947,12 +1949,12 @@ public:
         if(pars->exp_sequence==3) {
           if (i==n/2-1) {
             dpoly[0][0]=t; // y
-            dpoly[1][0]=2.0*dt/ds; // f(x)
+            dpoly[3][0]=2.0*dt/ds; // f(x)
 //#ifdef DEBUG
 //            std::cerr<<"Mid time = "<<t<<", n="<<n<<"; i="<<i+1<<std::endl;
 //#endif
           }
-          mid_diff_calc(&dpoly[2],ndmax-2,i+1,n);
+          mid_diff_calc(&dpoly[4],ndmax-4,i+1,n);
         }
         // edge difference
         else edge_diff_calc(&dpoly[1],ndmax-1,i+1,n);
@@ -1971,7 +1973,10 @@ public:
 #ifdef TIME_PROFILE
     profile.t_dense -= get_wtime();
 #endif
-    if(dpoly!=NULL&&pars->exp_sequence!=3) dpoly[0][1]=calc_dt_V(1.0);
+    if(dpoly!=NULL) {
+      if(pars->exp_sequence==3) dpoly[2][0]=calc_dt_V(1.0);
+      else dpoly[0][1]=calc_dt_V(1.0);
+    }
 #ifdef TIME_PROFILE
     profile.t_dense += get_wtime();
 #endif
@@ -2163,8 +2168,8 @@ public:
       profile.t_dense -= get_wtime();
 #endif
       if (ip_flag) {
-        // middle difference case: difference order from 1 to 2*intcount+2 (2*kappa-2; kappa=intcount+1), first one is used to storage f(x)        
-        if(sq==3) ndmax[intcount] = 2*intcount+3;
+        // middle difference case: difference order from 1 to 2*intcount+2 (2*kappa-2; kappa=intcount+1), first one is used to storage f(x), 2,3 are used for edge f'(x) at (0, ds)
+        if(sq==3) ndmax[intcount] = 2*intcount+5;
         // edge difference case: difference order from 1 to intcount+1, first store f(x)
         else ndmax[intcount] = intcount+2;
         
@@ -2276,9 +2281,9 @@ public:
         double h;
         if(sq==3) {
           // middle difference case first element is f(x)
-          pdptr=&pd[i][2];
+          pdptr=&pd[i][4];
           // differece order number should be reduced by one
-          dpsize = ndmax[i]-2;
+          dpsize = ndmax[i]-4;
           // step size
           h = 2*ds/(double)step[i];
         }
@@ -2352,9 +2357,9 @@ public:
         xpoint[2]=ds;
 
         nlev=new int[npoints];
-        nlev[0] = 1;
-        nlev[1] = ndmax[intcount-1];
-        nlev[2] = 1;
+        nlev[0] = 2;
+        nlev[1] = ndmax[intcount-1]-2;
+        nlev[2] = 2;
 
         fpoint=new double*[npoints];
         fpoint[0] = d0;
@@ -2368,9 +2373,11 @@ public:
         for (int i=0;i<nlev[1]-1;i++) {
           dfptr[i]=new double*[3];
           dfptr[i][0]=NULL;
-          dfptr[i][1]=pd[intcount-1][i+1];
+          dfptr[i][1]=pd[intcount-1][i+3];
           dfptr[i][2]=NULL;
         }
+        dfptr[0][0]=pd[intcount-1][1]; //left edge 
+        dfptr[0][2]=pd[intcount-1][2]; //right edge
       }
       // for edge difference case (2 points)
       else {
@@ -2484,25 +2491,25 @@ public:
       for (std::size_t i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
       std::cerr<<std::endl;
       */
-//      for (std::size_t i=0; i<=1000; i++) {
-//        dsm = ds/1000*i;
-//        EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
-////        EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,npoints,nlev);
-////        // update the results
-////        restore(dtemp);
-////        // resolve particle
-////        resolve_XV();
-////        // recalculate the energy
-////        calc_Ekin();
-////        // force, potential and W
-////        calc_rAPW(force);
-////      
-//        std::cerr<<"Loop: "<<dsm;
-//        std::cerr<<" "<<std::setprecision(15)<<tpre;
-////        std::cerr<<" "<<(Ekin-Pot+Pt)/Pt;
-////        for (std::size_t i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
-//        std::cerr<<std::endl;
-//      }
+      for (std::size_t i=0; i<=1000; i++) {
+        dsm = ds/1000*i;
+        EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
+//        EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,npoints,nlev);
+//        // update the results
+//        restore(dtemp);
+//        // resolve particle
+//        resolve_XV();
+//        // recalculate the energy
+//        calc_Ekin();
+//        // force, potential and W
+//        calc_rAPW(force);
+//      
+        std::cerr<<"Loop: "<<dsm;
+        std::cerr<<" "<<std::setprecision(15)<<tpre;
+//        std::cerr<<" "<<(Ekin-Pot+Pt)/Pt;
+//        for (std::size_t i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
+        std::cerr<<std::endl;
+      }
       
 #endif
 
