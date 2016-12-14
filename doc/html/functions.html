@@ -19,6 +19,12 @@
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+});
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -90,10 +96,13 @@ $(document).ready(function(){initNavTree('functions.html','');});
 : <a class="el" href="classARC_1_1chain.html#a0f91c399beb1e5c0db6ed7e2b4d00477">ARC::chain&lt; particle &gt;</a>
 </li>
 <li>addPext()
-: <a class="el" href="classARC_1_1chain.html#a029906394e7b73881c0980c00bf978f7">ARC::chain&lt; particle &gt;</a>
+: <a class="el" href="classARC_1_1chain.html#a5ab3934ce4a203cd57bfabcc3caf54b3">ARC::chain&lt; particle &gt;</a>
 </li>
 <li>allocate()
-: <a class="el" href="classARC_1_1chain.html#ac0bbd32e714913e1e8eb36eb2e8c3fd4">ARC::chain&lt; particle &gt;</a>
+: <a class="el" href="classARC_1_1chain.html#ad0abd7b957e9d88ad2f1823f06d28a4a">ARC::chain&lt; particle &gt;</a>
+</li>
+<li>auto_step
+: <a class="el" href="classARC_1_1chainpars.html#a9fc7b9a8ce26c24cf95f53bdc80924c7">ARC::chainpars</a>
 </li>
 </ul>
 
@@ -106,6 +115,15 @@ $(document).ready(function(){initNavTree('functions.html','');});
 
 
 <h3><a id="index_c"></a>- c -</h3><ul>
+<li>calc_dt_V()
+: <a class="el" href="classARC_1_1chain.html#ad4bd36fa9cc967d0d32c3a5ca8074fa0">ARC::chain&lt; particle &gt;</a>
+</li>
+<li>calc_dt_X()
+: <a class="el" href="classARC_1_1chain.html#add21c686f37a3c0a7229bdce83015c61">ARC::chain&lt; particle &gt;</a>
+</li>
+<li>calc_next_step_XVA()
+: <a class="el" href="classARC_1_1chain.html#a3d0f80ad6952b0e38762465092ed86a6">ARC::chain&lt; particle &gt;</a>
+</li>
 <li>center_shift()
 : <a class="el" href="classARC_1_1chain.html#a68ae268afb418455bfdd6e8101b3b4eb">ARC::chain&lt; particle &gt;</a>
 </li>
@@ -120,7 +138,7 @@ $(document).ready(function(){initNavTree('functions.html','');});
 : <a class="el" href="classARC_1_1chainlist.html#ab4e3b53aee12e8970d94e1b368088bfa">ARC::chainlist&lt; particle &gt;</a>
 </li>
 <li>chainpars()
-: <a class="el" href="classARC_1_1chainpars.html#a2019a609d85e2b801f306ac8c7f268ab">ARC::chainpars</a>
+: <a class="el" href="classARC_1_1chainpars.html#a02898688da2b01ee9db51066ee5e4111">ARC::chainpars</a>
 </li>
 <li>clear()
 : <a class="el" href="classARC_1_1chain.html#a5299fa50788dc7e5d15504c33f76333f">ARC::chain&lt; particle &gt;</a>
@@ -133,7 +151,26 @@ $(document).ready(function(){initNavTree('functions.html','');});
 </ul>
 
 
+<h3><a id="index_d"></a>- d -</h3><ul>
+<li>dterr
+: <a class="el" href="classARC_1_1chainpars.html#ad3a3e8f9199180ec82b9c257b1e8570e">ARC::chainpars</a>
+</li>
+<li>dtmin
+: <a class="el" href="classARC_1_1chainpars.html#ac414014d19915aecb35245ba11649c2e">ARC::chainpars</a>
+</li>
+</ul>
+
+
 <h3><a id="index_e"></a>- e -</h3><ul>
+<li>exp_error
+: <a class="el" href="classARC_1_1chainpars.html#a7ee477ebe8b1d67457891ab58560c074">ARC::chainpars</a>
+</li>
+<li>exp_fix_iter
+: <a class="el" href="classARC_1_1chainpars.html#a3f16e6ea9497e294265c4a17df0394ba">ARC::chainpars</a>
+</li>
+<li>exp_itermax
+: <a class="el" href="classARC_1_1chainpars.html#a91a648cc6e52054cecad54a29dc5e9a1">ARC::chainpars</a>
+</li>
 <li>extrapolation_integration()
 : <a class="el" href="classARC_1_1chain.html#a0eb7768cb1b9099bbf66124d4c00164c">ARC::chain&lt; particle &gt;</a>
 </li>
@@ -188,6 +225,9 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <li>initPext()
 : <a class="el" href="classARC_1_1chain.html#a8e31c6a438a72d322889d0ca82fa6bf8">ARC::chain&lt; particle &gt;</a>
 </li>
+<li>Int_pars
+: <a class="el" href="classARC_1_1chain.html#ada3f98172a98cdf9a64abacfe95f9cd8">ARC::chain&lt; particle &gt;</a>
+</li>
 <li>isChain()
 : <a class="el" href="classARC_1_1chainlist.html#a192f6db3659e5329d137de18c8c4b029">ARC::chainlist&lt; particle &gt;</a>
 </li>
@@ -217,9 +257,6 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <h3><a id="index_p"></a>- p -</h3><ul>
 <li>p
 : <a class="el" href="classARC_1_1chain.html#af1793b656e139e1f87c2e0a55f87514b">ARC::chain&lt; particle &gt;</a>
-</li>
-<li>pair_AW_pars
-: <a class="el" href="classARC_1_1chain.html#a8c5f29c3d307bb216fdc68641b412c72">ARC::chain&lt; particle &gt;</a>
 </li>
 <li>Particle()
 : <a class="el" href="classParticle.html#a40f4c7e248029d72e7714b7802d5e5e1">Particle</a>
@@ -259,6 +296,9 @@ $(document).ready(function(){initNavTree('functions.html','');});
 <li>setabg()
 : <a class="el" href="classARC_1_1chainpars.html#a37f8af288217cbfc61a3593e21976d06">ARC::chainpars</a>
 </li>
+<li>setAutoStep()
+: <a class="el" href="classARC_1_1chainpars.html#a7ea466feff01a06ace9af16eb5641b93">ARC::chainpars</a>
+</li>
 <li>setEXP()
 : <a class="el" href="classARC_1_1chainpars.html#a1bef542db30755ac35cf064446874f6d">ARC::chainpars</a>
 </li>
@@ -266,10 +306,10 @@ $(document).ready(function(){initNavTree('functions.html','');});
 : <a class="el" href="classParticle.html#a620f479862b90468a77da4e9cf5c0ff5">Particle</a>
 </li>
 <li>setPos()
-: <a class="el" href="classParticle.html#a97d76b66aed57834c105b78b10643b81">Particle</a>
+: <a class="el" href="classParticle.html#ab3c50e74691f9264d4d4d2e72a6b9536">Particle</a>
 </li>
 <li>setVel()
-: <a class="el" href="classParticle.html#a07c405254ac3f03854e7523ff473c828">Particle</a>
+: <a class="el" href="classParticle.html#a433720a7673f9645e4e203c32435e301">Particle</a>
 </li>
 </ul>
 

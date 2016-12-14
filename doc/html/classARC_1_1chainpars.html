@@ -19,6 +19,12 @@
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+});
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -82,6 +88,7 @@ $(document).ready(function(){initNavTree('classARC_1_1chainpars.html','');});
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pub-attribs">Public Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classARC_1_1chainpars-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -99,14 +106,14 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a2019a609d85e2b801f306ac8c7f268ab"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a2019a609d85e2b801f306ac8c7f268ab">chainpars</a> ()</td></tr>
 <tr class="memdesc:a2019a609d85e2b801f306ac8c7f268ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">constructor with defaulted parameters  <a href="#a2019a609d85e2b801f306ac8c7f268ab">More...</a><br /></td></tr>
 <tr class="separator:a2019a609d85e2b801f306ac8c7f268ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeac8bbfacf68c83e5d0c117deae5e70b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#aeac8bbfacf68c83e5d0c117deae5e70b">chainpars</a> (<a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c">pair_AW</a> aw, <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0">pair_Ap</a> ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const bool ext_iteration_const=false)</td></tr>
-<tr class="memdesc:aeac8bbfacf68c83e5d0c117deae5e70b"><td class="mdescLeft">&#160;</td><td class="mdescRight">constructor  <a href="#aeac8bbfacf68c83e5d0c117deae5e70b">More...</a><br /></td></tr>
-<tr class="separator:aeac8bbfacf68c83e5d0c117deae5e70b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02898688da2b01ee9db51066ee5e4111"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a02898688da2b01ee9db51066ee5e4111">chainpars</a> (<a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c">pair_AW</a> aw, <a class="el" href="namespaceARC.html#aed8f19a0c6ae7dc0bb3696b337d7b9f6">pair_Ap</a> ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const bool ext_iteration_const=false, const int auto_step_option=0)</td></tr>
+<tr class="memdesc:a02898688da2b01ee9db51066ee5e4111"><td class="mdescLeft">&#160;</td><td class="mdescRight">constructor  <a href="#a02898688da2b01ee9db51066ee5e4111">More...</a><br /></td></tr>
+<tr class="separator:a02898688da2b01ee9db51066ee5e4111"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a032873f782645efb6e60dc77f6d425dc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a032873f782645efb6e60dc77f6d425dc">~chainpars</a> ()</td></tr>
 <tr class="memdesc:a032873f782645efb6e60dc77f6d425dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">destructor  <a href="#a032873f782645efb6e60dc77f6d425dc">More...</a><br /></td></tr>
 <tr class="separator:a032873f782645efb6e60dc77f6d425dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af639f7bc8cfbb2a0330f079df2fd556e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#af639f7bc8cfbb2a0330f079df2fd556e">setA</a> (<a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c">pair_AW</a> aw, <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0">pair_Ap</a> ap)</td></tr>
-<tr class="memdesc:af639f7bc8cfbb2a0330f079df2fd556e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set acceleration, potential, time transformation function <img class="formulaInl" alt="$\partial W/\partial r$" src="form_21.png"/> and <img class="formulaInl" alt="$W$" src="form_22.png"/> calculator.  <a href="#af639f7bc8cfbb2a0330f079df2fd556e">More...</a><br /></td></tr>
+<tr class="memitem:af639f7bc8cfbb2a0330f079df2fd556e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#af639f7bc8cfbb2a0330f079df2fd556e">setA</a> (<a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c">pair_AW</a> aw, <a class="el" href="namespaceARC.html#aed8f19a0c6ae7dc0bb3696b337d7b9f6">pair_Ap</a> ap)</td></tr>
+<tr class="memdesc:af639f7bc8cfbb2a0330f079df2fd556e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set acceleration, potential, time transformation function \(\partial W/\partial r\) and \(W\) calculator.  <a href="#af639f7bc8cfbb2a0330f079df2fd556e">More...</a><br /></td></tr>
 <tr class="separator:af639f7bc8cfbb2a0330f079df2fd556e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37f8af288217cbfc61a3593e21976d06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a37f8af288217cbfc61a3593e21976d06">setabg</a> (const double a=1.0, const double b=0.0, const double g=0.0)</td></tr>
 <tr class="memdesc:a37f8af288217cbfc61a3593e21976d06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set time step transformation parameter.  <a href="#a37f8af288217cbfc61a3593e21976d06">More...</a><br /></td></tr>
@@ -114,6 +121,30 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a1bef542db30755ac35cf064446874f6d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a1bef542db30755ac35cf064446874f6d">setEXP</a> (const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2, const bool ext_iteration_const=false)</td></tr>
 <tr class="memdesc:a1bef542db30755ac35cf064446874f6d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set extrapolation parameters.  <a href="#a1bef542db30755ac35cf064446874f6d">More...</a><br /></td></tr>
 <tr class="separator:a1bef542db30755ac35cf064446874f6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ea466feff01a06ace9af16eb5641b93"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a7ea466feff01a06ace9af16eb5641b93">setAutoStep</a> (const int option)</td></tr>
+<tr class="memdesc:a7ea466feff01a06ace9af16eb5641b93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determine auto-step parameter.  <a href="#a7ea466feff01a06ace9af16eb5641b93">More...</a><br /></td></tr>
+<tr class="separator:a7ea466feff01a06ace9af16eb5641b93"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
+Public Attributes</h2></td></tr>
+<tr class="memitem:ac414014d19915aecb35245ba11649c2e"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#ac414014d19915aecb35245ba11649c2e">dtmin</a></td></tr>
+<tr class="memdesc:ac414014d19915aecb35245ba11649c2e"><td class="mdescLeft">&#160;</td><td class="mdescRight">minimum physical time step  <a href="#ac414014d19915aecb35245ba11649c2e">More...</a><br /></td></tr>
+<tr class="separator:ac414014d19915aecb35245ba11649c2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad3a3e8f9199180ec82b9c257b1e8570e"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#ad3a3e8f9199180ec82b9c257b1e8570e">dterr</a></td></tr>
+<tr class="memdesc:ad3a3e8f9199180ec82b9c257b1e8570e"><td class="mdescLeft">&#160;</td><td class="mdescRight">physical time error criterion  <a href="#ad3a3e8f9199180ec82b9c257b1e8570e">More...</a><br /></td></tr>
+<tr class="separator:ad3a3e8f9199180ec82b9c257b1e8570e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ee477ebe8b1d67457891ab58560c074"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a7ee477ebe8b1d67457891ab58560c074">exp_error</a></td></tr>
+<tr class="memdesc:a7ee477ebe8b1d67457891ab58560c074"><td class="mdescLeft">&#160;</td><td class="mdescRight">relative error requirement for extrapolation  <a href="#a7ee477ebe8b1d67457891ab58560c074">More...</a><br /></td></tr>
+<tr class="separator:a7ee477ebe8b1d67457891ab58560c074"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91a648cc6e52054cecad54a29dc5e9a1"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a91a648cc6e52054cecad54a29dc5e9a1">exp_itermax</a></td></tr>
+<tr class="memdesc:a91a648cc6e52054cecad54a29dc5e9a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">maximum times for iteration.  <a href="#a91a648cc6e52054cecad54a29dc5e9a1">More...</a><br /></td></tr>
+<tr class="separator:a91a648cc6e52054cecad54a29dc5e9a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f16e6ea9497e294265c4a17df0394ba"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a3f16e6ea9497e294265c4a17df0394ba">exp_fix_iter</a></td></tr>
+<tr class="memdesc:a3f16e6ea9497e294265c4a17df0394ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">flag showing whether the times of iteration is fixed or not  <a href="#a3f16e6ea9497e294265c4a17df0394ba">More...</a><br /></td></tr>
+<tr class="separator:a3f16e6ea9497e294265c4a17df0394ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9fc7b9a8ce26c24cf95f53bdc80924c7"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a9fc7b9a8ce26c24cf95f53bdc80924c7">auto_step</a></td></tr>
+<tr class="memdesc:a9fc7b9a8ce26c24cf95f53bdc80924c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">if 0: no auto step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step  <a href="#a9fc7b9a8ce26c24cf95f53bdc80924c7">More...</a><br /></td></tr>
+<tr class="separator:a9fc7b9a8ce26c24cf95f53bdc80924c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
@@ -123,7 +154,7 @@ Friends</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The chain parameter controller class. </p>
-<p>This class control the acceleration function and time transformation function (<a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c" title="Function pointer type to function for calculation of acceleration (potential) and the component of ti...">ARC::pair_AW</a>, <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a>), integration methods and error parameters for <a class="el" href="classARC_1_1chain.html">chain</a>. </p>
+<p>This class control the acceleration function and time transformation function (<a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c" title="Function pointer type to function for calculation of acceleration (potential) and the component of ti...">ARC::pair_AW</a>, <a class="el" href="namespaceARC.html#aed8f19a0c6ae7dc0bb3696b337d7b9f6" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a>), integration methods and error parameters for <a class="el" href="classARC_1_1chain.html">chain</a>. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a2019a609d85e2b801f306ac8c7f268ab"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2019a609d85e2b801f306ac8c7f268ab">&sect;&nbsp;</a></span>chainpars() <span class="overload">[1/2]</span></h2>
@@ -150,20 +181,27 @@ Friends</h2></td></tr>
 
 <p>constructor with defaulted parameters </p>
 <ul>
-<li>Acceleration function use <a class="el" href="namespaceARC.html#ab9fc6518902e918927d8c6bd3d51401d" title="Newtonian acceleration and  from particle j to particle i (function type of ARC::pair_AW) ...">ARC::Newtonian_AW()</a> and <a class="el" href="namespaceARC.html#a1010e9fd74a49633259d623839639d67" title="Newtonian acceleration from particle p to particle i (function type of ARC::pair_Ap) ...">ARC::Newtonian_Ap()</a>.</li>
+<li>Acceleration function use <a class="el" href="namespaceARC.html#ab9fc6518902e918927d8c6bd3d51401d" title="Newtonian acceleration and  from particle j to particle i (function type of ARC::pair_AW) ...">ARC::Newtonian_AW()</a> and <a class="el" href="namespaceARC.html#a70d2d18fc72d05606cb2c991ada4c64b" title="Newtonian acceleration from particle p to particle i (function type of ARC::pair_Ap) ...">ARC::Newtonian_Ap()</a>.</li>
 <li><a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> method use logarithmic Hamiltonian (logH) (#alpha = 1.0, #beta = 0.0 #gamma = 0.0).</li>
-<li>Phase/energy error limit #exp_error = 1e-10.</li>
-<li>Minimum physical time step #dtmin = 5.4e-20.</li>
-<li>Time synchronization error limit #dterr = 1e-10.</li>
-<li>Maximum extrapolation sequence index (accuracy order/iteration times) #exp_itermax = 20</li>
+<li>Phase/energy error limit <a class="el" href="classARC_1_1chainpars.html#a7ee477ebe8b1d67457891ab58560c074" title="relative error requirement for extrapolation ">exp_error</a> = 1e-10.</li>
+<li>Minimum physical time step <a class="el" href="classARC_1_1chainpars.html#ac414014d19915aecb35245ba11649c2e" title="minimum physical time step ">dtmin</a> = 5.4e-20.</li>
+<li>Time synchronization error limit <a class="el" href="classARC_1_1chainpars.html#ad3a3e8f9199180ec82b9c257b1e8570e" title="physical time error criterion ">dterr</a> = 1e-10.</li>
+<li>Maximum extrapolation sequence index (accuracy order/iteration times) <a class="el" href="classARC_1_1chainpars.html#a91a648cc6e52054cecad54a29dc5e9a1" title="maximum times for iteration. ">exp_itermax</a> = 20</li>
 <li>The maximum sequence index (iteration times) is adjusted by error criterion</li>
-<li>Bulirsch &amp; Stoer sequence {h, h/2, h/3, h/4, h/6...} is used </li>
+<li>Bulirsch &amp; Stoer sequence {h, h/2, h/3, h/4, h/6...} is used</li>
+<li>No auto-step </li>
 </ul>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classARC_1_1chainpars_a2019a609d85e2b801f306ac8c7f268ab_cgraph.svg" width="378" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
-<a id="aeac8bbfacf68c83e5d0c117deae5e70b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeac8bbfacf68c83e5d0c117deae5e70b">&sect;&nbsp;</a></span>chainpars() <span class="overload">[2/2]</span></h2>
+<a id="a02898688da2b01ee9db51066ee5e4111"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02898688da2b01ee9db51066ee5e4111">&sect;&nbsp;</a></span>chainpars() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -180,7 +218,7 @@ Friends</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0">pair_Ap</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceARC.html#aed8f19a0c6ae7dc0bb3696b337d7b9f6">pair_Ap</a>&#160;</td>
           <td class="paramname"><em>ap</em>, </td>
         </tr>
         <tr>
@@ -241,7 +279,13 @@ Friends</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const bool&#160;</td>
-          <td class="paramname"><em>ext_iteration_const</em> = <code>false</code>&#160;</td>
+          <td class="paramname"><em>ext_iteration_const</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>auto_step_option</em> = <code>0</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -260,21 +304,22 @@ Friends</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">aw</td><td>acceleration and dW/dr of two particle calculation function pointer with <a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c" title="Function pointer type to function for calculation of acceleration (potential) and the component of ti...">ARC::pair_AW</a> type. (interaction between memebrs) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ap</td><td>acceleration calculation function pointer with <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a> type. (interaction between member and perturber) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">a,b,g</td><td><a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> time transformation method coefficients ( <img class="formulaInl" alt="$ dt = ds/[a *(logH) + b * (TTL) + g])$" src="form_20.png"/>. <br />
+    <tr><td class="paramdir">[in]</td><td class="paramname">ap</td><td>acceleration calculation function pointer with <a class="el" href="namespaceARC.html#aed8f19a0c6ae7dc0bb3696b337d7b9f6" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a> type. (interaction between member and perturber) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">a,b,g</td><td><a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> time transformation method coefficients ( \( dt = ds/[a *(logH) + b * (TTL) + g])\). <br />
 <ul>
 <li>a: Logarithmic Hamiltonian (logH) method coefficient #alpha (0.0, 1.0)</li>
 <li>b: Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0)</li>
 <li>g: Constant coefficient (no time transformation) #gamma </li>
 </ul>
 </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">error</td><td>Phase/energy error limit (defaulted #exp_error = 1e-10) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">dtm</td><td>Minimum physical time step (defaulted #dtmin = 5.4e-20) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">dte</td><td>Time synchronization error limit (defaulted #dterr = 1e-6) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">itermax</td><td>Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">error</td><td>Phase/energy error limit (defaulted <a class="el" href="classARC_1_1chainpars.html#a7ee477ebe8b1d67457891ab58560c074" title="relative error requirement for extrapolation ">exp_error</a> = 1e-10) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dtm</td><td>Minimum physical time step (defaulted <a class="el" href="classARC_1_1chainpars.html#ac414014d19915aecb35245ba11649c2e" title="minimum physical time step ">dtmin</a> = 5.4e-20) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dte</td><td>Time synchronization error limit (defaulted <a class="el" href="classARC_1_1chainpars.html#ad3a3e8f9199180ec82b9c257b1e8570e" title="physical time error criterion ">dterr</a> = 1e-6) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">itermax</td><td>Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted <a class="el" href="classARC_1_1chainpars.html#a91a648cc6e52054cecad54a29dc5e9a1" title="maximum times for iteration. ">exp_itermax</a> = 20) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ext_method</td><td>1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ext_sequence</td><td>1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch &amp; Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ext_iteration_const</td><td>true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">auto_step_option</td><td>if 0: no auto-step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step modification factor (0) </td></tr>
   </table>
   </dd>
 </dl>
@@ -327,7 +372,7 @@ Friends</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0">pair_Ap</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceARC.html#aed8f19a0c6ae7dc0bb3696b337d7b9f6">pair_Ap</a>&#160;</td>
           <td class="paramname"><em>ap</em>&#160;</td>
         </tr>
         <tr>
@@ -343,11 +388,11 @@ Friends</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Set acceleration, potential, time transformation function <img class="formulaInl" alt="$\partial W/\partial r$" src="form_21.png"/> and <img class="formulaInl" alt="$W$" src="form_22.png"/> calculator. </p>
-<p>Set acceleration, potential, time transformation function <img class="formulaInl" alt="$\partial W/\partial r$" src="form_21.png"/> and <img class="formulaInl" alt="$W$" src="form_22.png"/> for two particles. This is the basic functions used for interaction between chain members and from perturbers. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Set acceleration, potential, time transformation function \(\partial W/\partial r\) and \(W\) calculator. </p>
+<p>Set acceleration, potential, time transformation function \(\partial W/\partial r\) and \(W\) for two particles. This is the basic functions used for interaction between chain members and from perturbers. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">aw</td><td>acceleration, potential and time transformation function <img class="formulaInl" alt="$\partial W/\partial r$" src="form_21.png"/>, <img class="formulaInl" alt="$W$" src="form_22.png"/> of two particles calculation function pointer with <a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c" title="Function pointer type to function for calculation of acceleration (potential) and the component of ti...">ARC::pair_AW</a> type. (interaction between memebrs). Notice this function defines <img class="formulaInl" alt="$\partial W/\partial r$" src="form_21.png"/> and <img class="formulaInl" alt="$W$" src="form_22.png"/>, and these time transformation functions are only used when #beta&gt;0 (see <a class="el" href="classARC_1_1chainpars.html#a37f8af288217cbfc61a3593e21976d06" title="Set time step transformation parameter. ">setabg()</a>). </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ap</td><td>acceleration calculation function pointer with <a class="el" href="namespaceARC.html#a819446c4644b3a3af7ef11574d0b55e0" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a> type. (interaction between members and perturbers) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">aw</td><td>acceleration, potential and time transformation function \(\partial W/\partial r\), \(W\) of two particles calculation function pointer with <a class="el" href="namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c" title="Function pointer type to function for calculation of acceleration (potential) and the component of ti...">ARC::pair_AW</a> type. (interaction between memebrs). Notice this function defines \(\partial W/\partial r\) and \(W\), and these time transformation functions are only used when #beta&gt;0 (see <a class="el" href="classARC_1_1chainpars.html#a37f8af288217cbfc61a3593e21976d06" title="Set time step transformation parameter. ">setabg()</a>). </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ap</td><td>acceleration calculation function pointer with <a class="el" href="namespaceARC.html#aed8f19a0c6ae7dc0bb3696b337d7b9f6" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::pair_Ap</a> type. (interaction between members and perturbers) </td></tr>
   </table>
   </dd>
 </dl>
@@ -395,12 +440,51 @@ Friends</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Set time step transformation parameter. </p>
-<p>Set parameter a,b,g where physical time step <img class="formulaInl" alt="$ dt = ds/[a *(logH) + b * (TTL) + g]$" src="form_23.png"/> <br />
+<p>Set parameter a,b,g where physical time step \( dt = ds/[a *(logH) + b * (TTL) + g]\) <br />
 </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">a</td><td>Logarithmic Hamiltonian (logH) method coefficient #alpha (0.0, 1.0) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">b</td><td>Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">g</td><td>Constant coefficient (no time transformation) #gamma </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a7ea466feff01a06ace9af16eb5641b93"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ea466feff01a06ace9af16eb5641b93">&sect;&nbsp;</a></span>setAutoStep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ARC::chainpars::setAutoStep </td>
+          <td>(</td>
+          <td class="paramtype">const int&#160;</td>
+          <td class="paramname"><em>option</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Determine auto-step parameter. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">option</td><td>auto-step method<ul>
+<li>0. no auto-step</li>
+<li>1. use extrapolation error to estimate next step</li>
+<li>2. use min(X/(gV),V/(gA)) to estimate next step </li>
+</ul>
+</td></tr>
   </table>
   </dd>
 </dl>
@@ -474,16 +558,22 @@ Friends</h2></td></tr>
 <p>Set extrapolation parameters. </p>
 <p>Set extrapolation related parameters as following: </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">error</td><td>phase/energy relative error requirement for extrapolation (defaulted #exp_error = 1e-10) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">dtm</td><td>minimum physical time step allown (defaulted #dtmin = 5.4e-20) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">dte</td><td>Time synchronization error limit (defaulted #dterr = 1e-6) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">itermax</td><td>Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">error</td><td>phase/energy relative error requirement for extrapolation (defaulted <a class="el" href="classARC_1_1chainpars.html#a7ee477ebe8b1d67457891ab58560c074" title="relative error requirement for extrapolation ">exp_error</a> = 1e-10) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dtm</td><td>minimum physical time step allown (defaulted <a class="el" href="classARC_1_1chainpars.html#ac414014d19915aecb35245ba11649c2e" title="minimum physical time step ">dtmin</a> = 5.4e-20) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dte</td><td>Time synchronization error limit (defaulted <a class="el" href="classARC_1_1chainpars.html#ad3a3e8f9199180ec82b9c257b1e8570e" title="physical time error criterion ">dterr</a> = 1e-6) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">itermax</td><td>Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted <a class="el" href="classARC_1_1chainpars.html#a91a648cc6e52054cecad54a29dc5e9a1" title="maximum times for iteration. ">exp_itermax</a> = 20) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">methods</td><td>1: Polynomial method; others: Rational interpolation method (defaulted Rational) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">sequences</td><td>1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch &amp; Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ext_iteration_const</td><td>true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false) </td></tr>
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="classARC_1_1chainpars_a1bef542db30755ac35cf064446874f6d_cgraph.svg" width="372" height="256"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -509,6 +599,103 @@ template&lt;class T &gt; </div>
   </tr>
 </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a9fc7b9a8ce26c24cf95f53bdc80924c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9fc7b9a8ce26c24cf95f53bdc80924c7">&sect;&nbsp;</a></span>auto_step</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int ARC::chainpars::auto_step</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>if 0: no auto step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step </p>
+
+</div>
+</div>
+<a id="ad3a3e8f9199180ec82b9c257b1e8570e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad3a3e8f9199180ec82b9c257b1e8570e">&sect;&nbsp;</a></span>dterr</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ARC::chainpars::dterr</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>physical time error criterion </p>
+
+</div>
+</div>
+<a id="ac414014d19915aecb35245ba11649c2e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac414014d19915aecb35245ba11649c2e">&sect;&nbsp;</a></span>dtmin</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ARC::chainpars::dtmin</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>minimum physical time step </p>
+
+</div>
+</div>
+<a id="a7ee477ebe8b1d67457891ab58560c074"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ee477ebe8b1d67457891ab58560c074">&sect;&nbsp;</a></span>exp_error</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">double ARC::chainpars::exp_error</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>relative error requirement for extrapolation </p>
+
+</div>
+</div>
+<a id="a3f16e6ea9497e294265c4a17df0394ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f16e6ea9497e294265c4a17df0394ba">&sect;&nbsp;</a></span>exp_fix_iter</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool ARC::chainpars::exp_fix_iter</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>flag showing whether the times of iteration is fixed or not </p>
+
+</div>
+</div>
+<a id="a91a648cc6e52054cecad54a29dc5e9a1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91a648cc6e52054cecad54a29dc5e9a1">&sect;&nbsp;</a></span>exp_itermax</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t ARC::chainpars::exp_itermax</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>maximum times for iteration. </p>
 
 </div>
 </div>

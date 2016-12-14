@@ -10,5 +10,5 @@ var searchData=
   ['getsub',['getSub',['../classARC_1_1chainlist.html#a14c6b75c2d3e97cf9babcac2aa014e8a',1,'ARC::chainlist']]],
   ['gettime',['getTime',['../classARC_1_1chain.html#a48bde99d89b99df54844e1331d4814bb',1,'ARC::chain']]],
   ['getvel',['getVel',['../classParticle.html#ab3d63df7f8c22f232b096ae33b6ea3ac',1,'Particle']]],
-  ['getw',['getW',['../classARC_1_1chain.html#a43f7ea8573dcbc4849232c97be26456f',1,'ARC::chain::getW() const'],['../classARC_1_1chain.html#a122985d69620f87c68ae43f4c87e4f00',1,'ARC::chain::getw() const']]]
+  ['getw',['getw',['../classARC_1_1chain.html#a122985d69620f87c68ae43f4c87e4f00',1,'ARC::chain::getw() const'],['../classARC_1_1chain.html#a43f7ea8573dcbc4849232c97be26456f',1,'ARC::chain::getW() const']]]
 ];

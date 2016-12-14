@@ -14,16 +14,33 @@ The chain parameter controller class.
 \item 
 \hyperlink{classARC_1_1chainpars_a2019a609d85e2b801f306ac8c7f268ab}{chainpars} ()
 \begin{DoxyCompactList}\small\item\em constructor with defaulted parameters \end{DoxyCompactList}\item 
-\hyperlink{classARC_1_1chainpars_aeac8bbfacf68c83e5d0c117deae5e70b}{chainpars} (\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW} aw, \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap} ap, const double a, const double b, const double g, const double error=1\+E-\/10, const double dtm=5.\+4e-\/20, const double dte=1e-\/6, const std\+::size\+\_\+t itermax=20, const int ext\+\_\+method=2, const int ext\+\_\+sequence=2, const bool ext\+\_\+iteration\+\_\+const=false)
+\hyperlink{classARC_1_1chainpars_a02898688da2b01ee9db51066ee5e4111}{chainpars} (\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW} aw, \hyperlink{namespaceARC_aed8f19a0c6ae7dc0bb3696b337d7b9f6}{pair\+\_\+\+Ap} ap, const double a, const double b, const double g, const double error=1\+E-\/10, const double dtm=5.\+4e-\/20, const double dte=1e-\/6, const std\+::size\+\_\+t itermax=20, const int ext\+\_\+method=2, const int ext\+\_\+sequence=2, const bool ext\+\_\+iteration\+\_\+const=false, const int auto\+\_\+step\+\_\+option=0)
 \begin{DoxyCompactList}\small\item\em constructor \end{DoxyCompactList}\item 
 \hyperlink{classARC_1_1chainpars_a032873f782645efb6e60dc77f6d425dc}{$\sim$chainpars} ()
 \begin{DoxyCompactList}\small\item\em destructor \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainpars_af639f7bc8cfbb2a0330f079df2fd556e}{setA} (\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW} aw, \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap} ap)
+void \hyperlink{classARC_1_1chainpars_af639f7bc8cfbb2a0330f079df2fd556e}{setA} (\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW} aw, \hyperlink{namespaceARC_aed8f19a0c6ae7dc0bb3696b337d7b9f6}{pair\+\_\+\+Ap} ap)
 \begin{DoxyCompactList}\small\item\em Set acceleration, potential, time transformation function $\partial W/\partial r$ and $W$ calculator. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chainpars_a37f8af288217cbfc61a3593e21976d06}{setabg} (const double a=1.\+0, const double b=0.\+0, const double g=0.\+0)
 \begin{DoxyCompactList}\small\item\em Set time step transformation parameter. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chainpars_a1bef542db30755ac35cf064446874f6d}{set\+E\+XP} (const double error=1\+E-\/10, const double dtm=5.\+4e-\/20, const double dte=1e-\/6, const std\+::size\+\_\+t itermax=20, const int methods=2, const int sequences=2, const bool ext\+\_\+iteration\+\_\+const=false)
-\begin{DoxyCompactList}\small\item\em Set extrapolation parameters. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Set extrapolation parameters. \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chainpars_a7ea466feff01a06ace9af16eb5641b93}{set\+Auto\+Step} (const int option)
+\begin{DoxyCompactList}\small\item\em Determine auto-\/step parameter. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+double \hyperlink{classARC_1_1chainpars_ac414014d19915aecb35245ba11649c2e}{dtmin}
+\begin{DoxyCompactList}\small\item\em minimum physical time step \end{DoxyCompactList}\item 
+double \hyperlink{classARC_1_1chainpars_ad3a3e8f9199180ec82b9c257b1e8570e}{dterr}
+\begin{DoxyCompactList}\small\item\em physical time error criterion \end{DoxyCompactList}\item 
+double \hyperlink{classARC_1_1chainpars_a7ee477ebe8b1d67457891ab58560c074}{exp\+\_\+error}
+\begin{DoxyCompactList}\small\item\em relative error requirement for extrapolation \end{DoxyCompactList}\item 
+std\+::size\+\_\+t \hyperlink{classARC_1_1chainpars_a91a648cc6e52054cecad54a29dc5e9a1}{exp\+\_\+itermax}
+\begin{DoxyCompactList}\small\item\em maximum times for iteration. \end{DoxyCompactList}\item 
+bool \hyperlink{classARC_1_1chainpars_a3f16e6ea9497e294265c4a17df0394ba}{exp\+\_\+fix\+\_\+iter}
+\begin{DoxyCompactList}\small\item\em flag showing whether the times of iteration is fixed or not \end{DoxyCompactList}\item 
+int \hyperlink{classARC_1_1chainpars_a9fc7b9a8ce26c24cf95f53bdc80924c7}{auto\+\_\+step}
+\begin{DoxyCompactList}\small\item\em if 0\+: no auto step; if 1\+: use extrapolation error to estimate next step modification factor; if 2\+: use min X/(g V) and V/(g A) to obtain next step \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Friends}
 \begin{DoxyCompactItemize}
 \item 
@@ -34,7 +51,7 @@ void \hyperlink{classARC_1_1chainpars_a1bef542db30755ac35cf064446874f6d}{set\+E\
 \subsection{Detailed Description}
 The chain parameter controller class. 
 
-This class control the acceleration function and time transformation function (\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+AW}, \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap}), integration methods and error parameters for \hyperlink{classARC_1_1chain}{chain}. 
+This class control the acceleration function and time transformation function (\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+AW}, \hyperlink{namespaceARC_aed8f19a0c6ae7dc0bb3696b337d7b9f6}{A\+R\+C\+::pair\+\_\+\+Ap}), integration methods and error parameters for \hyperlink{classARC_1_1chain}{chain}. 
 
 \subsection{Constructor \& Destructor Documentation}
 \hypertarget{classARC_1_1chainpars_a2019a609d85e2b801f306ac8c7f268ab}{}\label{classARC_1_1chainpars_a2019a609d85e2b801f306ac8c7f268ab} 
@@ -49,19 +66,28 @@ constructor with defaulted parameters
 
 
 \begin{DoxyItemize}
-\item Acceleration function use \hyperlink{namespaceARC_ab9fc6518902e918927d8c6bd3d51401d}{A\+R\+C\+::\+Newtonian\+\_\+\+A\+W()} and \hyperlink{namespaceARC_a1010e9fd74a49633259d623839639d67}{A\+R\+C\+::\+Newtonian\+\_\+\+Ap()}.
+\item Acceleration function use \hyperlink{namespaceARC_ab9fc6518902e918927d8c6bd3d51401d}{A\+R\+C\+::\+Newtonian\+\_\+\+A\+W()} and \hyperlink{namespaceARC_a70d2d18fc72d05606cb2c991ada4c64b}{A\+R\+C\+::\+Newtonian\+\_\+\+Ap()}.
 \item \hyperlink{namespaceARC}{A\+RC} method use logarithmic Hamiltonian (logH) (\#alpha = 1.\+0, \#beta = 0.\+0 \#gamma = 0.\+0).
-\item Phase/energy error limit \#exp\+\_\+error = 1e-\/10.
-\item Minimum physical time step \#dtmin = 5.\+4e-\/20.
-\item Time synchronization error limit \#dterr = 1e-\/10.
-\item Maximum extrapolation sequence index (accuracy order/iteration times) \#exp\+\_\+itermax = 20
+\item Phase/energy error limit \hyperlink{classARC_1_1chainpars_a7ee477ebe8b1d67457891ab58560c074}{exp\+\_\+error} = 1e-\/10.
+\item Minimum physical time step \hyperlink{classARC_1_1chainpars_ac414014d19915aecb35245ba11649c2e}{dtmin} = 5.\+4e-\/20.
+\item Time synchronization error limit \hyperlink{classARC_1_1chainpars_ad3a3e8f9199180ec82b9c257b1e8570e}{dterr} = 1e-\/10.
+\item Maximum extrapolation sequence index (accuracy order/iteration times) \hyperlink{classARC_1_1chainpars_a91a648cc6e52054cecad54a29dc5e9a1}{exp\+\_\+itermax} = 20
 \item The maximum sequence index (iteration times) is adjusted by error criterion
-\item Bulirsch \& Stoer sequence \{h, h/2, h/3, h/4, h/6...\} is used 
-\end{DoxyItemize}\hypertarget{classARC_1_1chainpars_aeac8bbfacf68c83e5d0c117deae5e70b}{}\label{classARC_1_1chainpars_aeac8bbfacf68c83e5d0c117deae5e70b} 
+\item Bulirsch \& Stoer sequence \{h, h/2, h/3, h/4, h/6...\} is used
+\item No auto-\/step 
+\end{DoxyItemize}Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classARC_1_1chainpars_a2019a609d85e2b801f306ac8c7f268ab_cgraph}
+\end{center}
+\end{figure}
+\hypertarget{classARC_1_1chainpars_a02898688da2b01ee9db51066ee5e4111}{}\label{classARC_1_1chainpars_a02898688da2b01ee9db51066ee5e4111} 
 \index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!chainpars@{chainpars}}
 \index{chainpars@{chainpars}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
 \subsubsection{\texorpdfstring{chainpars()}{chainpars()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
-{\footnotesize\ttfamily A\+R\+C\+::chainpars\+::chainpars (\begin{DoxyParamCaption}\item[{\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW}}]{aw,  }\item[{\hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap}}]{ap,  }\item[{const double}]{a,  }\item[{const double}]{b,  }\item[{const double}]{g,  }\item[{const double}]{error = {\ttfamily 1E-\/10},  }\item[{const double}]{dtm = {\ttfamily 5.4e-\/20},  }\item[{const double}]{dte = {\ttfamily 1e-\/6},  }\item[{const std\+::size\+\_\+t}]{itermax = {\ttfamily 20},  }\item[{const int}]{ext\+\_\+method = {\ttfamily 2},  }\item[{const int}]{ext\+\_\+sequence = {\ttfamily 2},  }\item[{const bool}]{ext\+\_\+iteration\+\_\+const = {\ttfamily false} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily A\+R\+C\+::chainpars\+::chainpars (\begin{DoxyParamCaption}\item[{\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW}}]{aw,  }\item[{\hyperlink{namespaceARC_aed8f19a0c6ae7dc0bb3696b337d7b9f6}{pair\+\_\+\+Ap}}]{ap,  }\item[{const double}]{a,  }\item[{const double}]{b,  }\item[{const double}]{g,  }\item[{const double}]{error = {\ttfamily 1E-\/10},  }\item[{const double}]{dtm = {\ttfamily 5.4e-\/20},  }\item[{const double}]{dte = {\ttfamily 1e-\/6},  }\item[{const std\+::size\+\_\+t}]{itermax = {\ttfamily 20},  }\item[{const int}]{ext\+\_\+method = {\ttfamily 2},  }\item[{const int}]{ext\+\_\+sequence = {\ttfamily 2},  }\item[{const bool}]{ext\+\_\+iteration\+\_\+const = {\ttfamily false},  }\item[{const int}]{auto\+\_\+step\+\_\+option = {\ttfamily 0} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -71,7 +97,7 @@ constructor
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em aw} & acceleration and d\+W/dr of two particle calculation function pointer with \hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+AW} type. (interaction between memebrs) \\
 \hline
-\mbox{\tt in}  & {\em ap} & acceleration calculation function pointer with \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap} type. (interaction between member and perturber) \\
+\mbox{\tt in}  & {\em ap} & acceleration calculation function pointer with \hyperlink{namespaceARC_aed8f19a0c6ae7dc0bb3696b337d7b9f6}{A\+R\+C\+::pair\+\_\+\+Ap} type. (interaction between member and perturber) \\
 \hline
 \mbox{\tt in}  & {\em a,b,g} & \hyperlink{namespaceARC}{A\+RC} time transformation method coefficients ( $ dt = ds/[a *(logH) + b * (TTL) + g])$. ~\newline
 
@@ -81,19 +107,21 @@ constructor
 \item g\+: Constant coefficient (no time transformation) \#gamma 
 \end{DoxyItemize}\\
 \hline
-\mbox{\tt in}  & {\em error} & Phase/energy error limit (defaulted \#exp\+\_\+error = 1e-\/10) \\
+\mbox{\tt in}  & {\em error} & Phase/energy error limit (defaulted \hyperlink{classARC_1_1chainpars_a7ee477ebe8b1d67457891ab58560c074}{exp\+\_\+error} = 1e-\/10) \\
 \hline
-\mbox{\tt in}  & {\em dtm} & Minimum physical time step (defaulted \#dtmin = 5.\+4e-\/20) \\
+\mbox{\tt in}  & {\em dtm} & Minimum physical time step (defaulted \hyperlink{classARC_1_1chainpars_ac414014d19915aecb35245ba11649c2e}{dtmin} = 5.\+4e-\/20) \\
 \hline
-\mbox{\tt in}  & {\em dte} & Time synchronization error limit (defaulted \#dterr = 1e-\/6) \\
+\mbox{\tt in}  & {\em dte} & Time synchronization error limit (defaulted \hyperlink{classARC_1_1chainpars_ad3a3e8f9199180ec82b9c257b1e8570e}{dterr} = 1e-\/6) \\
 \hline
-\mbox{\tt in}  & {\em itermax} & Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted \#exp\+\_\+itermax = 20) \\
+\mbox{\tt in}  & {\em itermax} & Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted \hyperlink{classARC_1_1chainpars_a91a648cc6e52054cecad54a29dc5e9a1}{exp\+\_\+itermax} = 20) \\
 \hline
 \mbox{\tt in}  & {\em ext\+\_\+method} & 1\+: Polynomial interpolation method; others\+: Rational interpolation method (defaulted\+: Rational) \\
 \hline
 \mbox{\tt in}  & {\em ext\+\_\+sequence} & 1\+: Romberg sequence \{h, h/2, h/4, h/8 ...\}; 2\+: Bulirsch \& Stoer (BS) sequence \{h, h/2, h/3, h/4, h/6, h/8 ...\}; 3\+: 4k sequence \{h, h/2, h/6, h/10, h/14 ...\}; others\+: Harmonic sequence \{h, h/2, h/3, h/4 ...\} (defaulted 2. BS sequence) \\
 \hline
 \mbox{\tt in}  & {\em ext\+\_\+iteration\+\_\+const} & true\+: the maximum sequence index (iteration times) is fixed to itermax; false\+: adjust the maximum sequence index by error criterion (false) \\
+\hline
+\mbox{\tt in}  & {\em auto\+\_\+step\+\_\+option} & if 0\+: no auto-\/step; if 1\+: use extrapolation error to estimate next step modification factor; if 2\+: use min X/(g V) and V/(g A) to obtain next step modification factor (0) \\
 \hline
 \end{DoxyParams}
 \hypertarget{classARC_1_1chainpars_a032873f782645efb6e60dc77f6d425dc}{}\label{classARC_1_1chainpars_a032873f782645efb6e60dc77f6d425dc} 
@@ -113,7 +141,7 @@ destructor
 \index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!setA@{setA}}
 \index{setA@{setA}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
 \subsubsection{\texorpdfstring{set\+A()}{setA()}}
-{\footnotesize\ttfamily void A\+R\+C\+::chainpars\+::setA (\begin{DoxyParamCaption}\item[{\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW}}]{aw,  }\item[{\hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{pair\+\_\+\+Ap}}]{ap }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily void A\+R\+C\+::chainpars\+::setA (\begin{DoxyParamCaption}\item[{\hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{pair\+\_\+\+AW}}]{aw,  }\item[{\hyperlink{namespaceARC_aed8f19a0c6ae7dc0bb3696b337d7b9f6}{pair\+\_\+\+Ap}}]{ap }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -123,7 +151,7 @@ Set acceleration, potential, time transformation function $\partial W/\partial r
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em aw} & acceleration, potential and time transformation function $\partial W/\partial r$, $W$ of two particles calculation function pointer with \hyperlink{namespaceARC_a5c4308ca4a8d0e0ff59fdce30f00274c}{A\+R\+C\+::pair\+\_\+\+AW} type. (interaction between memebrs). Notice this function defines $\partial W/\partial r$ and $W$, and these time transformation functions are only used when \#beta$>$0 (see \hyperlink{classARC_1_1chainpars_a37f8af288217cbfc61a3593e21976d06}{setabg()}). \\
 \hline
-\mbox{\tt in}  & {\em ap} & acceleration calculation function pointer with \hyperlink{namespaceARC_a819446c4644b3a3af7ef11574d0b55e0}{A\+R\+C\+::pair\+\_\+\+Ap} type. (interaction between members and perturbers) \\
+\mbox{\tt in}  & {\em ap} & acceleration calculation function pointer with \hyperlink{namespaceARC_aed8f19a0c6ae7dc0bb3696b337d7b9f6}{A\+R\+C\+::pair\+\_\+\+Ap} type. (interaction between members and perturbers) \\
 \hline
 \end{DoxyParams}
 \hypertarget{classARC_1_1chainpars_a37f8af288217cbfc61a3593e21976d06}{}\label{classARC_1_1chainpars_a37f8af288217cbfc61a3593e21976d06} 
@@ -146,6 +174,26 @@ Set parameter a,b,g where physical time step $ dt = ds/[a *(logH) + b * (TTL) + 
 \mbox{\tt in}  & {\em g} & Constant coefficient (no time transformation) \#gamma \\
 \hline
 \end{DoxyParams}
+\hypertarget{classARC_1_1chainpars_a7ea466feff01a06ace9af16eb5641b93}{}\label{classARC_1_1chainpars_a7ea466feff01a06ace9af16eb5641b93} 
+\index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!set\+Auto\+Step@{set\+Auto\+Step}}
+\index{set\+Auto\+Step@{set\+Auto\+Step}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
+\subsubsection{\texorpdfstring{set\+Auto\+Step()}{setAutoStep()}}
+{\footnotesize\ttfamily void A\+R\+C\+::chainpars\+::set\+Auto\+Step (\begin{DoxyParamCaption}\item[{const int}]{option }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Determine auto-\/step parameter. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em option} & auto-\/step method
+\begin{DoxyItemize}
+\item 0. no auto-\/step
+\item 1. use extrapolation error to estimate next step
+\item 2. use min(X/(gV),V/(gA)) to estimate next step 
+\end{DoxyItemize}\\
+\hline
+\end{DoxyParams}
 \hypertarget{classARC_1_1chainpars_a1bef542db30755ac35cf064446874f6d}{}\label{classARC_1_1chainpars_a1bef542db30755ac35cf064446874f6d} 
 \index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!set\+E\+XP@{set\+E\+XP}}
 \index{set\+E\+XP@{set\+E\+XP}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
@@ -158,13 +206,13 @@ Set extrapolation parameters.
 
 Set extrapolation related parameters as following\+: 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em error} & phase/energy relative error requirement for extrapolation (defaulted \#exp\+\_\+error = 1e-\/10) \\
+\mbox{\tt in}  & {\em error} & phase/energy relative error requirement for extrapolation (defaulted \hyperlink{classARC_1_1chainpars_a7ee477ebe8b1d67457891ab58560c074}{exp\+\_\+error} = 1e-\/10) \\
 \hline
-\mbox{\tt in}  & {\em dtm} & minimum physical time step allown (defaulted \#dtmin = 5.\+4e-\/20) \\
+\mbox{\tt in}  & {\em dtm} & minimum physical time step allown (defaulted \hyperlink{classARC_1_1chainpars_ac414014d19915aecb35245ba11649c2e}{dtmin} = 5.\+4e-\/20) \\
 \hline
-\mbox{\tt in}  & {\em dte} & Time synchronization error limit (defaulted \#dterr = 1e-\/6) \\
+\mbox{\tt in}  & {\em dte} & Time synchronization error limit (defaulted \hyperlink{classARC_1_1chainpars_ad3a3e8f9199180ec82b9c257b1e8570e}{dterr} = 1e-\/6) \\
 \hline
-\mbox{\tt in}  & {\em itermax} & Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted \#exp\+\_\+itermax = 20) \\
+\mbox{\tt in}  & {\em itermax} & Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted \hyperlink{classARC_1_1chainpars_a91a648cc6e52054cecad54a29dc5e9a1}{exp\+\_\+itermax} = 20) \\
 \hline
 \mbox{\tt in}  & {\em methods} & 1\+: Polynomial method; others\+: Rational interpolation method (defaulted Rational) \\
 \hline
@@ -173,6 +221,14 @@ Set extrapolation related parameters as following\+:
 \mbox{\tt in}  & {\em ext\+\_\+iteration\+\_\+const} & true\+: the maximum sequence index (iteration times) is fixed to itermax; false\+: adjust the maximum sequence index by error criterion (false) \\
 \hline
 \end{DoxyParams}
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classARC_1_1chainpars_a1bef542db30755ac35cf064446874f6d_cgraph}
+\end{center}
+\end{figure}
 
 
 \subsection{Friends And Related Function Documentation}
@@ -182,6 +238,69 @@ Set extrapolation related parameters as following\+:
 \subsubsection{\texorpdfstring{chain}{chain}}
 {\footnotesize\ttfamily template$<$class T $>$ \\
 friend class \hyperlink{classARC_1_1chain}{chain}\hspace{0.3cm}{\ttfamily [friend]}}
+
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classARC_1_1chainpars_a9fc7b9a8ce26c24cf95f53bdc80924c7}{}\label{classARC_1_1chainpars_a9fc7b9a8ce26c24cf95f53bdc80924c7} 
+\index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!auto\+\_\+step@{auto\+\_\+step}}
+\index{auto\+\_\+step@{auto\+\_\+step}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
+\subsubsection{\texorpdfstring{auto\+\_\+step}{auto\_step}}
+{\footnotesize\ttfamily int A\+R\+C\+::chainpars\+::auto\+\_\+step}
+
+
+
+if 0\+: no auto step; if 1\+: use extrapolation error to estimate next step modification factor; if 2\+: use min X/(g V) and V/(g A) to obtain next step 
+
+\hypertarget{classARC_1_1chainpars_ad3a3e8f9199180ec82b9c257b1e8570e}{}\label{classARC_1_1chainpars_ad3a3e8f9199180ec82b9c257b1e8570e} 
+\index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!dterr@{dterr}}
+\index{dterr@{dterr}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
+\subsubsection{\texorpdfstring{dterr}{dterr}}
+{\footnotesize\ttfamily double A\+R\+C\+::chainpars\+::dterr}
+
+
+
+physical time error criterion 
+
+\hypertarget{classARC_1_1chainpars_ac414014d19915aecb35245ba11649c2e}{}\label{classARC_1_1chainpars_ac414014d19915aecb35245ba11649c2e} 
+\index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!dtmin@{dtmin}}
+\index{dtmin@{dtmin}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
+\subsubsection{\texorpdfstring{dtmin}{dtmin}}
+{\footnotesize\ttfamily double A\+R\+C\+::chainpars\+::dtmin}
+
+
+
+minimum physical time step 
+
+\hypertarget{classARC_1_1chainpars_a7ee477ebe8b1d67457891ab58560c074}{}\label{classARC_1_1chainpars_a7ee477ebe8b1d67457891ab58560c074} 
+\index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!exp\+\_\+error@{exp\+\_\+error}}
+\index{exp\+\_\+error@{exp\+\_\+error}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
+\subsubsection{\texorpdfstring{exp\+\_\+error}{exp\_error}}
+{\footnotesize\ttfamily double A\+R\+C\+::chainpars\+::exp\+\_\+error}
+
+
+
+relative error requirement for extrapolation 
+
+\hypertarget{classARC_1_1chainpars_a3f16e6ea9497e294265c4a17df0394ba}{}\label{classARC_1_1chainpars_a3f16e6ea9497e294265c4a17df0394ba} 
+\index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!exp\+\_\+fix\+\_\+iter@{exp\+\_\+fix\+\_\+iter}}
+\index{exp\+\_\+fix\+\_\+iter@{exp\+\_\+fix\+\_\+iter}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
+\subsubsection{\texorpdfstring{exp\+\_\+fix\+\_\+iter}{exp\_fix\_iter}}
+{\footnotesize\ttfamily bool A\+R\+C\+::chainpars\+::exp\+\_\+fix\+\_\+iter}
+
+
+
+flag showing whether the times of iteration is fixed or not 
+
+\hypertarget{classARC_1_1chainpars_a91a648cc6e52054cecad54a29dc5e9a1}{}\label{classARC_1_1chainpars_a91a648cc6e52054cecad54a29dc5e9a1} 
+\index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!exp\+\_\+itermax@{exp\+\_\+itermax}}
+\index{exp\+\_\+itermax@{exp\+\_\+itermax}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
+\subsubsection{\texorpdfstring{exp\+\_\+itermax}{exp\_itermax}}
+{\footnotesize\ttfamily std\+::size\+\_\+t A\+R\+C\+::chainpars\+::exp\+\_\+itermax}
+
+
+
+maximum times for iteration. 
 
 
 

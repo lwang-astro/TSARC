@@ -19,6 +19,12 @@
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    extensions: ["tex2jax.js"],
+    jax: ["input/TeX","output/HTML-CSS"],
+});
+</script><script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js"></script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
@@ -176,6 +182,12 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_a92c709f3757c872402d2fcf954c3e2de_icgraph.svg" width="372" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -212,15 +224,21 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Error estimation. </p>
-<p>Error calculation based on <img class="formulaInl" alt="$ T_{n,n} $" src="form_44.png"/> and <img class="formulaInl" alt="$ T_{n,n-1} $" src="form_45.png"/> Calculate the value of <img class="formulaInl" alt="$ 2 \frac{T_{n,n} - T_{n,n-1}}{\sqrt{T_{n,n}^2 + T_{n,n-1}^2}} $" src="form_46.png"/> via looping all Tsize data and select the maximum value as error </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Error calculation based on \( T_{n,n} \) and \( T_{n,n-1} \) Calculate the value of \( 2 \frac{T_{n,n} - T_{n,n-1}}{\sqrt{T_{n,n}^2 + T_{n,n-1}^2}} \) via looping all Tsize data and select the maximum value as error </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">Tn</td><td><img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_39.png"/> array (two dimensional array with size [n][Tsize], where first [] indicate the extrapolation order and second [] indicate individual data </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">Tn</td><td>\( T_{n,(1..n)} \) array (two dimensional array with size [n][Tsize], where first [] indicate the extrapolation order and second [] indicate individual data </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Tsize</td><td>data array size </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n</td><td>iteration step index (count from 0) </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>maximum error </dd></dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_ab0499a8ae6cab209fc0cca6a47b166f3_icgraph.svg" width="386" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -260,12 +278,18 @@ Functions</h2></td></tr>
 <p>Calculate the modification factor for next extrapolation intergration step (assume next maximum extrapolation order is n). <br />
 (new step size) Hnew ~ (old step size) H * (<em>exp/<em>err</em>)**1/</em>(2n+3) </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">err</td><td>error of current extrapolation from <img class="formulaInl" alt="$ T_{n,n-1} $" src="form_45.png"/> to <img class="formulaInl" alt="$ T_{n,n} $" src="form_44.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">err</td><td>error of current extrapolation from \( T_{n,n-1} \) to \( T_{n,n} \) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">exp</td><td>expected error </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n</td><td>current sequence index (iteration number) return: optimized factor (H = H*factor) </td></tr>
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_a6d54b765511d661bb4267799ff1a804f_icgraph.svg" width="348" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -328,7 +352,7 @@ Functions</h2></td></tr>
 <p>Hermite interpolation coefficients. </p>
 <p>Generate Hermite interpolation polynomial coefficients (see example in <a href="https://en.wikipedia.org/wiki/Hermite_interpolation">https://en.wikipedia.org/wiki/Hermite_interpolation</a>) </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[out]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ <img class="formulaInl" alt="$\sum_j nlev_j$" src="form_47.png"/>] </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ \(\sum_j nlev_j\)] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>one dimensional array that store the positions [npoints] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">f</td><td>two dimensional array that store the f(x) [npoints][ndata] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">df</td><td>three dimensional array that store the f^(k)(x) [k][npoints][ndata] </td></tr>
@@ -338,6 +362,12 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_ad1bbde38ef63ce2a0672843d598770b8_icgraph.svg" width="399" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -402,7 +432,7 @@ Functions</h2></td></tr>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">xn</td><td>position want to get interpolation value </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">fxn</td><td>one dimensional array that store the interpolation results [ndata] </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ <img class="formulaInl" alt="$\sum_j nlev_j$" src="form_47.png"/>] </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">coff</td><td>two dimensional array storing the interpolation coefficients [ndata][ \(\sum_j nlev_j\)] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">x</td><td>one dimensional array that store the known positions [npoints]. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">ndata</td><td>number of different type of data for interpolation </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">npoints</td><td>number of position points. </td></tr>
@@ -410,6 +440,12 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_a10270a1ba230322545fff5bc06d94659_icgraph.svg" width="399" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -458,16 +494,28 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Polynomial extrapolation of Tsize number of data together. </p>
-<p>Iterate <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_39.png"/> based on <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_40.png"/> and <img class="formulaInl" alt="$ T_{n,1} $" src="form_41.png"/> Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent data that need to be extrapolated individually (each data is an individual <img class="formulaInl" alt="$ T_{x,x} $" src="form_42.png"/>) </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Iterate \( T_{n,(1..n)} \) based on \( T_{n-1,(1...n-1)} \) and \( T_{n,1} \) Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent data that need to be extrapolated individually (each data is an individual \( T_{x,x} \)) </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tn</td><td>two dimensional array of <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_40.png"/> (size of [n+1][Tsize]; first [] indicate the extrapolation order (1...n), second [] indicate the different data), will be updated to <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_39.png"/> </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tnew</td><td>one dimensional array of <img class="formulaInl" alt="$ T_{n,1} $" src="form_41.png"/> (size of Tsize with different data), will be updated to <img class="formulaInl" alt="$ T_n $" src="form_43.png"/> </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tn</td><td>two dimensional array of \( T_{n-1,(1...n-1)} \) (size of [n+1][Tsize]; first [] indicate the extrapolation order (1...n), second [] indicate the different data), will be updated to \( T_{n,(1..n)} \) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tnew</td><td>one dimensional array of \( T_{n,1} \) (size of Tsize with different data), will be updated to \( T_n \) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">step</td><td>step sequence (from sequence generators) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Tsize</td><td>data array size </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n</td><td>the new iteration step index in <em>step</em> (count from 0) </td></tr>
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_ae89d6690a891336eef708e90e575a2be_cgraph.svg" width="414" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_ae89d6690a891336eef708e90e575a2be_icgraph.svg" width="418" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -504,16 +552,22 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Polynomial_recursion_formula. </p>
-<p>Using Polynomial function: <img class="formulaInl" alt="$ T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{(h_{i-k}/h_i)^2 -1} $" src="form_30.png"/> <br />
+<p>Using Polynomial function: \( T_{i,k} = T_{i,k-1} + \frac{T_{i,k-1} - T_{i-1,k-1}}{(h_{i-k}/h_i)^2 -1} \) <br />
 </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k1</td><td><img class="formulaInl" alt="$ t_{i-1,k-1} $" src="form_31.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">tik1</td><td><img class="formulaInl" alt="$ t_{i,k-1} $" src="form_32.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hr</td><td><img class="formulaInl" alt="$ h_{i-k/h_i} $" src="form_33.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k1</td><td>\( t_{i-1,k-1} \) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tik1</td><td>\( t_{i,k-1} \) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hr</td><td>\( h_{i-k/h_i} \) </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><img class="formulaInl" alt="$ T_{i,k} $" src="form_34.png"/> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>\( T_{i,k} \) </dd></dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_a8f951202841accc906325f37f9e592af_icgraph.svg" width="632" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -562,17 +616,29 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Rational extrapolation of Tsize number of data together. </p>
-<p>Iterate <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_39.png"/> based on <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_40.png"/> and <img class="formulaInl" alt="$ T_{n,1} $" src="form_41.png"/> <br />
-Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent data that need to be extrapolated individually (each data is an individual <img class="formulaInl" alt="$ T_{x,x} $" src="form_42.png"/>) </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Iterate \( T_{n,(1..n)} \) based on \( T_{n-1,(1...n-1)} \) and \( T_{n,1} \) <br />
+Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent data that need to be extrapolated individually (each data is an individual \( T_{x,x} \)) </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tn</td><td>two dimensial array of <img class="formulaInl" alt="$ T_{n-1,(1...n-1)} $" src="form_40.png"/> (size of [n+1][Tsize]; first [] indicate the extrapolation order (1...n), second [] indicate the different data) will be updated to <img class="formulaInl" alt="$ T_{n,(1..n)} $" src="form_39.png"/> </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tnew</td><td>one dimensional array of <img class="formulaInl" alt="$ T_{n,1} $" src="form_41.png"/> (size of Tsize with different data), will be updated to <img class="formulaInl" alt="$ T_n $" src="form_43.png"/> </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tn</td><td>two dimensial array of \( T_{n-1,(1...n-1)} \) (size of [n+1][Tsize]; first [] indicate the extrapolation order (1...n), second [] indicate the different data) will be updated to \( T_{n,(1..n)} \) </td></tr>
+    <tr><td class="paramdir">[in,out]</td><td class="paramname">Tnew</td><td>one dimensional array of \( T_{n,1} \) (size of Tsize with different data), will be updated to \( T_n \) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">step</td><td>step sequence (from sequence generators) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">Tsize</td><td>data array size </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">n</td><td>the new iteration step index in <em>step</em> (count from 0) </td></tr>
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_a069470acd4f6c52b2ebb68afcf4528ab_cgraph.svg" width="378" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_a069470acd4f6c52b2ebb68afcf4528ab_icgraph.svg" width="400" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -615,16 +681,22 @@ Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent
 </div><div class="memdoc">
 
 <p>Rational_recursion formula. </p>
-<p>Using rational function: <img class="formulaInl" alt="$ T_{i,k} = T_{i,k-1} + \frac{ T_{i,k-1} - T_{i-1,k-1} }{ \left( \frac{ h_{i-k} }{ h_i } \right)^2 \left( 1- \frac{ T_{i,k-1} - T_{i-1,k-1} }{ T_{i,k-1} - T_{i-1,k-2} } \right) -1} $" src="form_35.png"/> </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Using rational function: \( T_{i,k} = T_{i,k-1} + \frac{ T_{i,k-1} - T_{i-1,k-1} }{ \left( \frac{ h_{i-k} }{ h_i } \right)^2 \left( 1- \frac{ T_{i,k-1} - T_{i-1,k-1} }{ T_{i,k-1} - T_{i-1,k-2} } \right) -1} \) </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k2</td><td><img class="formulaInl" alt="$ T_{i-1,k-2} $" src="form_36.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k1</td><td><img class="formulaInl" alt="$ T_{i-1,k-1} $" src="form_37.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">tik1</td><td><img class="formulaInl" alt="$ T_{i,k-1} $" src="form_38.png"/> </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">hr</td><td><img class="formulaInl" alt="$ h_{i-k/h_i} $" src="form_33.png"/> </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k2</td><td>\( T_{i-1,k-2} \) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">ti1k1</td><td>\( T_{i-1,k-1} \) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tik1</td><td>\( T_{i,k-1} \) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">hr</td><td>\( h_{i-k/h_i} \) </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><img class="formulaInl" alt="$ T_{i,k} $" src="form_34.png"/> </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>\( T_{i,k} \) </dd></dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_afe6d08bb36343e39ebbbd4406dc9989f_icgraph.svg" width="596" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -662,6 +734,12 @@ Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_a1c85d6f300251929ac82736e54760652_icgraph.svg" width="307" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -699,6 +777,12 @@ Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_a691e74f494e1137b68389a2bd93f92c0_icgraph.svg" width="327" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -736,6 +820,12 @@ Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_a6197a74bc7ca232ffcc84872d8f4f779_icgraph.svg" width="346" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
@@ -773,6 +863,12 @@ Notice the Tsize number of data in <em>Tn</em> and <em>Tnew</em> are independent
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceEP_afaef3617ed3fb4ad4627c19e955c5457_icgraph.svg" width="344" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>

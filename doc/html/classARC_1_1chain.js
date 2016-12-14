@@ -1,6 +1,6 @@
 var classARC_1_1chain =
 [
-    [ "chain", "classARC_1_1chain.html#a38fc886b32c9496571b1649e784583a3", null ],
+    [ "chain", "classARC_1_1chain.html#a6bea4b3b275ff07d8caa924fdd07852b", null ],
     [ "chain", "classARC_1_1chain.html#ab4777422b1d084dabdfa1d561ad5ba02", null ],
     [ "~chain", "classARC_1_1chain.html#a3467a68afb2daebec6c57899897a461c", null ],
     [ "addP", "classARC_1_1chain.html#a0f91c399beb1e5c0db6ed7e2b4d00477", null ],
@@ -9,8 +9,11 @@ var classARC_1_1chain =
     [ "addPext", "classARC_1_1chain.html#a029906394e7b73881c0980c00bf978f7", null ],
     [ "addPext", "classARC_1_1chain.html#a5ab3934ce4a203cd57bfabcc3caf54b3", null ],
     [ "addPext", "classARC_1_1chain.html#a71c8d6ac1e58694b8207aabc7266110f", null ],
-    [ "allocate", "classARC_1_1chain.html#ac0bbd32e714913e1e8eb36eb2e8c3fd4", null ],
+    [ "allocate", "classARC_1_1chain.html#ad0abd7b957e9d88ad2f1823f06d28a4a", null ],
     [ "backup", "classARC_1_1chain.html#a587009b6c6db0490c0f335aba732d77a", null ],
+    [ "calc_dt_V", "classARC_1_1chain.html#ad4bd36fa9cc967d0d32c3a5ca8074fa0", null ],
+    [ "calc_dt_X", "classARC_1_1chain.html#add21c686f37a3c0a7229bdce83015c61", null ],
+    [ "calc_next_step_XVA", "classARC_1_1chain.html#a3d0f80ad6952b0e38762465092ed86a6", null ],
     [ "center_shift", "classARC_1_1chain.html#a68ae268afb418455bfdd6e8101b3b4eb", null ],
     [ "center_shift_inverse", "classARC_1_1chain.html#a52edc1843550578f5be5590b7403ef97", null ],
     [ "clear", "classARC_1_1chain.html#a5299fa50788dc7e5d15504c33f76333f", null ],
@@ -31,7 +34,7 @@ var classARC_1_1chain =
     [ "removePext", "classARC_1_1chain.html#ae7d38ba85ba25ec0d7f6e4463a46afba", null ],
     [ "restore", "classARC_1_1chain.html#a2e7873b3a50ba9276d9a7595cb1d768d", null ],
     [ "cm", "classARC_1_1chain.html#ae9f6a5cbf7aac2b33c7274e7e10916ed", null ],
+    [ "Int_pars", "classARC_1_1chain.html#ada3f98172a98cdf9a64abacfe95f9cd8", null ],
     [ "p", "classARC_1_1chain.html#af1793b656e139e1f87c2e0a55f87514b", null ],
-    [ "pair_AW_pars", "classARC_1_1chain.html#a8c5f29c3d307bb216fdc68641b412c72", null ],
     [ "pext", "classARC_1_1chain.html#a6e4f41c7d3f8d44a4a01734ff4ab20cf", null ]
 ];
