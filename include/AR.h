@@ -16,7 +16,7 @@
 #endif
 
 #include "extrapolation.h"
-
+#include "two_body.h"
 
 //! Algorithmic regularization chain (ARC) namespace
 /*!
@@ -224,6 +224,14 @@ private:
   int* step; ///< substep sequence
   int** bin_index; ///< binomial coefficients
 
+  int auto_step;           ///< if 0: no auto step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step; if 3: use maximum sequence index to control next step; if 4: use mimimum kepler period of every two neigbor members to estimate the next step modification factor.
+  double auto_step_fac_min; ///< minimum reduction factor
+  double auto_step_fac_max; ///< maximum reduction factor
+  double auto_step_eps;     ///< coefficient
+  std::size_t auto_step_iter_max;   ///< maximum iteration level
+  std::size_t auto_step_iter_min;   ///< mimimum iteration level
+  
+
 public:
   // time step
   double dtmin; ///< minimum physical time step
@@ -233,7 +241,6 @@ public:
   double exp_error;        ///< relative error requirement for extrapolation
   std::size_t exp_itermax; ///< maximum times for iteration.
   bool exp_fix_iter;       ///< flag showing whether the times of iteration is fixed or not
-  int auto_step;           ///< if 0: no auto step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step
 
   //! constructor with defaulted parameters
   /*! - Acceleration function use ARC::Newtonian_AW() and ARC::Newtonian_Ap().
@@ -257,6 +264,7 @@ public:
 
   //! constructor
   /*!
+    All parameters can be set except anto-step method (defaulted is zero)
     @param [in] aw: acceleration and dW/dr of two particle calculation function pointer with ::ARC::pair_AW type. (interaction between memebrs)
     @param [in] ap: acceleration calculation function pointer with ::ARC::pair_Ap type. (interaction between member and perturber)
     @param [in] a,b,g: ARC time transformation method coefficients (\f$ dt = ds/[a *(logH) + b * (TTL) + g])\f$. \n
@@ -270,15 +278,14 @@ public:
     @param [in] ext_method: 1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational)
     @param [in] ext_sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
     @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
-    @param [in] auto_step_option: if 0: no auto-step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step modification factor (0)
    */
-  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const bool ext_iteration_const=false, const int auto_step_option=0) {
+  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const bool ext_iteration_const=false) {
     step = NULL;
     bin_index = NULL;
     setabg(a,b,g);
     setEXP(error,dtm,dte,itermax,ext_method,ext_sequence,ext_iteration_const);
     setA(aw,ap);
-    setAutoStep(auto_step_option);
+    setAutoStep(0);
   }
 
   //! destructor
@@ -385,14 +392,46 @@ public:
   /*! @param[in] option: auto-step method
     - 0. no auto-step
     - 1. use extrapolation error to estimate next step
-    - 2. use min(X/(gV),V/(gA)) to estimate next step
+    - 2. use min(\f$X/(gV)\f$,\f$V/(gA)\f$) to estimate next step
+    - 3: use maximum sequence index to control next step. If index >\a iter_max, modification factor = \a factor_min; if index < \a iter_min, modification factor = \a factor_max;
+    - 4: use mimimum kepler period of every two neigbor members to estimate next step
+      @param[in] factor_min: if \a option = 1->3, it is the minimum step reduction factor (defaulted: 0.7)
+      @param[in] factor_max: if \a option = 1->3, it is the maximum step reduction factor (defaulted: 1.3)
+      @param[in] eps: coefficient. If \a option = 2 or 4, coefficient is the multiplying factor for the estimated next step (defaulted: 0.125)
+      @param[in] iter_min: if \a option = 3, it is the minimum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 5)
+      @param[in] iter_max: if \a option = 3, it is the maximum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 17)
   */
-  void setAutoStep(const int option) {
-    auto_step = option;
-    if (option<0||option>3) {
-      std::cerr<<"Error: autostep options should be set 0, 1, 2, 3, current value: "<<option<<"!\n";
+  void setAutoStep(const int option, const double factor_min=0.7, const double factor_max=1.3, const double eps=0.125, const std::size_t iter_min=5, const std::size_t iter_max=17) {
+    if (option<0||option>4) {
+      std::cerr<<"Error: autostep options should be set from 0 to 4, current value: "<<option<<"!\n";
       abort();
     }
+    auto_step = option;
+    if (factor_min>1.0||factor_min<0.0) {
+      std::cerr<<"Error: step reduction factor is limited to the range [0,1.0], input value is "<<factor_min<<"!\n";
+      abort();
+    }
+    auto_step_fac_min = factor_min;
+    if (factor_max<1.0) {
+      std::cerr<<"Error: step increasing factor is limited to the range (>1.0), input value is "<<factor_max<<"!\n";
+      abort();
+    }
+    auto_step_fac_max = factor_max;
+    if (eps<0.0) {
+      std::cerr<<"Error: multiplying coefficient for next estimated step should be positive, input value is "<<eps<<"!\n";
+      abort();
+    }
+    auto_step_eps=eps;
+    if (iter_min>exp_itermax) {
+      std::cerr<<"Error: minimum iteration times criterion should be less than extrapolation maximum iteration times ("<<exp_itermax<<"), input value is "<<iter_min<<"!\n";
+      abort();
+    }
+    auto_step_iter_min=iter_min;
+    if (iter_max>exp_itermax) {
+      std::cerr<<"Error: maximum iteration times criterion should be less than extrapolation maximum iteration times ("<<exp_itermax<<"), input value is "<<iter_max<<"!\n";
+      abort();
+    }
+    auto_step_iter_max=iter_max;
   }
 
 };
@@ -424,10 +463,10 @@ class chain{
   typedef double double3[3];
   double3 *X;  ///< relative position
   double3 *V;  ///< relative velocity
-  std::size_t *list;   ///< chain index list
   double3 *acc; ///< acceleration
   double3 *pf;  ///< perturber force
   double3 *dWdr; ///< \partial Omega/ \partial rk
+  std::size_t *list;   ///< chain index list
 
   //integration parameters=======================================//
   double t;    ///< time
@@ -465,7 +504,7 @@ public:
       @param [in] n: maximum number of particles (will be used to allocate memory)
       @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const std::size_t n, const chainpars &par):  pars(&par) {
+  chain(const std::size_t n, const chainpars &par):   num(0), pars(&par){
     nmax=0;
     allocate(n);
   }
@@ -474,7 +513,7 @@ public:
   /*! Construct chain without memory allocate, need to call allocate() later. 
      @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const chainpars &par): pars(&par), F_Pmod(false), F_Porigin(1), num(0), nmax(0) {}
+  chain(const chainpars &par): num(0), nmax(0), F_Pmod(false), F_Porigin(1), pars(&par){}
 
   //! Allocate memory
   /*! Allocate memory for maximum particle number n
@@ -485,14 +524,13 @@ public:
       std::cerr<<"Error: chain memory allocation is already done\n";
       abort();
     }
-    num = n;
     nmax = n;
     X=new double3[n-1];
     V=new double3[n-1];
-    list=new std::size_t[n];
     acc=new double3[n];
     pf=new double3[n];
     dWdr=new double3[n];
+    list=new std::size_t[n];
     p.init(n);
     F_Pmod=false;
     F_Porigin=1;
@@ -505,10 +543,10 @@ public:
     if (nmax>0) {
       delete[] X;
       delete[] V;
-      delete[] list;
       delete[] acc;
       delete[] pf;
       delete[] dWdr;
+      delete[] list;
       num = 0;
       nmax = 0;
     }
@@ -537,19 +575,19 @@ public:
   }
 
 private:
-  //! Update number of particles
-  /*! Update the number of particle (#num) due to current particle list number
-     @param [in] n: current particle number in particle list #p
-  */
-  void update_num(const std::size_t n) {
-    if (n>nmax) {
-      std::cerr<<"Error: particle number "<<n<<" is larger than Chain number limit "<<num<<std::endl;
-      abort();
-    }
-    else{
-      num = n; ///< Update Chain number
-    }
-  }
+//  //! Update number of particles
+//  /*! Update the number of particle (#num) due to current particle list number
+//     @param [in] n: current particle number in particle list #p
+//  */
+//  void update_num(const std::size_t n) {
+//    if (n>nmax) {
+//      std::cerr<<"Error: particle number "<<n<<" is larger than Chain number limit "<<num<<std::endl;
+//      abort();
+//    }
+//    else{
+//      num = n; ///< Update Chain number
+//    }
+//  }
 
   //! generate the chain list 
   /*! generate the chain list (#list) by N^2 searching the particle list (#p)
@@ -830,9 +868,21 @@ private:
         ave_v[i][2] = vi[2];
       }
     }
-    // resolve current V
-    double3 vc={0};
-    double3 xc={0};
+    // resolve current X,V
+    // first member
+    double3 vc;
+    double3 xc;
+    const std::size_t lk1=list[0];
+    const double  mk1 = p[lk1].getMass();
+    const double *rk1 = p[lk1].getPos();
+    const double *vk1 = p[lk1].getVel();
+    xc[0] = mk1 * rk1[0];
+    xc[1] = mk1 * rk1[1];
+    xc[2] = mk1 * rk1[2];
+    vc[0] = mk1 * vk1[0];
+    vc[1] = mk1 * vk1[1];
+    vc[2] = mk1 * vk1[2];
+    // others
     for (std::size_t i=0;i<num-1;i++) {
       const std::size_t lk = list[i];
       const std::size_t lkn = list[i+1];
@@ -856,15 +906,6 @@ private:
       vc[0] += mkn * vkn[0];
       vc[1] += mkn * vkn[1];
       vc[2] += mkn * vkn[2];
-      if (i==0) {
-        const double mk = p[lk].getMass();
-        xc[0] += mk * rk[0];
-        xc[1] += mk * rk[1];
-        xc[2] += mk * rk[2];
-        vc[0] += mk * vk[0];
-        vc[1] += mk * vk[1];
-        vc[2] += mk * vk[2];
-      }        
     }
 
     // calcualte center-of-mass position and velocity shift
@@ -903,14 +944,22 @@ private:
    */
   void resolve_X() {
     // resolve current X
-    double3 xc={0};
+    double3 xc;
+    // first member
+    const std::size_t lk1=list[0];
+    const double  mk1 = p[lk1].getMass();
+    const double *rk1 = p[lk1].getPos();
+    xc[0] = mk1 * rk1[0];
+    xc[1] = mk1 * rk1[1];
+    xc[2] = mk1 * rk1[2];
+    // others
     for (std::size_t i=0;i<num-1;i++) {
       const std::size_t lk = list[i];
       const std::size_t lkn = list[i+1];
       const double *rk = p[lk].getPos();
       p[lkn].setPos(rk[0] + X[i][0],
-                          rk[1] + X[i][1],
-                          rk[2] + X[i][2]);
+                    rk[1] + X[i][1],
+                    rk[2] + X[i][2]);
 
       // center-of-mass position and velocity
       const double mkn = p[lkn].getMass();
@@ -918,12 +967,6 @@ private:
       xc[0] += mkn * rkn[0];
       xc[1] += mkn * rkn[1];
       xc[2] += mkn * rkn[2];
-      if (i==0) {
-        const double mk = p[lk].getMass();
-        xc[0] += mk * rk[0];
-        xc[1] += mk * rk[1];
-        xc[2] += mk * rk[2];
-      }
     }
 
     // calcualte center-of-mass position and velocity shift
@@ -948,14 +991,22 @@ private:
    */
   void resolve_V() {
     // resolve current V
-    double3 vc={0};
+    // first member
+    double3 vc;
+    const std::size_t lk1=list[0];
+    const double  mk1 = p[lk1].getMass();
+    const double *vk1 = p[lk1].getVel();
+    vc[0] = mk1 * vk1[0];
+    vc[1] = mk1 * vk1[1];
+    vc[2] = mk1 * vk1[2];
+    // others
     for (std::size_t i=0;i<num-1;i++) {
       const std::size_t lk = list[i];
       const std::size_t lkn = list[i+1];
       const double *vk = p[lk].getVel();
       p[lkn].setVel(vk[0] + V[i][0],
-                          vk[1] + V[i][1],
-                          vk[2] + V[i][2]);
+                    vk[1] + V[i][1],
+                    vk[2] + V[i][2]);
 
       // center-of-mass position and velocity
       const double mkn = p[lkn].getMass();
@@ -963,12 +1014,6 @@ private:
       vc[0] += mkn * vkn[0];
       vc[1] += mkn * vkn[1];
       vc[2] += mkn * vkn[2];
-      if (i==0) {
-        const double mk = p[lk].getMass();
-        vc[0] += mk * vk[0];
-        vc[1] += mk * vk[1];
-        vc[2] += mk * vk[2];
-      }        
     }
 
     // calcualte center-of-mass position and velocity shift
@@ -1225,9 +1270,9 @@ private:
   */
   void center_shift_init() {
     // center mass
-    double cmr[3]={};
-    double cmv[3]={};
-    double cmm = 0;
+    double3 cmr={};
+    double3 cmv={};
+    double  cmm=0;
     for (std::size_t i=0;i<num;i++) {
       const double *ri = p[i].getPos();
       const double *vi = p[i].getVel();
@@ -1275,9 +1320,9 @@ private:
       std::cerr<<"Warning: particles are already in original frame!\n";
     }
     else {
+      const double *rc = cm.getPos();
       for (std::size_t i=0;i<num;i++) {
         const double *ri = p[i].getPos();
-        const double *rc = cm.getPos();
         p[i].setPos(ri[0] + rc[0],
                     ri[1] + rc[1],
                     ri[2] + rc[2]);
@@ -1298,9 +1343,9 @@ private:
       abort();
     }
     else {
+      const double *rc = cm.getPos();
       for (std::size_t i=0;i<num;i++) {
         const double *ri = p[i].getPos();
-        const double *rc = cm.getPos();
         p[i].setPos(ri[0] - rc[0],
                     ri[1] - rc[1],
                     ri[2] - rc[2]);
@@ -1487,6 +1532,53 @@ t)
   }
 
 public:
+  //! Find the most strongly interacted pair
+  /*! Find the most strongly interacted pair.
+    First the dacc[i] = acc[i+1]-acc[i] (i=0, num-1) is calculated, then select the maximum dacc[i], the corresponding two particles are selected as the strong pair. Their indice are written to pindex.
+    @param [in] pindex: two element array used for storing pair index.
+    \return the acceleraction difference of this pair
+   */
+  double find_strong_pair(int pindex[2]) {
+    std::size_t k=0;
+    double accm = 0;
+    for (std::size_t i=0; i<num-1; i++) {
+      const double accx = acc[i+1][0]-acc[i][0];
+      const double accy = acc[i+1][1]-acc[i][1];
+      const double accz = acc[i+1][2]-acc[i][2];
+      double acci = accx*accx + accy*accy* + accz*accz;
+      if (accm<acci) {
+        accm = acci;
+        k = i;
+      }
+    }
+    pindex[0] = list[k];
+    pindex[1] = list[k+1];
+
+    return std::sqrt(accm);
+  }
+
+  //! Find the closest pair
+  /*! Find the closest pair using relative positions
+    @param [in] pindex: two element array used for storing pair index.
+    \return the relative distance of this pair
+   */
+  double find_closest_pair(int pindex[2]) {
+    std::size_t k=0;
+    double Xm = std::numeric_limits<double>::max();
+    for (std::size_t i=0; i<num-1; i++) {
+      double Xi2 = X[i][0]*X[i][0] + X[i][1]*X[i][1] + X[i][2]*X[i][2];
+      if (Xm > Xi2) {
+        Xm = Xi2;
+        k = i;
+      }
+    }
+    pindex[0] = list[k];
+    pindex[1] = list[k+1];
+
+    return std::sqrt(Xm);
+  }
+  
+  
   //! Calculate physical time step for X
   /*! Calculate physical time step dt for #X based on ds
      @param [in] ds:  integration step size (not physical time step) 
@@ -1527,9 +1619,24 @@ public:
       dsXV = std::min(r/v,dsXV);
       dsVA = std::min(v/a,dsVA);
     }
-    return std::min(std::sqrt(dsXV)/calc_dt_X(1.0),std::sqrt(dsVA)/calc_dt_V(1.0));
+    return pars->auto_step_eps*std::min(std::sqrt(dsXV)/calc_dt_X(1.0),std::sqrt(dsVA)/calc_dt_V(1.0));
   }
 
+  //! Calculate next step approximation based on the mimimum period of two pairs
+  /*!
+    @param [in] fr: fraction of period used for step size (defaulted 0.125)
+    \return approximation of step size ds
+   */
+  double calc_next_step_peri() {
+    double perim = std::numeric_limits<double>::max();
+    for (std::size_t i=0; i<num-1; i++) {
+      double semi, ecc, peri;
+      const double m12 = p[list[i]].getMass() + p[list[i+1]].getMass();
+      TB::calc_pars_two(semi,peri,ecc,m12,X[i],V[i]);
+      if (perim>peri) perim = peri;
+    }
+    return pars->auto_step_eps*perim*std::abs(Pt);
+  }
   
   //! Add particle
   /*! Add one particle (address pointer) into particle list #p (see ARC::chainlist.add())
@@ -1596,7 +1703,11 @@ public:
       backup(dtemp);
       fwrite(dtemp,sizeof(double),dsize+1,pout);
       // center-of-mass
-      fwrite(&cm,sizeof(particle),1,pout);
+      double cmass=cm.getMass();
+      fwrite(&cmass,sizeof(double),1,pout);
+      fwrite(cm.getPos(),sizeof(double),3,pout);
+      fwrite(cm.getVel(),sizeof(double),3,pout);
+      //      fwrite(&cm,sizeof(particle),1,pout);
       // mass of particles
       double *pmass=new double[num];
       for (std::size_t i=0;i<num;i++) pmass[i] = p[i].getMass();
@@ -1604,6 +1715,15 @@ public:
       
       fclose(pout);
 
+      std::cerr<<"Chain dumping:\nNumber of stars ="<<num<<std::endl;
+      std::cerr<<"Chain list index =";
+      for (std::size_t i=0; i<num;i++) std::cerr<<list[i]<<" ";
+      std::cerr<<"\nChain parameters t, B, w, X[][], V[][]= ";
+      for (std::size_t i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
+      std::cerr<<"\nMass of particles =";
+      for (std::size_t i=0; i<num;i++) std::cerr<<pmass[i]<<" ";
+      std::cerr<<std::endl;
+      
       delete[] dtemp;
       delete[] pmass;
     }
@@ -1625,29 +1745,38 @@ public:
     if (pin==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
     else {
       // number of particles
-      fread(&num,sizeof(std::size_t),1,pin);
-      if(num>nmax) {
+      std::size_t n;
+      fread(&n,sizeof(std::size_t),1,pin);
+      if(n>nmax||p.getN()>0) {
         clear();
-        allocate(num);
+        allocate(n);
       }
+      num = n;
 
       // chain list
-      fread(list,sizeof(std::size_t),num,pin);
+      fread(list,sizeof(std::size_t),n,pin);
       
       // data
-      const std::size_t dsize=6*num-3;
+      const std::size_t dsize=6*n-3;
       double *dtemp=new double[dsize+1];
       fread(dtemp,sizeof(double),dsize+1,pin);
       restore(dtemp);
 
       // center-of-mass
-      fread(&cm,sizeof(particle),1,pin);
-      double *pmass=new double[num];
-      fread(pmass,sizeof(double),num,pin);
+      double cmass,cx[3],cv[3];
+      fread(&cmass,sizeof(double),1,pin);
+      fread(cx,sizeof(double),3,pin);
+      fread(cv,sizeof(double),3,pin);
+      cm.setMass(cmass);
+      cm.setPos(cx[0],cx[1],cx[2]);
+      cm.setVel(cv[0],cv[1],cv[2]);
+      
+      double *pmass=new double[n];
+      fread(pmass,sizeof(double),n,pin);
 
       // mass of particles
-      p.allocate(num);
-      for (std::size_t i=0;i<num;i++) p[i].setMass(pmass[i]);
+      p.allocate(n);
+      for (std::size_t i=0;i<n;i++) p[i].setMass(pmass[i]);
 
       // initialization
       resolve_XV();
@@ -1663,6 +1792,15 @@ public:
       
       fclose(pin);
 
+      std::cerr<<"Chain loading:\nNumber of stars ="<<n<<std::endl;
+      std::cerr<<"Chain list index =";
+      for (std::size_t i=0; i<n;i++) std::cerr<<list[i]<<" ";
+      std::cerr<<"\nChain parameters t, B, w, X[][], V[][]= ";
+      for (std::size_t i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
+      std::cerr<<"\nMass of particles =";
+      for (std::size_t i=0; i<n;i++) std::cerr<<pmass[i]<<" ";
+      std::cerr<<std::endl;
+      
       delete[] dtemp;
       delete[] pmass;
 
@@ -1679,7 +1817,7 @@ public:
      @param [in] n: maximum number of perturbers
    */
   void initPext(const std::size_t n) {
-    if (pext.getN()) {
+    if (pext.getNmax()) {
       std::cerr<<"Error: Perturber list is already initialized!\n";
       abort();
     }
@@ -1737,7 +1875,8 @@ public:
   */
   void init(const double time) {
     // update number indicator
-    update_num(p.getN());
+    // update_num(p.getN());
+    num = p.getN();
     
     // Generate chain link list
     generate_list();
@@ -1803,16 +1942,16 @@ public:
       std::cerr<<"Warning: particles are already in original frame!\n";
     }
     else {
+      const double *rc = cm.getPos();
+      const double *vc = cm.getVel();
       for (std::size_t i=0;i<num;i++) {
         if (F_Porigin==0) {
           const double *ri = p[i].getPos();
-          const double *rc = cm.getPos();
           p[i].setPos(ri[0] + rc[0],
                       ri[1] + rc[1],
                       ri[2] + rc[2]);
         }
         const double *vi = p[i].getVel();
-        const double *vc = cm.getVel();
         p[i].setVel(vi[0] + vc[0],
                     vi[1] + vc[1],
                     vi[2] + vc[2]);
@@ -1827,15 +1966,15 @@ public:
   */
   void center_shift() {
     if (F_Porigin>0) {
+      const double *rc = cm.getPos();
+      const double *vc = cm.getVel();
       for (std::size_t i=0;i<num;i++) {
         const double *ri = p[i].getPos();
-        const double *rc = cm.getPos();
         p[i].setPos(ri[0] - rc[0],
                     ri[1] - rc[1],
                     ri[2] - rc[2]);
         if (F_Porigin==1) {
           const double *vi = p[i].getVel();
-          const double *vc = cm.getVel();
           p[i].setVel(vi[0] - vc[0],
                       vi[1] - vc[1],
                       vi[2] - vc[2]);
@@ -2203,9 +2342,11 @@ public:
             std::cerr<<"Warning: extrapolation cannot converge anymore, energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", try to change the error criterion (notice energy error is cumulative value)\n";
 #endif
             // in the case of serious energy error, quit the simulation and dump the data
-            if (eerr>1000.0*error) {
-              std::cerr<<"Error!: extrapolation cannot converge anymore, but energy error is too large. energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", the particle data before integration is dumped to file \"ARC_particle.dump\"\n";
-              p.dump("ARC_particle.dump");
+            if (std::abs(eerr)*std::min(1.0,std::abs(Pt))>100.0*error) {
+              std::cerr<<"Error!: extrapolation cannot converge anymore, but energy error is too large. energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", ds = "<<ds<<", N="<<num<<", the particle data before integration is dumped to file \"ARC_chain.dump\"\n";
+              restore(d0);
+              dump("ARC_chain.dump");
+              abort();
             }
             break;
           }
@@ -2216,6 +2357,13 @@ public:
 #ifdef ARC_WARN            
             std::cerr<<"Warning: phase error reach zero but energy error "<<eerr<<" cannot reach criterion "<<error<<"!\n";
 #endif
+          // in the case of serious energy error, quit the simulation and dump the data
+          if (std::abs(eerr)>1000.0*error) {
+            std::cerr<<"Error!: extrapolation cannot converge anymore, but energy error is too large. energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", the particle data before integration is dumped to file \"ARC_chain.dump\"\n";
+            restore(d0);
+            dump("ARC_chain.dump");
+            abort();
+          }
           break;
         }
       }
@@ -2254,7 +2402,7 @@ public:
           //extrapolation_integration(ds*dsfactor,toff,force);
 
           // indicate of error too large
-          return 0;
+          return 0.0;
         }
         if (std::abs(eerr) > error) {
           std::cerr<<"Error: maximum iteration step number "<<itermax<<" reached, but energy error "<<eerr<<" is larger than criterion "<<error<<std::endl;
@@ -2347,6 +2495,7 @@ public:
         cxerr = std::sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
         eerr0 = eerr;
         eerr = (Ekin+Pot+Pt-Ekin0-Pot0-d0[1])/Pt;
+        //        std::cerr<<"Ekin="<<Ekin<<" Pot="<<Pot<<" Pt="<<Pt<<" Ekin0="<<Ekin0<<" Pot0="<<Pot0<<" Pt0="<<d0[1]<<" eerr="<<eerr<<std::endl;
         std::memcpy(CX,CXN,3*sizeof(double));
 
         if (pars->auto_step==1) {
@@ -2357,9 +2506,6 @@ public:
           if (ermax>0&&werrn<werrmax) {
             werrmax = werrn;
             dsn = dsfactor;
-            dsn = std::max(std::min(dsn,2.0),0.7);
-            //dsn = std::min(dsn,0.9); // not larger than 1.0
-            //dsn = std::max(dsn,pars->dtmin); // not too small
 #ifdef DEBUG
             std::cerr<<"ERR factor update: sequence="<<step[intcount]<<"; modify factor="<<dsfactor<<"; ermax="<<ermax<<"; eerr="<<eerr<<"; cxerr="<<cxerr<<"; ds="<<ds<<std::endl;
 #endif
@@ -2657,16 +2803,19 @@ public:
     }
     else {
       // auto-step
-      if (pars->auto_step==2) {
-        dsn = 0.2*calc_next_step_XVA()/ds;
-        std::cout<<"DSN = "<<dsn<<std::endl;
-        dsn = std::min(std::max(dsn,0.5),2.0);
+      if      (pars->auto_step==1)
+        dsn = std::min(std::max(dsn,pars->auto_step_fac_min),pars->auto_step_fac_max);
+      else if (pars->auto_step==2) {
+        dsn = calc_next_step_XVA()/ds;
+        dsn = std::min(std::max(dsn,pars->auto_step_fac_min),pars->auto_step_fac_max);
       }
-      else if(pars->auto_step==3) {
-        if (intcount>itermax-3) dsn = 0.8;
-        else if (intcount<5) dsn = 1.2;
-        else dsn = 1.0;
+      else if (pars->auto_step==3) {
+        if      (intcount>pars->auto_step_iter_max) dsn = pars->auto_step_fac_min;
+        else if (intcount<pars->auto_step_iter_min) dsn = pars->auto_step_fac_max;
+        else    dsn = 1.0;
       }
+      else if (pars->auto_step==4)
+        dsn = calc_next_step_peri()/ds;
 
       // update chain link order
       if(num>2) update_link();
@@ -2866,7 +3015,10 @@ public:
       std::cerr<<"Error: particle number allocated ("<<n<<") + current particle number ("<<num<<") > maximum number allown ("<<nmax<<")!\n";
       abort();
     }
-    for (std::size_t i=0; i<n; i++) p[i+num] = new particle;
+    for (std::size_t i=0; i<n; i++) {
+      p[i+num] = new particle;
+      cflag[i+num] = false;
+    }
     num += n;
     alloc_flag = true;
   }
@@ -2878,8 +3030,7 @@ public:
     if (nmax>0) {
       if (alloc_flag) 
         for (std::size_t i=0;i<num;i++)
-          if (p[i]!=NULL)
-            delete (particle*)p[i];
+          if (p[i]!=NULL) delete (particle*)p[i];
       nmax = 0;
       num = 0;
       delete[] cflag;
@@ -2893,8 +3044,7 @@ public:
     if (nmax>0) {
       if (alloc_flag) 
         for (std::size_t i=0;i<num;i++)
-          if (p[i]!=NULL)
-            delete (particle*)p[i];
+          if (p[i]!=NULL) delete (particle*)p[i];
       delete[] cflag;
       delete[] p;
     }
@@ -2907,6 +3057,13 @@ public:
     return num;
   }
 
+  //! Get maximum particle number
+  /*! \return Current maximum particle number that can be stored in particle address list #p
+   */
+  std::size_t getNmax() const {
+    return nmax;
+  }
+  
   //! Get number of chain members
   /*! \return Number of chain members in particle address list #p
    */

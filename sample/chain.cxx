@@ -175,6 +175,8 @@ int main(int argc, char **argv){
                <<"                  0: no auto-step\n"
                <<"                  1: use extrapolation error to estimate next step\n"
                <<"                  2: use min(X/(gV),V/(gA)) to estimate next step\n"
+               <<"                  3: use maximum extrapolation sequence index reached to limit next step\n"
+               <<"                  4: use mimimum of two-body periods of each neigbor pairs to estimate next step\n"
                <<"    -r [string]:  algorithmic regularization method (logh)\n"
                <<"                  'logh': Logarithmic Hamitonian\n"
                <<"                  'ttl': Time-transformed Leapfrog\n"
@@ -280,7 +282,7 @@ int main(int argc, char **argv){
   // fix iteration flag, switch on if auto-step adjustment is used
   if (dsA) {
     iterfix=true;
-    pars.setAutoStep(dsA);
+    pars.setAutoStep(dsA,std::max(std::min(itermax-3,5),1),std::min(std::max(itermax-5,3),itermax));
   }
   
   // set extrapolation parameter 
@@ -363,7 +365,6 @@ int main(int argc, char **argv){
       // auto-adjust step size
       else if (dsA) {
         if (dsf==0) {
-          std::cerr<<"Ds too large"<<std::endl;
           dsf=c.extrapolation_integration(0.01*ds,tend,f,true);
           chain_print(c,0.01*ds,w,pre);
           if (dsf<0) ds *= -dsf;
