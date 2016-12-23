@@ -641,14 +641,14 @@ class chain{
   bool F_load;     ///< indicate whether load funcion is used
 
   const chainpars<int_par> *pars;   ///< chain parameter controller
+  int_par* Int_pars;     ///< extra parameter array for pair_AW, pair_Ap and pair_T (used as last argument of ::ARC::pair_AW, ::ARC::pair_Ap and ::ARC::pair_T)
+
+  chainlist<particle, int_par> p;    ///< particle list
+  chainlist<particle, int_par> pext; ///< perturber list
 
 public:
 
   particle cm;              ///< center mass particle
-  chainlist<particle, int_par> p;    ///< particle list
-  chainlist<particle, int_par> pext; ///< perturber list
-
-  int_par* Int_pars;     ///< extra parameter array for pair_AW, pair_Ap and pair_T (used as last argument of ::ARC::pair_AW, ::ARC::pair_Ap and ::ARC::pair_T)
 
 #ifdef TIME_PROFILE
   chainprofile profile;
@@ -2035,8 +2035,15 @@ public:
 #endif
     }
   }
-  
 
+  //! Read particle data from file
+  /*! Read particle data using fread (binary format). Number of particles should be first variable, then the data of particles (the data structure should be consistent with particle class).
+      Notice if read is used, the particle data memory is allocated inside chainlist of chain.
+    @param [in] filename: file to read the data
+   */
+  void readP(const char* filename) {
+    p.read(filename);
+  }
   
   //! Allocate memory for perturber list
   /*! Allocate memory for perturber particle list with maximum number of \a n
@@ -2092,7 +2099,33 @@ public:
               - 0: In the center-of-mass frame
   */
   int isPorigin() const { return F_Porigin; }
-  
+
+  //! Get particle i (const reference)
+  /*!
+    \return: particle i (const reference)
+   */
+  const particle& getP(const std::size_t i) const {
+    return p[i];
+  }
+
+  //! Get pertuber particle i (const reference)
+  /*!
+    \return: pertuber particle i (const reference)
+   */
+  const particle& getPext(const std::size_t i) const {
+    return pext[i];
+  }
+
+  //! Get current number of chain members
+  /*!
+    Notice this is not always the number of particles.
+    If AddP(), removeP() are used, init() should be called first to get consistent number.
+    \return: number of chain members
+  */
+  const int getN() const{
+    return num;
+  }
+
   //! Initialization
   /*! Initialize chain based on particle list #p. After this function, positions and velocities of particles in #p will be shifted to their center-of-mass frame. \n
       Chain order list #list, relative position #X, velocity #V, initial system energy #Pt and initial time transformation parameter #w are calculated.
@@ -2158,6 +2191,17 @@ public:
     
   }
 
+  //! link interaction parameter class
+  /*! link interaction parameter clsss to chain for the acceleration calculation functions
+    @param[in] par: int_par type interaction parameter class. The address will be stored (not copy)
+   */
+  void link_int_par(int_par &par) {
+    if (F_load) {
+      std::cerr<<"Error: interaction parameter variable Int_pars is already set during load(), linking is forbidden!\n";
+      abort();
+    }
+    else Int_pars = &par;
+  }
 
   //! Inversed center-of-mass frame shift for particles
   /*! Shift the position and velocities of particles in #p from center-of-mass frame to original frame

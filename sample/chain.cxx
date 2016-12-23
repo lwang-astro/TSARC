@@ -21,14 +21,14 @@ void chain_print(const ARC::chain<Particle,NTA::Newtonian_pars> &c, const double
            <<std::setw(w)<<c.getPt()
            <<std::setw(w)<<c.getw()
            <<std::setw(w)<<c.getW();
-  const int n = c.p.getN();
+  const int n = c.getN();
   for (int j=0;j<n;j++) {
-    std::cout<<std::setw(w)<<c.p[j].getMass();
+    std::cout<<std::setw(w)<<c.getP(j).getMass();
     for (int k=0;k<3;k++) {
-      std::cout<<std::setw(w)<<c.p[j].getPos()[k];
+      std::cout<<std::setw(w)<<c.getP(j).getPos()[k];
     }
     for (int k=0;k<3;k++) {
-      std::cout<<std::setw(w)<<c.p[j].getVel()[k];
+      std::cout<<std::setw(w)<<c.getP(j).getVel()[k];
     }
   }
   std::cout<<std::setw(w)<<ds;
@@ -337,13 +337,13 @@ int main(int argc, char **argv){
   }
   else {
     if (lpflag==1) c.load(filename);
-    else if (lpflag==2) c.p.read(filename);
+    else if (lpflag==2) c.readP(filename);
   }
 
   // Newtonian parameter, first is used for smooth mass coefficient control, second is used for adjustable coefficient for smooth mass coefficient
   NTA::Newtonian_pars Int_pars;
   // set pair_AW parameter address
-  if (lpflag!=1) c.Int_pars=&Int_pars;
+  if (lpflag!=1) c.link_int_par(Int_pars);
 
   if (method) {
     if (strcmp(method,"ttl")==0) {
