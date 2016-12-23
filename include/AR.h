@@ -16,7 +16,6 @@
 #endif
 
 #include "extrapolation.h"
-#include "two_body.h"
 
 //! Algorithmic regularization chain (ARC) namespace
 /*!
@@ -75,143 +74,20 @@ public:
 #endif
 
 //declaration
-template <class particle> class chain;
-template <class particle> class chainlist;
-class chainpars;
+template <class particle, class int_par> class chain;
+template <class particle, class int_par> class chainlist;
+template <class int_par> class chainpars;
 
-//! Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ and \f$W_{ij}\f$ (from particle j to particle i).
-/*!          @param[out] Aij: acceleration vector for particle i.
-             @param[out] Pij: potential of particle i from particle j (cumulative total potential only count the case of j>i)
-             @param[out] dWij: time transformation function partial derivate \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (component from j to i; used when #beta>0; see ARC::chainpars.setabg()) .
-             @param[out] Wij: time transformation function component from j to i (used when #beta>0; notice in \ref ARC::chain the cumulative total W only count the case of j>i).
-             @param[in] Xij: relative position (1:3) \f$ \mathbf{x}_j - \mathbf{x}_i \f$
-             @param[in] mi: particle i mass.
-             @param[in] mj: particle j mass.
-             @param[in] pars: extra parameters' array (one dimensional array with type of double)
- */
-typedef void (*pair_AW) (double*, double &, double *, double &, const double*, const double &, const double &, const double*);
 
-//! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.
-/*!         @param[out]  Aij: acceleration vector of particle i.
-            @param[out]  Pij: potential of particle i from j
-            @param[in]  pi: position vector i.
-            @param[in]  pj: position vector j.
-            @param[in]  mi: particle mass i.
-            @param[in]  mj: particle mass j.
-            @param[in]  pars: extra parameters' array (one dimensional array with type of double)
- */
-typedef void (*pair_Ap) (double *, double &, const double*, const double*, const double&, const double&, const double*);
-
-//! Newtonian acceleration and \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ from particle j to particle i (function type of \link #ARC::pair_AW \endlink) 
-/*!          @param[out] Aij: Newtonian acceleration vector for i particle from particle j. \f$Aij[1:3] = m_i m_j xij[1:3] / |xij|^3 \f$.
-             @param[out] Pij: Newtonian potential of i from j. \f$ Pij = -m_i m_j /|xij| \f$
-             @param[out] pWij: TTL time transformation function partial derivates (component from j to i) \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (used for TTL method). \f$pWij[1:3] = mm_{ij} xij[1:3] /|xij|^3 \f$. (Total value is \f$\frac{\partial W}{\partial \mathbf{x}_i} = \sum_{j} mm_{ij} \mathbf{x}_{ij}/|\mathbf{x}_{ij}|^3\f$)
-             @param[out] Wij: TTL time transformation function component with i,j (used for TTL method) \f$Wij = mm_{ij} /|xij|^3\f$ total value is \f$ W = \sum_{i<j} mm_{ij} /|xij| \f$
-             @param[in] xij: relative position vector [1:3] \f$ \mathbf{x_j} - \mathbf{x_i} \f$
-             @param[in] mi: particle i mass.
-             @param[in] mj: particle j mass.
-             @param[in] smpars: array of double[2]. 
-             - First element is smooth mass coefficient mm2 \f$ \sum_{i<j} m_i m_j /(N(N-1)/2) \f$ (can be calculated by calc_mm2()); \n
-             - Second element is adiustable parameter epi. 
-             1) If epi>0: if \f$m_i m_j < epi mm2\f$:  \f$ mm_{ij} = mm2\f$  else: \f$ mm_ij = 0\f$
-             2) If epi<0: \f$mm_{ij} = m_i m_j\f$.\n
-*/
-void Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, const double xij[3], const double &mi, const double &mj, const double* smpars) {
-
-  // distance
-  double rij = std::sqrt(xij[0]*xij[0]+xij[1]*xij[1]+xij[2]*xij[2]);  
-
-  // smooth coefficients
-  double mm2=smpars[0];
-  double epi=smpars[1];
-
-  // mass parameters
-  double mimj = mi*mj; // m_i*m_i
-  double mmij;
-  if (mm2>0 && epi>0) {
-    // Wij = mm2 if m_i*m_i < epi*m'^2; 0 otherwise;
-    if (mimj<epi*mm2) mmij = mm2;
-    else mmij = 0;
-  }
-  else {
-    mmij = mimj;    // Wij = m_i*m_i
-  }
-  
-  Pij = - mimj / rij;  // Potential energy
-  Wij = mmij / rij;   // Transformation coefficient
-        
-  // Acceleration
-  double rij3 = rij*rij*rij;
-  double mor3 = mj / rij3;
-  Aij[0] = mor3 * xij[0];
-  Aij[1] = mor3 * xij[1];
-  Aij[2] = mor3 * xij[2];
-
-  // dW/dr
-  mor3 = mmij / rij3;
-  pWij[0] = mor3 * xij[0];
-  pWij[1] = mor3 * xij[1];
-  pWij[2] = mor3 * xij[2];
-  
-}
-
-//! Newtonian acceleration from particle p to particle i (function type of ::ARC::pair_Ap)
-/*! 
-  @param[out]  Aij: acceleration vector. \f$Aij[1:3] = m_i m_p (xp[1:3]-xi[1:3]) / |xp-xi|^3 \f$.
-  @param[out]  Pij: potential. \f$ Pij = - m_i m_p /|xp-xi|^3\f$
-  @param[in]  xi: position vector i.
-  @param[in]  xp: position vector p.
-  @param[in]  mi: particle mass i.
-  @param[in]  mp: particle mass p.
-  @param[in]  smpars: force calculation parameters (not used)
- */
-void Newtonian_Ap (double Aij[3], double &Pij, const double xi[3], const double xp[3], const double &mi, const double &mp,  const double* smpars){
-  double dx = xp[0] - xi[0];
-  double dy = xp[1] - xi[1];
-  double dz = xp[2] - xi[2];
-
-  double dr2 = dx*dx + dy*dy + dz*dz;
-  double dr  = std::sqrt(dr2);
-  double dr3 = dr*dr2;
-
-  Aij[0] = mp * dx / dr3;
-  Aij[1] = mp * dy / dr3;
-  Aij[2] = mp * dz / dr3;
-
-  Pij = - mi*mp / dr;
-  
-}
-
-//! Calculate smooth particle coefficient
-/*! Get smooth particle coefficient \f$ mm2 = \sum m_i  m_j /(N (N-1)/2) (i<j) \f$ where \f$m_i\f$ and \f$m_j\f$ are particle masses
-  @param[in] p: \ref ARC::chainlist variable which store the particles, the template class is passed to chainlist.
-  \return smooth particle coefficient
- */
-template <class particle> 
-double calc_mm2(chainlist<particle> &p) {
-  // calcualte m'^2
-  int num = p.getN();
-  double mm2 = 0;
-  for (std::size_t i=0;i<num;i++) {
-    for (std::size_t j=i+1;j<num;j++) {
-      mm2 += p[i].getMass() * p[j].getMass();
-    }
-  }
-  mm2 /= num * (num - 1) / 2;
-  return mm2;
-}    
- 
 //! The chain parameter controller class
 /*!
-  This class control the acceleration function and time transformation function (::ARC::pair_AW, ::ARC::pair_Ap), integration methods and error parameters for \ref chain.
+  This class control the acceleration function and time transformation function (::ARC::chainpars.pair_AW, ::ARC::chainpars.pair_Ap), integration methods and error parameters for \ref chain, and timescale calculator ::ARC::chainpars.pair_T.
+  The template depended type int_par is user-defined class for two-body interations used in ::ARC::chainpars.pair_AW, ::ARC::chainpars.pair_Ap and ::ARC::chainpars.pair_T
  */
+template <class int_par>
 class chainpars{
-template <class T> friend class chain;
+template <class T, class P> friend class chain;
 private:
-  // pair force
-  pair_AW pp_AW;  ///< acceleration and dW/dr of two particle
-  pair_Ap pp_Ap;  ///< accelaration of two particle
-  
   // time step integration parameter
   double alpha; ///< logH cofficient
   double beta;  ///< TTL cofficient
@@ -219,7 +95,8 @@ private:
 
   // extrapolation control parameter
   int exp_method;         ///< 1: Polynomial method; others: Rational interpolation method
-  int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; other. 4k sequence {h/2, h/6, h/10, h/14 ...}
+  int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+  std::size_t exp_itermax; ///< maximum times for iteration.
 
   int* step; ///< substep sequence
   int** bin_index; ///< binomial coefficients
@@ -228,18 +105,54 @@ private:
   double auto_step_fac_min; ///< minimum reduction factor
   double auto_step_fac_max; ///< maximum reduction factor
   double auto_step_eps;     ///< coefficient
-  std::size_t auto_step_iter_max;   ///< maximum iteration level
   std::size_t auto_step_iter_min;   ///< mimimum iteration level
-  
+  std::size_t auto_step_iter_max;   ///< maximum iteration level
 
 public:
+  //! Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ and \f$W_{ij}\f$ (from particle j to particle i).
+  /*!          @param[out] Aij: acceleration vector for particle i.
+    @param[out] Pij: potential of particle i from particle j (cumulative total potential only count the case of j>i)
+    @param[out] dWij: time transformation function partial derivate \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (component from j to i; used when #beta>0; see ARC::chainpars.setabg()) .
+    @param[out] Wij: time transformation function component from j to i (used when #beta>0; notice in \ref ARC::chain the cumulative total W only count the case of j>i).
+    @param[in] Xij: relative position (1:3) \f$ \mathbf{x}_j - \mathbf{x}_i \f$
+    @param[in] mi: particle i mass.
+    @param[in] mj: particle j mass.
+    @param[in] pars: User-defined interaction parameter class type data
+  */
+  typedef void (*pair_AW) (double*, double &, double *, double &, const double*, const double &, const double &, const int_par*);
+
+  //! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.
+  /*!         @param[out]  Aij: acceleration vector of particle i.
+    @param[out]  Pij: potential of particle i from j
+    @param[in]  pi: position vector i.
+    @param[in]  pj: position vector j.
+    @param[in]  mi: particle mass i.
+    @param[in]  mj: particle mass j.
+    @param[in]  pars: User-defined interaction parameter class type data
+  */
+  typedef void (*pair_Ap) (double *, double &, const double*, const double*, const double&, const double&, const int_par*);
+
+  //! Function pointer type to function for calculation the timescale of two-body motion
+  /*!
+    @param[in] m1: mass of particle 1
+    @param[in] m2: mass of particle 2
+    @param[in] X: relative position vector
+    @param[in] V: relative velocity vector
+    @param[in] pars: User-defined interaction parameter class type data
+  */
+  typedef double (*pair_T) (const double, const double, const double*, const double*, const int_par*);
+
+  // pair force
+  pair_AW pp_AW;  ///< acceleration and dW/dr of two particle
+  pair_Ap pp_Ap;  ///< accelaration of two particle
+  pair_T  pp_T;   ///< two-body timescale calculator
+  
   // time step
   double dtmin; ///< minimum physical time step
   double dterr; ///< physical time error criterion
 
   // extrapolation control parameter
   double exp_error;        ///< relative error requirement for extrapolation
-  std::size_t exp_itermax; ///< maximum times for iteration.
   bool exp_fix_iter;       ///< flag showing whether the times of iteration is fixed or not
 
   //! constructor with defaulted parameters
@@ -253,12 +166,10 @@ public:
       - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
       - No auto-step
    */
-  chainpars(): alpha(1.0), beta(0.0), gamma(0.0) {
+  chainpars(): alpha(1.0), beta(0.0), gamma(0.0), pp_AW(NULL), pp_Ap(NULL), pp_T(NULL) {
     step = NULL;
     bin_index = NULL;
     setEXP(1E-10, 5.4E-20, 1E-10, 20, 2, 2, false);
-    pp_AW = &Newtonian_AW;
-    pp_Ap = &Newtonian_Ap;
     setAutoStep(0);
   }
 
@@ -267,6 +178,7 @@ public:
     All parameters can be set except anto-step method (defaulted is zero)
     @param [in] aw: acceleration and dW/dr of two particle calculation function pointer with ::ARC::pair_AW type. (interaction between memebrs)
     @param [in] ap: acceleration calculation function pointer with ::ARC::pair_Ap type. (interaction between member and perturber)
+    @param [in] at: two-body timescale calculation function pointer with ::ARC::pair_T type. (this will be used for new step size estimation)
     @param [in] a,b,g: ARC time transformation method coefficients (\f$ dt = ds/[a *(logH) + b * (TTL) + g])\f$. \n
                 - a: Logarithmic Hamiltonian (logH) method coefficient #alpha (0.0, 1.0)
                 - b: Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0)
@@ -279,12 +191,12 @@ public:
     @param [in] ext_sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
     @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
    */
-  chainpars(pair_AW aw, pair_Ap ap, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const bool ext_iteration_const=false) {
+  chainpars(pair_AW aw, pair_Ap ap, pair_T at, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const bool ext_iteration_const=false) {
     step = NULL;
     bin_index = NULL;
     setabg(a,b,g);
     setEXP(error,dtm,dte,itermax,ext_method,ext_sequence,ext_iteration_const);
-    setA(aw,ap);
+    setA(aw,ap,at);
     setAutoStep(0);
   }
 
@@ -303,17 +215,19 @@ public:
   /*! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ for two particles. This is the basic functions used for interaction between chain members and from perturbers.
     @param [in] aw: acceleration, potential and time transformation function \f$\partial W/\partial r\f$, \f$W\f$ of two particles calculation function pointer with ::ARC::pair_AW type. (interaction between memebrs). Notice this function defines \f$\partial W/\partial r\f$ and \f$W\f$, and these time transformation functions are only used when #beta>0 (see setabg()).
     @param [in] ap: acceleration calculation function pointer with ::ARC::pair_Ap type. (interaction between members and perturbers)
+    @param [in] at: two-body timescale calculation function pointer with ::ARC::pair_T type. (this will be used for new step size estimation)
   */
-  void setA(pair_AW aw, pair_Ap ap) {
+  void setA(pair_AW aw, pair_Ap ap, pair_T at=NULL) {
     pp_AW = aw;
     pp_Ap = ap;
+    pp_T  = at;
     // safety check
     if (pp_AW==NULL) {
-      std::cerr<<"Error: accelaration / W calculator function is NULL\n";
+      std::cerr<<"Error: accelaration and time trasnformation calculator function is NULL\n";
       abort();
     }
     if (pp_Ap==NULL) {
-      std::cerr<<"Error: perturber accelaration calculator function is NULL\n";
+      std::cerr<<"Error: accelaration calculator function is NULL\n";
       abort();
     }
   }
@@ -337,20 +251,34 @@ public:
     }
   }
 
+  //! Get time step transformation parameter
+  /*!
+      Get parameter a,b,g where physical time step \f$ dt = ds/[a *(logH) + b * (TTL) + g]\f$ \n
+      @param [in] a: Logarithmic Hamiltonian (logH) method coefficient #alpha (0.0, 1.0)
+      @param [in] b: Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0)
+      @param [in] g: Constant coefficient (no time transformation) #gamma
+  */
+  void getabg(double &a, double &b, double &g) const {
+    a = alpha;
+    b = beta;
+    g = gamma;
+  }
+  
+
   //! Set extrapolation parameters
   /*! Set extrapolation related parameters as following:
     @param [in] error: phase/energy relative error requirement for extrapolation (defaulted #exp_error = 1e-10)
     @param [in] dtm: minimum physical time step allown (defaulted #dtmin = 5.4e-20)
     @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
     @param [in] itermax: Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20)
-    @param [in] methods: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
-    @param [in] sequences: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+    @param [in] method: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
+    @param [in] sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
     @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
   */
-  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int methods=2, const int sequences=2, const bool ext_iteration_const=false) {
+  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int method=2, const int sequence=2, const bool ext_iteration_const=false) {
     exp_error = error;
-    exp_method = methods;
-    exp_sequence = sequences;
+    exp_method = method;
+    exp_sequence = sequence;
     exp_fix_iter = ext_iteration_const;
     dterr = dte;
     dtmin = dtm;
@@ -370,11 +298,11 @@ public:
 
     // calculate sequences of steps
     // Romberg (even) sequence {h, h/2, h/4, h/8 ...}
-    if (sequences==1) EP::seq_Romberg(step,itermax+1);
+    if (sequence==1) EP::seq_Romberg(step,itermax+1);
     // Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
-    else if (sequences==2) EP::seq_BS(step,itermax+1);
+    else if (sequence==2) EP::seq_BS(step,itermax+1);
     // E. Hairer (4k) sequences {h, h/2, h/6, h/10, h/14 ...}
-    else if (sequences==3) EP::seq_Hairer(step,itermax+1);
+    else if (sequence==3) EP::seq_Hairer(step,itermax+1);
     // Harmonic sequences {h, h/2, h/3, h/4 ...}
     else EP::seq_Harmonic(step,itermax+1);
 
@@ -388,13 +316,37 @@ public:
     exp_itermax = itermax;
   }
 
+  //! Get interpolation method index
+  /*! 
+    \return method index: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
+  */
+  const int getEXPmethod() const {
+    return exp_method;
+  }
+
+  //! Get sequence method indices
+  /*  
+    \return sequence method index: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+  */  
+  const int getEXPsequence() const {
+    return exp_sequence;
+  }
+
+  //! Get extrapolation maximum iteration times (maximum sequence index)
+  /*  
+    \return maximum iteration times
+  */  
+  const int getEXPitermax() const {
+    return exp_itermax;
+  }
+  
   //! Determine auto-step parameter
   /*! @param[in] option: auto-step method
     - 0. no auto-step
     - 1. use extrapolation error to estimate next step
     - 2. use min(\f$X/(gV)\f$,\f$V/(gA)\f$) to estimate next step
     - 3: use maximum sequence index to control next step. If index >\a iter_max, modification factor = \a factor_min; if index < \a iter_min, modification factor = \a factor_max;
-    - 4: use mimimum kepler period of every two neigbor members to estimate next step
+    - 4: use mimimum user-defined two-body timescale of every two neigbor members to estimate next step
       @param[in] factor_min: if \a option = 1->3, it is the minimum step reduction factor (defaulted: 0.7)
       @param[in] factor_max: if \a option = 1->3, it is the maximum step reduction factor (defaulted: 1.3)
       @param[in] eps: coefficient. If \a option = 2 or 4, coefficient is the multiplying factor for the estimated next step (defaulted: 0.125)
@@ -434,6 +386,205 @@ public:
     auto_step_iter_max=iter_max;
   }
 
+  //! Get auto-step parameters
+  /*! @param[in] option: auto-step method
+    - 0. no auto-step
+    - 1. use extrapolation error to estimate next step
+    - 2. use min(\f$X/(gV)\f$,\f$V/(gA)\f$) to estimate next step
+    - 3: use maximum sequence index to control next step. If index >\a iter_max, modification factor = \a factor_min; if index < \a iter_min, modification factor = \a factor_max;
+    - 4: use mimimum user-defined two-body timescale of every two neigbor members to estimate next step
+      @param[in] factor_min: if \a option = 1->3, it is the minimum step reduction factor (defaulted: 0.7)
+      @param[in] factor_max: if \a option = 1->3, it is the maximum step reduction factor (defaulted: 1.3)
+      @param[in] eps: coefficient. If \a option = 2 or 4, coefficient is the multiplying factor for the estimated next step (defaulted: 0.125)
+      @param[in] iter_min: if \a option = 3, it is the minimum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 5)
+      @param[in] iter_max: if \a option = 3, it is the maximum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 17)
+   */
+  void getAutoStep(int &option, double &factor_min, double &factor_max, double &eps, std::size_t &iter_min, std::size_t &iter_max) const {
+    option = auto_step;
+    factor_min = auto_step_fac_min;
+    factor_max = auto_step_fac_max;
+    eps = auto_step_eps;
+    iter_min = auto_step_iter_min;
+    iter_max = auto_step_iter_max;
+  }
+
+  //! parameters dumping
+  /*! Dump parameters into file. Notice dynamic array data will not be dumped.
+    The dumping data includes: #alpha, #beta, #gamma, #exp_method, #exp_sequence, #exp_itermax, #exp_error, #exp_fix_iter, #dtmin, #dterr, #auto_step, auto_step parameters
+    @param [in] filename: file for storing the data
+   */
+  void dump(const char* filename) const {
+    std::FILE* pout = std::fopen(filename,"w");
+    if (pout==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
+    else {
+      fwrite(&alpha, sizeof(double),1,pout);
+      fwrite(&beta,  sizeof(double),1,pout);
+      fwrite(&gamma, sizeof(double),1,pout);
+      fwrite(&exp_method,  sizeof(int),1,pout);
+      fwrite(&exp_sequence,sizeof(int),1,pout);
+      fwrite(&exp_itermax, sizeof(std::size_t),1,pout);
+      fwrite(&exp_error,   sizeof(double),1,pout);
+      fwrite(&exp_fix_iter,sizeof(bool),1,pout);
+      fwrite(&dtmin, sizeof(double),1,pout);
+      fwrite(&dterr, sizeof(double),1,pout);
+      fwrite(&auto_step, sizeof(int),1,pout);
+      fwrite(&auto_step_fac_min, sizeof(double),1,pout);
+      fwrite(&auto_step_fac_max, sizeof(double),1,pout);
+      fwrite(&auto_step_eps,     sizeof(double),1,pout);
+      fwrite(&auto_step_iter_min,sizeof(std::size_t),1,pout);
+      fwrite(&auto_step_iter_max,sizeof(std::size_t),1,pout);
+    }
+  }
+
+  //! parameters loading from a dumped file
+  /*! Load parameters from a dumped file. All dynamical array will be initialized after reading parameters.
+    Notice this function will load all parameters except acceleration function pointers #pp_AW and #pp_Ap. 
+    setA() should be called before chain integration.
+    The reading data list is shown in dump()
+    @param [in] filename: file to read the data
+   */
+  void load(const char* filename) {
+    std::FILE* pin = std::fopen(filename,"r");
+    if (pin==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
+    else {
+      step = NULL;
+      bin_index = NULL;
+      std::size_t rn;
+      double a,b,g;
+      rn = fread(&a, sizeof(double), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read alpha!\n";
+        abort();
+      }
+      rn = fread(&b, sizeof(double), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read beta!\n";
+        abort();
+      }
+      rn = fread(&g, sizeof(double), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read gamma!\n";
+        abort();
+      }
+      setabg(a,b,g);
+
+      double error,dtm,dte;
+      std::size_t itermax;
+      int ext_method, ext_sequence;
+      bool ext_iteration_const;
+      
+      rn = fread(&ext_method, sizeof(int), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read exp_method!\n";
+        abort();
+      }
+      rn = fread(&ext_sequence, sizeof(int), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read exp_sequence!\n";
+        abort();
+      }
+      rn = fread(&itermax, sizeof(std::size_t), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read exp_itermax!\n";
+        abort();
+      }
+      rn = fread(&error, sizeof(double), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read exp_error!\n";
+        abort();
+      }
+      rn = fread(&ext_iteration_const, sizeof(bool), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read exp_fix_iter!\n";
+        abort();
+      }
+      rn = fread(&dtm, sizeof(double), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read dtmin!\n";
+        abort();
+      }
+      rn = fread(&dte, sizeof(double), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read dterr!\n";
+        abort();
+      }
+      setEXP(error,dtm,dte,itermax,ext_method,ext_sequence,ext_iteration_const);
+
+      int as;
+      double asmin, asmax, aseps;
+      std::size_t asitmin, asitmax;
+      rn = fread(&as, sizeof(int), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read auto_step!\n";
+        abort();
+      }
+      rn = fread(&asmin, sizeof(double), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read auto_step_fac_min!\n";
+        abort();
+      }
+      rn = fread(&asmax, sizeof(double), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read auto_step_fac_max!\n";
+        abort();
+      }
+      rn = fread(&aseps, sizeof(double), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read auto_step_eps!\n";
+        abort();
+      }
+      rn = fread(&asitmin, sizeof(std::size_t), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read auto_step_iter_min!\n";
+        abort();
+      }
+      rn = fread(&asitmax, sizeof(std::size_t), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read auto_step_iter_max!\n";
+        abort();
+      }
+      setAutoStep(as,asmin,asmax,aseps,asitmin,asitmax);
+    }
+  }
+
+  //! Print parameter table
+  /*! Print parameter table
+    @param[in] fout: ofstream for printing
+   */
+  void print(std::ostream & fout) {
+    fout<<"Chain parameter table:\n"
+        <<"Time step transformation parameters:\n"
+        <<"  alpha = "<<alpha<<"  beta = "<<beta<<"  gamma = "<<gamma<<std::endl
+        <<"Extrapolation parameters:\n"
+        <<"  Interpolation method:    "<<((exp_method==1)?"Polynomial":"Rational")<<std::endl
+        <<"  Sequence:                ";
+    if (exp_sequence==1) fout<<"Romberg sequence {h, h/2, h/4, h/8 ...}\n";
+    else if(exp_sequence==2) fout<<"Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}\n";
+    else if(exp_sequence==3) fout<<"4k sequence {h/2, h/6, h/10, h/14 ...}\n";
+    else fout<<"Harmonic sequence {h, h/2, h/3, h/4 ...}\n";
+    fout<<"  Maximum iteration times: "<<exp_itermax<<std::endl
+        <<"  Phase/energy error criterion:    "<<exp_error<<std::endl
+        <<"  Time sychronization error limit: "<<dterr<<std::endl
+        <<"  Minimum physical time:           "<<dtmin<<std::endl
+        <<"Auto-step parameters:\n"
+        <<"  Auto-step method: ";
+    if (auto_step==0) fout<<"None\n";
+    else if(auto_step==1) fout<<"Use extrapolation error\n"
+                              <<"  Minimum reduction factor: "<<auto_step_fac_min<<std::endl
+                              <<"  Maximum increasing factor: "<<auto_step_fac_max<<std::endl;
+    else if(auto_step==2) fout<<"Use min X/(g V) and V/(g A)\n"
+                              <<"  Minimum reduction factor: "<<auto_step_fac_min<<std::endl
+                              <<"  Maximum increasing factor: "<<auto_step_fac_max<<std::endl
+                              <<"  Multiplied coefficient:   "<<auto_step_eps<<std::endl;
+    else if(auto_step==3) fout<<"Use maximum sequence index to control next step\n"
+                              <<"  Reduction factor: "<<auto_step_fac_min<<std::endl
+                              <<"  Increasing factor: "<<auto_step_fac_max<<std::endl
+                              <<"  Mimimum iteraction level: "<<auto_step_iter_min<<std::endl
+                              <<"  Maximum iteraction level: "<<auto_step_iter_max<<std::endl;
+    else if(auto_step==4) fout<<"Use minimum user-defined two-body timescale of each neigbor pairs\n"
+                              <<"  Multiplied coefficient:   "<<auto_step_eps<<std::endl;
+    fout<<"Iteration times fixed?: "<<exp_fix_iter<<std::endl;
+  }
 };
 
 //! ARC class based on template class particle
@@ -441,6 +592,8 @@ public:
   Major class for ARC integration of few bodies
   
   It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in Particle::setPos(), Particle::setVel(), Particle::setMass(), Particle::getPos(), Particle::getVel(), Particle::getMass())
+  The template depended type int_par is user-defined class for two-body interations used in ::ARC::chainpars.pair_AW, ::ARC::chainpars.pair_Ap
+
 
   The basic way to use ARC integration is shown as following:
   1. Construct a chain class with template class particle and a parameter controller of \ref ARC::chainpars. (The \ref ARC::chainpars should be configured first before doing integration. see its document for detail).
@@ -458,7 +611,7 @@ public:
   If 4k sequences are used, the dense output method for GBS is used and the accuracy of time intepolation is close to the accuracy of integration.
   Please check the document of chain.extrapolation_integration() for detail.
  */
-template <class particle>
+template <class particle, class int_par>
 class chain{
   typedef double double3[3];
   double3 *X;  ///< relative position
@@ -485,15 +638,17 @@ class chain{
   //monitor flags
   bool F_Pmod;     ///< indicate whether particle list is modified (true: modified)
   int  F_Porigin;  ///< indicate whether particle is shifted back to original frame (1: original frame: 0: center-of-mass frame; 2: only position is original frame)
+  bool F_load;     ///< indicate whether load funcion is used
 
-  const chainpars *pars;   ///< chain parameter controller
+  const chainpars<int_par> *pars;   ///< chain parameter controller
 
 public:
 
   particle cm;              ///< center mass particle
-  chainlist<particle> p;    ///< particle list
-  chainlist<particle> pext; ///< perturber list
-  double* Int_pars;     ///< extra parameter array for pair_AW and pair_Ap (used as last argument of ::ARC::pair_AW or ::ARC::pair_Ap)
+  chainlist<particle, int_par> p;    ///< particle list
+  chainlist<particle, int_par> pext; ///< perturber list
+
+  int_par* Int_pars;     ///< extra parameter array for pair_AW, pair_Ap and pair_T (used as last argument of ::ARC::pair_AW, ::ARC::pair_Ap and ::ARC::pair_T)
 
 #ifdef TIME_PROFILE
   chainprofile profile;
@@ -504,7 +659,7 @@ public:
       @param [in] n: maximum number of particles (will be used to allocate memory)
       @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const std::size_t n, const chainpars &par):   num(0), pars(&par){
+  chain(const std::size_t n, const chainpars<int_par> &par):   num(0), pars(&par), Int_pars(NULL) {
     nmax=0;
     allocate(n);
   }
@@ -513,7 +668,7 @@ public:
   /*! Construct chain without memory allocate, need to call allocate() later. 
      @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const chainpars &par): num(0), nmax(0), F_Pmod(false), F_Porigin(1), pars(&par){}
+  chain(const chainpars<int_par> &par): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_load(false), pars(&par), Int_pars(NULL) {}
 
   //! Allocate memory
   /*! Allocate memory for maximum particle number n
@@ -534,6 +689,7 @@ public:
     p.init(n);
     F_Pmod=false;
     F_Porigin=1;
+    F_load=false;
   }
 
   //! Clear function
@@ -553,8 +709,13 @@ public:
     p.clear();
     pext.clear();
 
+    if (F_load) {
+      if (Int_pars) delete Int_pars;
+    }
+
     F_Pmod=false;
     F_Porigin=1;
+    F_load=false;
 #ifdef TIME_PROFILE
     profile.reset_tp();
 #endif
@@ -570,6 +731,10 @@ public:
       delete[] pf;
       delete[] dWdr;
     }
+    if (F_load) {
+      if (Int_pars) delete Int_pars;
+    }
+
 //    p.clear();
 //    pext.clear();
   }
@@ -662,6 +827,11 @@ private:
 #ifdef TIME_PROFILE
     profile.t_apw -= get_wtime();
 #endif
+    // safety check
+    if (pars->pp_AW==NULL) {
+      std::cerr<<"Error: acceleration and time transformation calculation function chainpars.pp_AW is not set!\n";
+      abort();
+    }
     // reset potential and transformation parameter
     double Pot_c  = 0.0;
     double W_c  = 0.0;
@@ -718,7 +888,7 @@ private:
 
 //        // resolve sub-chain
 //        if(resolve_flag && p.isChain(lk)) {
-//          chain<particle>*ck = p.getSub(lk);
+//          chain<particle, int_par>*ck = p.getSub(lk);
 //          // center shift to current frame
 //          ck->center_shift_inverse_X();
 //          const std::size_t cn = ck->p.getN();
@@ -1040,6 +1210,11 @@ private:
 #ifdef TIME_PROFILE
     profile.t_pext -= get_wtime();
 #endif
+    // safety check
+    if (pars->pp_Ap==NULL) {
+      std::cerr<<"Error: acceleration calculation function chainpars.pp_Ap is not set!\n";
+      abort();
+    }
     const int np = pext.getN();
     if (np>0) {
       for (std::size_t i=0;i<num;i++) {
@@ -1053,7 +1228,7 @@ private:
           
           // check sub-chain system
           if (resolve_flag && pext.isChain(j)) {
-            chain<particle>*cj = pext.getSub(j);
+            chain<particle, int_par>*cj = pext.getSub(j);
             // get center-of-mass position for shifting;
             const double* xc=cj->cm.getPos();
             const std::size_t cn = cj->pext.getN();
@@ -1622,17 +1797,23 @@ public:
     return pars->auto_step_eps*std::min(std::sqrt(dsXV)/calc_dt_X(1.0),std::sqrt(dsVA)/calc_dt_V(1.0));
   }
 
-  //! Calculate next step approximation based on the mimimum period of two pairs
+  //! Calculate next step approximation based on custom defined timescale for two-body system
   /*!
-    @param [in] fr: fraction of period used for step size (defaulted 0.125)
+    The user-defined two-body timescale function with ::ARC::pair_T type will be performed on all neighbor pairs in chain.
+    Then the minimum timescale \f$ T_m\f$ is selected to calculate next step size: \f$ ds = \eps T_m |Pt|\f$, where \f$\eps\f$ is #auto_step_eps set in chainpars.setAutoStep().
+    @param [in] pt: two-body timescale function with ::ARC::pair_T type
     \return approximation of step size ds
    */
-  double calc_next_step_peri() {
+  double calc_next_step_custom() {
+    //safety check
+    if (pars->pp_T==NULL) {
+      std::cerr<<"Error: two-body timescale calculator function chainpars.pp_T is not set\n";
+      abort();
+    }
+
     double perim = std::numeric_limits<double>::max();
     for (std::size_t i=0; i<num-1; i++) {
-      double semi, ecc, peri;
-      const double m12 = p[list[i]].getMass() + p[list[i+1]].getMass();
-      TB::calc_pars_two(semi,peri,ecc,m12,X[i],V[i]);
+      const double peri=pars->pp_T(p[list[i]].getMass(),p[list[i+1]].getMass(),X[i],V[i],Int_pars);
       if (perim>peri) perim = peri;
     }
     return pars->auto_step_eps*perim*std::abs(Pt);
@@ -1652,7 +1833,7 @@ public:
   /*! Add one chain (address pointer) into particle list #p (see ARC::chainlist.add())
     @param [in] a: new chain particle
    */
-  void addP(chain<particle> &a) {
+  void addP(chain<particle,int_par> &a) {
     if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(a);
     F_Pmod=true;
@@ -1677,7 +1858,6 @@ public:
                  - false: shift all right particle to left by one
   */
   void removeP(const std::size_t i, bool option=true) { p.remove(i,option); F_Pmod=true; }
-
 
   //! Data Dumping to file function
   /*! Dump chain data into file (binary format) using fwrite. 
@@ -1707,12 +1887,13 @@ public:
       fwrite(&cmass,sizeof(double),1,pout);
       fwrite(cm.getPos(),sizeof(double),3,pout);
       fwrite(cm.getVel(),sizeof(double),3,pout);
-      //      fwrite(&cm,sizeof(particle),1,pout);
       // mass of particles
       double *pmass=new double[num];
-      for (std::size_t i=0;i<num;i++) pmass[i] = p[i].getMass();
+      p.getMassAll(pmass);
       fwrite(pmass,sizeof(double),num,pout);
-      
+      // interaction_parameters
+      if (Int_pars) fwrite(Int_pars,sizeof(int_par),1,pout);
+
       fclose(pout);
 
       std::cerr<<"Chain dumping:\nNumber of stars ="<<num<<std::endl;
@@ -1728,6 +1909,11 @@ public:
       delete[] pmass;
     }
   }
+
+  //! Dump all data including chain, chainpars and necessary information (chain.smpars and #ds)
+  /*!
+   */
+  
 
   //! Data reading from file function
   /*! Read chain data from binary file generated by dump(). 
@@ -1746,7 +1932,12 @@ public:
     else {
       // number of particles
       std::size_t n;
-      fread(&n,sizeof(std::size_t),1,pin);
+      std::size_t rn;
+      rn = fread(&n,sizeof(std::size_t),1,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read number of particles!\n";
+        abort();
+      }
       if(n>nmax||p.getN()>0) {
         clear();
         allocate(n);
@@ -1754,26 +1945,61 @@ public:
       num = n;
 
       // chain list
-      fread(list,sizeof(std::size_t),n,pin);
+      rn = fread(list,sizeof(std::size_t),n,pin);
+      if(rn<n) {
+        std::cerr<<"Error: reading chain list fails, required number of data is "<<n<<", only got "<<rn<<"!\n";
+        abort();
+      }
       
       // data
       const std::size_t dsize=6*n-3;
       double *dtemp=new double[dsize+1];
-      fread(dtemp,sizeof(double),dsize+1,pin);
+      rn = fread(dtemp,sizeof(double),dsize+1,pin);
+      if(rn<=dsize) {
+        std::cerr<<"Error: reading chain data fails, required data size is "<<dsize+1<<", only got "<<rn<<"!\n";
+        abort();
+      }
+      
       restore(dtemp);
 
       // center-of-mass
       double cmass,cx[3],cv[3];
-      fread(&cmass,sizeof(double),1,pin);
-      fread(cx,sizeof(double),3,pin);
-      fread(cv,sizeof(double),3,pin);
+      rn = fread(&cmass,sizeof(double),1,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read center-of-mass!\n";
+        abort();
+      }
+      rn = fread(cx,sizeof(double),3,pin);
+      if(rn<3) {
+        std::cerr<<"Error: reading position of center-of-mass particle fails, required reading 3 values, only got "<<rn<<"!\n";
+        abort();
+      }
+      rn = fread(cv,sizeof(double),3,pin);
+      if(rn<3) {
+        std::cerr<<"Error: reading velocity of center-of-mass particle fails, required reading 3 values, only got "<<rn<<"!\n";
+        abort();
+      }
+
       cm.setMass(cmass);
       cm.setPos(cx[0],cx[1],cx[2]);
       cm.setVel(cv[0],cv[1],cv[2]);
       
       double *pmass=new double[n];
-      fread(pmass,sizeof(double),n,pin);
+      rn = fread(pmass,sizeof(double),n,pin);
+      if(rn<n) {
+        std::cerr<<"Error: reading particle masses fails, required number of data is "<<n<<", only got "<<rn<<"!\n";
+        abort();
+      }
 
+      Int_pars=new int_par;
+      rn = fread(Int_pars,sizeof(int_par),1,pin);
+      if (rn<1) {
+        delete Int_pars;
+        Int_pars=NULL;
+      }
+      
+      F_load=true;
+                 
       // mass of particles
       p.allocate(n);
       for (std::size_t i=0;i<n;i++) p[i].setMass(pmass[i]);
@@ -1835,7 +2061,7 @@ public:
   /*! Add one chain as a perturber particle (address pointer) into #pext
      @param [in] a: the chain perturber 
    */
-  void addPext(chain<particle> &a) { pext.add(a);}
+  void addPext(chain<particle,int_par> &a) { pext.add(a);}
 
   //! Add a list of perturber particles
   /*! Add a list of perturber particles (address pointer) into #pext
@@ -2113,7 +2339,7 @@ public:
       const std::size_t nct = p.getNchain();
       if (recur_flag&&nct>0) {
         // get chainlist table
-        chain<particle> **clist = new chain<particle>*[nct];
+        chain<particle,int_par> **clist = new chain<particle,int_par>*[nct];
 
         // looping to link sub-chains
         const std::size_t nt = p.getN();
@@ -2343,9 +2569,11 @@ public:
 #endif
             // in the case of serious energy error, quit the simulation and dump the data
             if (std::abs(eerr)*std::min(1.0,std::abs(Pt))>100.0*error) {
-              std::cerr<<"Error!: extrapolation cannot converge anymore, but energy error is too large. energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", ds = "<<ds<<", N="<<num<<", the particle data before integration is dumped to file \"ARC_chain.dump\"\n";
+              std::cerr<<"Error!: extrapolation cannot converge anymore, but energy error is too large. energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", ds = "<<ds<<", N="<<num<<", the particle data before integration is dumped to file \"ARC_dump.dat\"\n";
               restore(d0);
-              dump("ARC_chain.dump");
+              dump("ARC_dump.dat");
+              pars->dump("ARC_dump.par");
+              
               abort();
             }
             break;
@@ -2359,9 +2587,10 @@ public:
 #endif
           // in the case of serious energy error, quit the simulation and dump the data
           if (std::abs(eerr)>1000.0*error) {
-            std::cerr<<"Error!: extrapolation cannot converge anymore, but energy error is too large. energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", the particle data before integration is dumped to file \"ARC_chain.dump\"\n";
+            std::cerr<<"Error!: extrapolation cannot converge anymore, but energy error is too large. energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", the particle data before integration is dumped to file \"ARC_dump.dat\"\n";
             restore(d0);
-            dump("ARC_chain.dump");
+            dump("ARC_dump.dat");
+            pars->dump("ARC_dump.par");
             abort();
           }
           break;
@@ -2815,7 +3044,7 @@ public:
         else    dsn = 1.0;
       }
       else if (pars->auto_step==4)
-        dsn = calc_next_step_peri()/ds;
+        dsn = calc_next_step_custom()/ds;
 
       // update chain link order
       if(num>2) update_link();
@@ -2971,7 +3200,7 @@ public:
 //! Generalized list to store chain and particle members
 /*! A list that storing chain and particle memory addresses (based on template class particle)
  */
-template <class particle>
+template <class particle, class int_par>
 class chainlist{
   std::size_t num; //!< number of current particles in the list #p
   std::size_t nmax; //!< maximum number of particles allown to store
@@ -3071,6 +3300,14 @@ public:
     return nchain;
   }
 
+  //! Get particle masses and store into array
+  /*! Obtain particle masses and store into the double array
+    @param[in] mass: double array to store the particle masses
+   */
+  void getMassAll(double mass[]) {
+    for (std::size_t i=0;i<num;i++) mass[i] = (*this)[i].getMass();
+  }
+
   //! Add new particle
   /*! Add new particle address at the end of the particle address list #p
     @param [in] a: new particle
@@ -3118,7 +3355,7 @@ public:
   /*! Add one chain's address at the end of particle address list #p
     @param [in] a: new chain particle
    */
-  void add(chain<particle> &a) {
+  void add(chain<particle,int_par> &a) {
     if (alloc_flag) {
       std::cerr<<"Error: chainlist already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
       abort();
@@ -3184,7 +3421,7 @@ public:
       abort();
     }
     if (cflag[i]) {
-      return ((chain<particle>*)p[i])->cm;
+      return ((chain<particle,int_par>*)p[i])->cm;
     }
     else {
       return *((particle*)p[i]);
@@ -3217,10 +3454,19 @@ public:
     if (pin==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
     else {
       int n;
-      fread(&n,sizeof(int),1,pin);
+      std::size_t rn = fread(&n,sizeof(int),1,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read particle number!\n";
+        abort();
+      }
+
       allocate(n);
       for (std::size_t i=0; i<n; i++) {
-        fread(p[i+num],sizeof(particle),1,pin);
+        rn = fread(p[i+num],sizeof(particle),1,pin);
+        if (rn<1) {
+          std::cerr<<"Error: cannot read particle "<<i<<", total particle number is "<<n<<"!\n";
+          abort();
+        }
       }
       fclose(pin);
     }
@@ -3242,8 +3488,8 @@ public:
      - if i^th member in #p is chain, returen the address of particle list (\ref ARC::chain.p).
      - else return NULL
    */
-  chain<particle> *getSub (const std::size_t i) const {
-    if (cflag[i]) return (chain<particle>*)p[i];
+  chain<particle, int_par> *getSub (const std::size_t i) const {
+    if (cflag[i]) return (chain<particle, int_par>*)p[i];
     else return NULL;
   }
 
