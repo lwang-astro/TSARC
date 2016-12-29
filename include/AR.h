@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <iomanip>
 #include <cstring>
 #include <cmath>
 #include <cstdlib>
@@ -11,7 +12,6 @@
 #endif
 
 #ifdef DEBUG
-#include <iomanip>
 #define WIDTH 10
 #endif
 
@@ -77,6 +77,7 @@ public:
 template <class particle, class int_par> class chain;
 template <class particle, class int_par> class chainlist;
 template <class int_par> class chainpars;
+class chaininfo;
 
 
 //! The chain parameter controller class
@@ -118,8 +119,9 @@ public:
     @param[in] mi: particle i mass.
     @param[in] mj: particle j mass.
     @param[in] pars: User-defined interaction parameter class type data
+    \return user-defined status (defaulted should be zero)
   */
-  typedef void (*pair_AW) (double*, double &, double *, double &, const double*, const double &, const double &, const int_par*);
+  typedef int (*pair_AW) (double*, double &, double *, double &, const double*, const double &, const double &, const int_par*);
 
   //! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.
   /*!         @param[out]  Aij: acceleration vector of particle i.
@@ -552,7 +554,7 @@ public:
     @param[in] fout: ofstream for printing
    */
   void print(std::ostream & fout) {
-    fout<<"Chain parameter table:\n"
+    fout<<"======================Chain parameter table=========================\n"
         <<"Time step transformation parameters:\n"
         <<"  alpha = "<<alpha<<"  beta = "<<beta<<"  gamma = "<<gamma<<std::endl
         <<"Extrapolation parameters:\n"
@@ -584,8 +586,117 @@ public:
     else if(auto_step==4) fout<<"Use minimum user-defined two-body timescale of each neigbor pairs\n"
                               <<"  Multiplied coefficient:   "<<auto_step_eps<<std::endl;
     fout<<"Iteration times fixed?: "<<exp_fix_iter<<std::endl;
+    fout<<"====================================================================\n";
   }
 };
+
+//! class for storing the information of chain (for decision making)
+/*!
+    It is used to store the information when an accident happen with chain.status != 0.
+ */
+class chaininfo{
+public:
+  int  status;    ///< current status of integration
+  int  intcount;  ///< current extrapolation sequence index when an accident happen
+  int  inti;      ///< current number of substeps
+  int  i1, i2;    ///< index of particles causing the accident
+  int  num;       ///< number of particles
+  double ds,subds,subdt;      ///< step size, substep size, substep corresponding time step
+  double toff;    ///< physical ending time
+  double perr,perr0;  ///< phase error (current and previous)
+  double eerr,eerr0;  ///< energy error (current and previous)
+  double Ekin,Pot,W;  ///< kinetic energy, potential energy and time transformation function
+  double terr;    ///< time error
+  double* data;   ///< chain data for backuping
+
+  //! constructor
+  /*!
+    Set all variables to infinity
+    @param[in] n: number of particles
+   */
+  chaininfo(const std::size_t n) {
+    status = 0;
+    const double infd = std::numeric_limits<double>::infinity();
+    intcount = inti = i1 = i2 = -1;
+    ds = subds = subdt = toff = perr = perr0 = eerr = eerr0 = terr = Ekin = Pot = W = infd;
+    const int dsize=6*n-3;
+    num = n;
+    data=new double[dsize+1];
+    data[dsize]=dsize;
+  }
+
+  //! reset function
+  /*!
+    Notice the data will not be deleted.
+   */
+  void clear() {
+    status = 0;
+    const double infd = std::numeric_limits<double>::infinity();
+    intcount = inti = i1 = i2 = -1;
+    ds = subds = subdt = toff = perr = perr0 = eerr = eerr0 = terr = Ekin = Pot = W = infd;
+  }
+  
+  //! destructor
+  ~chaininfo() {
+    if (data) delete[] data;
+  }
+
+  //! print chain information
+  /*! Print chain information
+      @param[in] fout: ofstream for printing
+      @param[in] precision: printed precision for one variable
+  */
+  void print(std::ostream & fout, const int precision=10) {
+    fout<<"=======================Chain information============================\n";
+    fout<<std::setprecision(precision);
+    if (std::isfinite(ds))      fout<<"step size: "<<ds<<std::endl;
+    if (std::isfinite(subds))   fout<<"sub-step size: "<<subds<<std::endl;
+    if (std::isfinite(subdt))   fout<<"sub-step physical time step size: "<<subdt<<std::endl;
+    if (std::isfinite(toff))    fout<<"Physical ending time: "<<toff<<std::endl;
+    if (std::isfinite(terr))    fout<<"Time error: "<<terr<<std::endl;
+    if (intcount>0)fout<<"stored sequence index (if extrapolation is used): "<<intcount<<std::endl;
+    if (inti>0)    fout<<"stored integration sub step index: "<<inti<<std::endl;
+    if (i1>0)      fout<<"particle indices that cause the accident: "<<i1<<" "<<i2<<std::endl;
+    if (std::isfinite(Ekin))    fout<<"Kinetic energy: "<<Ekin<<std::endl;
+    if (std::isfinite(Pot))     fout<<"Potential energy: "<<Pot<<std::endl;
+    if (std::isfinite(W))       fout<<"Time transformation function W: "<<W<<std::endl;
+    if (std::isfinite(eerr))    fout<<"Current energy error: "<<eerr<<"; previous: "<<eerr0<<std::endl;
+    if (std::isfinite(perr))    fout<<"Current phase error: "<<perr<<"; previous: "<<perr0<<std::endl;
+    fout<<"Physical time: "<<data[0]<<std::endl
+        <<"Time momemtum Pt: "<<data[1]<<std::endl
+        <<"Integrated time transformation function w: "<<data[2]<<std::endl
+        <<"Relative positions and velocity: \n";
+    for (std::size_t i=1; i<=(std::size_t)num; i++) {
+      fout<<"No. "<<i<<" ";
+      for (std::size_t k=0; k<3; k++) fout<<data[3*i+k]<<" ";
+      for (std::size_t k=0; k<3; k++) fout<<data[3*(i+num)+k]<<" ";
+      fout<<std::endl;
+    }
+    fout<<"====================================================================\n";
+  }
+
+  //! status message
+  /*!
+    Output the status message, for status 1 to 4, the error messages are output. The status number includes the return value of user-defined acceleration functions.
+    @param[in] fout: ofstream for printing
+    @param[in] precision: printed precision for one variable
+    @param[in] stat: user-defined status number (non-zero value)
+    @param[in] message: user-defined status corresponding output message), this will overlap defaulted message when \a stat=1 to 4
+   */
+  void ErrMessage(std::ostream & fout, const int precision=10, const int stat=0, char* message=NULL) {
+    if (stat!=0&&status==stat) fout<<"Status ["<<stat<<"]: "<<message<<std::endl;
+    else {
+      if (status==0) fout<<"Normal status [0]:\n";
+      else if (status==1) fout<<"Error [1]: extrapolation cannot converge anymore, but energy error is larger than 100 * criterion!\n";
+      else if (status==2) fout<<"Error [2]: maximum iteration step number reached, but energy error is larger than 100 * criterion!\n";
+      else if (status==3) fout<<"Error [3]: find root fails after 100 iterations; can not find ds to reach physical time toff!\n";
+      else if (status==4) fout<<"Error [4]: physical time step too small!\n";
+    }
+    print(fout,precision);
+  }
+};
+  
+  
 
 //! ARC class based on template class particle
 /*!
@@ -649,6 +760,7 @@ class chain{
 public:
 
   particle cm;              ///< center mass particle
+  chaininfo *info;          ///< chain information
 
 #ifdef TIME_PROFILE
   chainprofile profile;
@@ -659,7 +771,7 @@ public:
       @param [in] n: maximum number of particles (will be used to allocate memory)
       @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const std::size_t n, const chainpars<int_par> &par):   num(0), pars(&par), Int_pars(NULL) {
+  chain(const std::size_t n, const chainpars<int_par> &par):   num(0), pars(&par), Int_pars(NULL), info(NULL){
     nmax=0;
     allocate(n);
   }
@@ -668,7 +780,7 @@ public:
   /*! Construct chain without memory allocate, need to call allocate() later. 
      @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const chainpars<int_par> &par): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_load(false), pars(&par), Int_pars(NULL) {}
+  chain(const chainpars<int_par> &par): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_load(false), pars(&par), Int_pars(NULL), info(NULL) {}
 
   //! Allocate memory
   /*! Allocate memory for maximum particle number n
@@ -709,8 +821,14 @@ public:
     p.clear();
     pext.clear();
 
-    if (F_load) {
-      if (Int_pars) delete Int_pars;
+    if (F_load&&Int_pars) {
+        delete Int_pars;
+        Int_pars=NULL;
+    }
+
+    if (info) {
+      delete info;
+      info=NULL;
     }
 
     F_Pmod=false;
@@ -734,6 +852,7 @@ public:
     if (F_load) {
       if (Int_pars) delete Int_pars;
     }
+    if (info) delete info;
 
 //    p.clear();
 //    pext.clear();
@@ -884,7 +1003,13 @@ private:
         const double mk=pk->getMass();
 
         // force calculation function from k to j
-        pars->pp_AW(At, Pt, dWt, Wt, xjk, mj, mk, Int_pars);
+        int stat = pars->pp_AW(At, Pt, dWt, Wt, xjk, mj, mk, Int_pars);
+        if (stat!=0&&info==NULL) {
+          info = new chaininfo(num);
+          info->status = stat;
+          info->i1 = lj;
+          info->i2 = lk;
+        }
 
 //        // resolve sub-chain
 //        if(resolve_flag && p.isChain(lk)) {
@@ -1431,7 +1556,7 @@ private:
     delete[] Xbk;
 
 #ifdef DEBUG    
-    if(modified) print();
+    if(modified) print(std::cerr);
 #endif
     
 #ifdef TIME_PROFILE
@@ -1706,6 +1831,22 @@ t)
     }
   }
 
+//  // collect accident information
+//  void info_collection(const int status, const int intcount=-1, const double perr=-1.0, const double perr0=-1.0, const double eerr=-1.0, const double eerr0=-1.0, const double terr=-1.0, const int i1=-1, const int i2=-1, const int inti=-1) {
+//    info = new chaininfo(num);
+//    info->status = 1;
+//    info->intcount = intcount+1;
+//    info->perr = perr;
+//    info->perr0 = perr0;
+//    info->eerr = eerr;
+//    info->eerr0 = eerr0;
+//    info->terr = terr;
+//    info->i1 = i1;
+//    info->i2 = i2;
+//    info->inti = inti;
+//    backup(info->data);
+//  }
+
 public:
   //! Find the most strongly interacted pair
   /*! Find the most strongly interacted pair.
@@ -1762,9 +1903,10 @@ public:
   double calc_dt_X(const double ds) {
     // determine the physical time step
     double dt = ds / (pars->alpha * (Ekin + Pt) + pars->beta * w + pars->gamma);
-    if (std::abs(dt) < pars->dtmin) {
-      std::cerr<<"Error!: physical time step too small: "<<dt<<std::endl;
-      abort();
+    if (std::abs(dt) < pars->dtmin && info==NULL) {
+      info=new chaininfo(num);
+      info->status = 4;
+      info->subdt = dt;
     }
     return dt;
   }
@@ -1896,22 +2038,23 @@ public:
 
       fclose(pout);
 
-      std::cerr<<"Chain dumping:\nNumber of stars ="<<num<<std::endl;
-      std::cerr<<"Chain list index =";
-      for (std::size_t i=0; i<num;i++) std::cerr<<list[i]<<" ";
-      std::cerr<<"\nChain parameters t, B, w, X[][], V[][]= ";
-      for (std::size_t i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
-      std::cerr<<"\nMass of particles =";
-      for (std::size_t i=0; i<num;i++) std::cerr<<pmass[i]<<" ";
-      std::cerr<<std::endl;
+//      std::cerr<<"Chain dumping:\nNumber of stars ="<<num<<std::endl;
+//      std::cerr<<"Chain list index =";
+//      for (std::size_t i=0; i<num;i++) std::cerr<<list[i]<<" ";
+//      std::cerr<<"\nChain parameters t, B, w, X[][], V[][]= ";
+//      for (std::size_t i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
+//      std::cerr<<"\nMass of particles =";
+//      for (std::size_t i=0; i<num;i++) std::cerr<<pmass[i]<<" ";
+//      std::cerr<<std::endl;
       
       delete[] dtemp;
       delete[] pmass;
     }
   }
 
-  //! Dump all data including chain, chainpars and necessary information (chain.smpars and #ds)
-  /*!
+  // Dump all data including chain, chainpars and necessary information (chain.smpars and #ds)
+  /*
+    call chain.dump, chain.dump
    */
   
 
@@ -2018,14 +2161,14 @@ public:
       
       fclose(pin);
 
-      std::cerr<<"Chain loading:\nNumber of stars ="<<n<<std::endl;
-      std::cerr<<"Chain list index =";
-      for (std::size_t i=0; i<n;i++) std::cerr<<list[i]<<" ";
-      std::cerr<<"\nChain parameters t, B, w, X[][], V[][]= ";
-      for (std::size_t i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
-      std::cerr<<"\nMass of particles =";
-      for (std::size_t i=0; i<n;i++) std::cerr<<pmass[i]<<" ";
-      std::cerr<<std::endl;
+//      std::cerr<<"Chain loading:\nNumber of stars ="<<n<<std::endl;
+//      std::cerr<<"Chain list index =";
+//      for (std::size_t i=0; i<n;i++) std::cerr<<list[i]<<" ";
+//      std::cerr<<"\nChain parameters t, B, w, X[][], V[][]= ";
+//      for (std::size_t i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
+//      std::cerr<<"\nMass of particles =";
+//      for (std::size_t i=0; i<n;i++) std::cerr<<pmass[i]<<" ";
+//      std::cerr<<std::endl;
       
       delete[] dtemp;
       delete[] pmass;
@@ -2203,6 +2346,13 @@ public:
     else Int_pars = &par;
   }
 
+  //! Get interaction parameter
+  /*! \return The reference of Int_pars, can be modified
+   */
+  int_par &get_int_par() {
+    return *Int_pars;
+  }
+
   //! Inversed center-of-mass frame shift for particles
   /*! Shift the position and velocities of particles in #p from center-of-mass frame to original frame
       Notice the center-of-mass position and velocity use values from #cm
@@ -2371,6 +2521,16 @@ public:
       // half step forward for t (dependence: Ekin, Pt, w)
       double dt = calc_dt_X(ds*0.5);
 
+      if (info!=NULL) {
+        info->inti = i;
+        info->subds = ds;
+        info->Ekin = Ekin;
+        info->Pot = Pot;
+        info->W = W;
+        check_flag=0;
+        break;
+      }
+
       // step_forward time
       t += dt;
       
@@ -2427,7 +2587,13 @@ public:
       }
 
       // Update rjk, A, Pot, dWdr, W for half X (dependence: pf, force, p.m, p.x, X)
-      calc_rAPW(force); 
+      calc_rAPW(force);
+      if (info!=NULL) {
+        info->inti = i;
+        info->subds = ds;
+        check_flag=0;
+        break;
+      }
 
       // Update chain list order if necessary, update list, X, V (dependence: p.x, X, V)
       if (num>2&&check_flag==2) update_link();
@@ -2449,6 +2615,18 @@ public:
 
       // step forward for t (dependence: Ekin, Pt, w)
       dt = calc_dt_X(ds*0.5);
+
+      // accident check
+      if (info!=NULL) {
+        info->inti = i;
+        info->subds = ds;
+        info->Ekin = Ekin;
+        info->Pot = Pot;
+        info->W = W;
+        check_flag=0;
+        break;
+      }
+
       t += dt;
 
       // step forward for X (dependence: X, V)
@@ -2538,6 +2716,12 @@ public:
 #ifdef TIME_PROFILE
     profile.t_ep -= get_wtime();
 #endif
+    // clear info if exist
+    if (info){
+      delete info;
+      info=NULL;
+    }
+    
     // get parameters
     const double error = pars->exp_error;
     const std::size_t itermax = pars->exp_itermax;
@@ -2599,92 +2783,9 @@ public:
     std::size_t intcount = 0;  // iteration counter
     std::size_t itercount = 0; // iteration efforts count
     
+    bool reset_flag=false;  // reseting flag
     
     while (true) {
-      // convergency check
-      if (!pars->exp_fix_iter) {
-        if (cxerr <= 0.5*error && std::abs(eerr) <= 0.1*error) break;
-        
-        if (cxerr>=cxerr0 || std::abs(eerr) >= std::abs(eerr0)) {
-          if (cxerr < error && std::abs(eerr) < error) break;
-          else if (intcount > std::min((size_t)10,itermax)){
-#ifdef ARC_WARN            
-            std::cerr<<"Warning: extrapolation cannot converge anymore, energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", try to change the error criterion (notice energy error is cumulative value)\n";
-#endif
-            // in the case of serious energy error, quit the simulation and dump the data
-            if (std::abs(eerr)*std::min(1.0,std::abs(Pt))>100.0*error) {
-              std::cerr<<"Error!: extrapolation cannot converge anymore, but energy error is too large. energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", ds = "<<ds<<", N="<<num<<", the particle data before integration is dumped to file \"ARC_dump.dat\"\n";
-              restore(d0);
-              dump("ARC_dump.dat");
-              pars->dump("ARC_dump.par");
-              
-              abort();
-            }
-            break;
-          }
-        }
-        // if completely converged, check energy error
-        if (cxerr==0) {
-          if (std::abs(eerr) > error)
-#ifdef ARC_WARN            
-            std::cerr<<"Warning: phase error reach zero but energy error "<<eerr<<" cannot reach criterion "<<error<<"!\n";
-#endif
-          // in the case of serious energy error, quit the simulation and dump the data
-          if (std::abs(eerr)>1000.0*error) {
-            std::cerr<<"Error!: extrapolation cannot converge anymore, but energy error is too large. energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", the particle data before integration is dumped to file \"ARC_dump.dat\"\n";
-            restore(d0);
-            dump("ARC_dump.dat");
-            pars->dump("ARC_dump.par");
-            abort();
-          }
-          break;
-        }
-      }
-
-      // iteration limit check
-      if (intcount == itermax) {
-        if(cxerr < error && std::abs(eerr) < error) break;
-        else if(err_ignore) break;
-        else if(pars->exp_fix_iter) {
-          // reset the initial data (t, Pt, w, X, V, Ekin)
-          restore(d0);
-          Ekin = Ekin0;
-          Pot  = Pot0;
-          // reset velocity to get correct w
-          if (pars->beta>0) resolve_V();
-
-          // clear memory
-          for (std::size_t i=0; i<itermax; i++) {
-            delete[] dn[i];
-          }
-          for (std::size_t i=0; i<intcount-1; i++) {
-            if (pd[i]!=NULL) {
-              for (std::size_t j=0; j<ndmax[i]; j++) delete[] pd[i][j];
-              delete[] pd[i];
-            }
-          }
-
-#ifdef TIME_PROFILE
-          profile.stepcount[intcount]++;
-          profile.t_ep += get_wtime();
-          profile.itercount +=itercount;
-#endif
-          // if error is big, reduce the integration step and recursive call extrapolation
-          //double dsfactor = std::min(EP::H_opt_factor(std::max(cxerr,std::abs(eerr)),error,intcount),0.01);
-          //std::cerr<<"Accuracy not reached, time="<<t<<"; phase error="<<cxerr<<"; energy error="<<eerr<<"; error criterion="<<error<<"; try reducing step size to "<<ds*dsfactor<<std::endl;
-          //extrapolation_integration(ds*dsfactor,toff,force);
-
-          // indicate of error too large
-          return 0.0;
-        }
-        if (std::abs(eerr) > error) {
-          std::cerr<<"Error: maximum iteration step number "<<itermax<<" reached, but energy error "<<eerr<<" is larger than criterion "<<error<<std::endl;
-        } else {
-          std::cerr<<"Error: maximum iteration step number "<<itermax<<" reached, but phase error "<<cxerr<<" is larger than criterion "<<error<<std::endl;
-        }          
-        abort();
-      }
-      
       if (intcount>0) {
         // reset the initial data (t, Pt, w, X, V, Ekin)
         restore(d0);
@@ -2716,6 +2817,14 @@ public:
 
       // intergration
       Leapfrog_step_forward(ds,step[intcount],force,0,pd[intcount],ndmax[intcount]);
+
+      // accident detection
+      if (info!=NULL) {
+        reset_flag = true;
+        info->intcount = intcount+1;
+        info->ds = ds;
+        break;
+      }
 
       // increase iteration counter
       itercount += step[intcount];
@@ -2767,7 +2876,7 @@ public:
         cxerr0 = cxerr;
         cxerr = std::sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
         eerr0 = eerr;
-        eerr = (Ekin+Pot+Pt-Ekin0-Pot0-d0[1])/Pt;
+        eerr = std::abs((Ekin+Pot+Pt-Ekin0-Pot0-d0[1])/Pt);
         //        std::cerr<<"Ekin="<<Ekin<<" Pot="<<Pot<<" Pt="<<Pt<<" Ekin0="<<Ekin0<<" Pot0="<<Pot0<<" Pt0="<<d0[1]<<" eerr="<<eerr<<std::endl;
         std::memcpy(CX,CXN,3*sizeof(double));
 
@@ -2787,14 +2896,57 @@ public:
       }
       
       intcount++;
+
 #ifdef DEBUG
       std::cerr<<std::setprecision(6)<<"Iter.= "<<intcount<<" Dep.= "<<step[intcount]<<" P-err.= "<<cxerr;
       std::cerr<<" E-err.="<<Ekin+Pot+Pt-Ekin0-Pot0-d0[1]<<" Pt ="<<std::setprecision(12)<<Pt<<std::endl;
 #endif 
+
+      // error and convergency check
+      if (!pars->exp_fix_iter) {
+        if (cxerr <= 0.5*error && eerr <= 0.1*error) break;
+        
+        if (cxerr>=cxerr0 || cxerr==0 || eerr >= eerr0) {
+          if (cxerr < error && eerr < error) break;
+          else if (intcount > std::min((size_t)10,itermax)){
+//#ifdef ARC_WARN            
+//            std::cerr<<"Warning: extrapolation cannot converge anymore, energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", try to change the error criterion (notice energy error is cumulative value)\n";
+//#endif
+            // in the case of serious energy error, quit the simulation and dump the data
+            if (eerr*std::min(1.0,std::abs(Pt))>100.0*error) {
+              reset_flag=true;
+              info=new chaininfo(num);
+              info->status=1;
+              info->intcount = intcount;
+              info->ds = ds;
+              info->perr  = cxerr;
+              info->perr0 = cxerr0;
+              info->eerr  = eerr;
+              info->eerr0 = eerr0;
+            }
+            break;
+          }
+        }
+      }
+
+      // iteration limit check
+      if (intcount == itermax) {
+        if((cxerr < error && eerr < error) || err_ignore) break;
+        reset_flag=true;
+        info=new chaininfo(num);
+        info->status=2;
+        info->intcount = intcount;
+        info->ds = ds;
+        info->perr  = cxerr;
+        info->perr0 = cxerr0;
+        info->eerr  = eerr;
+        info->eerr0 = eerr0;
+        break;
+      }
     }
 
     // for dense output
-    if (ip_flag&&toff>0&&toff<t&&std::abs(toff-t)>pars->dterr) {
+    if (!reset_flag&&ip_flag&&toff>0&&toff<t&&std::abs(toff-t)>pars->dterr) {
 #ifdef TIME_PROFILE
       profile.t_dense -= get_wtime();
 #endif
@@ -2980,8 +3132,12 @@ public:
         if(std::abs(tpre-toff)<dterr3) rf_method=true;
         find_root_count++;
         if (find_root_count>100) {
-          //          std::cerr<<"Error! can not find ds to reach physical time toff. current searching ds="<<dsm<<"; current interpolated time="<<tpre<<"; toff="<<toff<<"; ds="<<ds<<"; err="<<tpre-toff<<std::endl;
-          //          abort();
+          reset_flag=true;
+          info = new chaininfo(num);
+          info->status = 3;
+          info->intcount = intcount;
+          info->ds = ds;
+          info->terr = tpre-toff;
           break;
         }
       } while (std::abs(tpre-toff)>0.1*dterr);
@@ -2993,7 +3149,7 @@ public:
       dsn = -(dsm/ds);
 
       // avoid energy issue
-      //if(cxerr < error && std::abs(eerr) < error) dsn = 0.5*ds;
+      //if(cxerr < error && eerr < error) dsn = 0.5*ds;
       
       // update the results
       //restore(dtemp);
@@ -3051,32 +3207,13 @@ public:
       delete[] nlev;
       delete[] fpoint;
 
-//      // clear memory
-//      for (std::size_t i=0; i<itermax; i++) {
-//        delete[] dn[i];
-//      }
-//      for (std::size_t i=0; i<intcount; i++) {
-//        if (pd[i]!=NULL) {
-//          for (std::size_t j=0; j<ndmax[i]; j++) delete[] pd[i][j];
-//          delete[] pd[i];
-//        }
-//      }
-//#ifdef TIME_PROFILE
-//      profile.stepcount[intcount+1]++;
-//      profile.t_ep += get_wtime();
-//      profile.itercount +=itercount;
-//#endif
-//      // recursive calling extrapolation_integrator to get correct time
-//      extrapolation_integration(dsm,toff,force);
-//      
-//      return dsn;
 #ifdef TIME_PROFILE
       profile.t_dense += get_wtime();
 #endif
     }
-    else {
+    else if (!reset_flag){
       // auto-step
-      if      (pars->auto_step==1)
+      if (pars->auto_step==1)
         dsn = std::min(std::max(dsn,pars->auto_step_fac_min),pars->auto_step_fac_max);
       else if (pars->auto_step==2) {
         dsn = calc_next_step_XVA()/ds;
@@ -3093,14 +3230,21 @@ public:
       // update chain link order
       if(num>2) update_link();
     }
-    
-    // clear memory
-    for (std::size_t i=0; i<itermax; i++) {
-      delete[] dn[i];
+
+    if(reset_flag) {
+      dsn = 0.0;
+      // reset the initial data (t, Pt, w, X, V, Ekin)
+      backup(info->data);
+      restore(d0);
+      Ekin = Ekin0;
+      Pot  = Pot0;
+      // reset velocity to get correct w
+      if (pars->beta>0) resolve_V();
     }
-#ifdef TIME_PROFILE
-    profile.t_dense -= get_wtime();
-#endif
+
+    // clear memory
+    for (std::size_t i=0; i<itermax; i++) delete[] dn[i];
+
     if (ip_flag) {
       for (std::size_t i=0; i<intcount; i++) {
         if (pd[i]!=NULL) {
@@ -3109,9 +3253,6 @@ public:
         }
       }
     }
-#ifdef TIME_PROFILE
-    profile.t_dense += get_wtime();
-#endif
 
 #ifdef TIME_PROFILE
     profile.stepcount[intcount+1]++;
@@ -3166,79 +3307,69 @@ public:
     return W;
   }
   
-#ifdef DEBUG
-  /* set_X
-     function: modify X
-     argument: i: the index of X
-               k: axis-0:x,1:y,2:z
-               value: new value
-  void set_X(const std::size_t i, const std::size_t k, const double value) {
-    X[i][k] = value;
-  }
-   */
-
-
-  //! [DEBUG] print chain data
-  /*! Print chain data to std::cerr for debuging purpose 
-      Only avaiable when macro name DEBUG is defined
-     @param [in] width: digital width of output values
+  //! print chain data
+  /*! Print chain data 
+      @param[in] fout: ofstream for printing
+      @param[in] precision: printed precision for one variable
+      @param[in] width: printing width for one variable
   */
-  void print(const int width=15) {
+  void print(std::ostream & fout, const int precision=10, const int width=15) {
     if (width<=0) {
-      std::cerr<<"Error: width should be larger than zero!\n";
+      fout<<"Error: width should be larger than zero!\n";
       abort();
     }
     char xyz[4]={'x','y','z','r'};
-    std::cerr<<"---- particle list------\n ";
-    for (std::size_t i=0;i<num;i++) std::cerr<<std::setw(width)<<list[i];
-    std::cerr<<"\n----- relative position X ------\n";
+    fout<<std::setprecision(precision);
+    fout<<"---- particle list------\n ";
+    for (std::size_t i=0;i<num;i++) fout<<std::setw(width)<<list[i];
+    fout<<"\n----- relative position X ------\n";
     for (std::size_t k=0;k<3;k++) {
-      std::cerr<<xyz[k];
-      for (std::size_t i=0;i<num-1;i++) std::cerr<<std::setw(width)<<X[i][k];
-      std::cerr<<std::endl;
+      fout<<xyz[k];
+      for (std::size_t i=0;i<num-1;i++) fout<<std::setw(width)<<X[i][k];
+      fout<<std::endl;
     }
-    std::cerr<<"\n----- relative velocity V ------\n";
+    fout<<"\n----- relative velocity V ------\n";
     for (std::size_t k=0;k<3;k++) {
-      std::cerr<<xyz[k];
-      for (std::size_t i=0;i<num-1;i++) std::cerr<<std::setw(width)<<V[i][k];
-      std::cerr<<std::endl;
+      fout<<xyz[k];
+      for (std::size_t i=0;i<num-1;i++) fout<<std::setw(width)<<V[i][k];
+      fout<<std::endl;
     }
-    std::cerr<<"\n----- Acceleration A ------\n";
+    fout<<"\n----- Acceleration A ------\n";
     for (std::size_t k=0;k<3;k++) {
-      std::cerr<<xyz[k];
-      for (std::size_t i=0;i<num;i++) std::cerr<<std::setw(width)<<acc[i][k];
-      std::cerr<<std::endl;
+      fout<<xyz[k];
+      for (std::size_t i=0;i<num;i++) fout<<std::setw(width)<<acc[i][k];
+      fout<<std::endl;
     }
-    std::cerr<<"\n----- part omega / part rk ------\n";
+    fout<<"\n----- part omega / part rk ------\n";
     for (std::size_t k=0;k<3;k++) {
-      std::cerr<<xyz[k];
-      for (std::size_t i=0;i<num;i++) std::cerr<<std::setw(width)<<dWdr[i][k];
-      std::cerr<<std::endl;
+      fout<<xyz[k];
+      for (std::size_t i=0;i<num;i++) fout<<std::setw(width)<<dWdr[i][k];
+      fout<<std::endl;
     }
-    std::cerr<<"\n----- system parameters ------\n"
-             <<"---Center-of-mass data: \n"
-             <<"mass:"<<std::setw(width)<<cm.getMass()<<std::endl
-             <<"(particle*)cm.pos:"
-             <<std::setw(width)<<cm.getPos()[0]
-             <<std::setw(width)<<cm.getPos()[1]
-             <<std::setw(width)<<cm.getPos()[2]<<std::endl
-             <<"(particle*)cm.vel:"
-             <<std::setw(width)<<cm.getVel()[0]
-             <<std::setw(width)<<cm.getVel()[1]
-             <<std::setw(width)<<cm.getVel()[2]<<std::endl
-             <<"---Energy: "<<std::endl
-             <<"Kinetic energy Ekin:"<<std::setw(width)<<Ekin<<std::endl
-             <<"Potential energy Pot:"<<std::setw(width)<<Pot<<std::endl
-             <<"Transformation factor Omega:"<<std::setw(width)<<W<<std::endl
-             <<"---Integration parameters: "<<std::endl
-             <<"Time momentum Pt:"<<std::setw(width)<<Pt<<std::endl
-             <<"Transformation coefficient omega:"<<std::setw(width)<<w<<std::endl
-             <<"---Time step coefficients:"<<std::endl
-             <<"alpha: "<<std::setw(width)<<pars->alpha<<std::endl
-             <<"beta: "<<std::setw(width)<<pars->beta<<std::endl
-             <<"gamma: "<<std::setw(width)<<pars->gamma<<std::endl;
+    fout<<"\n----- system parameters ------\n"
+        <<"---Center-of-mass data: \n"
+        <<"mass:"<<std::setw(width)<<cm.getMass()<<std::endl
+        <<"(particle*)cm.pos:"
+        <<std::setw(width)<<cm.getPos()[0]
+        <<std::setw(width)<<cm.getPos()[1]
+        <<std::setw(width)<<cm.getPos()[2]<<std::endl
+        <<"(particle*)cm.vel:"
+        <<std::setw(width)<<cm.getVel()[0]
+        <<std::setw(width)<<cm.getVel()[1]
+        <<std::setw(width)<<cm.getVel()[2]<<std::endl
+        <<"---Energy: "<<std::endl
+        <<"Kinetic energy Ekin:"<<std::setw(width)<<Ekin<<std::endl
+        <<"Potential energy Pot:"<<std::setw(width)<<Pot<<std::endl
+        <<"Transformation factor Omega:"<<std::setw(width)<<W<<std::endl
+        <<"---Integration parameters: "<<std::endl
+        <<"Time momentum Pt:"<<std::setw(width)<<Pt<<std::endl
+        <<"Transformation coefficient omega:"<<std::setw(width)<<w<<std::endl
+        <<"---Time step coefficients:"<<std::endl
+        <<"alpha: "<<std::setw(width)<<pars->alpha<<std::endl
+        <<"beta: "<<std::setw(width)<<pars->beta<<std::endl
+        <<"gamma: "<<std::setw(width)<<pars->gamma<<std::endl;
   }
-#endif  
+
 };
 
 //! Generalized list to store chain and particle members

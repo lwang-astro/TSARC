@@ -58,7 +58,7 @@ namespace NTA {
     const double dr_semi = 1.0 - dr/semi;
     ecc  = std::sqrt(dr_semi*dr_semi + rdot*rdot/(m*semi));
 
-    const double twopi = 4.0*std::atan(1.0);
+    const double twopi = 8.0*std::atan(1.0);
     peri = twopi*std::abs(semi)*std::sqrt(std::abs(semi)/m);
 #ifdef DEBUG    
     std::cerr<<"m="<<m<<" dx="<<dx[0]<<" "<<dx[1]<<" "<<dx[2]<<" dv="<<dv[0]<<" "<<dv[1]<<" "<<dv[2]<<" semi="<<semi<<" ecc="<<ecc<<" peri="<<peri<<std::endl;
@@ -78,8 +78,9 @@ namespace NTA {
     - epi: adiustable parameter. 
     1) If epi>0: if \f$m_i m_j < epi mm2\f$:  \f$ mm_{ij} = mm2\f$  else: \f$ mm_ij = 0\f$
     2) If epi<0: \f$mm_{ij} = m_i m_j\f$.\n
+    \return status: 0 for normal cases; 1 for the case when two particles have same positions
   */
-  void Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, const double xij[3], const double &mi, const double &mj, const Newtonian_pars* pars) {
+  int Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, const double xij[3], const double &mi, const double &mj, const Newtonian_pars* pars) {
 
     // safetey check
     if (pars==NULL) {
@@ -88,7 +89,9 @@ namespace NTA {
     }
     
     // distance
-    double rij = std::sqrt(xij[0]*xij[0]+xij[1]*xij[1]+xij[2]*xij[2]);  
+    double rij = std::sqrt(xij[0]*xij[0]+xij[1]*xij[1]+xij[2]*xij[2]);
+
+    if (rij==0) return 1;
 
     // smooth coefficients
     double mm2=pars->mm2;
@@ -121,7 +124,8 @@ namespace NTA {
     pWij[0] = mor3 * xij[0];
     pWij[1] = mor3 * xij[1];
     pWij[2] = mor3 * xij[2];
-  
+
+    return 0;
   }
 
   //! Newtonian acceleration from particle p to particle i (function type of ::ARC::pair_Ap)

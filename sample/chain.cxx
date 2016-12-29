@@ -401,18 +401,16 @@ int main(int argc, char **argv){
       // indicator whether ending time is reached, if so, modify ds
       if (dsf<0) ds *= -dsf;
       // auto-adjust step size
-      else if (dsA) {
-        if (dsf==0) {
-          dsf=c.extrapolation_integration(0.01*ds,tend,f,true);
-          chain_print(c,0.01*ds,w,pre);
-          if (dsf<0) ds *= -dsf;
-        }
-        else {
-          chain_print(c,ds,w,pre);
-          ds = ds*dsf;
-        }
+      else if (dsf==0) {
+        c.info->ErrMessage(std::cerr);
+        double dsf=c.extrapolation_integration(0.01*ds,tend,f);
+        chain_print(c,0.01*ds,w,pre);
+        if (dsf<0) ds*= -dsf;
       }
-      else chain_print(c,ds,w,pre);
+      else {
+        if(dsA) ds*= dsf;
+        chain_print(c,ds,w,pre);
+      }
     }
     // Leapfrog integration
     else {
