@@ -98,6 +98,7 @@ private:
   int exp_method;         ///< 1: Polynomial method; others: Rational interpolation method
   int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
   std::size_t exp_itermax; ///< maximum times for iteration.
+  std::size_t den_intpmax; ///< maximum derivates for dense output interpolation
 
   int* step; ///< substep sequence
   int** bin_index; ///< binomial coefficients
@@ -168,10 +169,14 @@ public:
       - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
       - No auto-step
    */
-  chainpars(): alpha(1.0), beta(0.0), gamma(0.0), pp_AW(NULL), pp_Ap(NULL), pp_T(NULL) {
+  chainpars(): pp_AW(NULL), pp_Ap(NULL), pp_T(NULL) {
     step = NULL;
     bin_index = NULL;
-    setEXP(1E-10, 5.4E-20, 1E-10, 20, 2, 2, false);
+    setabg();
+    setErr();
+    setIterSeq();
+    setIntp();
+    setIterConst();
     setAutoStep(0);
   }
 
@@ -191,13 +196,17 @@ public:
     @param [in] itermax: Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20)
     @param [in] ext_method: 1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational)
     @param [in] ext_sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+    @param [in] dense_intpmax: maximum derivate index for dense output interpolation (defaulted #itermax/2)
     @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
    */
-  chainpars(pair_AW aw, pair_Ap ap, pair_T at, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const bool ext_iteration_const=false) {
+  chainpars(pair_AW aw, pair_Ap ap, pair_T at, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
     step = NULL;
     bin_index = NULL;
     setabg(a,b,g);
-    setEXP(error,dtm,dte,itermax,ext_method,ext_sequence,ext_iteration_const);
+    setErr(error,dtm,dte);
+    setIterSeq(itermax,ext_sequence,dense_intpmax);
+    setIntp(ext_method);
+    setIterConst(ext_iteration_const);
     setA(aw,ap,at);
     setAutoStep(0);
   }
@@ -265,25 +274,51 @@ public:
     b = beta;
     g = gamma;
   }
-  
 
-  //! Set extrapolation parameters
-  /*! Set extrapolation related parameters as following:
+  //! Set error paremeters
+  /*!
     @param [in] error: phase/energy relative error requirement for extrapolation (defaulted #exp_error = 1e-10)
     @param [in] dtm: minimum physical time step allown (defaulted #dtmin = 5.4e-20)
     @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
-    @param [in] itermax: Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20)
-    @param [in] method: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
-    @param [in] sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
-    @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
-  */
-  void setEXP(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int method=2, const int sequence=2, const bool ext_iteration_const=false) {
-    exp_error = error;
-    exp_method = method;
-    exp_sequence = sequence;
-    exp_fix_iter = ext_iteration_const;
+   */
+  void setErr(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6) {
     dterr = dte;
     dtmin = dtm;
+    exp_error = error;
+  }
+
+  //! Set interpolation method
+  /*! Set interpolation method for extrapolation integration
+    @param [in] method: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
+   */
+  void setIntp(const int method=2)  {
+    exp_method = method;
+  }
+
+  //! Get interpolation method index
+  /*! 
+    \return method index: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
+  */
+  const int getIntp() const {
+    return exp_method;
+  }
+
+  //! Set whether to use constant iteration number in extrapolation integration
+  /*!
+    @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
+  */
+  void setIterConst (const bool ext_iteration_const=false) {
+    exp_fix_iter = ext_iteration_const;
+  }
+  
+  //! Set extrapolation maximum iteration number and sequences
+  /*! 
+    @param [in] itermax: Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20)
+    @param [in] sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+    @param [in] intpmax: maximum derivate index for dense ouput interpolation (defaulted #itermax/2)
+  */
+  void setIterSeq(const std::size_t itermax=20, const int sequence=2, const std::size_t intpmax=0) {
+    exp_sequence = sequence;
 
     // delete binomial array
     if (bin_index!=NULL) {
@@ -316,21 +351,41 @@ public:
       else EP::binomial_recursive_generator(bin_index[i],NULL,i+1);
     }
     exp_itermax = itermax;
+    
+    if (intpmax>itermax) {
+      std::cerr<<"Error: dense output interpolation derivate index ("<<intpmax<<") cannot be larger than extrapolation maximum sequence index ("<<itermax<<")!\n";
+      abort();
+    }
+    else if(intpmax==0) den_intpmax=itermax/2;
+    else den_intpmax = intpmax;
+    
   }
 
-  //! Get interpolation method index
-  /*! 
-    \return method index: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
-  */
-  const int getEXPmethod() const {
-    return exp_method;
+  //! set maximum derivate index for dense output interpolation
+  /*!
+    @param [in] intpmax: maximum derivate index for dense ouput interpolation (defaulted #itermax/2)
+   */
+  void setDenIntpmax(const std::size_t intpmax) {
+    if (intpmax>exp_itermax) {
+      std::cerr<<"Error: dense output interpolation derivate index ("<<intpmax<<") cannot be larger than extrapolation maximum sequence index ("<<exp_itermax<<")!\n";
+      abort();
+    }
+    den_intpmax = intpmax;
+  }
+
+  //! Get maximum derivate index for dense output interpolation
+  /*!
+    \return  maximum derivate index for dense ouput interpolation (defaulted #itermax/2)
+   */
+  const int getDenIntpmax() const {
+    return den_intpmax;
   }
 
   //! Get sequence method indices
   /*  
     \return sequence method index: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
   */  
-  const int getEXPsequence() const {
+  const int getSeq() const {
     return exp_sequence;
   }
 
@@ -338,10 +393,10 @@ public:
   /*  
     \return maximum iteration times
   */  
-  const int getEXPitermax() const {
+  const int getIter() const {
     return exp_itermax;
   }
-  
+
   //! Determine auto-step parameter
   /*! @param[in] option: auto-step method
     - 0. no auto-step
@@ -425,6 +480,7 @@ public:
       fwrite(&exp_method,  sizeof(int),1,pout);
       fwrite(&exp_sequence,sizeof(int),1,pout);
       fwrite(&exp_itermax, sizeof(std::size_t),1,pout);
+      fwrite(&den_intpmax, sizeof(std::size_t),1,pout);
       fwrite(&exp_error,   sizeof(double),1,pout);
       fwrite(&exp_fix_iter,sizeof(bool),1,pout);
       fwrite(&dtmin, sizeof(double),1,pout);
@@ -471,7 +527,7 @@ public:
       setabg(a,b,g);
 
       double error,dtm,dte;
-      std::size_t itermax;
+      std::size_t itermax,intpmax;
       int ext_method, ext_sequence;
       bool ext_iteration_const;
       
@@ -488,6 +544,11 @@ public:
       rn = fread(&itermax, sizeof(std::size_t), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read exp_itermax!\n";
+        abort();
+      }
+      rn = fread(&intpmax, sizeof(std::size_t), 1 ,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read den_intpmax!\n";
         abort();
       }
       rn = fread(&error, sizeof(double), 1 ,pin);
@@ -510,7 +571,10 @@ public:
         std::cerr<<"Error: cannot read dterr!\n";
         abort();
       }
-      setEXP(error,dtm,dte,itermax,ext_method,ext_sequence,ext_iteration_const);
+      setErr(error,dtm,dte);
+      setIterSeq(itermax,ext_sequence,intpmax);
+      setIntp(ext_method);
+      setIterConst(ext_iteration_const);
 
       int as;
       double asmin, asmax, aseps;
@@ -565,6 +629,7 @@ public:
     else if(exp_sequence==3) fout<<"4k sequence {h/2, h/6, h/10, h/14 ...}\n";
     else fout<<"Harmonic sequence {h, h/2, h/3, h/4 ...}\n";
     fout<<"  Maximum iteration times: "<<exp_itermax<<std::endl
+        <<"  Maximum dense output derivate index: "<<den_intpmax<<std::endl
         <<"  Phase/energy error criterion:    "<<exp_error<<std::endl
         <<"  Time sychronization error limit: "<<dterr<<std::endl
         <<"  Minimum physical time:           "<<dtmin<<std::endl
@@ -647,29 +712,30 @@ public:
       @param[in] precision: printed precision for one variable
   */
   void print(std::ostream & fout, const int precision=10) {
+    double inf=std::numeric_limits<double>::infinity();
     fout<<"=======================Chain information============================\n";
     fout<<std::setprecision(precision);
-    if (std::isfinite(ds))      fout<<"step size: "<<ds<<std::endl;
-    if (std::isfinite(subds))   fout<<"sub-step size: "<<subds<<std::endl;
-    if (std::isfinite(subdt))   fout<<"sub-step physical time step size: "<<subdt<<std::endl;
-    if (std::isfinite(toff))    fout<<"Physical ending time: "<<toff<<std::endl;
-    if (std::isfinite(terr))    fout<<"Time error: "<<terr<<std::endl;
-    if (intcount>0)fout<<"stored sequence index (if extrapolation is used): "<<intcount<<std::endl;
-    if (inti>0)    fout<<"stored integration sub step index: "<<inti<<std::endl;
-    if (i1>0)      fout<<"particle indices that cause the accident: "<<i1<<" "<<i2<<std::endl;
-    if (std::isfinite(Ekin))    fout<<"Kinetic energy: "<<Ekin<<std::endl;
-    if (std::isfinite(Pot))     fout<<"Potential energy: "<<Pot<<std::endl;
-    if (std::isfinite(W))       fout<<"Time transformation function W: "<<W<<std::endl;
-    if (std::isfinite(eerr))    fout<<"Current energy error: "<<eerr<<"; previous: "<<eerr0<<std::endl;
-    if (std::isfinite(perr))    fout<<"Current phase error: "<<perr<<"; previous: "<<perr0<<std::endl;
+    if (ds    <inf) fout<<"step size: "<<ds<<std::endl;
+    if (subds <inf) fout<<"sub-step size: "<<subds<<std::endl;
+    if (subdt <inf) fout<<"sub-step physical time step size: "<<subdt<<std::endl;
+    if (toff  <inf) fout<<"Physical ending time: "<<toff<<std::endl;
+    if (terr  <inf) fout<<"Time error: "<<terr<<std::endl;
+    if (intcount>0) fout<<"stored sequence index (if extrapolation is used): "<<intcount<<std::endl;
+    if (inti    >0) fout<<"stored integration sub step index: "<<inti<<std::endl;
+    if (i1      >0) fout<<"particle indices that cause the accident: "<<i1<<" "<<i2<<std::endl;
+    if (Ekin  <inf) fout<<"Kinetic energy: "<<Ekin<<std::endl;
+    if (Pot   <inf) fout<<"Potential energy: "<<Pot<<std::endl;
+    if (W     <inf) fout<<"Time transformation function W: "<<W<<std::endl;
+    if (eerr  <inf) fout<<"Current energy error: "<<eerr<<"; previous: "<<eerr0<<std::endl;
+    if (perr  <inf) fout<<"Current phase error: "<<perr<<"; previous: "<<perr0<<std::endl;
     fout<<"Physical time: "<<data[0]<<std::endl
         <<"Time momemtum Pt: "<<data[1]<<std::endl
         <<"Integrated time transformation function w: "<<data[2]<<std::endl
         <<"Relative positions and velocity: \n";
-    for (std::size_t i=1; i<=(std::size_t)num; i++) {
+    for (std::size_t i=1; i<(std::size_t)num; i++) {
       fout<<"No. "<<i<<" ";
       for (std::size_t k=0; k<3; k++) fout<<data[3*i+k]<<" ";
-      for (std::size_t k=0; k<3; k++) fout<<data[3*(i+num)+k]<<" ";
+      for (std::size_t k=0; k<3; k++) fout<<data[3*(i+num-1)+k]<<" ";
       fout<<std::endl;
     }
     fout<<"====================================================================\n";
@@ -691,6 +757,7 @@ public:
       else if (status==2) fout<<"Error [2]: maximum iteration step number reached, but energy error is larger than 100 * criterion!\n";
       else if (status==3) fout<<"Error [3]: find root fails after 100 iterations; can not find ds to reach physical time toff!\n";
       else if (status==4) fout<<"Error [4]: physical time step too small!\n";
+      else if (status==5) fout<<"Error [5]: Time interpolation is not monotonic!\n";
     }
     print(fout,precision);
   }
@@ -2801,9 +2868,9 @@ public:
 #endif
       if (ip_flag) {
         // middle difference case: difference order from 1 to 2*intcount+2 (2*kappa-2; kappa=intcount+1), first one is used to storage f(x), 2,3 are used for edge f'(x) at (0, ds)
-        if(sq==3) ndmax[intcount] = 2*intcount+5;
+        if(sq==3) ndmax[intcount] = 2*std::min(intcount,pars->den_intpmax)+5;
         // edge difference case: difference order from 1 to intcount+1, first store f(x)
-        else ndmax[intcount] = intcount+2;
+        else ndmax[intcount] = std::min(intcount,pars->den_intpmax)+2;
         
         // pd[][*]: * storage f(x) and difference
         pd[intcount] = new double*[ndmax[intcount]];
@@ -3101,7 +3168,7 @@ public:
       // Iteration to get correct physical time position
       double dsi[2]   = {0,ds};    // edges for iteration
       double tsi[2]   = {d0[0],t}; // edges values
-      double dsm,tpre;             // expected ds and t;
+      double dsm,tpre;             // expected ds, t
       const double dterr = pars->dterr;
       const double dterr3 = 1000*dterr;  // 1000 * time error criterion
 
@@ -3114,8 +3181,19 @@ public:
         else {
           dsm = (dsi[0]+dsi[1])*0.5;      // Use bisection method to get approximate region
         }
-        
+
         EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
+        // safety check
+        if (tpre > tsi[1]||tpre < tsi[0]) {
+          reset_flag=true;
+          info = new chaininfo(num);
+          info->status = 5;
+          info->intcount = intcount;
+          info->ds = ds;
+          info->terr = tpre-toff;
+          break;
+        }
+        
         if (tpre > toff) {
           if (dsi[1]==dsm) break;
           dsi[1] = dsm;
@@ -3313,7 +3391,7 @@ public:
       @param[in] precision: printed precision for one variable
       @param[in] width: printing width for one variable
   */
-  void print(std::ostream & fout, const int precision=10, const int width=15) {
+  void print(std::ostream & fout, const int precision=15, const int width=15) {
     if (width<=0) {
       fout<<"Error: width should be larger than zero!\n";
       abort();
@@ -3358,13 +3436,14 @@ public:
         <<std::setw(width)<<cm.getVel()[1]
         <<std::setw(width)<<cm.getVel()[2]<<std::endl
         <<"---Energy: "<<std::endl
-        <<"Kinetic energy Ekin:"<<std::setw(width)<<Ekin<<std::endl
-        <<"Potential energy Pot:"<<std::setw(width)<<Pot<<std::endl
-        <<"Transformation factor Omega:"<<std::setw(width)<<W<<std::endl
+        <<"Kinetic energy Ekin: "<<std::setw(width)<<Ekin<<std::endl
+        <<"Potential energy Pot: "<<std::setw(width)<<Pot<<std::endl
+        <<"Transformation factor Omega: "<<std::setw(width)<<W<<std::endl
         <<"---Integration parameters: "<<std::endl
-        <<"Time momentum Pt:"<<std::setw(width)<<Pt<<std::endl
-        <<"Transformation coefficient omega:"<<std::setw(width)<<w<<std::endl
-        <<"---Time step coefficients:"<<std::endl
+        <<"Physical time: "<<std::setw(width)<<t<<std::endl
+        <<"Time momentum Pt: "<<std::setw(width)<<Pt<<std::endl
+        <<"Transformation coefficient omega: "<<std::setw(width)<<w<<std::endl
+        <<"---Time step coefficients: "<<std::endl
         <<"alpha: "<<std::setw(width)<<pars->alpha<<std::endl
         <<"beta: "<<std::setw(width)<<pars->beta<<std::endl
         <<"gamma: "<<std::setw(width)<<pars->gamma<<std::endl;

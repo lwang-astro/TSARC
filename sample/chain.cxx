@@ -43,6 +43,7 @@ int main(int argc, char **argv){
   int nstep=1000; // total step size
   int nsubstep=128;  // sub-step number if direct LF method is used
   int itermax=20;  //iteration maximum number for extrapolation methods
+  int intpmax=10;  //dense output interpolation derivate maximum index
   char* sw=NULL;        // if not 'none', use extrapolation method, 'linear' for polynomial method; 'rational'  for rational interpolation method
   char* sq=NULL;        // extrapolation sequence, 'rom' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}; '4k' for {h/2, h/6, h/10, h/14 ...}; 'hm' for {h, h/2, h/3, h/4 ...}
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
@@ -62,6 +63,7 @@ int main(int argc, char **argv){
 
   // modification flag
   bool itermax_f=false;
+  bool intpmax_f=false;
   bool err_f=false;
   bool terr_f=false;
   bool dtmin_f=false;
@@ -73,7 +75,8 @@ int main(int argc, char **argv){
     {"AR-method",required_argument, 0, 'r'},
     {"extra-method",required_argument, 0, 'm'},
     {"extra-seq",required_argument, 0, 'q'},
-    {"iter-max",required_argument, 0, 0},
+    {"iter-max",required_argument, 0, 'i'},
+    {"intp-max",required_argument, 0, 0},
     {"error",required_argument, 0, 'e'},
     {"t-error",required_argument, 0, 0},
     {"dtmin",required_argument, 0, 'd'},
@@ -100,20 +103,24 @@ int main(int argc, char **argv){
       case 2:
         nsubstep = atoi(optarg);
         break;
-      case 8:
+      case 7:
+        intpmax = atoi(optarg);
+        intpmax_f = true;
+        break;
+      case 9:
         terr = atof(optarg);
         terr_f = true;
         break;
-      case 10:
+      case 11:
         w = atof(optarg);
         break;
-      case 11:
+      case 12:
         pre = atoi(optarg);
         break;
-      case 13:
+      case 14:
         lpflag = 2;
         break;
-      case 14:
+      case 15:
         parfile = optarg;
         break;
       default:
@@ -209,6 +216,7 @@ int main(int argc, char **argv){
                <<"          --extra-seq (same as -q)\n"
                <<"    -i [int]: maximum iteration steps for extrapolation method ("<<itermax<<")\n"
                <<"          --iter-max (same as -i)\n"
+               <<"          --intp-max maximum dense output interpolation derivate index ("<<intpmax<<")n"
                <<"    -e [double]:  phase and energy error limit ("<<err<<")\n"
                <<"          --error (same as -e)\n"
                <<"          --t-error [double]: time synchronization error limit ("<<terr<<")\n"
@@ -274,31 +282,38 @@ int main(int argc, char **argv){
 
   if (parfile) pars.load(parfile);
   
-  // set extrapolation parameter
+  // set error parameter
   if (parfile) {
     if (!err_f) err=pars.exp_error;
-    if (!terr_f) terr=pars.dterr;
     if (!dtmin_f) dtmin=pars.dtmin;
-    if (!itermax_f) itermax=pars.getEXPitermax();
+    if (!terr_f) terr=pars.dterr;
   }
+  pars.setErr(err,dtmin,terr);
   
-  // sequence selection
+  // itermax & sequence selection
   int msq=2;
-  if (parfile) msq=pars.getEXPsequence();
+  if (parfile) {
+    if (!itermax_f) itermax=pars.getIter();
+    if (!intpmax_f) intpmax=pars.getDenIntpmax();
+    msq=pars.getSeq();
+  }
   if (sq) {
     if (strcmp(sq,"rom")==0) msq=1;
     else if (strcmp(sq,"bs")==0) msq=2;
     else if (strcmp(sq,"4k")==0) msq=3;
     else msq=4;
   }
+  pars.setIterSeq(itermax,msq,intpmax);
+  
 
-  // extrapolation method selection
+  // interpolation method selection
   int ms=2;
-  if (parfile) ms=pars.getEXPmethod();
+  if (parfile) ms=pars.getIntp();
   if (sw) {
     if (strcmp(sw,"linear")==0) ms=1;
     else if (strcmp(sw,"none")==0) ms=0;
   }
+  pars.setIntp(ms);
 
   // fix iteration flag, switch on if auto-step adjustment is used
   if (parfile) iterfix=pars.exp_fix_iter;
@@ -311,8 +326,7 @@ int main(int argc, char **argv){
     std::size_t dsAi1,dsAi2;
     pars.getAutoStep(dsA,dsA1,dsA2,dsAe,dsAi1,dsAi2);
   }
-  
-  pars.setEXP(err,dtmin,terr,itermax,ms,msq,iterfix);
+  pars.setIterConst(iterfix);
 
   // new chain class
   ARC::chain<Particle,NTA::Newtonian_pars> c(n,pars);
