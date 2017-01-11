@@ -3092,40 +3092,66 @@ public:
       double** fpoint;
       // final derivate starting pointer
       double*** dfptr;
-      
+      // checking flag
+      bool no_intp_flag=false;
+
+      // expected ds, t      
+      double dsm,tpre;             
 
       // for middle difference case (1 point)
       if(sq==3) {
 
-        npoints=3;
-        
+        npoints=2;
+
         xpoint=new double[npoints];
-        xpoint[0]=0.0;
-        xpoint[1]=0.5*ds;
-        xpoint[2]=ds;
-
         nlev=new int[npoints];
-        nlev[0] = 2;
-        nlev[1] = ndmax[intcount-1]-2;
-        nlev[2] = 2;
-
         fpoint=new double*[npoints];
-        fpoint[0] = d0;
-        fpoint[1] = pd[intcount-1][0];
-        fpoint[2] = dn[intcount-1];
 
-        // \sum nlev = 2*intcount+2;
-        pcoff = new double[ndmax[intcount-1]+2];
+        pcoff = new double[ndmax[intcount-1]];
 
-        dfptr=new double**[nlev[1]-1];
-        for (int i=0;i<nlev[1]-1;i++) {
-          dfptr[i]=new double*[3];
-          dfptr[i][0]=NULL;
-          dfptr[i][1]=pd[intcount-1][i+3];
-          dfptr[i][2]=NULL;
+        dfptr=new double**[ndmax[intcount-1]+1];
+        
+        // first choose the half side for interpolation
+        const double tmid = pd[intcount-1][0][0];  // middle time
+        if (toff>tmid) {
+        
+          xpoint[0]=0.5*ds;
+          xpoint[1]=ds;
+
+          nlev[0] = ndmax[intcount-1]-2;
+          nlev[1] = 2;
+
+          fpoint[0] = pd[intcount-1][0];
+          fpoint[1] = dn[intcount-1];
+
+          for (int i=0;i<nlev[0]-1;i++) {
+            dfptr[i]=new double*[2];
+            dfptr[i][0]=pd[intcount-1][i+3];
+            dfptr[i][1]=NULL;
+          }
+          dfptr[0][1]=pd[intcount-1][2]; //right edge
         }
-        dfptr[0][0]=pd[intcount-1][1]; //left edge 
-        dfptr[0][2]=pd[intcount-1][2]; //right edge
+        else if (toff==tmid) {
+          dsm = 0.5;
+          no_intp_flag = true;
+        }
+        else {
+          xpoint[0]=0.0;
+          xpoint[1]=0.5*ds;
+
+          nlev[0] = 2;
+          nlev[1] = ndmax[intcount-1]-2;
+          
+          fpoint[0] = d0;
+          fpoint[1] = pd[intcount-1][0];
+
+          for (int i=0;i<nlev[1]-1;i++) {
+            dfptr[i]=new double*[2];
+            dfptr[i][0]=NULL;
+            dfptr[i][1]=pd[intcount-1][i+3];
+          }
+          dfptr[0][0]=pd[intcount-1][1]; //left edge 
+        }
       }
       // for edge difference case (2 points)
       else {
@@ -3155,77 +3181,78 @@ public:
         }
       }
 
-      
-      // Hermite interpolation
-      EP::Hermite_interpolation_coefficients(&pcoff,xpoint,fpoint,dfptr,1,npoints,nlev);
+      if (!no_intp_flag) {
+    
+        // Hermite interpolation
+        EP::Hermite_interpolation_coefficients(&pcoff,xpoint,fpoint,dfptr,1,npoints,nlev);
 
 #ifdef DEBUG
-      std::cerr<<"PCOFF: ";
-      for (std::size_t i=0;i<ndmax[intcount-1]+2;i++) std::cerr<<" "<<pcoff[i];
-      std::cerr<<std::endl;
+        std::cerr<<"PCOFF: ";
+        for (std::size_t i=0;i<ndmax[intcount-1]+2;i++) std::cerr<<" "<<pcoff[i];
+        std::cerr<<std::endl;
 #endif
 
-      // Iteration to get correct physical time position
-      double dsi[2]   = {0,ds};    // edges for iteration
-      double tsi[2]   = {d0[0],t}; // edges values
-      double dsm,tpre;             // expected ds, t
-      const double dterr = pars->dterr;
-      const double dterr3 = 1000*dterr;  // 1000 * time error criterion
+        // Iteration to get correct physical time position
+        double dsi[2]   = {xpoint[0],xpoint[1]};    // edges for iteration
+        double tsi[2]   = {fpoint[0][0],fpoint[1][0]}; // edges values
+        const double dterr = pars->dterr;
+        const double dterr3 = 1000*dterr;  // 1000 * time error criterion
 
-      bool rf_method=false;
-      int find_root_count=0;
-      do {
-        if (rf_method) {
-          dsm = (dsi[0]*(tsi[1]-toff)-dsi[1]*(tsi[0]-toff))/(tsi[1]-tsi[0]);  // Use regula falsi method to find accurate ds
-        }
-        else {
-          dsm = (dsi[0]+dsi[1])*0.5;      // Use bisection method to get approximate region
-        }
+        bool rf_method=false;
+        int find_root_count=0;
+        do {
+          if (rf_method) {
+            dsm = (dsi[0]*(tsi[1]-toff)-dsi[1]*(tsi[0]-toff))/(tsi[1]-tsi[0]);  // Use regula falsi method to find accurate ds
+          }
+          else {
+            dsm = (dsi[0]+dsi[1])*0.5;      // Use bisection method to get approximate region
+          }
 
-        EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
-        // safety check
-        if (tpre > tsi[1]||tpre < tsi[0]) {
-          reset_flag=true;
-          info = new chaininfo(num);
-          info->status = 5;
-          info->intcount = intcount;
-          info->ds = ds;
-          info->terr = tpre-toff;
-          break;
-        }
+          EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
+          // safety check
+          if (tpre > tsi[1]||tpre < tsi[0]) {
+            reset_flag=true;
+            info = new chaininfo(num);
+            info->status = 5;
+            info->intcount = intcount;
+            info->ds = ds;
+            info->terr = tpre-toff;
+            break;
+          }
         
-        if (tpre > toff) {
-          if (dsi[1]==dsm) break;
-          dsi[1] = dsm;
-          tsi[1] = tpre;
-        }
-        else {
-          if (dsi[0]==dsm) break;
-          dsi[0] = dsm;
-          tsi[0] = tpre;
-        }
+          if (tpre > toff) {
+            if (dsi[1]==dsm) break;
+            dsi[1] = dsm;
+            tsi[1] = tpre;
+          }
+          else {
+            if (dsi[0]==dsm) break;
+            dsi[0] = dsm;
+            tsi[0] = tpre;
+          }
 #ifdef DEBUG
-        std::cerr<<std::setprecision(15)<<"Find root: dsm="<<dsm<<"; t="<<tpre<<"; error="<<tpre-toff<<"; ds="<<ds<<std::endl;
+          std::cerr<<std::setprecision(15)<<"Find root: dsm="<<dsm<<"; t="<<tpre<<"; error="<<tpre-toff<<"; ds="<<ds<<std::endl;
 #endif
-        if(std::abs(tpre-toff)<dterr3) rf_method=true;
-        find_root_count++;
-        if (find_root_count>100) {
-          reset_flag=true;
-          info = new chaininfo(num);
-          info->status = 3;
-          info->intcount = intcount;
-          info->ds = ds;
-          info->terr = tpre-toff;
-          break;
-        }
-      } while (std::abs(tpre-toff)>0.1*dterr);
+          if(std::abs(tpre-toff)<dterr3) rf_method=true;
+          find_root_count++;
+          if (find_root_count>100) {
+            reset_flag=true;
+            info = new chaininfo(num);
+            info->status = 3;
+            info->intcount = intcount;
+            info->ds = ds;
+            info->terr = tpre-toff;
+            break;
+          }
+        } while (std::abs(tpre-toff)>0.1*dterr);
 
-      // Get the interpolation result
-      //EP::Hermite_interpolation_polynomial(dsm,dtemp,&pcoff,xpoint,1,npoints,nlev);
+        // Get the interpolation result
+        //EP::Hermite_interpolation_polynomial(dsm,dtemp,&pcoff,xpoint,1,npoints,nlev);
 
-      // update time factor
-      dsn = -(dsm/ds);
+        // update time factor
+        dsn = -(dsm/ds);
 
+      }
       // avoid energy issue
       //if(cxerr < error && eerr < error) dsn = 0.5*ds;
       
