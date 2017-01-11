@@ -1,12 +1,12 @@
 var searchData=
 [
-  ['p',['p',['../classARC_1_1chain.html#af1793b656e139e1f87c2e0a55f87514b',1,'ARC::chain']]],
-  ['pair_5fap',['pair_Ap',['../namespaceARC.html#aed8f19a0c6ae7dc0bb3696b337d7b9f6',1,'ARC']]],
-  ['pair_5faw',['pair_AW',['../namespaceARC.html#a5c4308ca4a8d0e0ff59fdce30f00274c',1,'ARC']]],
-  ['particle',['Particle',['../classParticle.html',1,'Particle'],['../classParticle.html#a40f4c7e248029d72e7714b7802d5e5e1',1,'Particle::Particle()'],['../classParticle.html#a5200252c69608a5cd6bd7be6ff03ae6c',1,'Particle::Particle(const double m, const double r[3], const double v[3])'],['../classParticle.html#ac189ad370eb0a2c05869249d672a4f06',1,'Particle::Particle(const double m, const double rx, const double ry, const double rz, const double vx, const double vy, const double vz)'],['../classParticle.html#a602b45f0258d4e61d9c07f2c91d4f497',1,'Particle::Particle(const Particle &amp;a)']]],
-  ['particle_2eh',['particle.h',['../particle_8h.html',1,'']]],
-  ['pext',['pext',['../classARC_1_1chain.html#a6e4f41c7d3f8d44a4a01734ff4ab20cf',1,'ARC::chain']]],
-  ['polynomial_5fextrapolation',['polynomial_extrapolation',['../namespaceEP.html#ae89d6690a891336eef708e90e575a2be',1,'EP']]],
-  ['polynomial_5frecursive_5fformula',['polynomial_recursive_formula',['../namespaceEP.html#a8f951202841accc906325f37f9e592af',1,'EP']]],
-  ['print',['print',['../classARC_1_1chain.html#abe6da3d96c25981fc34f07e40d6a82b6',1,'ARC::chain']]]
+  ['nan_5fcheck',['NAN_CHECK',['../particle_8h.html#a9914f6bd31eac2dedd31fb2d29f22ce2',1,'particle.h']]],
+  ['newtonian_5facceleration_2eh',['Newtonian_acceleration.h',['../Newtonian__acceleration_8h.html',1,'']]],
+  ['newtonian_5fap',['Newtonian_Ap',['../namespaceNTA.html#a5596f8660861d6e23c0827e381908641',1,'NTA']]],
+  ['newtonian_5faw',['Newtonian_AW',['../namespaceNTA.html#aecd205ef07c4302cd04d04218c4426e6',1,'NTA']]],
+  ['newtonian_5fkepler_5fperiod',['Newtonian_kepler_period',['../namespaceNTA.html#a809fe56903f4b0cd75feaa9db6a37ded',1,'NTA']]],
+  ['newtonian_5fpars',['Newtonian_pars',['../classNTA_1_1Newtonian__pars.html#a350f6c6c5eaec1520604955ee32cd94b',1,'NTA::Newtonian_pars']]],
+  ['newtonian_5fpars',['Newtonian_pars',['../classNTA_1_1Newtonian__pars.html',1,'NTA']]],
+  ['nta',['NTA',['../namespaceNTA.html',1,'']]],
+  ['num',['num',['../classARC_1_1chaininfo.html#a4c85d251b74ed69a458e1b33b9f1173c',1,'ARC::chaininfo']]]
 ];

@@ -1,0 +1,33 @@
+\hypertarget{Newtonian__acceleration_8h}{}\section{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+Newtonian\+\_\+acceleration.h File Reference}
+\label{Newtonian__acceleration_8h}\index{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+Newtonian\+\_\+acceleration.\+h@{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+Newtonian\+\_\+acceleration.\+h}}
+{\ttfamily \#include $<$cstdlib$>$}\newline
+{\ttfamily \#include $<$cmath$>$}\newline
+Include dependency graph for Newtonian\+\_\+acceleration.\+h\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=232pt]{Newtonian__acceleration_8h__incl}
+\end{center}
+\end{figure}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classNTA_1_1Newtonian__pars}{N\+T\+A\+::\+Newtonian\+\_\+pars}
+\begin{DoxyCompactList}\small\item\em Newtonian Interaction and time transformation function parameter class. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+ \hyperlink{namespaceNTA}{N\+TA}
+\begin{DoxyCompactList}\small\item\em Namespace for Newtonian Interaction related functions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{namespaceNTA_afeafba4c0eba0bd136281e667fe8096d}{N\+T\+A\+::calc\+\_\+kepler\+\_\+orbit\+\_\+par} (double \&semi, double \&peri, double \&ecc, const double m, const double dx\mbox{[}3\mbox{]}, const double dv\mbox{[}3\mbox{]})
+\begin{DoxyCompactList}\small\item\em Calculate parameters of two-\/body motion. \end{DoxyCompactList}\item 
+int \hyperlink{namespaceNTA_aecd205ef07c4302cd04d04218c4426e6}{N\+T\+A\+::\+Newtonian\+\_\+\+AW} (double Aij\mbox{[}3\mbox{]}, double \&Pij, double p\+Wij\mbox{[}3\mbox{]}, double \&Wij, const double xij\mbox{[}3\mbox{]}, const double \&mi, const double \&mj, const Newtonian\+\_\+pars $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration and $\partial W_{ij}/\partial \mathbf{x}_i$ from particle j to particle i (function type of \hyperlink{}{A\+R\+C\+::pair\+\_\+\+AW}) \end{DoxyCompactList}\item 
+void \hyperlink{namespaceNTA_a5596f8660861d6e23c0827e381908641}{N\+T\+A\+::\+Newtonian\+\_\+\+Ap} (double Aij\mbox{[}3\mbox{]}, double \&Pij, const double xi\mbox{[}3\mbox{]}, const double xp\mbox{[}3\mbox{]}, const double \&mi, const double \&mp, const Newtonian\+\_\+pars $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration from particle p to particle i (function type of \+::\+A\+R\+C\+::pair\+\_\+\+Ap) \end{DoxyCompactList}\item 
+double \hyperlink{namespaceNTA_a809fe56903f4b0cd75feaa9db6a37ded}{N\+T\+A\+::\+Newtonian\+\_\+kepler\+\_\+period} (const double m1, const double m2, const double X\mbox{[}3\mbox{]}, const double V\mbox{[}3\mbox{]}, const Newtonian\+\_\+pars $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Newtonian two-\/body kepler period. \end{DoxyCompactList}\end{DoxyCompactItemize}

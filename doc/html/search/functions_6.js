@@ -1,8 +1,25 @@
 var searchData=
 [
-  ['init',['init',['../classARC_1_1chain.html#aa016cf633d19079dca24565b80a36a3f',1,'ARC::chain::init()'],['../classARC_1_1chainlist.html#a84a2c65edf27bd25254e188ebf7d5dce',1,'ARC::chainlist::init()']]],
-  ['initpext',['initPext',['../classARC_1_1chain.html#a8e31c6a438a72d322889d0ca82fa6bf8',1,'ARC::chain']]],
-  ['ischain',['isChain',['../classARC_1_1chainlist.html#a192f6db3659e5329d137de18c8c4b029',1,'ARC::chainlist']]],
-  ['ispmod',['isPmod',['../classARC_1_1chain.html#a9ed7067050141069bc98dccf8f7ab9d0',1,'ARC::chain']]],
-  ['isporigin',['isPorigin',['../classARC_1_1chain.html#afd0342ec9b20a318d811f3ec0f6c9950',1,'ARC::chain']]]
+  ['get_5fint_5fpar',['get_int_par',['../classARC_1_1chain.html#af9bdf54999606c0d6f32843f0d53d8c4',1,'ARC::chain']]],
+  ['getabg',['getabg',['../classARC_1_1chainpars.html#ab248ae7b53ef1942880870710267fa36',1,'ARC::chainpars']]],
+  ['getautostep',['getAutoStep',['../classARC_1_1chainpars.html#a45191e5e22c1b080572b1ffc75f87c2c',1,'ARC::chainpars']]],
+  ['getdenintpmax',['getDenIntpmax',['../classARC_1_1chainpars.html#a6f3911d5f88ce35ae167f27fc96259c8',1,'ARC::chainpars']]],
+  ['getekin',['getEkin',['../classARC_1_1chain.html#aec4fe3207a5fe2d0a254bdd4bb54ae7f',1,'ARC::chain']]],
+  ['getintp',['getIntp',['../classARC_1_1chainpars.html#a1b8acf4c95dcb454d5c3f6aaaeb1b358',1,'ARC::chainpars']]],
+  ['getiter',['getIter',['../classARC_1_1chainpars.html#a12c79f1a146b4744460f3a21805cccd4',1,'ARC::chainpars']]],
+  ['getmass',['getMass',['../classParticle.html#a2576aff503f68e78ced91406512b1255',1,'Particle']]],
+  ['getmassall',['getMassAll',['../classARC_1_1chainlist.html#a5da7d970dfac2bb11f59d07c1d808f8e',1,'ARC::chainlist']]],
+  ['getn',['getN',['../classARC_1_1chain.html#a582ad9ae8003400e06bba908d70d60d9',1,'ARC::chain::getN()'],['../classARC_1_1chainlist.html#a2ed7858b13620c086e2e52b5b8d8020c',1,'ARC::chainlist::getN()']]],
+  ['getnchain',['getNchain',['../classARC_1_1chainlist.html#a1906d1caadfc424bbb6bd17a50affce9',1,'ARC::chainlist']]],
+  ['getnmax',['getNmax',['../classARC_1_1chainlist.html#a60cec732dad13b91f7835fc0cd604e5f',1,'ARC::chainlist']]],
+  ['getp',['getP',['../classARC_1_1chain.html#ad8bacf5ad6ea0bb31bdb457e4c626701',1,'ARC::chain']]],
+  ['getpext',['getPext',['../classARC_1_1chain.html#a992795e009faf43b59fc338350ae210c',1,'ARC::chain']]],
+  ['getpos',['getPos',['../classParticle.html#a4ec76421cddd91b1f27357fb182f6923',1,'Particle']]],
+  ['getpot',['getPot',['../classARC_1_1chain.html#ade5db39891ff7a2d10ac38786ab866c1',1,'ARC::chain']]],
+  ['getpt',['getPt',['../classARC_1_1chain.html#a1404204bd5665aa2d12d57cf653b779c',1,'ARC::chain']]],
+  ['getseq',['getSeq',['../classARC_1_1chainpars.html#af38efb14e24c1e85d48c8e6bbfa7479a',1,'ARC::chainpars']]],
+  ['getsub',['getSub',['../classARC_1_1chainlist.html#a4ded066f2323845befd92b1109ccdeb0',1,'ARC::chainlist']]],
+  ['gettime',['getTime',['../classARC_1_1chain.html#ad21bc515c01cf62e65d6d749d8babd63',1,'ARC::chain']]],
+  ['getvel',['getVel',['../classParticle.html#ab3d63df7f8c22f232b096ae33b6ea3ac',1,'Particle']]],
+  ['getw',['getW',['../classARC_1_1chain.html#abcfc20c1694a1d68a324ea9a08863af3',1,'ARC::chain::getW() const'],['../classARC_1_1chain.html#abdd62eb43e4a7b5eca10190c90ed190f',1,'ARC::chain::getw() const']]]
 ];

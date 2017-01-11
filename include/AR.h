@@ -743,11 +743,11 @@ public:
 
   //! status message
   /*!
-    Output the status message, for status 1 to 4, the error messages are output. The status number includes the return value of user-defined acceleration functions.
+    Output the status message, for status 1 to 5, the error messages are output. The status number includes the return value of user-defined acceleration functions.
     @param[in] fout: ofstream for printing
     @param[in] precision: printed precision for one variable
     @param[in] stat: user-defined status number (non-zero value)
-    @param[in] message: user-defined status corresponding output message), this will overlap defaulted message when \a stat=1 to 4
+    @param[in] message: user-defined status corresponding output message), this will overlap defaulted message when \a stat=1 to 5
    */
   void ErrMessage(std::ostream & fout, const int precision=10, const int stat=0, char* message=NULL) {
     if (stat!=0&&status==stat) fout<<"Status ["<<stat<<"]: "<<message<<std::endl;

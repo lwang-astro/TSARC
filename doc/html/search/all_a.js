@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['operator_5b_5d',['operator[]',['../classARC_1_1chainlist.html#a256df9d527eb305e14207f1ae476685c',1,'ARC::chainlist']]]
+  ['mm2',['mm2',['../classNTA_1_1Newtonian__pars.html#a2dbcde3115bdf43e8fcec4626e7ee5bb',1,'NTA::Newtonian_pars']]]
 ];

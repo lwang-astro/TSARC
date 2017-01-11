@@ -30,7 +30,7 @@
 </g>
 <!-- Node30 -->
 <g id="node3" class="node"><title>Node30</title>
-<g id="a_node3"><a xlink:href="classARC_1_1chain.html#a0eb7768cb1b9099bbf66124d4c00164c" target="_top" xlink:title="Extrapolation integration. ">
+<g id="a_node3"><a xlink:href="classARC_1_1chain.html#ae4d0002cceee2397101a43b3755f927e" target="_top" xlink:title="Extrapolation integration. ">
 <polygon fill="white" stroke="black" points="311,-0.5 311,-30.5 439,-30.5 439,-0.5 311,-0.5"/>
 <text text-anchor="start" x="319" y="-18.5" font-family="FreeSans" font-size="10.00">ARC::chain::extrapolation</text>
 <text text-anchor="middle" x="375" y="-7.5" font-family="FreeSans" font-size="10.00">_integration</text>

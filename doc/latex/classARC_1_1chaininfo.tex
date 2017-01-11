@@ -1,0 +1,319 @@
+\hypertarget{classARC_1_1chaininfo}{}\section{A\+RC\+:\+:chaininfo Class Reference}
+\label{classARC_1_1chaininfo}\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+
+
+class for storing the information of chain (for decision making)  
+
+
+
+
+{\ttfamily \#include $<$A\+R.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classARC_1_1chaininfo_a9e67e1e081f3a09d8c8bec3b55d108d1}{chaininfo} (const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em constructor \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chaininfo_ae65957f4d894671dd467a376b898e1a5}{clear} ()
+\begin{DoxyCompactList}\small\item\em reset function \end{DoxyCompactList}\item 
+\hyperlink{classARC_1_1chaininfo_aca51a64943e31e1ac33473fb90c39a17}{$\sim$chaininfo} ()
+\begin{DoxyCompactList}\small\item\em destructor \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chaininfo_a75c849e7360a20d88934079a8f5d75f4}{print} (std\+::ostream \&fout, const int precision=10)
+\begin{DoxyCompactList}\small\item\em print chain information \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chaininfo_a07ad3dcb9540f02984195045357166b0}{Err\+Message} (std\+::ostream \&fout, const int precision=10, const int stat=0, char $\ast$message=N\+U\+LL)
+\begin{DoxyCompactList}\small\item\em status message \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{classARC_1_1chaininfo_a64ae72bf5fd209d92b95393826f2a358}{status}
+\begin{DoxyCompactList}\small\item\em current status of integration \end{DoxyCompactList}\item 
+int \hyperlink{classARC_1_1chaininfo_a0bd3d3a4b97bba8fa1baea9f077f30a7}{intcount}
+\begin{DoxyCompactList}\small\item\em current extrapolation sequence index when an accident happen \end{DoxyCompactList}\item 
+int \hyperlink{classARC_1_1chaininfo_ab043612acf18c1c850737f67bcb6e141}{inti}
+\begin{DoxyCompactList}\small\item\em current number of substeps \end{DoxyCompactList}\item 
+int \hyperlink{classARC_1_1chaininfo_a50deb77aefe8f664d65f7320098d4726}{i1}
+\item 
+int \hyperlink{classARC_1_1chaininfo_a60f94a1f01c83934ad975f5d82638ef1}{i2}
+\begin{DoxyCompactList}\small\item\em index of particles causing the accident \end{DoxyCompactList}\item 
+int \hyperlink{classARC_1_1chaininfo_a4c85d251b74ed69a458e1b33b9f1173c}{num}
+\begin{DoxyCompactList}\small\item\em number of particles \end{DoxyCompactList}\item 
+double \hyperlink{classARC_1_1chaininfo_af689a2456268b30374ae6046704511f0}{ds}
+\item 
+double \hyperlink{classARC_1_1chaininfo_a3185aadb946f5d958016a35f40d0341f}{subds}
+\item 
+double \hyperlink{classARC_1_1chaininfo_a470e18cf65e805ff41ea3098da9cdd10}{subdt}
+\begin{DoxyCompactList}\small\item\em step size, substep size, substep corresponding time step \end{DoxyCompactList}\item 
+double \hyperlink{classARC_1_1chaininfo_a4c24552fe5d2005171233432f3cf3832}{toff}
+\begin{DoxyCompactList}\small\item\em physical ending time \end{DoxyCompactList}\item 
+double \hyperlink{classARC_1_1chaininfo_a83dc2c6904ccf789ac299db95fa57bc5}{perr}
+\item 
+double \hyperlink{classARC_1_1chaininfo_aa5687aa0deb33f878f2283befe978d5f}{perr0}
+\begin{DoxyCompactList}\small\item\em phase error (current and previous) \end{DoxyCompactList}\item 
+double \hyperlink{classARC_1_1chaininfo_a2a4787b1089da59e9ad8f008d211faed}{eerr}
+\item 
+double \hyperlink{classARC_1_1chaininfo_aa25da11049199a727d6d94c172ed93ae}{eerr0}
+\begin{DoxyCompactList}\small\item\em energy error (current and previous) \end{DoxyCompactList}\item 
+double \hyperlink{classARC_1_1chaininfo_a7732d57314ddb49eb996eb41056a0140}{Ekin}
+\item 
+double \hyperlink{classARC_1_1chaininfo_afcefd59678495b4fb0e42b5b481cd875}{Pot}
+\item 
+double \hyperlink{classARC_1_1chaininfo_a1072512674fc88001d6cd560a6c7d295}{W}
+\begin{DoxyCompactList}\small\item\em kinetic energy, potential energy and time transformation function \end{DoxyCompactList}\item 
+double \hyperlink{classARC_1_1chaininfo_a665c9bc8dfdac9fdee4947e8aaffd8c6}{terr}
+\begin{DoxyCompactList}\small\item\em time error \end{DoxyCompactList}\item 
+double $\ast$ \hyperlink{classARC_1_1chaininfo_aee6f50a67bbc6f5ed555faa6fe2ecf51}{data}
+\begin{DoxyCompactList}\small\item\em chain data for backuping \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+class for storing the information of chain (for decision making) 
+
+It is used to store the information when an accident happen with chain.\+status != 0. 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classARC_1_1chaininfo_a9e67e1e081f3a09d8c8bec3b55d108d1}{}\label{classARC_1_1chaininfo_a9e67e1e081f3a09d8c8bec3b55d108d1} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!chaininfo@{chaininfo}}
+\index{chaininfo@{chaininfo}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{chaininfo()}{chaininfo()}}
+{\footnotesize\ttfamily A\+R\+C\+::chaininfo\+::chaininfo (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+constructor 
+
+Set all variables to infinity 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em n} & number of particles \\
+\hline
+\end{DoxyParams}
+\hypertarget{classARC_1_1chaininfo_aca51a64943e31e1ac33473fb90c39a17}{}\label{classARC_1_1chaininfo_aca51a64943e31e1ac33473fb90c39a17} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!````~chaininfo@{$\sim$chaininfo}}
+\index{````~chaininfo@{$\sim$chaininfo}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{$\sim$chaininfo()}{~chaininfo()}}
+{\footnotesize\ttfamily A\+R\+C\+::chaininfo\+::$\sim$chaininfo (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+destructor 
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classARC_1_1chaininfo_ae65957f4d894671dd467a376b898e1a5}{}\label{classARC_1_1chaininfo_ae65957f4d894671dd467a376b898e1a5} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!clear@{clear}}
+\index{clear@{clear}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{clear()}{clear()}}
+{\footnotesize\ttfamily void A\+R\+C\+::chaininfo\+::clear (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+reset function 
+
+Notice the data will not be deleted. \hypertarget{classARC_1_1chaininfo_a07ad3dcb9540f02984195045357166b0}{}\label{classARC_1_1chaininfo_a07ad3dcb9540f02984195045357166b0} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!Err\+Message@{Err\+Message}}
+\index{Err\+Message@{Err\+Message}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{Err\+Message()}{ErrMessage()}}
+{\footnotesize\ttfamily void A\+R\+C\+::chaininfo\+::\+Err\+Message (\begin{DoxyParamCaption}\item[{std\+::ostream \&}]{fout,  }\item[{const int}]{precision = {\ttfamily 10},  }\item[{const int}]{stat = {\ttfamily 0},  }\item[{char $\ast$}]{message = {\ttfamily NULL} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+status message 
+
+Output the status message, for status 1 to 5, the error messages are output. The status number includes the return value of user-\/defined acceleration functions. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em fout} & ofstream for printing \\
+\hline
+\mbox{\tt in}  & {\em precision} & printed precision for one variable \\
+\hline
+\mbox{\tt in}  & {\em stat} & user-\/defined status number (non-\/zero value) \\
+\hline
+\mbox{\tt in}  & {\em message} & user-\/defined status corresponding output message), this will overlap defaulted message when {\itshape stat=1} to 5 \\
+\hline
+\end{DoxyParams}
+\hypertarget{classARC_1_1chaininfo_a75c849e7360a20d88934079a8f5d75f4}{}\label{classARC_1_1chaininfo_a75c849e7360a20d88934079a8f5d75f4} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!print@{print}}
+\index{print@{print}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{print()}{print()}}
+{\footnotesize\ttfamily void A\+R\+C\+::chaininfo\+::print (\begin{DoxyParamCaption}\item[{std\+::ostream \&}]{fout,  }\item[{const int}]{precision = {\ttfamily 10} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+print chain information 
+
+Print chain information 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em fout} & ofstream for printing \\
+\hline
+\mbox{\tt in}  & {\em precision} & printed precision for one variable \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Data Documentation}
+\hypertarget{classARC_1_1chaininfo_aee6f50a67bbc6f5ed555faa6fe2ecf51}{}\label{classARC_1_1chaininfo_aee6f50a67bbc6f5ed555faa6fe2ecf51} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!data@{data}}
+\index{data@{data}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{data}{data}}
+{\footnotesize\ttfamily double$\ast$ A\+R\+C\+::chaininfo\+::data}
+
+
+
+chain data for backuping 
+
+\hypertarget{classARC_1_1chaininfo_af689a2456268b30374ae6046704511f0}{}\label{classARC_1_1chaininfo_af689a2456268b30374ae6046704511f0} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!ds@{ds}}
+\index{ds@{ds}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{ds}{ds}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::ds}
+
+\hypertarget{classARC_1_1chaininfo_a2a4787b1089da59e9ad8f008d211faed}{}\label{classARC_1_1chaininfo_a2a4787b1089da59e9ad8f008d211faed} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!eerr@{eerr}}
+\index{eerr@{eerr}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{eerr}{eerr}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::eerr}
+
+\hypertarget{classARC_1_1chaininfo_aa25da11049199a727d6d94c172ed93ae}{}\label{classARC_1_1chaininfo_aa25da11049199a727d6d94c172ed93ae} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!eerr0@{eerr0}}
+\index{eerr0@{eerr0}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{eerr0}{eerr0}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::eerr0}
+
+
+
+energy error (current and previous) 
+
+\hypertarget{classARC_1_1chaininfo_a7732d57314ddb49eb996eb41056a0140}{}\label{classARC_1_1chaininfo_a7732d57314ddb49eb996eb41056a0140} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!Ekin@{Ekin}}
+\index{Ekin@{Ekin}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{Ekin}{Ekin}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::\+Ekin}
+
+\hypertarget{classARC_1_1chaininfo_a50deb77aefe8f664d65f7320098d4726}{}\label{classARC_1_1chaininfo_a50deb77aefe8f664d65f7320098d4726} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!i1@{i1}}
+\index{i1@{i1}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{i1}{i1}}
+{\footnotesize\ttfamily int A\+R\+C\+::chaininfo\+::i1}
+
+\hypertarget{classARC_1_1chaininfo_a60f94a1f01c83934ad975f5d82638ef1}{}\label{classARC_1_1chaininfo_a60f94a1f01c83934ad975f5d82638ef1} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!i2@{i2}}
+\index{i2@{i2}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{i2}{i2}}
+{\footnotesize\ttfamily int A\+R\+C\+::chaininfo\+::i2}
+
+
+
+index of particles causing the accident 
+
+\hypertarget{classARC_1_1chaininfo_a0bd3d3a4b97bba8fa1baea9f077f30a7}{}\label{classARC_1_1chaininfo_a0bd3d3a4b97bba8fa1baea9f077f30a7} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!intcount@{intcount}}
+\index{intcount@{intcount}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{intcount}{intcount}}
+{\footnotesize\ttfamily int A\+R\+C\+::chaininfo\+::intcount}
+
+
+
+current extrapolation sequence index when an accident happen 
+
+\hypertarget{classARC_1_1chaininfo_ab043612acf18c1c850737f67bcb6e141}{}\label{classARC_1_1chaininfo_ab043612acf18c1c850737f67bcb6e141} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!inti@{inti}}
+\index{inti@{inti}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{inti}{inti}}
+{\footnotesize\ttfamily int A\+R\+C\+::chaininfo\+::inti}
+
+
+
+current number of substeps 
+
+\hypertarget{classARC_1_1chaininfo_a4c85d251b74ed69a458e1b33b9f1173c}{}\label{classARC_1_1chaininfo_a4c85d251b74ed69a458e1b33b9f1173c} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!num@{num}}
+\index{num@{num}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{num}{num}}
+{\footnotesize\ttfamily int A\+R\+C\+::chaininfo\+::num}
+
+
+
+number of particles 
+
+\hypertarget{classARC_1_1chaininfo_a83dc2c6904ccf789ac299db95fa57bc5}{}\label{classARC_1_1chaininfo_a83dc2c6904ccf789ac299db95fa57bc5} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!perr@{perr}}
+\index{perr@{perr}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{perr}{perr}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::perr}
+
+\hypertarget{classARC_1_1chaininfo_aa5687aa0deb33f878f2283befe978d5f}{}\label{classARC_1_1chaininfo_aa5687aa0deb33f878f2283befe978d5f} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!perr0@{perr0}}
+\index{perr0@{perr0}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{perr0}{perr0}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::perr0}
+
+
+
+phase error (current and previous) 
+
+\hypertarget{classARC_1_1chaininfo_afcefd59678495b4fb0e42b5b481cd875}{}\label{classARC_1_1chaininfo_afcefd59678495b4fb0e42b5b481cd875} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!Pot@{Pot}}
+\index{Pot@{Pot}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{Pot}{Pot}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::\+Pot}
+
+\hypertarget{classARC_1_1chaininfo_a64ae72bf5fd209d92b95393826f2a358}{}\label{classARC_1_1chaininfo_a64ae72bf5fd209d92b95393826f2a358} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!status@{status}}
+\index{status@{status}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{status}{status}}
+{\footnotesize\ttfamily int A\+R\+C\+::chaininfo\+::status}
+
+
+
+current status of integration 
+
+\hypertarget{classARC_1_1chaininfo_a3185aadb946f5d958016a35f40d0341f}{}\label{classARC_1_1chaininfo_a3185aadb946f5d958016a35f40d0341f} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!subds@{subds}}
+\index{subds@{subds}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{subds}{subds}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::subds}
+
+\hypertarget{classARC_1_1chaininfo_a470e18cf65e805ff41ea3098da9cdd10}{}\label{classARC_1_1chaininfo_a470e18cf65e805ff41ea3098da9cdd10} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!subdt@{subdt}}
+\index{subdt@{subdt}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{subdt}{subdt}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::subdt}
+
+
+
+step size, substep size, substep corresponding time step 
+
+\hypertarget{classARC_1_1chaininfo_a665c9bc8dfdac9fdee4947e8aaffd8c6}{}\label{classARC_1_1chaininfo_a665c9bc8dfdac9fdee4947e8aaffd8c6} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!terr@{terr}}
+\index{terr@{terr}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{terr}{terr}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::terr}
+
+
+
+time error 
+
+\hypertarget{classARC_1_1chaininfo_a4c24552fe5d2005171233432f3cf3832}{}\label{classARC_1_1chaininfo_a4c24552fe5d2005171233432f3cf3832} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!toff@{toff}}
+\index{toff@{toff}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{toff}{toff}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::toff}
+
+
+
+physical ending time 
+
+\hypertarget{classARC_1_1chaininfo_a1072512674fc88001d6cd560a6c7d295}{}\label{classARC_1_1chaininfo_a1072512674fc88001d6cd560a6c7d295} 
+\index{A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}!W@{W}}
+\index{W@{W}!A\+R\+C\+::chaininfo@{A\+R\+C\+::chaininfo}}
+\subsubsection{\texorpdfstring{W}{W}}
+{\footnotesize\ttfamily double A\+R\+C\+::chaininfo\+::W}
+
+
+
+kinetic energy, potential energy and time transformation function 
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\hyperlink{AR_8h}{A\+R.\+h}\end{DoxyCompactItemize}

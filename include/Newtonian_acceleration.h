@@ -3,6 +3,12 @@
 #include <cstdlib>
 #include <cmath>
 
+//! Namespace for Newtonian Interaction related functions
+/*!
+  In the special applications of N-body simulations with Newtonian gravity, the Newtonian acceleration functions should be defined. 
+  The corresponding timescale to determing the next integrating step should also be provided.
+  This is the namespace where all these functions are provided.
+*/
 namespace NTA {
 
   //! Newtonian Interaction and time transformation function parameter class

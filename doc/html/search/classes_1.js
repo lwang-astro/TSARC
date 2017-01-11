@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['particle',['Particle',['../classParticle.html',1,'']]]
+  ['newtonian_5fpars',['Newtonian_pars',['../classNTA_1_1Newtonian__pars.html',1,'NTA']]]
 ];

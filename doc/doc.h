@@ -331,12 +331,26 @@ This method can provide the interpolation polynomial function with accuracy
 
 (32) \f$ Y(x) - y(x) = O(\Delta s^{2\kappa-1}) \f$
 
+\subsubsection gbs_dense_instab Instability Issue
+
+Sometimes, when the integrated step size \f$ \Delta s \f$ is large, the interpolation may fails near the edges of the interval. 
+Especially when the maximum derivative order is high (>10), the instability may happen and create sharp peaks around the starting and ending points.
+To avoid this, the integrated step size should be controlled.
+Since there is no theoretical formula to define what is a good step size, the user should try to adjust the step size depending on the problem to solve.
+One method that can help to reduce the error is to include edge derivatives to improve the interpolation accuracy around the edges. 
+But this require more computational effort and cannot remove this issue completely.
+
+If the variables depending on \f$ s \f$ is monotonic, to detect whether an instability happen, a monotonic test can be performed when using the interpolating polynomial function. 
+Since physical time monotonically depends on \f$ s \f$, this method is very useful to avoid serious errors.
+
 \subsection step_sec Integration Step Control
 
 If we use the automatical accuracy order in extrapolation integration (the maximum sequence index \f$\kappa \f$ is determined by the error criterion), the step size \f$\Delta s\f$ can be constant with a suitable initial value.
 On the other hand, \f$ \Delta s\f$ can be also adjusted based on integration error to approach better performance.
 
-The integration error at sequence index \f$ i\f$ can be estimated as
+\subsubsection step_error Step Estimation Based On Extrapolation Error
+
+The integration error during extrapolation at sequence index \f$ i\f$ can be estimated as
 
 (33) \f$ err_i = \frac{2|T_{i,i-1} - T_{i,i}|}{\sqrt{T_{i,i-1}^2 + T_{i,i}^2}}\f$ 
 
@@ -351,9 +365,26 @@ To determine which \f$ i\f$ is best for performance, the computational effort
 
 is calculated for each \f$ i \f$, then we choose index \f$ i=k \f$ which corresponds to the mimimum \f$ C_i \f$.
 The next step is \f$ \Delta s_{new,i} \f$.
+
 This method should work with fixed accuracy order (\f$ \kappa \f$ is constant).
 But in some critial situation (close encounter), the step change may not be reduced enough to obtain accurate results. 
 This need to be treated carefully during the simulations.
+On the other hand, in some special cases that the integration cannot reach the energy criterion when reducing the step size, this algorithm will lead to an continuing decreasing of step sizes and significantly influence the performance.
+Thus the user should be very careful to use this method.
+
+\subsubsection step_kepler Step Estimation Based On Kepler Period
+
+If we assume every neighbor members in the chain are two-body systems, we can calculate the Kepler period of each pair.
+Then the mimimum period can be used to estimate the next step size (a few steps should be carried out for one period).
+This may fail if the systems are chaotic or suffering hyperbolic encounters.
+
+In the case of hyperbolic encounters, the free-fall time scale 
+
+(36) \f$ t_f = \frac{\pi}{2} \sqrt{\frac{|\mathbf{X}|^3}{2 m}} \f$
+
+can be used to estimate the next step.
+However, the instability of interpolation during dense output can easily happen with this time estimation.
+Users should be very careful when treat hyperbolic encounters.
 
 \subsection perf_sec Performance Analysis
 
@@ -362,21 +393,21 @@ For one step of Leapfrog integration, we need two half-step integration of \f$ \
 Before \f$ \mathbf{p} \f$ is integrated, the acceleration \f$ \mathbf{A} \f$ is calculated.
 If the particle number is \f$ N \f$, the computational cost is:
 
-(35) \f$ C_{LF} = C_{A,P}*N^2 + C_{Pt}*N + C_{w}*N +  2C_{p}*N + 2*C_{t} + C_{T}*N \f$
+(37) \f$ C_{LF} = C_{A,P}*N^2 + C_{Pt}*N + C_{w}*N +  2C_{p}*N + 2*C_{t} + C_{T}*N \f$
 
 where \f$ C_* \f$ correspond to the number of operations of different parts. If there is no perturbation and external force, \f$ Pt \f$ is constant and \f$ C_{Pt} = 0\f$. If TTL method is switched off, \f$ C_{w} = 0\f$.
 
 During the extrapolation integration, the Leapfrog integration is performed many times. After integration finished at each sequence \f$ n_i \f$, the extrapolation is performed.
 Thus the total cost is:
 
-(36) \f$ C_{EINT} = \sum_{i=1}^\kappa n_i*(C_{LF} + C_{EX}*(6N+3))\f$
+(38) \f$ C_{EINT} = \sum_{i=1}^\kappa n_i*(C_{LF} + C_{EX}*(6N+3))\f$
 
 where \f$ C_{EX} \f$ is the number of operations of (polynomial or rational) extrapolation function. The \f$ (6N+3) \f$ includes the variables of \f$ t \f$, \f$ Pt \f$, \f$ w \f$, \f$ \mathbf{q} \f$ and \f$ \mathbf{p} \f$.
 
 For the dense output, the high order derivates of \f$ dt/ds \f$ and their extrapolation are calculated.
 The cost is:
 
-(37) \f$ C_{DEN} = \sum_{i=1}^\kappa \sum_{j=1}^{2i-1} [2j*C_{DIFF} +  C_{EX}] \f$
+(39) \f$ C_{DEN} = \sum_{i=1}^\kappa \sum_{j=1}^{2i-1} [2j*C_{DIFF} +  C_{EX}] \f$
 
 where \f$ C_{DIFF} \f$ is the number of operations for adding one \f$ f(x) \f$ value during the computation of difference (31). 
 For the two dense output methods discussed Section \ref dense_sec, the cost formula is similar (but the \f$ \kappa \f$ can be significant difference in practice).
@@ -384,7 +415,7 @@ For the two dense output methods discussed Section \ref dense_sec, the cost form
 As we discussed in Section \ref dense_sec, we can do interpolation for all variables and the cost of dense output is \f$ C_{DEN}*(6N+3) \f$. 
 Then the cost of dense output over extrapolation integration is
 
-(38) \f$ \frac{C_{DEN}}{C_{EINT}} \approx \frac{O(\kappa^3)}{O(\langle n_i\rangle*N)} \f$
+(40) \f$ \frac{C_{DEN}}{C_{EINT}} \approx \frac{O(\kappa^3)}{O(\langle n_i\rangle*N)} \f$
 
 where \f$\langle n_i\rangle\f$ is the average \f$ n_i \f$ from \f$ i=1,\kappa\f$.
 In the case of 4k sequence, \f$\langle n_i\rangle  \propto \kappa\f$.
