@@ -1,0 +1,163 @@
+\hypertarget{namespaceNTA}{}\section{N\+TA Namespace Reference}
+\label{namespaceNTA}\index{N\+TA@{N\+TA}}
+
+
+Namespace for Newtonian Interaction related functions.  
+
+
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classNTA_1_1Newtonian__pars}{Newtonian\+\_\+pars}
+\begin{DoxyCompactList}\small\item\em Newtonian Interaction and time transformation function parameter class. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{namespaceNTA_afeafba4c0eba0bd136281e667fe8096d}{calc\+\_\+kepler\+\_\+orbit\+\_\+par} (double \&semi, double \&peri, double \&ecc, const double m, const double dx\mbox{[}3\mbox{]}, const double dv\mbox{[}3\mbox{]})
+\begin{DoxyCompactList}\small\item\em Calculate parameters of two-\/body motion. \end{DoxyCompactList}\item 
+int \hyperlink{namespaceNTA_aecd205ef07c4302cd04d04218c4426e6}{Newtonian\+\_\+\+AW} (double Aij\mbox{[}3\mbox{]}, double \&Pij, double p\+Wij\mbox{[}3\mbox{]}, double \&Wij, const double xij\mbox{[}3\mbox{]}, const double \&mi, const double \&mj, const \hyperlink{classNTA_1_1Newtonian__pars}{Newtonian\+\_\+pars} $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration and $\partial W_{ij}/\partial \mathbf{x}_i$ from particle j to particle i (function type of \hyperlink{}{A\+R\+C\+::pair\+\_\+\+AW}) \end{DoxyCompactList}\item 
+void \hyperlink{namespaceNTA_a5596f8660861d6e23c0827e381908641}{Newtonian\+\_\+\+Ap} (double Aij\mbox{[}3\mbox{]}, double \&Pij, const double xi\mbox{[}3\mbox{]}, const double xp\mbox{[}3\mbox{]}, const double \&mi, const double \&mp, const \hyperlink{classNTA_1_1Newtonian__pars}{Newtonian\+\_\+pars} $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration from particle p to particle i (function type of \+::\+A\+R\+C\+::pair\+\_\+\+Ap) \end{DoxyCompactList}\item 
+double \hyperlink{namespaceNTA_a809fe56903f4b0cd75feaa9db6a37ded}{Newtonian\+\_\+kepler\+\_\+period} (const double m1, const double m2, const double X\mbox{[}3\mbox{]}, const double V\mbox{[}3\mbox{]}, const \hyperlink{classNTA_1_1Newtonian__pars}{Newtonian\+\_\+pars} $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Newtonian two-\/body kepler period. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Namespace for Newtonian Interaction related functions. 
+
+In the special applications of N-\/body simulations with Newtonian gravity, the Newtonian acceleration functions should be defined. The corresponding timescale to determing the next integrating step should also be provided. This is the namespace where all these functions are provided. 
+
+\subsection{Function Documentation}
+\hypertarget{namespaceNTA_afeafba4c0eba0bd136281e667fe8096d}{}\label{namespaceNTA_afeafba4c0eba0bd136281e667fe8096d} 
+\index{N\+TA@{N\+TA}!calc\+\_\+kepler\+\_\+orbit\+\_\+par@{calc\+\_\+kepler\+\_\+orbit\+\_\+par}}
+\index{calc\+\_\+kepler\+\_\+orbit\+\_\+par@{calc\+\_\+kepler\+\_\+orbit\+\_\+par}!N\+TA@{N\+TA}}
+\subsubsection{\texorpdfstring{calc\+\_\+kepler\+\_\+orbit\+\_\+par()}{calc\_kepler\_orbit\_par()}}
+{\footnotesize\ttfamily void N\+T\+A\+::calc\+\_\+kepler\+\_\+orbit\+\_\+par (\begin{DoxyParamCaption}\item[{double \&}]{semi,  }\item[{double \&}]{peri,  }\item[{double \&}]{ecc,  }\item[{const double}]{m,  }\item[{const double}]{dx\mbox{[}3\mbox{]},  }\item[{const double}]{dv\mbox{[}3\mbox{]} }\end{DoxyParamCaption})}
+
+
+
+Calculate parameters of two-\/body motion. 
+
+Calcuate the basic parameters of two-\/body motions 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em semi} & semi-\/major axis \\
+\hline
+\mbox{\tt in}  & {\em peri} & period \\
+\hline
+\mbox{\tt in}  & {\em ecc} & eccentricity \\
+\hline
+\mbox{\tt in}  & {\em m} & total mass of two particles \\
+\hline
+\mbox{\tt in}  & {\em dx} & relative position \mbox{[}3\mbox{]} \\
+\hline
+\mbox{\tt in}  & {\em dv} & relative velocity \mbox{[}3\mbox{]} \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceNTA_afeafba4c0eba0bd136281e667fe8096d_icgraph}
+\end{center}
+\end{figure}
+\hypertarget{namespaceNTA_a5596f8660861d6e23c0827e381908641}{}\label{namespaceNTA_a5596f8660861d6e23c0827e381908641} 
+\index{N\+TA@{N\+TA}!Newtonian\+\_\+\+Ap@{Newtonian\+\_\+\+Ap}}
+\index{Newtonian\+\_\+\+Ap@{Newtonian\+\_\+\+Ap}!N\+TA@{N\+TA}}
+\subsubsection{\texorpdfstring{Newtonian\+\_\+\+Ap()}{Newtonian\_Ap()}}
+{\footnotesize\ttfamily void N\+T\+A\+::\+Newtonian\+\_\+\+Ap (\begin{DoxyParamCaption}\item[{double}]{Aij\mbox{[}3\mbox{]},  }\item[{double \&}]{Pij,  }\item[{const double}]{xi\mbox{[}3\mbox{]},  }\item[{const double}]{xp\mbox{[}3\mbox{]},  }\item[{const double \&}]{mi,  }\item[{const double \&}]{mp,  }\item[{const \hyperlink{classNTA_1_1Newtonian__pars}{Newtonian\+\_\+pars} $\ast$}]{pars }\end{DoxyParamCaption})}
+
+
+
+Newtonian acceleration from particle p to particle i (function type of \+::\+A\+R\+C\+::pair\+\_\+\+Ap) 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em Aij} & acceleration vector. $Aij[1:3] = m_i m_p (xp[1:3]-xi[1:3]) / |xp-xi|^3 $. \\
+\hline
+\mbox{\tt out}  & {\em Pij} & potential. $ Pij = - m_i m_p /|xp-xi|^3$ \\
+\hline
+\mbox{\tt in}  & {\em xi} & position vector i. \\
+\hline
+\mbox{\tt in}  & {\em xp} & position vector p. \\
+\hline
+\mbox{\tt in}  & {\em mi} & particle mass i. \\
+\hline
+\mbox{\tt in}  & {\em mp} & particle mass p. \\
+\hline
+\mbox{\tt in}  & {\em pars} & \hyperlink{classNTA_1_1Newtonian__pars}{Newtonian\+\_\+pars} type data (not used) \\
+\hline
+\end{DoxyParams}
+\hypertarget{namespaceNTA_aecd205ef07c4302cd04d04218c4426e6}{}\label{namespaceNTA_aecd205ef07c4302cd04d04218c4426e6} 
+\index{N\+TA@{N\+TA}!Newtonian\+\_\+\+AW@{Newtonian\+\_\+\+AW}}
+\index{Newtonian\+\_\+\+AW@{Newtonian\+\_\+\+AW}!N\+TA@{N\+TA}}
+\subsubsection{\texorpdfstring{Newtonian\+\_\+\+A\+W()}{Newtonian\_AW()}}
+{\footnotesize\ttfamily int N\+T\+A\+::\+Newtonian\+\_\+\+AW (\begin{DoxyParamCaption}\item[{double}]{Aij\mbox{[}3\mbox{]},  }\item[{double \&}]{Pij,  }\item[{double}]{p\+Wij\mbox{[}3\mbox{]},  }\item[{double \&}]{Wij,  }\item[{const double}]{xij\mbox{[}3\mbox{]},  }\item[{const double \&}]{mi,  }\item[{const double \&}]{mj,  }\item[{const \hyperlink{classNTA_1_1Newtonian__pars}{Newtonian\+\_\+pars} $\ast$}]{pars }\end{DoxyParamCaption})}
+
+
+
+Newtonian acceleration and $\partial W_{ij}/\partial \mathbf{x}_i$ from particle j to particle i (function type of \hyperlink{}{A\+R\+C\+::pair\+\_\+\+AW}) 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em Aij} & Newtonian acceleration vector for i particle from particle j. $Aij[1:3] = m_i m_j xij[1:3] / |xij|^3 $. \\
+\hline
+\mbox{\tt out}  & {\em Pij} & Newtonian potential of i from j. $ Pij = -m_i m_j /|xij| $ \\
+\hline
+\mbox{\tt out}  & {\em p\+Wij} & T\+TL time transformation function partial derivates (component from j to i) $\partial W_{ij}/\partial \mathbf{x}_i$ (used for T\+TL method). $pWij[1:3] = mm_{ij} xij[1:3] /|xij|^3 $. (Total value is $\frac{\partial W}{\partial \mathbf{x}_i} = \sum_{j} mm_{ij} \mathbf{x}_{ij}/|\mathbf{x}_{ij}|^3$) \\
+\hline
+\mbox{\tt out}  & {\em Wij} & T\+TL time transformation function component with i,j (used for T\+TL method) $Wij = mm_{ij} /|xij|^3$ total value is $ W = \sum_{i<j} mm_{ij} /|xij| $ \\
+\hline
+\mbox{\tt in}  & {\em xij} & relative position vector \mbox{[}1\+:3\mbox{]} $ \mathbf{x_j} - \mathbf{x_i} $ \\
+\hline
+\mbox{\tt in}  & {\em mi} & particle i mass. \\
+\hline
+\mbox{\tt in}  & {\em mj} & particle j mass. \\
+\hline
+\mbox{\tt in}  & {\em pars} & Newtionian\+\_\+pars type data with members\+:
+\begin{DoxyItemize}
+\item mm2\+: smooth mass coefficient $ \sum_{i<j} m_i m_j /(N(N-1)/2) $ (can be calculated by calc\+\_\+mm2()); ~\newline
+
+\item epi\+: adiustable parameter. 1) If epi$>$0\+: if $m_i m_j < epi mm2$\+: $ mm_{ij} = mm2$ else\+: $ mm_ij = 0$ 2) If epi$<$0\+: $mm_{ij} = m_i m_j$.~\newline
+
+\end{DoxyItemize}\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+status\+: 0 for normal cases; 1 for the case when two particles have same positions 
+\end{DoxyReturn}
+\hypertarget{namespaceNTA_a809fe56903f4b0cd75feaa9db6a37ded}{}\label{namespaceNTA_a809fe56903f4b0cd75feaa9db6a37ded} 
+\index{N\+TA@{N\+TA}!Newtonian\+\_\+kepler\+\_\+period@{Newtonian\+\_\+kepler\+\_\+period}}
+\index{Newtonian\+\_\+kepler\+\_\+period@{Newtonian\+\_\+kepler\+\_\+period}!N\+TA@{N\+TA}}
+\subsubsection{\texorpdfstring{Newtonian\+\_\+kepler\+\_\+period()}{Newtonian\_kepler\_period()}}
+{\footnotesize\ttfamily double N\+T\+A\+::\+Newtonian\+\_\+kepler\+\_\+period (\begin{DoxyParamCaption}\item[{const double}]{m1,  }\item[{const double}]{m2,  }\item[{const double}]{X\mbox{[}3\mbox{]},  }\item[{const double}]{V\mbox{[}3\mbox{]},  }\item[{const \hyperlink{classNTA_1_1Newtonian__pars}{Newtonian\+\_\+pars} $\ast$}]{pars }\end{DoxyParamCaption})}
+
+
+
+Newtonian two-\/body kepler period. 
+
+Use \hyperlink{namespaceNTA_afeafba4c0eba0bd136281e667fe8096d}{calc\+\_\+kepler\+\_\+orbit\+\_\+par()} to obtain the two-\/body kepler period 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em m1} & mass of particle 1 \\
+\hline
+\mbox{\tt in}  & {\em m2} & mass of particle 2 \\
+\hline
+\mbox{\tt in}  & {\em X} & relative position vector \\
+\hline
+\mbox{\tt in}  & {\em V} & relative velocity vector \\
+\hline
+\mbox{\tt in}  & {\em pars} & \hyperlink{classNTA_1_1Newtonian__pars}{Newtonian\+\_\+pars} type data (not used) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Return the period 
+\end{DoxyReturn}
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{namespaceNTA_a809fe56903f4b0cd75feaa9db6a37ded_cgraph}
+\end{center}
+\end{figure}

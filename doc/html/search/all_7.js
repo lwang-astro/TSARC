@@ -1,9 +1,6 @@
 var searchData=
 [
-  ['init',['init',['../classARC_1_1chain.html#aa016cf633d19079dca24565b80a36a3f',1,'ARC::chain::init()'],['../classARC_1_1chainlist.html#a84a2c65edf27bd25254e188ebf7d5dce',1,'ARC::chainlist::init()']]],
-  ['initpext',['initPext',['../classARC_1_1chain.html#a8e31c6a438a72d322889d0ca82fa6bf8',1,'ARC::chain']]],
-  ['int_5fpars',['Int_pars',['../classARC_1_1chain.html#ada3f98172a98cdf9a64abacfe95f9cd8',1,'ARC::chain']]],
-  ['ischain',['isChain',['../classARC_1_1chainlist.html#a192f6db3659e5329d137de18c8c4b029',1,'ARC::chainlist']]],
-  ['ispmod',['isPmod',['../classARC_1_1chain.html#a9ed7067050141069bc98dccf8f7ab9d0',1,'ARC::chain']]],
-  ['isporigin',['isPorigin',['../classARC_1_1chain.html#afd0342ec9b20a318d811f3ec0f6c9950',1,'ARC::chain']]]
+  ['h_5fopt_5ffactor',['H_opt_factor',['../namespaceEP.html#a6d54b765511d661bb4267799ff1a804f',1,'EP']]],
+  ['hermite_5finterpolation_5fcoefficients',['Hermite_interpolation_coefficients',['../namespaceEP.html#ad1bbde38ef63ce2a0672843d598770b8',1,'EP']]],
+  ['hermite_5finterpolation_5fpolynomial',['Hermite_interpolation_polynomial',['../namespaceEP.html#a10270a1ba230322545fff5bc06d94659',1,'EP']]]
 ];

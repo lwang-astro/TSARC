@@ -1,11 +1,10 @@
 var searchData=
 [
-  ['add',['add',['../classARC_1_1chainlist.html#afa780edfa301cc22cf189e63d7a59c2c',1,'ARC::chainlist::add(particle &amp;a)'],['../classARC_1_1chainlist.html#a2dba82eb1c3caa32fc76b619c5379da5',1,'ARC::chainlist::add(const std::size_t n, particle a[])'],['../classARC_1_1chainlist.html#a28fd6f0d4ba0ec36601dc92d340b2d2b',1,'ARC::chainlist::add(chain&lt; particle &gt; &amp;a)']]],
-  ['addp',['addP',['../classARC_1_1chain.html#a0f91c399beb1e5c0db6ed7e2b4d00477',1,'ARC::chain::addP(particle &amp;a)'],['../classARC_1_1chain.html#a22a0c3e8b42954edee0d2f66a27e8640',1,'ARC::chain::addP(chain&lt; particle &gt; &amp;a)'],['../classARC_1_1chain.html#a658a7b777ac45e7900990dcc6ef0b752',1,'ARC::chain::addP(const std::size_t n, particle a[])']]],
-  ['addpext',['addPext',['../classARC_1_1chain.html#a029906394e7b73881c0980c00bf978f7',1,'ARC::chain::addPext(particle &amp;a)'],['../classARC_1_1chain.html#a5ab3934ce4a203cd57bfabcc3caf54b3',1,'ARC::chain::addPext(chain&lt; particle &gt; &amp;a)'],['../classARC_1_1chain.html#a71c8d6ac1e58694b8207aabc7266110f',1,'ARC::chain::addPext(const std::size_t n, particle a[])']]],
-  ['allocate',['allocate',['../classARC_1_1chain.html#ad0abd7b957e9d88ad2f1823f06d28a4a',1,'ARC::chain']]],
+  ['add',['add',['../classARC_1_1chainlist.html#ab04a5742cd27168e0404e57a67d6afd1',1,'ARC::chainlist::add(particle &amp;a)'],['../classARC_1_1chainlist.html#a4a9de54b724e9c911465a5e583dc9158',1,'ARC::chainlist::add(const std::size_t n, particle a[])'],['../classARC_1_1chainlist.html#a0ffdf904f629c77ad75eb4f6f5116ab7',1,'ARC::chainlist::add(chain&lt; particle, int_par &gt; &amp;a)']]],
+  ['addp',['addP',['../classARC_1_1chain.html#a6af4a9c65329265a45f0210c104fa96a',1,'ARC::chain::addP(particle &amp;a)'],['../classARC_1_1chain.html#abf446295cee9e550c32d64e575f68d04',1,'ARC::chain::addP(chain&lt; particle, int_par &gt; &amp;a)'],['../classARC_1_1chain.html#a2cd246cb307b8f04766c625de851ff52',1,'ARC::chain::addP(const std::size_t n, particle a[])']]],
+  ['addpext',['addPext',['../classARC_1_1chain.html#ab6892980b326bd0bbe8a873a71892801',1,'ARC::chain::addPext(particle &amp;a)'],['../classARC_1_1chain.html#a964e4afb654f3d380969aa2326a287cc',1,'ARC::chain::addPext(chain&lt; particle, int_par &gt; &amp;a)'],['../classARC_1_1chain.html#a6b5cf35f505262d9d2326abb2904d91d',1,'ARC::chain::addPext(const std::size_t n, particle a[])']]],
+  ['allocate',['allocate',['../classARC_1_1chain.html#a0c3c1daffa75873b39d9964eebc6566f',1,'ARC::chain::allocate()'],['../classARC_1_1chainlist.html#a79dfad1e9aeafcee55a28983f8eaffbe',1,'ARC::chainlist::allocate()']]],
   ['ar_2eh',['AR.h',['../AR_8h.html',1,'']]],
   ['arc',['ARC',['../namespaceARC.html',1,'']]],
-  ['auto_5fstep',['auto_step',['../classARC_1_1chainpars.html#a9fc7b9a8ce26c24cf95f53bdc80924c7',1,'ARC::chainpars']]],
   ['arc_20introduction',['ARC Introduction',['../index.html',1,'']]]
 ];

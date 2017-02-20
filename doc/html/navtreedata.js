@@ -15,9 +15,13 @@ var NAVTREE =
         [ "Extrapolation Integrator", "index.html#extrapolation_sec", null ],
         [ "Dense Output for Time Synchronization", "index.html#dense_sec", [
           [ "Dense Output for explicit Euler", "index.html#euler_dense_sec", null ],
-          [ "Dense Output for Gragg-Bulirsch-Stoer", "index.html#gbs_dense_sec", null ]
+          [ "Dense Output for Gragg-Bulirsch-Stoer", "index.html#gbs_dense_sec", null ],
+          [ "Instability Issue", "index.html#gbs_dense_instab", null ]
         ] ],
-        [ "Integration Step Control", "index.html#step_sec", null ],
+        [ "Integration Step Control", "index.html#step_sec", [
+          [ "Step Estimation Based On Extrapolation Error", "index.html#step_error", null ],
+          [ "Step Estimation Based On Kepler Period", "index.html#step_kepler", null ]
+        ] ],
         [ "Performance Analysis", "index.html#perf_sec", null ]
       ] ]
     ] ],
@@ -25,8 +29,7 @@ var NAVTREE =
       [ "Namespace List", "namespaces.html", "namespaces" ],
       [ "Namespace Members", "namespacemembers.html", [
         [ "All", "namespacemembers.html", null ],
-        [ "Functions", "namespacemembers_func.html", null ],
-        [ "Typedefs", "namespacemembers_type.html", null ]
+        [ "Functions", "namespacemembers_func.html", null ]
       ] ]
     ] ],
     [ "Classes", "annotated.html", [
@@ -35,6 +38,7 @@ var NAVTREE =
         [ "All", "functions.html", null ],
         [ "Functions", "functions_func.html", null ],
         [ "Variables", "functions_vars.html", null ],
+        [ "Typedefs", "functions_type.html", null ],
         [ "Related Functions", "functions_rela.html", null ]
       ] ]
     ] ],

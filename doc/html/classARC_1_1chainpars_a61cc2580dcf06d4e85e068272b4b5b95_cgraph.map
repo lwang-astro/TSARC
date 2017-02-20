@@ -1,0 +1,7 @@
+<map id="ARC::chainpars::setIterSeq" name="ARC::chainpars::setIterSeq">
+<area shape="rect" id="node2" href="$namespaceEP.html#afaef3617ed3fb4ad4627c19e955c5457" title="Generate Romberg (even) sequence {h, h/2, h/4, h/8 ...}. " alt="" coords="247,5,373,32"/>
+<area shape="rect" id="node3" href="$namespaceEP.html#a1c85d6f300251929ac82736e54760652" title="Generate Bulirsch &amp; Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}. " alt="" coords="266,56,354,83"/>
+<area shape="rect" id="node4" href="$namespaceEP.html#a691e74f494e1137b68389a2bd93f92c0" title="Generate E. Hairer (4k) sequences {h/2, h/6, h/10, h/14 ...}. " alt="" coords="256,107,364,133"/>
+<area shape="rect" id="node5" href="$namespaceEP.html#a6197a74bc7ca232ffcc84872d8f4f779" title="Generate Harmonic sequence {h, h/2, h/3, h/4 ...}. " alt="" coords="247,157,373,184"/>
+<area shape="rect" id="node6" href="$namespaceEP.html#a92c709f3757c872402d2fcf954c3e2de" title="Binomial coefficients generator. " alt="" coords="233,209,387,250"/>
+</map>
