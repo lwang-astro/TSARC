@@ -9,4 +9,8 @@ particle.h: a example particle class can be used for template class chain.
 
 In doc directory, html and latex format of Doxygen documents for all these three header files can be found with detailed description of the API.
 
-In sample directory, a sample code is implemented which can be used to integrate few body systems with ARC methods. Use 'Make', the executable file "chain" will be generated. Using './chain -h', the user can get the idea how to use this sample code.
+In sample directory, two sample codes are provided.
+The 'chain' program can read particle data and integrate the orbits using ARC library.
+The 'hierarchy' program can read kepler orbital parameters and generate hierarchical few-body systems and do integration using ARC.
+Using 'Make chain' and 'Make hierarchy', these programs can be compiled individually.
+For the details of how to use them, using './chain -h' or './hierarchy -h'.

@@ -1,5 +1,5 @@
 ## TARGET
-TARGET=chain tree
+TARGET=chain hierarchy
 
 VPATH=../include
 

@@ -3411,6 +3411,14 @@ public:
   double getW() const {
     return W;
   }
+
+  //! Get chain list
+  /*! Obtain the chain list index ordered by the nearest distances of particles.
+    @param[out] indexlist: integer array to store the chain list (size of num)
+   */
+  void getList(int* indexlist) {
+    std::memcpy(indexlist,list,num*sizeof(std::size_t));
+  }
   
   //! print chain data
   /*! Print chain data 
