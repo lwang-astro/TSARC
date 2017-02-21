@@ -4,156 +4,20 @@
 #include <iostream>
 #include <fstream>
 #include <getopt.h>
+#include "ptree.h"
 
-Particle pshift(const Particle &a, const Particle &ref) {
-  return Particle(a.getMass(),
-                  a.getPos()[0]+ref.getPos()[0],
-                  a.getPos()[1]+ref.getPos()[1],
-                  a.getPos()[2]+ref.getPos()[2],
-                  a.getVel()[0]+ref.getVel()[0],
-                  a.getVel()[1]+ref.getVel()[1],
-                  a.getVel()[2]+ref.getVel()[2]);
-}
+/// print Kepler orbit parameters
 
-//Particle center_of_mass(const Particle &a, const Particle &b) {
-//  double m1 = a.getMass();
-//  double m2 = b.getMass();
-//  double m = m1+m2;
-//  double* x1 = a.getPos();
-//  double* x2 = b.getPos();
-//  double* v1 = a.getVel();
-//  double* v2 = b.getVel();
-//  return Particle(m,
-//                  (x1[0]*m1+x2[0]*m2)/m,
-//                  (x1[1]*m1+x2[1]*m2)/m,
-//                  (x1[2]*m1+x2[2]*m2)/m,
-//                  (v1[0]*m1+v2[0]*m2)/m,
-//                  (v1[1]*m1+v2[1]*m2)/m,
-//                  (v1[2]*m1+v2[2]*m2)/m);
-//}
-            
-
-struct ptree{
-private:
-  void* p[2];
-  bool lp[2];
-  bool collflag;
-
-  
+struct print_pars{
 public:
-  ptree(const Particle& a, const Particle& b): collflag(false) {
-    fill(a,b);
-  }
+  double w,pre;
+};
 
-  ptree(): collflag(false) {p[0]=p[1]=NULL; lp[0]=lp[1]=false;}
-
-  ~ptree() {clear();}
-
-  void clear() {
-    for (std::size_t i=0; i<2; i++) {
-      if(lp[i]) {
-        ((ptree*)p[i])->clear();
-        lp[i]=false;
-      }
-      else if(p[i]!=NULL) {
-        if(!collflag) delete (Particle*)p[i];
-        p[i]=NULL;
-      }
-    }
-  }
-      
-  /// fill particles to two branches
-  /*!
-    @param[in] a: left particle
-    @param[in] b: right particle
-    \return If the branches are already filled (failure), return false, else true
-   */
-  bool fill(const Particle &a, const Particle &b) {
-    if(p[0]==NULL) p[0]=new Particle(a);
-    else return false;
-    if(p[1]==NULL) p[1]=new Particle(b);
-    else return false;
-    lp[0]=lp[1]=false;
-    return true;
-  }
-
-  bool split(const std::size_t i, const Particle &a, const Particle &b) {
-    if(i<0||i>1) return false;
-    if(!lp[i]) {
-      if(p[i]!=NULL) {
-        Particle* tmp=(Particle*)p[i];
-        p[i]=new ptree;
-        bool fg=((ptree*)p[i])->fill(pshift(a,*tmp),pshift(b,*tmp));
-        delete tmp;
-        if (!fg) return false;
-      }
-      else {
-        p[i]=new ptree;
-        bool fg=((ptree*)p[i])->fill(a,b);
-        if (!fg) return false;
-      }
-      lp[i]=true;
-      return true;
-    }
-    else return false;
-  }
-
-  /// add particle pair at the ending branch
-  /*!
-    @param[in] id: level of the tree, top level is 0
-    @param[in] ib: branch index, counting from 0 from left to right
-    @param[in] a: particle one
-    @param[in] b: particle two
-    \return true: successful adding
-   */
-  bool link(const std::size_t id, const std::size_t ib, const Particle &a, const Particle &b) {
-    if(id>1) {
-      if(lp[ib/id]) return ((ptree*)(this->p[ib/id]))->link(id-1,ib%id,a,b);
-      else return false;
-    }
-    else if(id==1) return this->split(ib,a,b);
-    else return this->fill(a,b);
-  }
-
-  /// collect particles into plist and link to it
-  /*! Scan tree and push back particles into plist, then delete the branch particle and link the corresponding particle address in plist. Thus this function is used to moving particle data memory from tree branch to plist array.
-    @param[in] plist: particle type data array
-    @param[in] n: plist array size (maximum particle number that can be stored)
-    \return remaining empty number in plist
-   */
-  int collect(Particle plist[], const int n) {
-    collflag=true;
-    if (n<0) return n;
-    int k=n; //remaining number
-    for (std::size_t i=0; i<2; i++) {
-      if(lp[i]) k=((ptree*)(this->p[i]))->collect(&plist[n-k],k);
-      else if(k>0) {
-        plist[n-k].set(*(Particle*)p[i]);
-        delete (Particle*)p[i];
-        p[i] = &plist[n-k];
-        k--;
-      }
-      else return -1;
-    }
-    return k;
-  }
-
-  /// print Kepler orbit parameters
-  /*!
-    \return return the center-of-mass of the current tree pair
-   */
-  Particle kepler_print(const int id, const int ib, const double w, const double pre){
+Particle kepler_print(const std::size_t id, const std::size_t ib, Particle* c[2], print_pars& ppars){
     const double* x[2];
     const double* v[2];
-    Particle* c[2];
-    bool newflag[2]={false};
     double m[2];
     for (std::size_t i=0; i<2; i++) {
-      if(lp[i]) {
-        c[i]=new Particle(((ptree*)p[i])->kepler_print(id+1, (i==0?ib:ib+id+1),w,pre));
-        newflag[i]=true;
-      }
-      else c[i]=(Particle*)p[i];
       x[i]=c[i]->getPos();
       v[i]=c[i]->getVel();
       m[i]=c[i]->getMass();
@@ -165,17 +29,17 @@ public:
     double mt = m[0]+m[1];
     
     NTA::calc_kepler_orbit_par(ax,per,ecc,angle,true_anomaly,ecc_anomaly,mean_anomaly,mt,dx,dv);
-    std::cout<<std::setw(w)<<id
-             <<std::setw(w)<<ib
-             <<std::setw(w)<<ax
-             <<std::setw(w)<<ecc
-             <<std::setw(w)<<per
-             <<std::setw(w)<<angle[0]
-             <<std::setw(w)<<angle[1]
-             <<std::setw(w)<<angle[2]
-             <<std::setw(w)<<ecc_anomaly
-             <<std::setw(w)<<true_anomaly
-             <<std::setw(w)<<mean_anomaly;
+    std::cout<<std::setw(ppars.w)<<id
+             <<std::setw(ppars.w)<<ib
+             <<std::setw(ppars.w)<<ax
+             <<std::setw(ppars.w)<<ecc
+             <<std::setw(ppars.w)<<per
+             <<std::setw(ppars.w)<<angle[0]
+             <<std::setw(ppars.w)<<angle[1]
+             <<std::setw(ppars.w)<<angle[2]
+             <<std::setw(ppars.w)<<ecc_anomaly
+             <<std::setw(ppars.w)<<true_anomaly
+             <<std::setw(ppars.w)<<mean_anomaly;
 
     double xcm[3]={(x[0][0]*m[0]+x[1][0]*m[1])/mt, 
                   (x[0][1]*m[0]+x[1][1]*m[1])/mt, 
@@ -183,12 +47,9 @@ public:
     double vcm[3]={(v[0][0]*m[0]+v[1][0]*m[1])/mt, 
                    (v[0][1]*m[0]+v[1][1]*m[1])/mt, 
                    (v[0][2]*m[0]+v[1][2]*m[1])/mt};
-    for (int i=0;i<2;i++) if(newflag[i]) delete c[i];
 
     return Particle(mt,xcm,vcm);
-  }
-
-};
+}
 
 void chain_print(const ARC::chain<Particle,NTA::Newtonian_pars> &c, const double ds, const double w, const double pre) {
   // printing digital precision
@@ -273,7 +134,7 @@ int main(int argc, char **argv){
   fs>>N;
   Particle p[N];
   
-  ptree plist;
+  ptree<Particle, print_pars> plist;
   for(int i=0;i<N-1;i++) {
     int id,ib;
     double m1,m2,ax,ecc,angle[3],ecc_anomaly;
@@ -317,8 +178,12 @@ int main(int argc, char **argv){
   c.init(0.0);
 
   // printing data
-  chain_print(c,0,18,10);
-  plist.kepler_print(0,0,18,10);
+  print_pars pw;
+  pw.w=18; //width
+  pw.pre=10; //precision
+  
+  chain_print(c,0,pw.w,pw.pre);
+  plist.pair_process(0,0,kepler_print,pw);
   std::cout<<std::endl;
 
   // step size
@@ -330,8 +195,8 @@ int main(int argc, char **argv){
       c.info->ErrMessage(std::cerr);
       abort();
     }
-    chain_print(c,ds,18,10);
-    plist.kepler_print(0,0,18,10);
+    chain_print(c,ds,pw.w,pw.pre);
+    plist.pair_process(0,0,kepler_print,pw);
     std::cout<<std::endl;
   }
   
