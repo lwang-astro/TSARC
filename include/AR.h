@@ -1411,7 +1411,7 @@ private:
     if (np>0) {
       for (std::size_t i=0;i<num;i++) {
         for (std::size_t j=0;j<3;j++) pf[i][j] = 0.0;
-        for (std::size_t j=0;j<np;j++) {
+        for (std::size_t j=0;j<(std::size_t)np;j++) {
           double3 At={0};
           double Pt;
           const particle* pi=&p[i];
@@ -1735,7 +1735,7 @@ private:
     // safety check
     if (dpoly!=NULL) {
       // difference level should not exceed the point number
-      if (2*nmax>ndiv) {
+      if (2*nmax>(std::size_t)ndiv) {
         std::cerr<<"Error: maximum difference order "<<nmax<<" *2 > total step number "<<ndiv<<"!\n";
         abort();
       }
@@ -1758,7 +1758,7 @@ private:
         
         int** binI = pars->bin_index;
         // formula delta^n f(x) = sum_ik=0,n (-1)^(n-ik) (n n-ik) f(x+2*ik*h)
-        for (int j=0; j<nmax; j++) {
+        for (std::size_t j=0; j<nmax; j++) {
           if ((i%2&&j%2)||(i%2==0&&j%2==0)) {
             // n=j+1 indicate the difference degree (first difference is j=0)
             const int n=j+1;
@@ -1802,7 +1802,7 @@ private:
       @param [in] ndiv: substep number
 t)
    */
-  void edge_diff_calc(double **dpoly, const int nmax, const std::size_t i, const int ndiv) {
+  void edge_diff_calc(double **dpoly, const int nmax, const int i, const int ndiv) {
     if (dpoly!=NULL) {
       // safety check
 //      if (!tflag) {
@@ -1889,11 +1889,11 @@ t)
   void diff_dev_calc(double **dpoly, const double h, const int nmax, const int dsize) {
     double hn = h;
     // loop difference order from 1 to nmax
-    for (std::size_t i=0; i<nmax; i++) {
+    for (int i=0; i<nmax; i++) {
 #ifdef DEBUG
       std::cerr<<"Diff order "<<i<<"; h="<<hn<<"; nmax="<<nmax<<std::endl;
 #endif
-      for (std::size_t j=0; j<dsize; j++) dpoly[i][j] /= hn;
+      for (int j=0; j<dsize; j++) dpoly[i][j] /= hn;
       hn *= h;
     }
   }
@@ -2584,7 +2584,7 @@ public:
                                                
     
     // integration loop
-    for (std::size_t i=0;i<n;i++) {
+    for (int i=0;i<n;i++) {
       // half step forward for t (dependence: Ekin, Pt, w)
       double dt = calc_dt_X(ds*0.5);
 
@@ -2875,7 +2875,7 @@ public:
         // pd[][*]: * storage f(x) and difference
         pd[intcount] = new double*[ndmax[intcount]];
         // pd[][][*]: * storage data (t, Pt, w, X, V)
-        for (std::size_t j=0;j<ndmax[intcount];j++) pd[intcount][j] = new double[pnn];
+        for (int j=0;j<ndmax[intcount];j++) pd[intcount][j] = new double[pnn];
       }
       else pd[intcount] = NULL;
 #ifdef TIME_PROFILE
@@ -3052,7 +3052,7 @@ public:
       std::size_t istart=0;
       
       // from low difference order (1) to high difference order (ndmax) 
-      for (std::size_t i=0; i<(std::size_t)ndmax[intcount-1]; i++) {
+      for (int i=0; i<ndmax[intcount-1]; i++) {
 
         // find correct istart;
         if (i>=ndmax[istart]) istart++;
@@ -3353,7 +3353,7 @@ public:
     if (ip_flag) {
       for (std::size_t i=0; i<intcount; i++) {
         if (pd[i]!=NULL) {
-          for (std::size_t j=0; j<ndmax[i]; j++) delete[] pd[i][j];
+          for (int j=0; j<ndmax[i]; j++) delete[] pd[i][j];
           delete[] pd[i];
         }
       }
