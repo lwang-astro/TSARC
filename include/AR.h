@@ -3189,7 +3189,7 @@ public:
 
 #ifdef DEBUG
         std::cerr<<"PCOFF: ";
-        for (std::size_t i=0;i<ndmax[intcount-1]+2;i++) std::cerr<<" "<<pcoff[i];
+        for (std::size_t i=0;i<(std::size_t)ndmax[intcount-1]+2;i++) std::cerr<<" "<<pcoff[i];
         std::cerr<<std::endl;
 #endif
 

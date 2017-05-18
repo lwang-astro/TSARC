@@ -108,6 +108,8 @@ double \hyperlink{classARC_1_1chain_abdd62eb43e4a7b5eca10190c90ed190f}{getw} () 
 \begin{DoxyCompactList}\small\item\em Get current integrated time transformation function value $w$. \end{DoxyCompactList}\item 
 double \hyperlink{classARC_1_1chain_abcfc20c1694a1d68a324ea9a08863af3}{getW} () const
 \begin{DoxyCompactList}\small\item\em Get current time transformation function value $W$. \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chain_a5e5a7da2a07800be47623794fe6fe44d}{get\+List} (std\+::size\+\_\+t $\ast$indexlist)
+\begin{DoxyCompactList}\small\item\em Get chain list. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chain_a4624cf80ecb8804bc08fb7f23fdddb4e}{print} (std\+::ostream \&fout, const int precision=15, const int width=15)
 \begin{DoxyCompactList}\small\item\em print chain data \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Public Attributes}
@@ -642,6 +644,22 @@ Get current kinetic energy.
 \begin{DoxyReturn}{Returns}
 current kinetic energy 
 \end{DoxyReturn}
+\hypertarget{classARC_1_1chain_a5e5a7da2a07800be47623794fe6fe44d}{}\label{classARC_1_1chain_a5e5a7da2a07800be47623794fe6fe44d} 
+\index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!get\+List@{get\+List}}
+\index{get\+List@{get\+List}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
+\subsubsection{\texorpdfstring{get\+List()}{getList()}}
+{\footnotesize\ttfamily template$<$class particle, class int\+\_\+par$>$ \\
+void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle, int\+\_\+par $>$\+::get\+List (\begin{DoxyParamCaption}\item[{std\+::size\+\_\+t $\ast$}]{indexlist }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Get chain list. 
+
+Obtain the chain list index ordered by the nearest distances of particles. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em indexlist} & integer array to store the chain list (size of num) \\
+\hline
+\end{DoxyParams}
 \hypertarget{classARC_1_1chain_a582ad9ae8003400e06bba908d70d60d9}{}\label{classARC_1_1chain_a582ad9ae8003400e06bba908d70d60d9} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!getN@{getN}}
 \index{getN@{getN}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}

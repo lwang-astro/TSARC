@@ -105,25 +105,27 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:afeafba4c0eba0bd136281e667fe8096d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#afeafba4c0eba0bd136281e667fe8096d">calc_kepler_orbit_par</a> (double &amp;semi, double &amp;peri, double &amp;ecc, const double m, const double dx[3], const double dv[3])</td></tr>
-<tr class="memdesc:afeafba4c0eba0bd136281e667fe8096d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate parameters of two-body motion.  <a href="#afeafba4c0eba0bd136281e667fe8096d">More...</a><br /></td></tr>
-<tr class="separator:afeafba4c0eba0bd136281e667fe8096d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aecd205ef07c4302cd04d04218c4426e6"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#aecd205ef07c4302cd04d04218c4426e6">Newtonian_AW</a> (double Aij[3], double &amp;Pij, double pWij[3], double &amp;Wij, const double xij[3], const double &amp;mi, const double &amp;mj, const <a class="el" href="classNTA_1_1Newtonian__pars.html">Newtonian_pars</a> *pars)</td></tr>
 <tr class="memdesc:aecd205ef07c4302cd04d04218c4426e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration and \(\partial W_{ij}/\partial \mathbf{x}_i\) from particle j to particle i (function type of <a class="el" href="">ARC::pair_AW</a>)  <a href="#aecd205ef07c4302cd04d04218c4426e6">More...</a><br /></td></tr>
 <tr class="separator:aecd205ef07c4302cd04d04218c4426e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5596f8660861d6e23c0827e381908641"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a5596f8660861d6e23c0827e381908641">Newtonian_Ap</a> (double Aij[3], double &amp;Pij, const double xi[3], const double xp[3], const double &amp;mi, const double &amp;mp, const <a class="el" href="classNTA_1_1Newtonian__pars.html">Newtonian_pars</a> *pars)</td></tr>
 <tr class="memdesc:a5596f8660861d6e23c0827e381908641"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration from particle p to particle i (function type of ::ARC::pair_Ap)  <a href="#a5596f8660861d6e23c0827e381908641">More...</a><br /></td></tr>
 <tr class="separator:a5596f8660861d6e23c0827e381908641"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a809fe56903f4b0cd75feaa9db6a37ded"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a809fe56903f4b0cd75feaa9db6a37ded">Newtonian_kepler_period</a> (const double m1, const double m2, const double X[3], const double V[3], const <a class="el" href="classNTA_1_1Newtonian__pars.html">Newtonian_pars</a> *pars)</td></tr>
-<tr class="memdesc:a809fe56903f4b0cd75feaa9db6a37ded"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian two-body kepler period.  <a href="#a809fe56903f4b0cd75feaa9db6a37ded">More...</a><br /></td></tr>
-<tr class="separator:a809fe56903f4b0cd75feaa9db6a37ded"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a387c8276183c856f55e73a719977d437"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a387c8276183c856f55e73a719977d437">Newtonian_kepler_period</a> (const double m1, const double m2, const double dx[3], const double dv[3], const <a class="el" href="classNTA_1_1Newtonian__pars.html">Newtonian_pars</a> *pars)</td></tr>
+<tr class="memdesc:a387c8276183c856f55e73a719977d437"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian two-body kepler period.  <a href="#a387c8276183c856f55e73a719977d437">More...</a><br /></td></tr>
+<tr class="separator:a387c8276183c856f55e73a719977d437"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02d22f02e21004b264c8257a5ffbb600"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a02d22f02e21004b264c8257a5ffbb600">calc_kepler_orbit_par</a> (double &amp;semi, double &amp;peri, double &amp;ecc, double angle[3], double &amp;true_anomaly, double &amp;ecc_anomaly, double &amp;mean_anomaly, const double m, const double dx[3], const double dv[3])</td></tr>
+<tr class="memdesc:a02d22f02e21004b264c8257a5ffbb600"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate parameters of two-body motion.  <a href="#a02d22f02e21004b264c8257a5ffbb600">More...</a><br /></td></tr>
+<tr class="separator:a02d22f02e21004b264c8257a5ffbb600"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a621b3643cd91a5a7ea23b7b22481f121"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a621b3643cd91a5a7ea23b7b22481f121">kepler_orbit_generator</a> (double x1[3], double x2[3], double v1[3], double v2[3], const double m1, const double m2, const double semi, const double ecc, const double angle[3], const double ecc_anomaly)</td></tr>
+<tr class="separator:a621b3643cd91a5a7ea23b7b22481f121"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Namespace for Newtonian Interaction related functions. </p>
 <p>In the special applications of N-body simulations with Newtonian gravity, the Newtonian acceleration functions should be defined. The corresponding timescale to determing the next integrating step should also be provided. This is the namespace where all these functions are provided. </p>
 </div><h2 class="groupheader">Function Documentation</h2>
-<a id="afeafba4c0eba0bd136281e667fe8096d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afeafba4c0eba0bd136281e667fe8096d">&sect;&nbsp;</a></span>calc_kepler_orbit_par()</h2>
+<a id="a02d22f02e21004b264c8257a5ffbb600"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02d22f02e21004b264c8257a5ffbb600">&sect;&nbsp;</a></span>calc_kepler_orbit_par()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -145,6 +147,30 @@ Functions</h2></td></tr>
           <td></td>
           <td class="paramtype">double &amp;&#160;</td>
           <td class="paramname"><em>ecc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>angle</em>[3], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>true_anomaly</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>ecc_anomaly</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double &amp;&#160;</td>
+          <td class="paramname"><em>mean_anomaly</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -175,21 +201,95 @@ Functions</h2></td></tr>
 <p>Calculate parameters of two-body motion. </p>
 <p>Calcuate the basic parameters of two-body motions </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">semi</td><td>semi-major axis </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">peri</td><td>period </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">ecc</td><td>eccentricity </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">semi</td><td>semi-major axis </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">peri</td><td>period </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ecc</td><td>eccentricity </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">angle[3]</td><td>three rotational angles: inclination, z-axis rotation, orbital-plane rotation </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">true_anomaly</td><td>true anomaly </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">ecc_anomaly</td><td>eccentricity anomaly </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">mean_anomaly</td><td>mean anomaly </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">m</td><td>total mass of two particles </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dx</td><td>relative position [3] </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">dv</td><td>relative velocity [3] </td></tr>
   </table>
   </dd>
 </dl>
-<div class="dynheader">
-Here is the caller graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceNTA_afeafba4c0eba0bd136281e667fe8096d_icgraph.svg" width="396" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+
 </div>
 </div>
+<a id="a621b3643cd91a5a7ea23b7b22481f121"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a621b3643cd91a5a7ea23b7b22481f121">&sect;&nbsp;</a></span>kepler_orbit_generator()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void NTA::kepler_orbit_generator </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>x1</em>[3], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>x2</em>[3], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>v1</em>[3], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>v2</em>[3], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>m1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>m2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>semi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>ecc</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>angle</em>[3], </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const double&#160;</td>
+          <td class="paramname"><em>ecc_anomaly</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
 
 </div>
 </div>
@@ -351,8 +451,8 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a id="a809fe56903f4b0cd75feaa9db6a37ded"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a809fe56903f4b0cd75feaa9db6a37ded">&sect;&nbsp;</a></span>Newtonian_kepler_period()</h2>
+<a id="a387c8276183c856f55e73a719977d437"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a387c8276183c856f55e73a719977d437">&sect;&nbsp;</a></span>Newtonian_kepler_period()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -373,13 +473,13 @@ Here is the caller graph for this function:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double&#160;</td>
-          <td class="paramname"><em>X</em>[3], </td>
+          <td class="paramname"><em>dx</em>[3], </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const double&#160;</td>
-          <td class="paramname"><em>V</em>[3], </td>
+          <td class="paramname"><em>dv</em>[3], </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -396,23 +496,17 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p>Newtonian two-body kepler period. </p>
-<p>Use <a class="el" href="namespaceNTA.html#afeafba4c0eba0bd136281e667fe8096d" title="Calculate parameters of two-body motion. ">calc_kepler_orbit_par()</a> to obtain the two-body kepler period </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Use <a class="el" href="namespaceNTA.html#a02d22f02e21004b264c8257a5ffbb600" title="Calculate parameters of two-body motion. ">calc_kepler_orbit_par()</a> to obtain the two-body kepler period </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">m1</td><td>mass of particle 1 </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">m2</td><td>mass of particle 2 </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">X</td><td>relative position vector </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">V</td><td>relative velocity vector </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dx</td><td>relative position vector </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dv</td><td>relative velocity vector </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">pars</td><td><a class="el" href="classNTA_1_1Newtonian__pars.html" title="Newtonian Interaction and time transformation function parameter class. ">Newtonian_pars</a> type data (not used) </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Return the period </dd></dl>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceNTA_a809fe56903f4b0cd75feaa9db6a37ded_cgraph.svg" width="396" height="52"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
-</div>
-</div>
+<dl class="section return"><dt>Returns</dt><dd>If the orbit is close, return the period, otherwise return the approximately 10% of free-fall time. </dd></dl>
 
 </div>
 </div>

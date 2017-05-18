@@ -24,6 +24,7 @@ var classARC_1_1chain =
     [ "find_strong_pair", "classARC_1_1chain.html#a7e4f81985bb88e0fb0fcc739b9790396", null ],
     [ "get_int_par", "classARC_1_1chain.html#af9bdf54999606c0d6f32843f0d53d8c4", null ],
     [ "getEkin", "classARC_1_1chain.html#aec4fe3207a5fe2d0a254bdd4bb54ae7f", null ],
+    [ "getList", "classARC_1_1chain.html#a5e5a7da2a07800be47623794fe6fe44d", null ],
     [ "getN", "classARC_1_1chain.html#a582ad9ae8003400e06bba908d70d60d9", null ],
     [ "getP", "classARC_1_1chain.html#ad8bacf5ad6ea0bb31bdb457e4c626701", null ],
     [ "getPext", "classARC_1_1chain.html#a992795e009faf43b59fc338350ae210c", null ],

@@ -13,6 +13,16 @@ public:
   double w,pre;
 };
 
+Particle pshift(const Particle &a, const Particle &ref) {
+  return Particle(a.getMass(),
+                  a.getPos()[0]+ref.getPos()[0],
+                  a.getPos()[1]+ref.getPos()[1],
+                  a.getPos()[2]+ref.getPos()[2],
+                  a.getVel()[0]+ref.getVel()[0],
+                  a.getVel()[1]+ref.getVel()[1],
+                  a.getVel()[2]+ref.getVel()[2]);
+}
+
 Particle kepler_print(const std::size_t id, const std::size_t ib, Particle* c[2], print_pars& ppars){
     const double* x[2];
     const double* v[2];
@@ -149,7 +159,7 @@ int main(int argc, char **argv){
     
     Particle a(m1,x1,v1);
     Particle b(m2,x2,v2);
-    bool flag=plist.link(id,ib,a,b);
+    bool flag=plist.link(id,ib,a,b,pshift);
     if (!flag) {
       std::cerr<<"Error: particle id "<<id<<", ib "<<ib<<" are inconsistent with global particle tree structure, cannot created pairs!\n";
       abort();

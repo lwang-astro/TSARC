@@ -7,6 +7,7 @@ var searchData=
   ['getekin',['getEkin',['../classARC_1_1chain.html#aec4fe3207a5fe2d0a254bdd4bb54ae7f',1,'ARC::chain']]],
   ['getintp',['getIntp',['../classARC_1_1chainpars.html#a1b8acf4c95dcb454d5c3f6aaaeb1b358',1,'ARC::chainpars']]],
   ['getiter',['getIter',['../classARC_1_1chainpars.html#a12c79f1a146b4744460f3a21805cccd4',1,'ARC::chainpars']]],
+  ['getlist',['getList',['../classARC_1_1chain.html#a5e5a7da2a07800be47623794fe6fe44d',1,'ARC::chain']]],
   ['getmass',['getMass',['../classParticle.html#a2576aff503f68e78ced91406512b1255',1,'Particle']]],
   ['getmassall',['getMassAll',['../classARC_1_1chainlist.html#a5da7d970dfac2bb11f59d07c1d808f8e',1,'ARC::chainlist']]],
   ['getn',['getN',['../classARC_1_1chain.html#a582ad9ae8003400e06bba908d70d60d9',1,'ARC::chain::getN()'],['../classARC_1_1chainlist.html#a2ed7858b13620c086e2e52b5b8d8020c',1,'ARC::chainlist::getN()']]],
@@ -21,5 +22,5 @@ var searchData=
   ['getsub',['getSub',['../classARC_1_1chainlist.html#a4ded066f2323845befd92b1109ccdeb0',1,'ARC::chainlist']]],
   ['gettime',['getTime',['../classARC_1_1chain.html#ad21bc515c01cf62e65d6d749d8babd63',1,'ARC::chain']]],
   ['getvel',['getVel',['../classParticle.html#ab3d63df7f8c22f232b096ae33b6ea3ac',1,'Particle']]],
-  ['getw',['getW',['../classARC_1_1chain.html#abcfc20c1694a1d68a324ea9a08863af3',1,'ARC::chain::getW() const'],['../classARC_1_1chain.html#abdd62eb43e4a7b5eca10190c90ed190f',1,'ARC::chain::getw() const']]]
+  ['getw',['getw',['../classARC_1_1chain.html#abdd62eb43e4a7b5eca10190c90ed190f',1,'ARC::chain::getw() const'],['../classARC_1_1chain.html#abcfc20c1694a1d68a324ea9a08863af3',1,'ARC::chain::getW() const']]]
 ];

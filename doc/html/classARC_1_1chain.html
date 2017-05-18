@@ -237,6 +237,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:abcfc20c1694a1d68a324ea9a08863af3"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#abcfc20c1694a1d68a324ea9a08863af3">getW</a> () const</td></tr>
 <tr class="memdesc:abcfc20c1694a1d68a324ea9a08863af3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current time transformation function value \(W\).  <a href="#abcfc20c1694a1d68a324ea9a08863af3">More...</a><br /></td></tr>
 <tr class="separator:abcfc20c1694a1d68a324ea9a08863af3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e5a7da2a07800be47623794fe6fe44d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#a5e5a7da2a07800be47623794fe6fe44d">getList</a> (std::size_t *indexlist)</td></tr>
+<tr class="memdesc:a5e5a7da2a07800be47623794fe6fe44d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get chain list.  <a href="#a5e5a7da2a07800be47623794fe6fe44d">More...</a><br /></td></tr>
+<tr class="separator:a5e5a7da2a07800be47623794fe6fe44d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4624cf80ecb8804bc08fb7f23fdddb4e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#a4624cf80ecb8804bc08fb7f23fdddb4e">print</a> (std::ostream &amp;fout, const int precision=15, const int width=15)</td></tr>
 <tr class="memdesc:a4624cf80ecb8804bc08fb7f23fdddb4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">print chain data  <a href="#a4624cf80ecb8804bc08fb7f23fdddb4e">More...</a><br /></td></tr>
 <tr class="separator:a4624cf80ecb8804bc08fb7f23fdddb4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1235,6 +1238,42 @@ template&lt;class particle, class int_par&gt; </div>
 
 <p>Get current kinetic energy. </p>
 <dl class="section return"><dt>Returns</dt><dd>current kinetic energy </dd></dl>
+
+</div>
+</div>
+<a id="a5e5a7da2a07800be47623794fe6fe44d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5e5a7da2a07800be47623794fe6fe44d">&sect;&nbsp;</a></span>getList()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class particle, class int_par&gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="classARC_1_1chain.html">ARC::chain</a>&lt; particle, int_par &gt;::getList </td>
+          <td>(</td>
+          <td class="paramtype">std::size_t *&#160;</td>
+          <td class="paramname"><em>indexlist</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get chain list. </p>
+<p>Obtain the chain list index ordered by the nearest distances of particles. </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[out]</td><td class="paramname">indexlist</td><td>integer array to store the chain list (size of num) </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
