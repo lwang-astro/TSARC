@@ -156,7 +156,7 @@ int main(int argc, char **argv){
     }
   }
 
-  int count=plist.collect(p,N);
+  int count=plist.collect_and_store(p,N);
   if (count<0) {
     std::cerr<<"Error: particle number mismatched particle tree!\n";
     abort();
