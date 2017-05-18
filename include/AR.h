@@ -956,8 +956,8 @@ private:
       std::size_t inow=inext;
     
       // make chain
-      double rmin;
-      bool first=true;
+      double rmin=HUGE;
+//      bool first=true;
       for (std::size_t j=1; j<num; j++) {
         if(is_checked[j]) continue;
         const double* rj = p[j].getPos();
@@ -966,12 +966,13 @@ private:
         double dy = rj[1] - ri[1];
         double dz = rj[2] - ri[2];
         double dr2= dx*dx + dy*dy + dz*dz;
-        if(first) {
-          rmin = dr2;
-          first=false;
-          inext = j;
-        }
-        else if(dr2<rmin) {
+//        if(first) {
+//          rmin = dr2;
+//          first=false;
+//          inext = j;
+//        }
+//        else 
+        if(dr2<rmin) {
           rmin = dr2;
           inext = j;
         }
