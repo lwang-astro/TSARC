@@ -36,7 +36,7 @@ template<class particle, class proc_params>
 class ptree{
 private:
   void* p[2];
-  bool lp[2];
+  bool lp[2]; ///indicator whether the leaf is ptree (true) or not
   bool collflag;
 
 public:
@@ -92,7 +92,7 @@ public:
     return true;
   }
 
-  /// Split one leaf to new branch (ptree) and store two particles
+  /// Split (delete) one leaf, create a new branch (ptree) and store two particles
   /*!
     @param[in] i: leaf index (0: left; 1: right; others return false)
     @param[in] a: left paricle
