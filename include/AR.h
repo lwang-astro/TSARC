@@ -3417,7 +3417,7 @@ public:
   /*! Obtain the chain list index ordered by the nearest distances of particles.
     @param[out] indexlist: integer array to store the chain list (size of num)
    */
-  void getList(int* indexlist) {
+  void getList(std::size_t* indexlist) {
     std::memcpy(indexlist,list,num*sizeof(std::size_t));
   }
   
