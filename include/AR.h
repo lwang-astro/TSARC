@@ -76,7 +76,7 @@ public:
 //declaration
 template <class particle, class int_par> class chain;
 template <class particle, class int_par> class chainlist;
-template <class int_par> class chainpars;
+template <class particle, class int_par> class chainpars;
 class chaininfo;
 
 
@@ -84,8 +84,9 @@ class chaininfo;
 /*!
   This class control the acceleration function and time transformation function (::ARC::chainpars.pair_AW, ::ARC::chainpars.pair_Ap), integration methods and error parameters for \ref chain, and timescale calculator ::ARC::chainpars.pair_T.
   The template depended type int_par is user-defined class for two-body interations used in ::ARC::chainpars.pair_AW, ::ARC::chainpars.pair_Ap and ::ARC::chainpars.pair_T
+  The template particle class is used in pair_AW, pair_Ap.
  */
-template <class int_par>
+template <class particle, class int_par>
 class chainpars{
 template <class T, class P> friend class chain;
 private:
@@ -112,28 +113,32 @@ private:
 
 public:
   //! Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ and \f$W_{ij}\f$ (from particle j to particle i).
-  /*!          @param[out] Aij: acceleration vector for particle i.
+  /*!     
+    Notice the particle i and j are also passed as arguments. But it is only used to get extra information in addition to relative position xij. The velocity information should not be used. Otherwise the Leap-frog algorithm is broken.
+    @param[out] Aij: acceleration vector for particle i.
     @param[out] Pij: potential of particle i from particle j (cumulative total potential only count the case of j>i)
     @param[out] dWij: time transformation function partial derivate \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (component from j to i; used when #beta>0; see ARC::chainpars.setabg()) .
     @param[out] Wij: time transformation function component from j to i (used when #beta>0; notice in \ref ARC::chain the cumulative total W only count the case of j>i).
     @param[in] Xij: relative position (1:3) \f$ \mathbf{x}_j - \mathbf{x}_i \f$
-    @param[in] mi: particle i mass.
-    @param[in] mj: particle j mass.
+    @param[in] pi: particle i.
+    @param[in] pj: particle j.
     @param[in] pars: User-defined interaction parameter class type data
     \return user-defined status (defaulted should be zero)
   */
-  typedef int (*pair_AW) (double*, double &, double *, double &, const double*, const double &, const double &, const int_par*);
+  typedef int (*pair_AW) (double* Aij, double &Pij, double *dWij, double &Wij, const double* Xij, const particle &pi, const particle &pj, const int_par*);
 
   //! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.
-  /*!         @param[out]  Aij: acceleration vector of particle i.
+  /*!
+    Notice the positions of particles are given individually. Please don't use position and velocity of particle pi, pj since the reference frame may be wrong.
+    @param[out]  Aij: acceleration vector of particle i.
     @param[out]  Pij: potential of particle i from j
-    @param[in]  pi: position vector i.
-    @param[in]  pj: position vector j.
-    @param[in]  mi: particle mass i.
-    @param[in]  mj: particle mass j.
+    @param[in]  xi: position vector i.
+    @param[in]  xj: position vector j.
+    @param[in]  pi: particle i.
+    @param[in]  pj: particle j.
     @param[in]  pars: User-defined interaction parameter class type data
   */
-  typedef void (*pair_Ap) (double *, double &, const double*, const double*, const double&, const double&, const int_par*);
+  typedef void (*pair_Ap) (double * Aij, double &Pij, const double* xi, const double* xj, const particle &pi, const particle &pj, const int_par* pars);
 
   //! Function pointer type to function for calculation the timescale of two-body motion
   /*!
@@ -143,7 +148,7 @@ public:
     @param[in] V: relative velocity vector
     @param[in] pars: User-defined interaction parameter class type data
   */
-  typedef double (*pair_T) (const double, const double, const double*, const double*, const int_par*);
+  typedef double (*pair_T) (const double m1, const double m2, const double* x, const double* v, const int_par* pars);
 
   // pair force
   pair_AW pp_AW;  ///< acceleration and dW/dr of two particle
@@ -818,7 +823,7 @@ class chain{
   int  F_Porigin;  ///< indicate whether particle is shifted back to original frame (1: original frame: 0: center-of-mass frame; 2: only position is original frame)
   bool F_load;     ///< indicate whether load funcion is used
 
-  const chainpars<int_par> *pars;   ///< chain parameter controller
+  const chainpars<particle,int_par> *pars;   ///< chain parameter controller
   int_par* Int_pars;     ///< extra parameter array for pair_AW, pair_Ap and pair_T (used as last argument of ::ARC::pair_AW, ::ARC::pair_Ap and ::ARC::pair_T)
 
   chainlist<particle, int_par> p;    ///< particle list
@@ -838,7 +843,7 @@ public:
       @param [in] n: maximum number of particles (will be used to allocate memory)
       @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const std::size_t n, const chainpars<int_par> &par):   num(0), pars(&par), Int_pars(NULL), info(NULL){
+  chain(const std::size_t n, const chainpars<particle,int_par> &par):   num(0), pars(&par), Int_pars(NULL), info(NULL){
     nmax=0;
     allocate(n);
   }
@@ -847,7 +852,7 @@ public:
   /*! Construct chain without memory allocate, need to call allocate() later. 
      @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const chainpars<int_par> &par): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_load(false), pars(&par), Int_pars(NULL), info(NULL) {}
+  chain(const chainpars<particle,int_par> &par): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_load(false), pars(&par), Int_pars(NULL), info(NULL) {}
 
   //! Allocate memory
   /*! Allocate memory for maximum particle number n
@@ -1067,11 +1072,11 @@ private:
 
         double3 At,dWt;
         double Pt,Wt;
-        const double mj=pj->getMass();
-        const double mk=pk->getMass();
+//        const double mj=pj->getMass();
+//        const double mk=pk->getMass();
 
         // force calculation function from k to j
-        int stat = pars->pp_AW(At, Pt, dWt, Wt, xjk, mj, mk, Int_pars);
+        int stat = pars->pp_AW(At, Pt, dWt, Wt, xjk, *pj, *pk, Int_pars);
         if (stat!=0&&info==NULL) {
           info = new chaininfo(num);
           info->status = stat;
@@ -1090,7 +1095,7 @@ private:
 //          for (std::size_t i=0;i<cn;i++) {
 //            double Ptemp;
 //            double3 Atemp;
-//            pars->pp_Ap(Atemp, Ptemp, xj, ck->p[i].getPos(), mj, ck->p[i].getMass());
+//            pars->pp_Ap(Atemp, Ptemp, xj, ck->p[i].getPos(), *pj, ck->p[i]);
 // 
 //            // Acceleration
 //            At[0] += Atemp[0];
@@ -1417,7 +1422,7 @@ private:
           double Pt;
           const particle* pi=&p[i];
           const double* xi=pi->getPos();
-          const double  mi=pi->getMass();
+//          const double  mi=pi->getMass();
           
           // check sub-chain system
           if (resolve_flag && pext.isChain(j)) {
@@ -1436,7 +1441,7 @@ private:
                 xk[2] += xc[2];
               }
               double3 Atemp;
-              pars->pp_Ap(Atemp, Pt, xi, xk, mi, cj->p[k].getMass(), Int_pars);
+              pars->pp_Ap(Atemp, Pt, xi, xk, *pi, cj->p[k], Int_pars);
 
               // Acceleration
               At[0] += Atemp[0];
@@ -1446,7 +1451,7 @@ private:
           }
           else {
             // perturber force
-            pars->pp_Ap(At, Pt, xi, pext[j].getPos(), mi, pext[j].getMass(), Int_pars);
+            pars->pp_Ap(At, Pt, xi, pext[j].getPos(), *pi, pext[j], Int_pars);
           }
           
           pf[i][0] += At[0];
@@ -2026,6 +2031,7 @@ public:
       const double peri=pars->pp_T(p[list[i]].getMass(),p[list[i+1]].getMass(),X[i],V[i],Int_pars);
       if (perim>peri) perim = peri;
     }
+//    std::cerr<<"perim = "<<perim<<" auto_step_eps"<<pars->auto_step_eps<<" Pt "<<Pt<<std::endl;
     return pars->auto_step_eps*perim*std::abs(Pt);
   }
   

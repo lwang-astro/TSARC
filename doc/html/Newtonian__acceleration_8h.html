@@ -96,10 +96,11 @@ $(document).ready(function(){initNavTree('Newtonian__acceleration_8h.html','');}
 <div class="contents">
 <div class="textblock"><code>#include &lt;cstdlib&gt;</code><br />
 <code>#include &lt;cmath&gt;</code><br />
+<code>#include &quot;<a class="el" href="particle_8h_source.html">particle.h</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 Include dependency graph for Newtonian_acceleration.h:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" frameborder="0" src="Newtonian__acceleration_8h__incl.svg" width="214" height="142"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+<div class="center"><iframe scrolling="no" frameborder="0" src="Newtonian__acceleration_8h__incl.svg" width="287" height="216"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
 </div>
 </div>
 </div>
@@ -119,12 +120,12 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aecd205ef07c4302cd04d04218c4426e6"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#aecd205ef07c4302cd04d04218c4426e6">NTA::Newtonian_AW</a> (double Aij[3], double &amp;Pij, double pWij[3], double &amp;Wij, const double xij[3], const double &amp;mi, const double &amp;mj, const Newtonian_pars *pars)</td></tr>
-<tr class="memdesc:aecd205ef07c4302cd04d04218c4426e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration and \(\partial W_{ij}/\partial \mathbf{x}_i\) from particle j to particle i (function type of <a class="el" href="">ARC::pair_AW</a>)  <a href="namespaceNTA.html#aecd205ef07c4302cd04d04218c4426e6">More...</a><br /></td></tr>
-<tr class="separator:aecd205ef07c4302cd04d04218c4426e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5596f8660861d6e23c0827e381908641"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a5596f8660861d6e23c0827e381908641">NTA::Newtonian_Ap</a> (double Aij[3], double &amp;Pij, const double xi[3], const double xp[3], const double &amp;mi, const double &amp;mp, const Newtonian_pars *pars)</td></tr>
-<tr class="memdesc:a5596f8660861d6e23c0827e381908641"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration from particle p to particle i (function type of ::ARC::pair_Ap)  <a href="namespaceNTA.html#a5596f8660861d6e23c0827e381908641">More...</a><br /></td></tr>
-<tr class="separator:a5596f8660861d6e23c0827e381908641"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a831c3f8f362f34f1f987ee158e38c016"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a831c3f8f362f34f1f987ee158e38c016">NTA::Newtonian_AW</a> (double Aij[3], double &amp;Pij, double pWij[3], double &amp;Wij, const double xij[3], const <a class="el" href="classParticle.html">Particle</a> &amp;pi, const <a class="el" href="classParticle.html">Particle</a> &amp;pj, const Newtonian_pars *pars)</td></tr>
+<tr class="memdesc:a831c3f8f362f34f1f987ee158e38c016"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration and \(\partial W_{ij}/\partial \mathbf{x}_i\) from particle j to particle i (function type of <a class="el" href="">ARC::pair_AW</a>)  <a href="namespaceNTA.html#a831c3f8f362f34f1f987ee158e38c016">More...</a><br /></td></tr>
+<tr class="separator:a831c3f8f362f34f1f987ee158e38c016"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac086c632a4f16eddc70f023f269d9c94"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#ac086c632a4f16eddc70f023f269d9c94">NTA::Newtonian_Ap</a> (double Aij[3], double &amp;Pij, const double xi[3], const double xp[3], const <a class="el" href="classParticle.html">Particle</a> &amp;pi, const <a class="el" href="classParticle.html">Particle</a> &amp;pp, const Newtonian_pars *pars)</td></tr>
+<tr class="memdesc:ac086c632a4f16eddc70f023f269d9c94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration from particle p to particle i (function type of ::ARC::pair_Ap)  <a href="namespaceNTA.html#ac086c632a4f16eddc70f023f269d9c94">More...</a><br /></td></tr>
+<tr class="separator:ac086c632a4f16eddc70f023f269d9c94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a387c8276183c856f55e73a719977d437"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a387c8276183c856f55e73a719977d437">NTA::Newtonian_kepler_period</a> (const double m1, const double m2, const double dx[3], const double dv[3], const Newtonian_pars *pars)</td></tr>
 <tr class="memdesc:a387c8276183c856f55e73a719977d437"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian two-body kepler period.  <a href="namespaceNTA.html#a387c8276183c856f55e73a719977d437">More...</a><br /></td></tr>
 <tr class="separator:a387c8276183c856f55e73a719977d437"><td class="memSeparator" colspan="2">&#160;</td></tr>

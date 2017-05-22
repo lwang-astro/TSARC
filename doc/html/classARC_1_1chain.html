@@ -108,12 +108,12 @@ Collaboration diagram for ARC::chain&lt; particle, int_par &gt;:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:af5c20ba1cd4cbefc736e1df84962dbe1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#af5c20ba1cd4cbefc736e1df84962dbe1">chain</a> (const std::size_t n, const <a class="el" href="classARC_1_1chainpars.html">chainpars</a>&lt; int_par &gt; &amp;par)</td></tr>
-<tr class="memdesc:af5c20ba1cd4cbefc736e1df84962dbe1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="#af5c20ba1cd4cbefc736e1df84962dbe1">More...</a><br /></td></tr>
-<tr class="separator:af5c20ba1cd4cbefc736e1df84962dbe1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f8a260f762232ba4a823de1815416ef"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#a5f8a260f762232ba4a823de1815416ef">chain</a> (const <a class="el" href="classARC_1_1chainpars.html">chainpars</a>&lt; int_par &gt; &amp;par)</td></tr>
-<tr class="memdesc:a5f8a260f762232ba4a823de1815416ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="#a5f8a260f762232ba4a823de1815416ef">More...</a><br /></td></tr>
-<tr class="separator:a5f8a260f762232ba4a823de1815416ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94d6f22a673c1b750b81bb7e21ff03ab"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#a94d6f22a673c1b750b81bb7e21ff03ab">chain</a> (const std::size_t n, const <a class="el" href="classARC_1_1chainpars.html">chainpars</a>&lt; particle, int_par &gt; &amp;par)</td></tr>
+<tr class="memdesc:a94d6f22a673c1b750b81bb7e21ff03ab"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="#a94d6f22a673c1b750b81bb7e21ff03ab">More...</a><br /></td></tr>
+<tr class="separator:a94d6f22a673c1b750b81bb7e21ff03ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a78db3f241c1e8662219a3c10f197614b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#a78db3f241c1e8662219a3c10f197614b">chain</a> (const <a class="el" href="classARC_1_1chainpars.html">chainpars</a>&lt; particle, int_par &gt; &amp;par)</td></tr>
+<tr class="memdesc:a78db3f241c1e8662219a3c10f197614b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor.  <a href="#a78db3f241c1e8662219a3c10f197614b">More...</a><br /></td></tr>
+<tr class="separator:a78db3f241c1e8662219a3c10f197614b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0c3c1daffa75873b39d9964eebc6566f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html#a0c3c1daffa75873b39d9964eebc6566f">allocate</a> (const std::size_t n)</td></tr>
 <tr class="memdesc:a0c3c1daffa75873b39d9964eebc6566f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocate memory.  <a href="#a0c3c1daffa75873b39d9964eebc6566f">More...</a><br /></td></tr>
 <tr class="separator:a0c3c1daffa75873b39d9964eebc6566f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -259,12 +259,12 @@ class ARC::chain&lt; particle, int_par &gt;</h3>
 
 <p><a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> class based on template class particle. </p>
 <p>Major class for <a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> integration of few bodies</p>
-<p>It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in <a class="el" href="classParticle.html#a97d76b66aed57834c105b78b10643b81" title="Set position (required for ARC::chain) ">Particle::setPos()</a>, <a class="el" href="classParticle.html#a07c405254ac3f03854e7523ff473c828" title="Set velocity (required for ARC::chain) ">Particle::setVel()</a>, <a class="el" href="classParticle.html#a620f479862b90468a77da4e9cf5c0ff5" title="Set mass (required for ARC::chain) ">Particle::setMass()</a>, <a class="el" href="classParticle.html#a4ec76421cddd91b1f27357fb182f6923" title="Get position (required for ARC::chain) ">Particle::getPos()</a>, <a class="el" href="classParticle.html#ab3d63df7f8c22f232b096ae33b6ea3ac" title="Get velocity (required for ARC::chain) ">Particle::getVel()</a>, <a class="el" href="classParticle.html#a2576aff503f68e78ced91406512b1255" title="Get mass (required for ARC::chain) ">Particle::getMass()</a>) The template depended type int_par is user-defined class for two-body interations used in <a class="el" href="classARC_1_1chainpars.html#a9558124278a55c0301642e1df63be063" title="Function pointer type to function for calculation of acceleration (potential) and the component of ti...">ARC::chainpars.pair_AW</a>, <a class="el" href="classARC_1_1chainpars.html#a80fcc6e3b5ce69025126bc49d90f233c" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::chainpars.pair_Ap</a></p>
+<p>It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in <a class="el" href="classParticle.html#a97d76b66aed57834c105b78b10643b81" title="Set position (required for ARC::chain) ">Particle::setPos()</a>, <a class="el" href="classParticle.html#a07c405254ac3f03854e7523ff473c828" title="Set velocity (required for ARC::chain) ">Particle::setVel()</a>, <a class="el" href="classParticle.html#a620f479862b90468a77da4e9cf5c0ff5" title="Set mass (required for ARC::chain) ">Particle::setMass()</a>, <a class="el" href="classParticle.html#a4ec76421cddd91b1f27357fb182f6923" title="Get position (required for ARC::chain) ">Particle::getPos()</a>, <a class="el" href="classParticle.html#ab3d63df7f8c22f232b096ae33b6ea3ac" title="Get velocity (required for ARC::chain) ">Particle::getVel()</a>, <a class="el" href="classParticle.html#a2576aff503f68e78ced91406512b1255" title="Get mass (required for ARC::chain) ">Particle::getMass()</a>) The template depended type int_par is user-defined class for two-body interations used in <a class="el" href="classARC_1_1chainpars.html#a766866c2e38b475767a4f8529624a378" title="Function pointer type to function for calculation of acceleration (potential) and the component of ti...">ARC::chainpars.pair_AW</a>, <a class="el" href="classARC_1_1chainpars.html#aa34d083090c50f572d2126262e169474" title="Function pointer type to function for calculation of acceleration (potential) from particle j to part...">ARC::chainpars.pair_Ap</a></p>
 <p>The basic way to use <a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> integration is shown as following:</p><ol type="1">
 <li>Construct a chain class with template class particle and a parameter controller of <a class="el" href="classARC_1_1chainpars.html">ARC::chainpars</a>. (The <a class="el" href="classARC_1_1chainpars.html">ARC::chainpars</a> should be configured first before doing integration. see its document for detail).</li>
 <li>Add existed particle 'A' (or a list of particles, or a chain type particle) into chain particle list (chain.p) using <a class="el" href="classARC_1_1chain.html#a6af4a9c65329265a45f0210c104fa96a" title="Add particle. ">chain.addP()</a>. Notice the <a class="el" href="classARC_1_1chain.html#a6af4a9c65329265a45f0210c104fa96a" title="Add particle. ">chain.addP()</a> only registers the particle A's memory address into chain.p without copying data. The chain integration will directly modify the position and velocity of particle A.</li>
 <li>Add perturbers into chain perturber list (chain.pext) using <a class="el" href="classARC_1_1chain.html#ab6892980b326bd0bbe8a873a71892801" title="Add one perturber particle. ">chain.addPext()</a> (also only register the particle address)</li>
-<li>Initialize Int_pars used for ::ARC::pair_AW or ::ARC::pair_Ap if necessary (see the case of <a class="el" href="namespaceNTA.html#aecd205ef07c4302cd04d04218c4426e6" title="Newtonian acceleration and  from particle j to particle i (function type of ARC::pair_AW) ...">ARC::Newtonian_AW()</a>)</li>
+<li>Initialize Int_pars used for ::ARC::pair_AW or ::ARC::pair_Ap if necessary (see the case of <a class="el" href="namespaceNTA.html#a831c3f8f362f34f1f987ee158e38c016" title="Newtonian acceleration and  from particle j to particle i (function type of ARC::pair_AW) ...">ARC::Newtonian_AW()</a>)</li>
 <li>Initialize chain with <a class="el" href="classARC_1_1chain.html#a3fe37720ceb48c14905c92d3e25e71a4" title="Initialization. ">chain.init()</a>. Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in chain.p will be shifted from their original frame to their center-of-mass frame. The particle type member variable <a class="el" href="classARC_1_1chain.html#a2eead75bd916fa7ffc05341645527847">chain::cm</a> stores the center-of-mass data of these particles (the mass of <a class="el" href="classARC_1_1chain.html#a2eead75bd916fa7ffc05341645527847">chain::cm</a> is the total mass of all member particles).</li>
 <li>Call integration functions (<a class="el" href="classARC_1_1chain.html#aff3cd92c840d1bbbc903a8a07eb079d0" title="Leapfrog integrator. ">chain.Leapfrog_step_forward()</a> or <a class="el" href="classARC_1_1chain.html#ae4d0002cceee2397101a43b3755f927e" title="Extrapolation integration. ">chain.extrapolation_integration()</a>). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.</li>
 <li>After call integration functions, the particles are integrated to new time. Because in <a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in <a class="el" href="classARC_1_1chain.html#ae4d0002cceee2397101a43b3755f927e" title="Extrapolation integration. ">chain.extrapolation_integration()</a> document).</li>
@@ -272,8 +272,8 @@ class ARC::chain&lt; particle, int_par &gt;</h3>
 </ol>
 <p>Because of time now is an integrated variable, the time after integration cannot be predicted. Thus if you want to stop the integration at a certain physical time, you need to use <a class="el" href="classARC_1_1chain.html#ae4d0002cceee2397101a43b3755f927e" title="Extrapolation integration. ">chain.extrapolation_integration()</a> with dense output. To get better accuracy of physical time from intepolation, the 4k sequences (set in chainpars.setEXP()) is strongly suggested to be used. If 4k sequences are used, the dense output method for GBS is used and the accuracy of time intepolation is close to the accuracy of integration. Please check the document of <a class="el" href="classARC_1_1chain.html#ae4d0002cceee2397101a43b3755f927e" title="Extrapolation integration. ">chain.extrapolation_integration()</a> for detail. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="af5c20ba1cd4cbefc736e1df84962dbe1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af5c20ba1cd4cbefc736e1df84962dbe1">&sect;&nbsp;</a></span>chain() <span class="overload">[1/2]</span></h2>
+<a id="a94d6f22a673c1b750b81bb7e21ff03ab"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94d6f22a673c1b750b81bb7e21ff03ab">&sect;&nbsp;</a></span>chain() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -292,7 +292,7 @@ template&lt;class particle, class int_par&gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="classARC_1_1chainpars.html">chainpars</a>&lt; int_par &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classARC_1_1chainpars.html">chainpars</a>&lt; particle, int_par &gt; &amp;&#160;</td>
           <td class="paramname"><em>par</em>&#160;</td>
         </tr>
         <tr>
@@ -319,8 +319,8 @@ template&lt;class particle, class int_par&gt; </div>
 
 </div>
 </div>
-<a id="a5f8a260f762232ba4a823de1815416ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f8a260f762232ba4a823de1815416ef">&sect;&nbsp;</a></span>chain() <span class="overload">[2/2]</span></h2>
+<a id="a78db3f241c1e8662219a3c10f197614b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a78db3f241c1e8662219a3c10f197614b">&sect;&nbsp;</a></span>chain() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -333,7 +333,7 @@ template&lt;class particle, class int_par&gt; </div>
         <tr>
           <td class="memname"><a class="el" href="classARC_1_1chain.html">ARC::chain</a>&lt; particle, int_par &gt;::<a class="el" href="classARC_1_1chain.html">chain</a> </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classARC_1_1chainpars.html">chainpars</a>&lt; int_par &gt; &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classARC_1_1chainpars.html">chainpars</a>&lt; particle, int_par &gt; &amp;&#160;</td>
           <td class="paramname"><em>par</em></td><td>)</td>
           <td></td>
         </tr>
@@ -850,7 +850,7 @@ template&lt;class particle, class int_par&gt; </div>
 </div><div class="memdoc">
 
 <p>Calculate next step approximation based on custom defined timescale for two-body system. </p>
-<p>The user-defined two-body timescale function with ::ARC::pair_T type will be performed on all neighbor pairs in chain. Then the minimum timescale \( T_m\) is selected to calculate next step size: \( ds = \eps T_m |Pt|\), where \(\eps\) is #auto_step_eps set in <a class="el" href="classARC_1_1chainpars.html#a07a9734583565af190241ec32a6357c5" title="Determine auto-step parameter. ">chainpars.setAutoStep()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>The user-defined two-body timescale function with ::ARC::pair_T type will be performed on all neighbor pairs in chain. Then the minimum timescale \( T_m\) is selected to calculate next step size: \( ds = \eps T_m |Pt|\), where \(\eps\) is #auto_step_eps set in <a class="el" href="classARC_1_1chainpars.html#a2aa8600eba0330eb16c122a58edbb465" title="Determine auto-step parameter. ">chainpars.setAutoStep()</a>. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">pt</td><td>two-body timescale function with ::ARC::pair_T type </td></tr>
   </table>

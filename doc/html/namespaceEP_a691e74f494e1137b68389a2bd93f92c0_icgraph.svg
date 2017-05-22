@@ -16,7 +16,7 @@
 </g>
 <!-- Node36 -->
 <g id="node2" class="node"><title>Node36</title>
-<g id="a_node2"><a xlink:href="classARC_1_1chainpars.html#a61cc2580dcf06d4e85e068272b4b5b95" target="_top" xlink:title="Set extrapolation maximum iteration number and sequences. ">
+<g id="a_node2"><a xlink:href="classARC_1_1chainpars.html#ae4a570ffa08b9beee98fc352f6e75b80" target="_top" xlink:title="Set extrapolation maximum iteration number and sequences. ">
 <polygon fill="white" stroke="black" points="117,-0.5 117,-19.5 252,-19.5 252,-0.5 117,-0.5"/>
 <text text-anchor="middle" x="184.5" y="-7.5" font-family="FreeSans" font-size="10.00">ARC::chainpars::setIterSeq</text>
 </a>

@@ -1,7 +1,7 @@
 var classARC_1_1chain =
 [
-    [ "chain", "classARC_1_1chain.html#af5c20ba1cd4cbefc736e1df84962dbe1", null ],
-    [ "chain", "classARC_1_1chain.html#a5f8a260f762232ba4a823de1815416ef", null ],
+    [ "chain", "classARC_1_1chain.html#a94d6f22a673c1b750b81bb7e21ff03ab", null ],
+    [ "chain", "classARC_1_1chain.html#a78db3f241c1e8662219a3c10f197614b", null ],
     [ "~chain", "classARC_1_1chain.html#a4e9c6711eb95c5614cd28b14d33ec3eb", null ],
     [ "addP", "classARC_1_1chain.html#a6af4a9c65329265a45f0210c104fa96a", null ],
     [ "addP", "classARC_1_1chain.html#abf446295cee9e550c32d64e575f68d04", null ],

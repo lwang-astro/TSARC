@@ -130,7 +130,7 @@ int main(int argc, char **argv){
   }
 
   // chain controller
-  ARC::chainpars<NTA::Newtonian_pars> pars;
+  ARC::chainpars<Particle, NTA::Newtonian_pars> pars;
 
   pars.setA(NTA::Newtonian_AW,NTA::Newtonian_Ap,NTA::Newtonian_kepler_period);
 

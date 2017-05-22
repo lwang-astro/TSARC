@@ -22,9 +22,9 @@ Collaboration diagram for A\+RC\+:\+:chain$<$ particle, int\+\_\+par $>$\+:
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hyperlink{classARC_1_1chain_af5c20ba1cd4cbefc736e1df84962dbe1}{chain} (const std\+::size\+\_\+t n, const \hyperlink{classARC_1_1chainpars}{chainpars}$<$ int\+\_\+par $>$ \&par)
+\hyperlink{classARC_1_1chain_a94d6f22a673c1b750b81bb7e21ff03ab}{chain} (const std\+::size\+\_\+t n, const \hyperlink{classARC_1_1chainpars}{chainpars}$<$ particle, int\+\_\+par $>$ \&par)
 \begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
-\hyperlink{classARC_1_1chain_a5f8a260f762232ba4a823de1815416ef}{chain} (const \hyperlink{classARC_1_1chainpars}{chainpars}$<$ int\+\_\+par $>$ \&par)
+\hyperlink{classARC_1_1chain_a78db3f241c1e8662219a3c10f197614b}{chain} (const \hyperlink{classARC_1_1chainpars}{chainpars}$<$ particle, int\+\_\+par $>$ \&par)
 \begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chain_a0c3c1daffa75873b39d9964eebc6566f}{allocate} (const std\+::size\+\_\+t n)
 \begin{DoxyCompactList}\small\item\em Allocate memory. \end{DoxyCompactList}\item 
@@ -129,14 +129,14 @@ class A\+R\+C\+::chain$<$ particle, int\+\_\+par $>$}
 
 Major class for \hyperlink{namespaceARC}{A\+RC} integration of few bodies
 
-It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in \hyperlink{classParticle_a97d76b66aed57834c105b78b10643b81}{Particle\+::set\+Pos()}, \hyperlink{classParticle_a07c405254ac3f03854e7523ff473c828}{Particle\+::set\+Vel()}, \hyperlink{classParticle_a620f479862b90468a77da4e9cf5c0ff5}{Particle\+::set\+Mass()}, \hyperlink{classParticle_a4ec76421cddd91b1f27357fb182f6923}{Particle\+::get\+Pos()}, \hyperlink{classParticle_ab3d63df7f8c22f232b096ae33b6ea3ac}{Particle\+::get\+Vel()}, \hyperlink{classParticle_a2576aff503f68e78ced91406512b1255}{Particle\+::get\+Mass()}) The template depended type int\+\_\+par is user-\/defined class for two-\/body interations used in \hyperlink{classARC_1_1chainpars_a9558124278a55c0301642e1df63be063}{A\+R\+C\+::chainpars.\+pair\+\_\+\+AW}, \hyperlink{classARC_1_1chainpars_a80fcc6e3b5ce69025126bc49d90f233c}{A\+R\+C\+::chainpars.\+pair\+\_\+\+Ap}
+It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in \hyperlink{classParticle_a97d76b66aed57834c105b78b10643b81}{Particle\+::set\+Pos()}, \hyperlink{classParticle_a07c405254ac3f03854e7523ff473c828}{Particle\+::set\+Vel()}, \hyperlink{classParticle_a620f479862b90468a77da4e9cf5c0ff5}{Particle\+::set\+Mass()}, \hyperlink{classParticle_a4ec76421cddd91b1f27357fb182f6923}{Particle\+::get\+Pos()}, \hyperlink{classParticle_ab3d63df7f8c22f232b096ae33b6ea3ac}{Particle\+::get\+Vel()}, \hyperlink{classParticle_a2576aff503f68e78ced91406512b1255}{Particle\+::get\+Mass()}) The template depended type int\+\_\+par is user-\/defined class for two-\/body interations used in \hyperlink{classARC_1_1chainpars_a766866c2e38b475767a4f8529624a378}{A\+R\+C\+::chainpars.\+pair\+\_\+\+AW}, \hyperlink{classARC_1_1chainpars_aa34d083090c50f572d2126262e169474}{A\+R\+C\+::chainpars.\+pair\+\_\+\+Ap}
 
 The basic way to use \hyperlink{namespaceARC}{A\+RC} integration is shown as following\+:
 \begin{DoxyEnumerate}
 \item Construct a chain class with template class particle and a parameter controller of \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars}. (The \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars} should be configured first before doing integration. see its document for detail).
 \item Add existed particle \textquotesingle{}A\textquotesingle{} (or a list of particles, or a chain type particle) into chain particle list (chain.\+p) using \hyperlink{classARC_1_1chain_a6af4a9c65329265a45f0210c104fa96a}{chain.\+add\+P()}. Notice the \hyperlink{classARC_1_1chain_a6af4a9c65329265a45f0210c104fa96a}{chain.\+add\+P()} only registers the particle A\textquotesingle{}s memory address into chain.\+p without copying data. The chain integration will directly modify the position and velocity of particle A.
 \item Add perturbers into chain perturber list (chain.\+pext) using \hyperlink{classARC_1_1chain_ab6892980b326bd0bbe8a873a71892801}{chain.\+add\+Pext()} (also only register the particle address)
-\item Initialize Int\+\_\+pars used for \+::\+A\+R\+C\+::pair\+\_\+\+AW or \+::\+A\+R\+C\+::pair\+\_\+\+Ap if necessary (see the case of \hyperlink{namespaceNTA_aecd205ef07c4302cd04d04218c4426e6}{A\+R\+C\+::\+Newtonian\+\_\+\+A\+W()})
+\item Initialize Int\+\_\+pars used for \+::\+A\+R\+C\+::pair\+\_\+\+AW or \+::\+A\+R\+C\+::pair\+\_\+\+Ap if necessary (see the case of \hyperlink{namespaceNTA_a831c3f8f362f34f1f987ee158e38c016}{A\+R\+C\+::\+Newtonian\+\_\+\+A\+W()})
 \item Initialize chain with \hyperlink{classARC_1_1chain_a3fe37720ceb48c14905c92d3e25e71a4}{chain.\+init()}. Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in chain.\+p will be shifted from their original frame to their center-\/of-\/mass frame. The particle type member variable \hyperlink{classARC_1_1chain_a2eead75bd916fa7ffc05341645527847}{chain\+::cm} stores the center-\/of-\/mass data of these particles (the mass of \hyperlink{classARC_1_1chain_a2eead75bd916fa7ffc05341645527847}{chain\+::cm} is the total mass of all member particles).
 \item Call integration functions (\hyperlink{classARC_1_1chain_aff3cd92c840d1bbbc903a8a07eb079d0}{chain.\+Leapfrog\+\_\+step\+\_\+forward()} or \hyperlink{classARC_1_1chain_ae4d0002cceee2397101a43b3755f927e}{chain.\+extrapolation\+\_\+integration()}). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
 \item After call integration functions, the particles are integrated to new time. Because in \hyperlink{namespaceARC}{A\+RC} method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in \hyperlink{classARC_1_1chain_ae4d0002cceee2397101a43b3755f927e}{chain.\+extrapolation\+\_\+integration()} document).
@@ -146,12 +146,12 @@ The basic way to use \hyperlink{namespaceARC}{A\+RC} integration is shown as fol
 Because of time now is an integrated variable, the time after integration cannot be predicted. Thus if you want to stop the integration at a certain physical time, you need to use \hyperlink{classARC_1_1chain_ae4d0002cceee2397101a43b3755f927e}{chain.\+extrapolation\+\_\+integration()} with dense output. To get better accuracy of physical time from intepolation, the 4k sequences (set in chainpars.\+set\+E\+X\+P()) is strongly suggested to be used. If 4k sequences are used, the dense output method for G\+BS is used and the accuracy of time intepolation is close to the accuracy of integration. Please check the document of \hyperlink{classARC_1_1chain_ae4d0002cceee2397101a43b3755f927e}{chain.\+extrapolation\+\_\+integration()} for detail. 
 
 \subsection{Constructor \& Destructor Documentation}
-\hypertarget{classARC_1_1chain_af5c20ba1cd4cbefc736e1df84962dbe1}{}\label{classARC_1_1chain_af5c20ba1cd4cbefc736e1df84962dbe1} 
+\hypertarget{classARC_1_1chain_a94d6f22a673c1b750b81bb7e21ff03ab}{}\label{classARC_1_1chain_a94d6f22a673c1b750b81bb7e21ff03ab} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!chain@{chain}}
 \index{chain@{chain}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{chain()}{chain()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
 {\footnotesize\ttfamily template$<$class particle, class int\+\_\+par$>$ \\
-\hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle, int\+\_\+par $>$\+::\hyperlink{classARC_1_1chain}{chain} (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n,  }\item[{const \hyperlink{classARC_1_1chainpars}{chainpars}$<$ int\+\_\+par $>$ \&}]{par }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+\hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle, int\+\_\+par $>$\+::\hyperlink{classARC_1_1chain}{chain} (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n,  }\item[{const \hyperlink{classARC_1_1chainpars}{chainpars}$<$ particle, int\+\_\+par $>$ \&}]{par }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -164,12 +164,12 @@ Construct chain with allocated memory
 \mbox{\tt in}  & {\em par} & chain option controller class \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars} \\
 \hline
 \end{DoxyParams}
-\hypertarget{classARC_1_1chain_a5f8a260f762232ba4a823de1815416ef}{}\label{classARC_1_1chain_a5f8a260f762232ba4a823de1815416ef} 
+\hypertarget{classARC_1_1chain_a78db3f241c1e8662219a3c10f197614b}{}\label{classARC_1_1chain_a78db3f241c1e8662219a3c10f197614b} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!chain@{chain}}
 \index{chain@{chain}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{chain()}{chain()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
 {\footnotesize\ttfamily template$<$class particle, class int\+\_\+par$>$ \\
-\hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle, int\+\_\+par $>$\+::\hyperlink{classARC_1_1chain}{chain} (\begin{DoxyParamCaption}\item[{const \hyperlink{classARC_1_1chainpars}{chainpars}$<$ int\+\_\+par $>$ \&}]{par }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+\hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle, int\+\_\+par $>$\+::\hyperlink{classARC_1_1chain}{chain} (\begin{DoxyParamCaption}\item[{const \hyperlink{classARC_1_1chainpars}{chainpars}$<$ particle, int\+\_\+par $>$ \&}]{par }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -446,7 +446,7 @@ double \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle, int\+\_\+par
 
 Calculate next step approximation based on custom defined timescale for two-\/body system. 
 
-The user-\/defined two-\/body timescale function with \+::\+A\+R\+C\+::pair\+\_\+T type will be performed on all neighbor pairs in chain. Then the minimum timescale $ T_m$ is selected to calculate next step size\+: $ ds = \eps T_m |Pt|$, where $\eps$ is \#auto\+\_\+step\+\_\+eps set in \hyperlink{classARC_1_1chainpars_a07a9734583565af190241ec32a6357c5}{chainpars.\+set\+Auto\+Step()}. 
+The user-\/defined two-\/body timescale function with \+::\+A\+R\+C\+::pair\+\_\+T type will be performed on all neighbor pairs in chain. Then the minimum timescale $ T_m$ is selected to calculate next step size\+: $ ds = \eps T_m |Pt|$, where $\eps$ is \#auto\+\_\+step\+\_\+eps set in \hyperlink{classARC_1_1chainpars_a2aa8600eba0330eb16c122a58edbb465}{chainpars.\+set\+Auto\+Step()}. 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em pt} & two-\/body timescale function with \+::\+A\+R\+C\+::pair\+\_\+T type \\
 \hline

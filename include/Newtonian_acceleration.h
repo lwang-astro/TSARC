@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include "particle.h"
 
 //! Namespace for Newtonian Interaction related functions
 /*!
@@ -50,8 +51,8 @@ namespace NTA {
     @param[out] pWij: TTL time transformation function partial derivates (component from j to i) \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (used for TTL method). \f$pWij[1:3] = mm_{ij} xij[1:3] /|xij|^3 \f$. (Total value is \f$\frac{\partial W}{\partial \mathbf{x}_i} = \sum_{j} mm_{ij} \mathbf{x}_{ij}/|\mathbf{x}_{ij}|^3\f$)
     @param[out] Wij: TTL time transformation function component with i,j (used for TTL method) \f$Wij = mm_{ij} /|xij|^3\f$ total value is \f$ W = \sum_{i<j} mm_{ij} /|xij| \f$
     @param[in] xij: relative position vector [1:3] \f$ \mathbf{x_j} - \mathbf{x_i} \f$
-    @param[in] mi: particle i mass.
-    @param[in] mj: particle j mass.
+    @param[in] pi: particle i (get mass)
+    @param[in] pj: particle j (get mass)
     @param[in] pars: Newtionian_pars type data with members:
     - mm2: smooth mass coefficient \f$ \sum_{i<j} m_i m_j /(N(N-1)/2) \f$ (can be calculated by calc_mm2()); \n
     - epi: adiustable parameter. 
@@ -59,7 +60,7 @@ namespace NTA {
     2) If epi<0: \f$mm_{ij} = m_i m_j\f$.\n
     \return status: 0 for normal cases; 1 for the case when two particles have same positions
   */
-  int Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, const double xij[3], const double &mi, const double &mj, const Newtonian_pars* pars) {
+  int Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, const double xij[3], const Particle &pi, const Particle &pj, const Newtonian_pars* pars) {
 
     // safetey check
     if (pars==NULL) {
@@ -77,15 +78,15 @@ namespace NTA {
     double epi=pars->epi;
 
     // mass parameters
-    double mimj = mi*mj; // m_i*m_i
+    double mimj = pi.getMass()*pj.getMass(); // m_i*m_j
     double mmij;
     if (mm2>0 && epi>0) {
-      // Wij = mm2 if m_i*m_i < epi*m'^2; 0 otherwise;
+      // Wij = mm2 if m_i*m_j < epi*m'^2; 0 otherwise;
       if (mimj<epi*mm2) mmij = mm2;
       else mmij = 0;
     }
     else {
-      mmij = mimj;    // Wij = m_i*m_i
+      mmij = mimj;    // Wij = m_i*m_j
     }
   
     Pij = - mimj / rij;  // Potential energy
@@ -93,7 +94,7 @@ namespace NTA {
         
     // Acceleration
     double rij3 = rij*rij*rij;
-    double mor3 = mj / rij3;
+    double mor3 = pj.getMass() / rij3;
     Aij[0] = mor3 * xij[0];
     Aij[1] = mor3 * xij[1];
     Aij[2] = mor3 * xij[2];
@@ -113,11 +114,12 @@ namespace NTA {
     @param[out]  Pij: potential. \f$ Pij = - m_i m_p /|xp-xi|^3\f$
     @param[in]  xi: position vector i.
     @param[in]  xp: position vector p.
-    @param[in]  mi: particle mass i.
-    @param[in]  mp: particle mass p.
+    @param[in]  pi: particle mass i.
+    @param[in]  pp: particle mass p.
     @param[in]  pars: Newtonian_pars type data (not used)
   */
-  void Newtonian_Ap (double Aij[3], double &Pij, const double xi[3], const double xp[3], const double &mi, const double &mp, const Newtonian_pars* pars){
+  void Newtonian_Ap (double Aij[3], double &Pij, const double xi[3], const double xp[3], const Particle &pi, const Particle &pp, const Newtonian_pars* pars){
+    double mp = pp.getMass();
     double dx = xp[0] - xi[0];
     double dy = xp[1] - xi[1];
     double dz = xp[2] - xi[2];
@@ -130,7 +132,7 @@ namespace NTA {
     Aij[1] = mp * dy / dr3;
     Aij[2] = mp * dz / dr3;
 
-    Pij = - mi*mp / dr;
+    Pij = - pi.getMass()*mp / dr;
   
   }
 

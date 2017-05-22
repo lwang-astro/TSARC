@@ -105,12 +105,12 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:aecd205ef07c4302cd04d04218c4426e6"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#aecd205ef07c4302cd04d04218c4426e6">Newtonian_AW</a> (double Aij[3], double &amp;Pij, double pWij[3], double &amp;Wij, const double xij[3], const double &amp;mi, const double &amp;mj, const <a class="el" href="classNTA_1_1Newtonian__pars.html">Newtonian_pars</a> *pars)</td></tr>
-<tr class="memdesc:aecd205ef07c4302cd04d04218c4426e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration and \(\partial W_{ij}/\partial \mathbf{x}_i\) from particle j to particle i (function type of <a class="el" href="">ARC::pair_AW</a>)  <a href="#aecd205ef07c4302cd04d04218c4426e6">More...</a><br /></td></tr>
-<tr class="separator:aecd205ef07c4302cd04d04218c4426e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5596f8660861d6e23c0827e381908641"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a5596f8660861d6e23c0827e381908641">Newtonian_Ap</a> (double Aij[3], double &amp;Pij, const double xi[3], const double xp[3], const double &amp;mi, const double &amp;mp, const <a class="el" href="classNTA_1_1Newtonian__pars.html">Newtonian_pars</a> *pars)</td></tr>
-<tr class="memdesc:a5596f8660861d6e23c0827e381908641"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration from particle p to particle i (function type of ::ARC::pair_Ap)  <a href="#a5596f8660861d6e23c0827e381908641">More...</a><br /></td></tr>
-<tr class="separator:a5596f8660861d6e23c0827e381908641"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a831c3f8f362f34f1f987ee158e38c016"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a831c3f8f362f34f1f987ee158e38c016">Newtonian_AW</a> (double Aij[3], double &amp;Pij, double pWij[3], double &amp;Wij, const double xij[3], const <a class="el" href="classParticle.html">Particle</a> &amp;pi, const <a class="el" href="classParticle.html">Particle</a> &amp;pj, const <a class="el" href="classNTA_1_1Newtonian__pars.html">Newtonian_pars</a> *pars)</td></tr>
+<tr class="memdesc:a831c3f8f362f34f1f987ee158e38c016"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration and \(\partial W_{ij}/\partial \mathbf{x}_i\) from particle j to particle i (function type of <a class="el" href="">ARC::pair_AW</a>)  <a href="#a831c3f8f362f34f1f987ee158e38c016">More...</a><br /></td></tr>
+<tr class="separator:a831c3f8f362f34f1f987ee158e38c016"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac086c632a4f16eddc70f023f269d9c94"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#ac086c632a4f16eddc70f023f269d9c94">Newtonian_Ap</a> (double Aij[3], double &amp;Pij, const double xi[3], const double xp[3], const <a class="el" href="classParticle.html">Particle</a> &amp;pi, const <a class="el" href="classParticle.html">Particle</a> &amp;pp, const <a class="el" href="classNTA_1_1Newtonian__pars.html">Newtonian_pars</a> *pars)</td></tr>
+<tr class="memdesc:ac086c632a4f16eddc70f023f269d9c94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian acceleration from particle p to particle i (function type of ::ARC::pair_Ap)  <a href="#ac086c632a4f16eddc70f023f269d9c94">More...</a><br /></td></tr>
+<tr class="separator:ac086c632a4f16eddc70f023f269d9c94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a387c8276183c856f55e73a719977d437"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceNTA.html#a387c8276183c856f55e73a719977d437">Newtonian_kepler_period</a> (const double m1, const double m2, const double dx[3], const double dv[3], const <a class="el" href="classNTA_1_1Newtonian__pars.html">Newtonian_pars</a> *pars)</td></tr>
 <tr class="memdesc:a387c8276183c856f55e73a719977d437"><td class="mdescLeft">&#160;</td><td class="mdescRight">Newtonian two-body kepler period.  <a href="#a387c8276183c856f55e73a719977d437">More...</a><br /></td></tr>
 <tr class="separator:a387c8276183c856f55e73a719977d437"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -293,8 +293,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a5596f8660861d6e23c0827e381908641"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5596f8660861d6e23c0827e381908641">&sect;&nbsp;</a></span>Newtonian_Ap()</h2>
+<a id="ac086c632a4f16eddc70f023f269d9c94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac086c632a4f16eddc70f023f269d9c94">&sect;&nbsp;</a></span>Newtonian_Ap()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -326,14 +326,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const double &amp;&#160;</td>
-          <td class="paramname"><em>mi</em>, </td>
+          <td class="paramtype">const <a class="el" href="classParticle.html">Particle</a> &amp;&#160;</td>
+          <td class="paramname"><em>pi</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const double &amp;&#160;</td>
-          <td class="paramname"><em>mp</em>, </td>
+          <td class="paramtype">const <a class="el" href="classParticle.html">Particle</a> &amp;&#160;</td>
+          <td class="paramname"><em>pp</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -356,17 +356,23 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">Pij</td><td>potential. \( Pij = - m_i m_p /|xp-xi|^3\) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">xi</td><td>position vector i. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">xp</td><td>position vector p. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mi</td><td>particle mass i. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mp</td><td>particle mass p. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pi</td><td>particle mass i. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pp</td><td>particle mass p. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">pars</td><td><a class="el" href="classNTA_1_1Newtonian__pars.html" title="Newtonian Interaction and time transformation function parameter class. ">Newtonian_pars</a> type data (not used) </td></tr>
   </table>
   </dd>
 </dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceNTA_ac086c632a4f16eddc70f023f269d9c94_cgraph.svg" width="319" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
-<a id="aecd205ef07c4302cd04d04218c4426e6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aecd205ef07c4302cd04d04218c4426e6">&sect;&nbsp;</a></span>Newtonian_AW()</h2>
+<a id="a831c3f8f362f34f1f987ee158e38c016"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a831c3f8f362f34f1f987ee158e38c016">&sect;&nbsp;</a></span>Newtonian_AW()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -404,14 +410,14 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const double &amp;&#160;</td>
-          <td class="paramname"><em>mi</em>, </td>
+          <td class="paramtype">const <a class="el" href="classParticle.html">Particle</a> &amp;&#160;</td>
+          <td class="paramname"><em>pi</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const double &amp;&#160;</td>
-          <td class="paramname"><em>mj</em>, </td>
+          <td class="paramtype">const <a class="el" href="classParticle.html">Particle</a> &amp;&#160;</td>
+          <td class="paramname"><em>pj</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -435,8 +441,8 @@ Functions</h2></td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">pWij</td><td>TTL time transformation function partial derivates (component from j to i) \(\partial W_{ij}/\partial \mathbf{x}_i\) (used for TTL method). \(pWij[1:3] = mm_{ij} xij[1:3] /|xij|^3 \). (Total value is \(\frac{\partial W}{\partial \mathbf{x}_i} = \sum_{j} mm_{ij} \mathbf{x}_{ij}/|\mathbf{x}_{ij}|^3\)) </td></tr>
     <tr><td class="paramdir">[out]</td><td class="paramname">Wij</td><td>TTL time transformation function component with i,j (used for TTL method) \(Wij = mm_{ij} /|xij|^3\) total value is \( W = \sum_{i&lt;j} mm_{ij} /|xij| \) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">xij</td><td>relative position vector [1:3] \( \mathbf{x_j} - \mathbf{x_i} \) </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mi</td><td>particle i mass. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">mj</td><td>particle j mass. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pi</td><td>particle i (get mass) </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">pj</td><td>particle j (get mass) </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">pars</td><td>Newtionian_pars type data with members:<ul>
 <li>mm2: smooth mass coefficient \( \sum_{i&lt;j} m_i m_j /(N(N-1)/2) \) (can be calculated by calc_mm2()); <br />
 </li>
@@ -448,6 +454,12 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>status: 0 for normal cases; 1 for the case when two particles have same positions </dd></dl>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" frameborder="0" src="namespaceNTA_a831c3f8f362f34f1f987ee158e38c016_cgraph.svg" width="323" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe>
+</div>
+</div>
 
 </div>
 </div>
