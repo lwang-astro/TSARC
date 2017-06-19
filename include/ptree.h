@@ -162,7 +162,7 @@ public:
       for (std::size_t i=0; i<2; i++) {
         if(lp[i]) k=((ptree<particle, proc_params>*)(this->p[i]))->collect_and_store(&plist[n-k],k);
         else if(k>0) {
-          plist[n-k].set(*(particle*)p[i]);
+          plist[n-k]=*(particle*)p[i];
           delete (particle*)p[i];
           p[i] = &plist[n-k];
           k--;
