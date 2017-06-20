@@ -1,8 +1,7 @@
 var searchData=
 [
-  ['init',['init',['../classARC_1_1chain.html#a3fe37720ceb48c14905c92d3e25e71a4',1,'ARC::chain::init()'],['../classARC_1_1chainlist.html#a82f296c7288678df8c279958304e58d8',1,'ARC::chainlist::init()']]],
-  ['initpext',['initPext',['../classARC_1_1chain.html#a1c6de84a911feff1425dfb59e7a89087',1,'ARC::chain']]],
-  ['ischain',['isChain',['../classARC_1_1chainlist.html#af3ec0d68872c99069015fe6f5f5ba4b4',1,'ARC::chainlist']]],
-  ['ispmod',['isPmod',['../classARC_1_1chain.html#a29ff9707fe94a554966c885d9bafa819',1,'ARC::chain']]],
-  ['isporigin',['isPorigin',['../classARC_1_1chain.html#a7de218a1874b150ee44a05aa9d7b7b6d',1,'ARC::chain']]]
+  ['init',['init',['../classARC_1_1chain.html#a0ad6c0c1d80133d8a4d62bc4679cef80',1,'ARC::chain::init()'],['../classARC_1_1chainlist.html#a84a2c65edf27bd25254e188ebf7d5dce',1,'ARC::chainlist::init()']]],
+  ['ischain',['isChain',['../classARC_1_1chainlist.html#aaf7a9437ca32719b31dd52f18c8414a3',1,'ARC::chainlist']]],
+  ['ispmod',['isPmod',['../classARC_1_1chain.html#a9eab4abd4041c34e2853199b7431c887',1,'ARC::chain']]],
+  ['isporigin',['isPorigin',['../classARC_1_1chain.html#a31743bd53ac53b7fa6c6f14e8a6bc087',1,'ARC::chain']]]
 ];

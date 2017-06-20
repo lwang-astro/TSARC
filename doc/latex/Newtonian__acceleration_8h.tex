@@ -1,14 +1,13 @@
-\hypertarget{Newtonian__acceleration_8h}{}\section{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+Newtonian\+\_\+acceleration.h File Reference}
-\label{Newtonian__acceleration_8h}\index{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+Newtonian\+\_\+acceleration.\+h@{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+Newtonian\+\_\+acceleration.\+h}}
-{\ttfamily \#include $<$cstdlib$>$}\newline
-{\ttfamily \#include $<$cmath$>$}\newline
-{\ttfamily \#include \char`\"{}particle.\+h\char`\"{}}\newline
-Include dependency graph for Newtonian\+\_\+acceleration.\+h\+:
-\nopagebreak
+\hypertarget{Newtonian__acceleration_8h}{}\section{/mnt/c/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+Newtonian\+\_\+acceleration.h File Reference}
+\label{Newtonian__acceleration_8h}\index{/mnt/c/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+Newtonian\+\_\+acceleration.\+h@{/mnt/c/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+Newtonian\+\_\+acceleration.\+h}}
+{\ttfamily \#include $<$cstdlib$>$}\\*
+{\ttfamily \#include $<$cmath$>$}\\*
+{\ttfamily \#include \char`\"{}particle.\+h\char`\"{}}\\*
+Include dependency graph for Newtonian\+\_\+acceleration.\+h\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=287pt]{Newtonian__acceleration_8h__incl}
+\includegraphics[width=300pt]{Newtonian__acceleration_8h__incl}
 \end{center}
 \end{figure}
 \subsection*{Classes}
@@ -21,14 +20,19 @@ class \hyperlink{classNTA_1_1Newtonian__pars}{N\+T\+A\+::\+Newtonian\+\_\+pars}
 \item 
  \hyperlink{namespaceNTA}{N\+TA}
 \begin{DoxyCompactList}\small\item\em Namespace for Newtonian Interaction related functions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef double \hyperlink{namespaceNTA_a19ccaac066849b26305dbbbee129fa0e}{N\+T\+A\+::double3}\mbox{[}3\mbox{]}
+\end{DoxyCompactItemize}
 \subsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
-int \hyperlink{namespaceNTA_a831c3f8f362f34f1f987ee158e38c016}{N\+T\+A\+::\+Newtonian\+\_\+\+AW} (double Aij\mbox{[}3\mbox{]}, double \&Pij, double p\+Wij\mbox{[}3\mbox{]}, double \&Wij, const double xij\mbox{[}3\mbox{]}, const \hyperlink{classParticle}{Particle} \&pi, const \hyperlink{classParticle}{Particle} \&pj, const Newtonian\+\_\+pars $\ast$pars)
-\begin{DoxyCompactList}\small\item\em Newtonian acceleration and $\partial W_{ij}/\partial \mathbf{x}_i$ from particle j to particle i (function type of \hyperlink{}{A\+R\+C\+::pair\+\_\+\+AW}) \end{DoxyCompactList}\item 
-void \hyperlink{namespaceNTA_ac086c632a4f16eddc70f023f269d9c94}{N\+T\+A\+::\+Newtonian\+\_\+\+Ap} (double Aij\mbox{[}3\mbox{]}, double \&Pij, const double xi\mbox{[}3\mbox{]}, const double xp\mbox{[}3\mbox{]}, const \hyperlink{classParticle}{Particle} \&pi, const \hyperlink{classParticle}{Particle} \&pp, const Newtonian\+\_\+pars $\ast$pars)
-\begin{DoxyCompactList}\small\item\em Newtonian acceleration from particle p to particle i (function type of \+::\+A\+R\+C\+::pair\+\_\+\+Ap) \end{DoxyCompactList}\item 
-double \hyperlink{namespaceNTA_a387c8276183c856f55e73a719977d437}{N\+T\+A\+::\+Newtonian\+\_\+kepler\+\_\+period} (const double m1, const double m2, const double dx\mbox{[}3\mbox{]}, const double dv\mbox{[}3\mbox{]}, const Newtonian\+\_\+pars $\ast$pars)
+int \hyperlink{namespaceNTA_aad37ae368f0a920088e180a73187685a}{N\+T\+A\+::\+Newtonian\+\_\+\+AW} (double Aij\mbox{[}3\mbox{]}, double \&Pij, double p\+Wij\mbox{[}3\mbox{]}, double \&Wij, const double xij\mbox{[}3\mbox{]}, const \hyperlink{classParticle}{Particle} \&pi, const \hyperlink{classParticle}{Particle} \&pj, Newtonian\+\_\+pars $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration and $\partial W_{ij}/\partial \mathbf{x}_i$ from particle j to particle i (function type of \hyperlink{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{A\+R\+C\+::pair\+\_\+\+AW}) \end{DoxyCompactList}\item 
+{\footnotesize template$<$class particle $>$ }\\void \hyperlink{namespaceNTA_a348d5b866ad9e50a51a398435e8b2ccd}{N\+T\+A\+::\+Newtonian\+\_\+ext\+Acc} (double3 $\ast$acc, const double t, particle $\ast$p, const int np, particle $\ast$pert, double3 $\ast$pertf, const int npert, Newtonian\+\_\+pars $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Newtonian acceleration from perturber pert to particle p (function type of \hyperlink{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{A\+R\+C\+::ext\+\_\+\+Acc}) \end{DoxyCompactList}\item 
+double \hyperlink{namespaceNTA_a5125fd91a773d67901c4e0f8896e3dca}{N\+T\+A\+::\+Newtonian\+\_\+kepler\+\_\+period} (const double m1, const double m2, const double dx\mbox{[}3\mbox{]}, const double dv\mbox{[}3\mbox{]}, Newtonian\+\_\+pars $\ast$pars)
 \begin{DoxyCompactList}\small\item\em Newtonian two-\/body kepler period. \end{DoxyCompactList}\item 
 void \hyperlink{namespaceNTA_a02d22f02e21004b264c8257a5ffbb600}{N\+T\+A\+::calc\+\_\+kepler\+\_\+orbit\+\_\+par} (double \&semi, double \&peri, double \&ecc, double angle\mbox{[}3\mbox{]}, double \&true\+\_\+anomaly, double \&ecc\+\_\+anomaly, double \&mean\+\_\+anomaly, const double m, const double dx\mbox{[}3\mbox{]}, const double dv\mbox{[}3\mbox{]})
 \begin{DoxyCompactList}\small\item\em Calculate parameters of two-\/body motion. \end{DoxyCompactList}\item 

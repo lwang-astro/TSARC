@@ -1,6 +1,0 @@
-<map id="ARC::chain::~chain" name="ARC::chain::~chain">
-<area shape="rect" id="node2" href="$classARC_1_1chainlist.html#a2ed7858b13620c086e2e52b5b8d8020c" title="Get current particle number. " alt="" coords="195,5,334,32"/>
-<area shape="rect" id="node3" href="$classARC_1_1chainlist.html#af3ec0d68872c99069015fe6f5f5ba4b4" title="Is i^th a chain? " alt="" coords="188,56,341,83"/>
-<area shape="rect" id="node4" href="$classARC_1_1chainlist.html#a4ded066f2323845befd92b1109ccdeb0" title="Get particle list in a chain type member. " alt="" coords="189,107,341,133"/>
-<area shape="rect" id="node5" href="$classARC_1_1chain.html#a7de218a1874b150ee44a05aa9d7b7b6d" title="Indicator of particle frame. " alt="" coords="193,157,337,184"/>
-</map>

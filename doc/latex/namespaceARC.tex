@@ -16,9 +16,102 @@ class \hyperlink{classARC_1_1chainlist}{chainlist}
 \begin{DoxyCompactList}\small\item\em Generalized list to store chain and particle members. \end{DoxyCompactList}\item 
 class \hyperlink{classARC_1_1chainpars}{chainpars}
 \begin{DoxyCompactList}\small\item\em The chain parameter controller class. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef double \hyperlink{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{double3}\mbox{[}3\mbox{]}
+\item 
+{\footnotesize template$<$class particle , class pertparticle , class force , class extpar $>$ }\\using \hyperlink{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{ext\+\_\+\+Acc} = void($\ast$)(\hyperlink{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{double3} $\ast$acc, const double t, particle $\ast$p, const int np, pertparticle $\ast$pert, force $\ast$fpert, const int npert, extpar $\ast$pars)
+\begin{DoxyCompactList}\small\item\em external acceleration function pointer \end{DoxyCompactList}\item 
+{\footnotesize template$<$class particle , class extpar $>$ }\\using \hyperlink{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{pair\+\_\+\+AW} = int($\ast$)(double $\ast$Aij, double \&Pij, double $\ast$d\+Wij, double \&Wij, const double $\ast$Xij, const particle \&pi, const particle \&pj, extpar $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function $\partial W_{ij}/\partial \mathbf{x}_i$ and $W_{ij}$ (from particle j to particle i). \end{DoxyCompactList}\item 
+{\footnotesize template$<$class particle , class extpar $>$ }\\using \hyperlink{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{pair\+\_\+T} = double($\ast$)(const double m1, const double m2, const double $\ast$x, const double $\ast$v, extpar $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation the timescale of two-\/body motion. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
 Algorithmic regularization chain (\hyperlink{namespaceARC}{A\+RC}) namespace. 
 
 All major \hyperlink{namespaceARC}{A\+RC} classes and related acceleration functions (typedef) are defined 
+
+\subsection{Typedef Documentation}
+\index{A\+RC@{A\+RC}!double3@{double3}}
+\index{double3@{double3}!A\+RC@{A\+RC}}
+\subsubsection[{\texorpdfstring{double3}{double3}}]{\setlength{\rightskip}{0pt plus 5cm}typedef double A\+R\+C\+::double3\mbox{[}3\mbox{]}}\hypertarget{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{}\label{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}
+\index{A\+RC@{A\+RC}!ext\+\_\+\+Acc@{ext\+\_\+\+Acc}}
+\index{ext\+\_\+\+Acc@{ext\+\_\+\+Acc}!A\+RC@{A\+RC}}
+\subsubsection[{\texorpdfstring{ext\+\_\+\+Acc}{ext_Acc}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class particle , class pertparticle , class force , class extpar $>$ using {\bf A\+R\+C\+::ext\+\_\+\+Acc} = typedef void($\ast$)({\bf double3} $\ast$acc, const double t, particle $\ast$p, const int np, pertparticle $\ast$pert, force $\ast$fpert, const int npert, extpar $\ast$pars)}\hypertarget{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{}\label{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}
+
+
+external acceleration function pointer 
+
+Use to predict perturber at new time t 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em acc} & acceleration to p from perturbers (should be reset in this function) \\
+\hline
+\mbox{\tt in}  & {\em t} & time interval for prediction \\
+\hline
+\mbox{\tt in}  & {\em p} & particle in chain \\
+\hline
+\mbox{\tt in}  & {\em np} & number of particles \\
+\hline
+\mbox{\tt in}  & {\em pert} & perturber particle \\
+\hline
+\mbox{\tt in}  & {\em force} & perturber acceleration class used for prediction \\
+\hline
+\mbox{\tt in}  & {\em npert} & number of perturbers \\
+\hline
+\mbox{\tt in}  & {\em pars} & extra parameters \\
+\hline
+\end{DoxyParams}
+\index{A\+RC@{A\+RC}!pair\+\_\+\+AW@{pair\+\_\+\+AW}}
+\index{pair\+\_\+\+AW@{pair\+\_\+\+AW}!A\+RC@{A\+RC}}
+\subsubsection[{\texorpdfstring{pair\+\_\+\+AW}{pair_AW}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class particle , class extpar $>$ using {\bf A\+R\+C\+::pair\+\_\+\+AW} = typedef int ($\ast$) (double$\ast$ Aij, double \&Pij, double $\ast$d\+Wij, double \&Wij, const double$\ast$ Xij, const particle \&pi, const particle \&pj, extpar$\ast$ pars)}\hypertarget{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{}\label{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}
+
+
+Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function $\partial W_{ij}/\partial \mathbf{x}_i$ and $W_{ij}$ (from particle j to particle i). 
+
+Notice the particle i and j are also passed as arguments. But it is only used to get extra information in addition to relative position xij. The velocity information should not be used. Otherwise the Leap-\/frog algorithm is broken. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em Aij} & acceleration vector for particle i. \\
+\hline
+\mbox{\tt out}  & {\em Pij} & potential of particle i from particle j (cumulative total potential only count the case of j$>$i) \\
+\hline
+\mbox{\tt out}  & {\em d\+Wij} & time transformation function partial derivate $\partial W_{ij}/\partial \mathbf{x}_i$ (component from j to i; used when \#beta$>$0; see \hyperlink{classARC_1_1chainpars_a37f8af288217cbfc61a3593e21976d06}{A\+R\+C\+::chainpars.\+setabg()}) . \\
+\hline
+\mbox{\tt out}  & {\em Wij} & time transformation function component from j to i (used when \#beta$>$0; notice in \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain} the cumulative total W only count the case of j$>$i). \\
+\hline
+\mbox{\tt in}  & {\em Xij} & relative position (1\+:3) $ \mathbf{x}_j - \mathbf{x}_i $ \\
+\hline
+\mbox{\tt in}  & {\em pi} & particle i. \\
+\hline
+\mbox{\tt in}  & {\em pj} & particle j. \\
+\hline
+\mbox{\tt in}  & {\em pars} & User-\/defined interaction parameter class type data \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+user-\/defined status (defaulted should be zero) 
+\end{DoxyReturn}
+\index{A\+RC@{A\+RC}!pair\+\_\+T@{pair\+\_\+T}}
+\index{pair\+\_\+T@{pair\+\_\+T}!A\+RC@{A\+RC}}
+\subsubsection[{\texorpdfstring{pair\+\_\+T}{pair_T}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class particle , class extpar $>$ using {\bf A\+R\+C\+::pair\+\_\+T} = typedef double ($\ast$) (const double m1, const double m2, const double$\ast$ x, const double$\ast$ v, extpar$\ast$ pars)}\hypertarget{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{}\label{namespaceARC_aa489b85f285776ca334a82d85dc0381a}
+
+
+Function pointer type to function for calculation the timescale of two-\/body motion. 
+
+! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i. $\ast$!
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em m1} & mass of particle 1 \\
+\hline
+\mbox{\tt in}  & {\em m2} & mass of particle 2 \\
+\hline
+\mbox{\tt in}  & {\em X} & relative position vector \\
+\hline
+\mbox{\tt in}  & {\em V} & relative velocity vector \\
+\hline
+\mbox{\tt in}  & {\em pars} & User-\/defined interaction parameter class type data \\
+\hline
+\end{DoxyParams}

@@ -23,6 +23,8 @@
  */
 namespace ARC {
 
+typedef double double3[3];
+    
 #ifdef TIME_PROFILE
 #include <sys/time.h>
 static double get_wtime(){
@@ -70,25 +72,77 @@ public:
   ~chainprofile() { if (stepcount) delete[] stepcount;}
 
 };
-
+    
 #endif
 
 //declaration
-template <class particle, class int_par> class chain;
-template <class particle, class int_par> class chainlist;
-template <class particle, class int_par> class chainpars;
+template <class particle> class chain;
+template <class particle> class chainlist;
+class chainpars;
 class chaininfo;
 
+//! external acceleration function pointer
+/*!
+  Use to predict perturber at new time t
+  @param[out] acc: acceleration to p from perturbers (should be reset in this function)
+  @param[in] t: time interval for prediction
+  @param[in] p: particle in chain
+  @param[in] np: number of particles
+  @param[in] pert: perturber particle
+  @param[in] force: perturber acceleration class used for prediction
+  @param[in] npert: number of perturbers
+  @param[in] pars: extra parameters 
+ */
+template<class particle, class pertparticle, class force, class extpar>
+using ext_Acc = void(*)(double3 *acc, const double t, particle *p, const int np, pertparticle *pert, force *fpert, const int npert, extpar *pars);
+
+//! Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ and \f$W_{ij}\f$ (from particle j to particle i).
+/*!     
+  Notice the particle i and j are also passed as arguments. But it is only used to get extra information in addition to relative position xij. The velocity information should not be used. Otherwise the Leap-frog algorithm is broken.
+  @param[out] Aij: acceleration vector for particle i.
+  @param[out] Pij: potential of particle i from particle j (cumulative total potential only count the case of j>i)
+  @param[out] dWij: time transformation function partial derivate \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (component from j to i; used when #beta>0; see ARC::chainpars.setabg()) .
+  @param[out] Wij: time transformation function component from j to i (used when #beta>0; notice in \ref ARC::chain the cumulative total W only count the case of j>i).
+  @param[in] Xij: relative position (1:3) \f$ \mathbf{x}_j - \mathbf{x}_i \f$
+  @param[in] pi: particle i.
+  @param[in] pj: particle j.
+  @param[in] pars: User-defined interaction parameter class type data
+  \return user-defined status (defaulted should be zero)
+*/
+template<class particle, class extpar>
+using pair_AW = int (*) (double* Aij, double &Pij, double *dWij, double &Wij, const double* Xij, const particle &pi, const particle &pj, extpar* pars);
+
+////! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.
+///*!
+//  Notice the positions of particles are given individually. Please don't use position and velocity of particle pi, pj since the reference frame may be wrong.
+//  @param[out]  Aij: acceleration vector of particle i.
+//  @param[out]  Pij: potential of particle i from j
+//  @param[in]  xi: position vector i.
+//  @param[in]  xj: position vector j.
+//  @param[in]  pi: particle i.
+//  @param[in]  pj: particle j.
+//  @param[in]  pars: User-defined interaction parameter class type data
+//*/
+//template<class particle, class extpar>
+//using pair_Ap = void (*) (double * Aij, double &Pij, const double* xi, const double* xj, const particle &pi, const particle &pj, extpar* pars);
+
+//! Function pointer type to function for calculation the timescale of two-body motion
+/*!
+  @param[in] m1: mass of particle 1
+  @param[in] m2: mass of particle 2
+  @param[in] X: relative position vector
+  @param[in] V: relative velocity vector
+  @param[in] pars: User-defined interaction parameter class type data
+*/
+template<class particle, class extpar>
+using pair_T = double (*) (const double m1, const double m2, const double* x, const double* v, extpar* pars);
 
 //! The chain parameter controller class
 /*!
-  This class control the acceleration function and time transformation function (::ARC::chainpars.pair_AW, ::ARC::chainpars.pair_Ap), integration methods and error parameters for \ref chain, and timescale calculator ::ARC::chainpars.pair_T.
-  The template depended type int_par is user-defined class for two-body interations used in ::ARC::chainpars.pair_AW, ::ARC::chainpars.pair_Ap and ::ARC::chainpars.pair_T
-  The template particle class is used in pair_AW, pair_Ap.
+  This class control integration methods and error parameters for \ref chain
  */
-template <class particle, class int_par>
 class chainpars{
-template <class T, class P> friend class chain;
+template <class T> friend class chain;
 private:
   // time step integration parameter
   double alpha; ///< logH cofficient
@@ -112,48 +166,11 @@ private:
   std::size_t auto_step_iter_max;   ///< maximum iteration level
 
 public:
-  //! Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ and \f$W_{ij}\f$ (from particle j to particle i).
-  /*!     
-    Notice the particle i and j are also passed as arguments. But it is only used to get extra information in addition to relative position xij. The velocity information should not be used. Otherwise the Leap-frog algorithm is broken.
-    @param[out] Aij: acceleration vector for particle i.
-    @param[out] Pij: potential of particle i from particle j (cumulative total potential only count the case of j>i)
-    @param[out] dWij: time transformation function partial derivate \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (component from j to i; used when #beta>0; see ARC::chainpars.setabg()) .
-    @param[out] Wij: time transformation function component from j to i (used when #beta>0; notice in \ref ARC::chain the cumulative total W only count the case of j>i).
-    @param[in] Xij: relative position (1:3) \f$ \mathbf{x}_j - \mathbf{x}_i \f$
-    @param[in] pi: particle i.
-    @param[in] pj: particle j.
-    @param[in] pars: User-defined interaction parameter class type data
-    \return user-defined status (defaulted should be zero)
-  */
-  typedef int (*pair_AW) (double* Aij, double &Pij, double *dWij, double &Wij, const double* Xij, const particle &pi, const particle &pj, const int_par*);
-
-  //! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.
-  /*!
-    Notice the positions of particles are given individually. Please don't use position and velocity of particle pi, pj since the reference frame may be wrong.
-    @param[out]  Aij: acceleration vector of particle i.
-    @param[out]  Pij: potential of particle i from j
-    @param[in]  xi: position vector i.
-    @param[in]  xj: position vector j.
-    @param[in]  pi: particle i.
-    @param[in]  pj: particle j.
-    @param[in]  pars: User-defined interaction parameter class type data
-  */
-  typedef void (*pair_Ap) (double * Aij, double &Pij, const double* xi, const double* xj, const particle &pi, const particle &pj, const int_par* pars);
-
-  //! Function pointer type to function for calculation the timescale of two-body motion
-  /*!
-    @param[in] m1: mass of particle 1
-    @param[in] m2: mass of particle 2
-    @param[in] X: relative position vector
-    @param[in] V: relative velocity vector
-    @param[in] pars: User-defined interaction parameter class type data
-  */
-  typedef double (*pair_T) (const double m1, const double m2, const double* x, const double* v, const int_par* pars);
-
   // pair force
-  pair_AW pp_AW;  ///< acceleration and dW/dr of two particle
-  pair_Ap pp_Ap;  ///< accelaration of two particle
-  pair_T  pp_T;   ///< two-body timescale calculator
+  // pair_AW pp_AW;  ///< acceleration and dW/dr of two particle
+  // pair_Ap pp_Ap;  ///< accelaration of two particle
+  // pair_T  pp_T;   ///< two-body timescale calculator
+  // ext_Acc ext_A;  ///< external acceleration function, if give, external force will be added to pert force
   
   // time step
   double dtmin; ///< minimum physical time step
@@ -164,8 +181,7 @@ public:
   bool exp_fix_iter;       ///< flag showing whether the times of iteration is fixed or not
 
   //! constructor with defaulted parameters
-  /*! - Acceleration function use ARC::Newtonian_AW() and ARC::Newtonian_Ap().
-      - ARC method use logarithmic Hamiltonian (logH) (#alpha = 1.0, #beta = 0.0 #gamma = 0.0).
+  /*! - ARC method use logarithmic Hamiltonian (logH) (#alpha = 1.0, #beta = 0.0 #gamma = 0.0).
       - Phase/energy error limit #exp_error = 1e-10.
       - Minimum physical time step #dtmin = 5.4e-20.
       - Time synchronization error limit #dterr = 1e-10.
@@ -174,7 +190,7 @@ public:
       - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
       - No auto-step
    */
-  chainpars(): pp_AW(NULL), pp_Ap(NULL), pp_T(NULL) {
+  chainpars() {
     step = NULL;
     bin_index = NULL;
     setabg();
@@ -188,9 +204,6 @@ public:
   //! constructor
   /*!
     All parameters can be set except anto-step method (defaulted is zero)
-    @param [in] aw: acceleration and dW/dr of two particle calculation function pointer with ::ARC::pair_AW type. (interaction between memebrs)
-    @param [in] ap: acceleration calculation function pointer with ::ARC::pair_Ap type. (interaction between member and perturber)
-    @param [in] at: two-body timescale calculation function pointer with ::ARC::pair_T type. (this will be used for new step size estimation)
     @param [in] a,b,g: ARC time transformation method coefficients (\f$ dt = ds/[a *(logH) + b * (TTL) + g])\f$. \n
                 - a: Logarithmic Hamiltonian (logH) method coefficient #alpha (0.0, 1.0)
                 - b: Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0)
@@ -204,7 +217,7 @@ public:
     @param [in] dense_intpmax: maximum derivate index for dense output interpolation (defaulted #itermax/2)
     @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
    */
-  chainpars(pair_AW aw, pair_Ap ap, pair_T at, const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
+  chainpars(const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
     step = NULL;
     bin_index = NULL;
     setabg(a,b,g);
@@ -212,7 +225,6 @@ public:
     setIterSeq(itermax,ext_sequence,dense_intpmax);
     setIntp(ext_method);
     setIterConst(ext_iteration_const);
-    setA(aw,ap,at);
     setAutoStep(0);
   }
 
@@ -227,26 +239,28 @@ public:
     }
   }
 
-  //! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ calculator
-  /*! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ for two particles. This is the basic functions used for interaction between chain members and from perturbers.
-    @param [in] aw: acceleration, potential and time transformation function \f$\partial W/\partial r\f$, \f$W\f$ of two particles calculation function pointer with ::ARC::pair_AW type. (interaction between memebrs). Notice this function defines \f$\partial W/\partial r\f$ and \f$W\f$, and these time transformation functions are only used when #beta>0 (see setabg()).
-    @param [in] ap: acceleration calculation function pointer with ::ARC::pair_Ap type. (interaction between members and perturbers)
-    @param [in] at: two-body timescale calculation function pointer with ::ARC::pair_T type. (this will be used for new step size estimation)
-  */
-  void setA(pair_AW aw, pair_Ap ap, pair_T at=NULL) {
-    pp_AW = aw;
-    pp_Ap = ap;
-    pp_T  = at;
-    // safety check
-    if (pp_AW==NULL) {
-      std::cerr<<"Error: accelaration and time trasnformation calculator function is NULL\n";
-      abort();
-    }
-    if (pp_Ap==NULL) {
-      std::cerr<<"Error: accelaration calculator function is NULL\n";
-      abort();
-    }
-  }
+  ////! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ calculator
+  ///*! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ for two particles. This is the basic functions used for interaction between chain members and from perturbers.
+  //  @param [in] aw: acceleration, potential and time transformation function \f$\partial W/\partial r\f$, \f$W\f$ of two particles calculation function pointer with pair_AW type. (interaction between memebrs). Notice this function defines \f$\partial W/\partial r\f$ and \f$W\f$, and these time transformation functions are only used when #beta>0 (see setabg()).
+  //  @param [in] ap: acceleration calculation function pointer with pair_Ap type. (interaction between members and perturbers)
+  //  @param [in] exta: external force(acceleration) function pointer with ext_Acc type
+  //  @param [in] at: two-body timescale calculation function pointer with pair_T type. (this will be used for new step size estimation)
+  //*/
+  //void setA(pair_AW aw, pair_Ap ap, ext_Acc exta=NULL, pair_T at=NULL) {
+  //  pp_AW = aw;
+  //  pp_Ap = ap;
+  //  ext_A = exta;
+  //  pp_T  = at;
+  //  // safety check
+  //  if (pp_AW==NULL) {
+  //    std::cerr<<"Error: accelaration and time trasnformation calculator function is NULL\n";
+  //    abort();
+  //  }
+  //  if (pp_Ap==NULL) {
+  //    std::cerr<<"Error: accelaration calculator function is NULL\n";
+  //    abort();
+  //  }
+  //}
   
      
   //! Set time step transformation parameter
@@ -775,18 +789,14 @@ public:
   Major class for ARC integration of few bodies
   
   It depend on the template class particle. This particle class should contain public member functions for reading and writing mass, position and velocity (see sample in Particle::setPos(), Particle::setVel(), Particle::setMass(), Particle::getPos(), Particle::getVel(), Particle::getMass())
-  The template depended type int_par is user-defined class for two-body interations used in ::ARC::chainpars.pair_AW, ::ARC::chainpars.pair_Ap
-
 
   The basic way to use ARC integration is shown as following:
   1. Construct a chain class with template class particle and a parameter controller of \ref ARC::chainpars. (The \ref ARC::chainpars should be configured first before doing integration. see its document for detail).
-  2. Add existed particle 'A' (or a list of particles, or a chain type particle) into chain particle list (\ref chain.p) using chain.addP(). Notice the chain.addP() only registers the particle A's memory address into \ref chain.p without copying data. The chain integration will directly modify the position and velocity of particle A.
-  3. Add perturbers into chain perturber list (\ref chain.pext) using chain.addPext() (also only register the particle address)
-  4. Initialize Int_pars used for ::ARC::pair_AW or ::ARC::pair_Ap if necessary (see the case of ARC::Newtonian_AW())
-  5. Initialize chain with chain.init(). Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \ref chain.p will be shifted from their original frame to their center-of-mass frame. The particle type member variable \ref chain.cm stores the center-of-mass data of these particles (the mass of \ref chain.cm is the total mass of all member particles).
-  6. Call integration functions (chain.Leapfrog_step_forward() or chain.extrapolation_integration()). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
-  7. After call integration functions, the particles are integrated to new time. Because in ARC method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in chain.extrapolation_integration() document).
-  8. Notice that after chain.init() and integration, the particles are always in the center-of-mass frame. If you want to shift them back to the original frame, the chain.center_shift_inverse() should be used. But after this function is used, you should use chain.center_shift() before the next integration.
+  2. Add existed particle 'A' (or a list of particles, or a chain type particle) into chain particle list chain.p using chain.addP(). Notice the chain.addP() only registers the particle A's memory address into chain.p and copy data into local array.
+  3. Initialize chain with chain.init(). Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \ref chain::p will be shifted from their original frame to their center-of-mass frame. The particle type member variable \ref chain.cm stores the center-of-mass data of these particles (the mass of \ref chain.cm is the total mass of all member particles).
+  4. Call integration functions (chain.Leapfrog_step_forward() or chain.extrapolation_integration()). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
+  5. After call integration functions, the particles are integrated to new time. Because in ARC method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in chain.extrapolation_integration() document).
+  6. Notice that after chain.init() and integration, the particles are always in the center-of-mass frame. If you want to shift them back to the original frame, the chain.center_shift_inverse() should be used. But after this function is used, you should use chain.center_shift() before the next integration. If you want the original partical address to be updated, copyback() should be called.
 
   Because of time now is an integrated variable, the time after integration cannot be predicted. 
   Thus if you want to stop the integration at a certain physical time, you need to use chain.extrapolation_integration() with dense output.
@@ -794,9 +804,8 @@ public:
   If 4k sequences are used, the dense output method for GBS is used and the accuracy of time intepolation is close to the accuracy of integration.
   Please check the document of chain.extrapolation_integration() for detail.
  */
-template <class particle, class int_par>
+template <class particle>
 class chain{
-  typedef double double3[3];
   double3 *X;  ///< relative position
   double3 *V;  ///< relative velocity
   double3 *acc; ///< acceleration
@@ -823,11 +832,7 @@ class chain{
   int  F_Porigin;  ///< indicate whether particle is shifted back to original frame (1: original frame: 0: center-of-mass frame; 2: only position is original frame)
   bool F_load;     ///< indicate whether load funcion is used
 
-  const chainpars<particle,int_par> *pars;   ///< chain parameter controller
-  int_par* Int_pars;     ///< extra parameter array for pair_AW, pair_Ap and pair_T (used as last argument of ::ARC::pair_AW, ::ARC::pair_Ap and ::ARC::pair_T)
-
-  chainlist<particle, int_par> p;    ///< particle list
-  chainlist<particle, int_par> pext; ///< perturber list
+  chainlist<particle> p;    ///< particle list
 
 public:
 
@@ -841,18 +846,16 @@ public:
   //! Constructor
   /*! Construct chain with allocated memory
       @param [in] n: maximum number of particles (will be used to allocate memory)
-      @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const std::size_t n, const chainpars<particle,int_par> &par):   num(0), pars(&par), Int_pars(NULL), info(NULL){
+  chain(const std::size_t n):   num(0), info(NULL){
     nmax=0;
     allocate(n);
   }
 
   //! Constructor
   /*! Construct chain without memory allocate, need to call allocate() later. 
-     @param [in] par: chain option controller class \ref ARC::chainpars
    */
-  chain(const chainpars<particle,int_par> &par): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_load(false), pars(&par), Int_pars(NULL), info(NULL) {}
+  chain(): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_load(false), info(NULL) {}
 
   //! Allocate memory
   /*! Allocate memory for maximum particle number n
@@ -891,12 +894,7 @@ public:
       nmax = 0;
     }
     p.clear();
-    pext.clear();
-
-    if (F_load&&Int_pars) {
-        delete Int_pars;
-        Int_pars=NULL;
-    }
+//    pext.clear();
 
     if (info) {
       delete info;
@@ -920,9 +918,6 @@ public:
       delete[] acc;
       delete[] pf;
       delete[] dWdr;
-    }
-    if (F_load) {
-      if (Int_pars) delete Int_pars;
     }
     if (info) delete info;
 
@@ -1012,18 +1007,23 @@ private:
       based on particle masses in #p, using current #X, #V
       (notice the acceleration and dW/dr array index follow particle p to avoid additional shift when chain list change).
 
-      @param [in] force: external force (acceleration) for each particle, (not perturber forces)
+      @param [in] fforce: force function pointer (::pair_AW)
+      @param [in] pars: extra parameters used in fforce
   */
   //      @param [in] resolve_flag: flag to determine whether to resolve sub-chain particles for force calculations. (defaulted false)
-  void calc_rAPW (const double3 *force=NULL) {
+  template<class extpar>
+  void calc_rAPW (pair_AW<particle,extpar> fforce, extpar *pars) {
 #ifdef TIME_PROFILE
     profile.t_apw -= get_wtime();
 #endif
-    // safety check
-    if (pars->pp_AW==NULL) {
-      std::cerr<<"Error: acceleration and time transformation calculation function chainpars.pp_AW is not set!\n";
-      abort();
+
+#ifdef ARC_DEBUG
+    if(fforce==NULL) {
+        std::cerr<<"Error: acceleration and time transformation calculation function is NULL!\n";
+        abort();
     }
+#endif
+
     // reset potential and transformation parameter
     double Pot_c  = 0.0;
     double W_c  = 0.0;
@@ -1076,7 +1076,7 @@ private:
 //        const double mk=pk->getMass();
 
         // force calculation function from k to j
-        int stat = pars->pp_AW(At, Pt, dWt, Wt, xjk, *pj, *pk, Int_pars);
+        int stat = fforce(At, Pt, dWt, Wt, xjk, *pj, *pk, pars);
         if (stat!=0&&info==NULL) {
           info = new chaininfo(num);
           info->status = stat;
@@ -1125,17 +1125,9 @@ private:
         }
       }
       // add perturber force
-      if (pext.getN()>0) {
-        acc[lj][0] += pf[lj][0];
-        acc[lj][1] += pf[lj][1];
-        acc[lj][2] += pf[lj][2];
-      }        
-      // add external acceleration
-      if (force!=NULL) {
-        acc[lj][0] += force[lj][0];
-        acc[lj][1] += force[lj][1];
-        acc[lj][2] += force[lj][2];
-      }
+      acc[lj][0] += pf[lj][0];
+      acc[lj][1] += pf[lj][1];
+      acc[lj][2] += pf[lj][2];
     }
 
     // Write potential and w
@@ -1189,32 +1181,18 @@ private:
       - \f$w += dt * \sum ( dm/dr_k \dot v_k)\f$ 
      @param [in] dt: time step for V
      @param [in] ave_v: averaged velocity
-     @param [in] force: external force
-     @param [in] p: particle list (only use mass)
-     @param [in] fpf: if perturber force is not zero, it is true
    */
-  void step_forward_Ptw(const double dt, const double3* ave_v, const double3* force, const bool fpf) {
+  void step_forward_Ptw(const double dt, const double3* ave_v) {
     double dPt = 0.0;
     double dw = 0.0;
-    if (force!=NULL||fpf||pars->beta>0) {
-      for (std::size_t i=0;i<num;i++) {
-        if (force!=NULL) {
-          dPt -= p[i].getMass() * ( ave_v[i][0] * (pf[i][0] + force[i][0]) 
-                            + ave_v[i][1] * (pf[i][1] + force[i][1]) 
-                            + ave_v[i][2] * (pf[i][2] + force[i][2]));
-        }
-        else if (fpf){
-          dPt -= p[i].getMass() * ( ave_v[i][0] * pf[i][0] 
-                            + ave_v[i][1] * pf[i][1] 
-                            + ave_v[i][2] * pf[i][2]);
-        }
+    for (std::size_t i=0;i<num;i++) {
+        dPt -= p[i].getMass() * ( ave_v[i][0] * pf[i][0] 
+                                  + ave_v[i][1] * pf[i][1] 
+                                  + ave_v[i][2] * pf[i][2]);
         
-        if (pars->beta>0) {
-          dw += ( ave_v[i][0] * dWdr[i][0]
+        dw += ( ave_v[i][0] * dWdr[i][0]
                 + ave_v[i][1] * dWdr[i][1]
                 + ave_v[i][2] * dWdr[i][2]);
-        }
-      }
     }
     Pt += dt * dPt;
     w += dt * dw;
@@ -1399,12 +1377,14 @@ private:
     }
   }
 
+/*
   //! Perturber force calculation
-  /*! Get perturber force based on porturber list #pext
+  *! Get pertrber force based on porturber list #pext
+    @param [in] t: physical time for prediction
     @param [in] resolve_flag: whether resolve perturber member if it is a chain 
     \return flag: true: pertubers exist. false: no perturbers
-  */
-  bool pert_force(const bool resolve_flag=false) {
+  *
+  bool pert_force(const double t, const bool resolve_flag=false) {
 #ifdef TIME_PROFILE
     profile.t_pext -= get_wtime();
 #endif
@@ -1414,65 +1394,64 @@ private:
       abort();
     }
     const int np = pext.getN();
-    if (np>0) {
-      for (std::size_t i=0;i<num;i++) {
+    for (std::size_t i=0;i<num;i++) 
         for (std::size_t j=0;j<3;j++) pf[i][j] = 0.0;
+
+    //predict
+    for (std::size_t i=0; i<np;i++) {
+        pert_predict(t, pext[j], 
+    }
+
+    for (std::size_t i=0;i<num;i++) {
         for (std::size_t j=0;j<(std::size_t)np;j++) {
-          double3 At={0};
-          double Pt;
-          const particle* pi=&p[i];
-          const double* xi=pi->getPos();
+            double3 At={0};
+            double Pt;
+            const particle* pi=&p[i];
+            const double* xi=pi->getPos();
 //          const double  mi=pi->getMass();
           
-          // check sub-chain system
-          if (resolve_flag && pext.isChain(j)) {
-            chain<particle, int_par>*cj = pext.getSub(j);
-            // get center-of-mass position for shifting;
-            const double* xc=cj->cm.getPos();
-            const std::size_t cn = cj->pext.getN();
-            for (std::size_t k=0;k<cn;k++) {
+            // check sub-chain system
+            if (resolve_flag && pext.isChain(j)) {
+                chain<particle, int_par>*cj = pext.getSub(j);
+                // get center-of-mass position for shifting;
+                const double* xc=cj->cm.getPos();
+                const std::size_t cn = cj->pext.getN();
+                for (std::size_t k=0;k<cn;k++) {
 
-              double3 xk;
-              std::memcpy(xk,cj->p[k].getPos(),3*sizeof(double));
-              // shift position to current frame; to keep thread safety, original data are not modified
-              if (cj->isPorigin()==0) {
-                xk[0] += xc[0];
-                xk[1] += xc[1];
-                xk[2] += xc[2];
-              }
-              double3 Atemp;
-              pars->pp_Ap(Atemp, Pt, xi, xk, *pi, cj->p[k], Int_pars);
+                    double3 xk;
+                    std::memcpy(xk,cj->p[k].getPos(),3*sizeof(double));
+                    // shift position to current frame; to keep thread safety, original data are not modified
+                    if (cj->isPorigin()==0) {
+                        xk[0] += xc[0];
+                        xk[1] += xc[1];
+                        xk[2] += xc[2];
+                    }
+                    double3 Atemp;
+                    pars->pp_Ap(Atemp, Pt, xi, xk, *pi, cj->p[k], Int_pars);
 
-              // Acceleration
-              At[0] += Atemp[0];
-              At[1] += Atemp[1];
-              At[2] += Atemp[2];
+                    // Acceleration
+                    At[0] += Atemp[0];
+                    At[1] += Atemp[1];
+                    At[2] += Atemp[2];
+                }
             }
-          }
-          else {
-            // perturber force
-            pars->pp_Ap(At, Pt, xi, pext[j].getPos(), *pi, pext[j], Int_pars);
-          }
+            else {
+                // perturber force
+                pars->pp_Ap(At, Pt, xi, pext[j].getPos(), *pi, pext[j], Int_pars);
+            }
           
-          pf[i][0] += At[0];
-          pf[i][1] += At[1];
-          pf[i][2] += At[2];
+            pf[i][0] += At[0];
+            pf[i][1] += At[1];
+            pf[i][2] += At[2];
         }
-      }
-#ifdef TIME_PROFILE
-      profile.t_pext += get_wtime();
-#endif
-      return true;
     }
-    else {
-      std::memset(pf,0,3*num*sizeof(double));
 #ifdef TIME_PROFILE
-      profile.t_pext += get_wtime();
+    profile.t_pext += get_wtime();
 #endif
-      return false;
-    }
+    return true;
   }
-     
+*/   
+
   //! Update #list order based on the relative distances
   /*! Update chain #list order based on current relative distance #X
     \return flag: if link is modified, return true
@@ -1736,8 +1715,9 @@ private:
     @param [in] nmax: maximum difference level (count from 1)
     @param [in] i: current position of dataset corresponding to the binomial coefficients (count from 0 as starting point)
     @param [in] ndiv: substep number
+    @param [in] pars: chainpars controller
   */
-  void mid_diff_calc(double **dpoly, const std::size_t nmax, const std::size_t i, const int ndiv) {
+    void mid_diff_calc(double **dpoly, const std::size_t nmax, const std::size_t i, const int ndiv, chainpars &pars) {
     // safety check
     if (dpoly!=NULL) {
       // difference level should not exceed the point number
@@ -1760,9 +1740,9 @@ private:
         if(i==0) for (std::size_t j=0; j<nmax; j++) dpoly[j][0] = 0.0;
 
         // dt/ds
-        double dts=calc_dt_X(1.0);
+        double dts=calc_dt_X(1.0,pars);
         
-        int** binI = pars->bin_index;
+        int** binI = pars.bin_index;
         // formula delta^n f(x) = sum_ik=0,n (-1)^(n-ik) (n n-ik) f(x+2*ik*h)
         for (std::size_t j=0; j<nmax; j++) {
           if ((i%2&&j%2)||(i%2==0&&j%2==0)) {
@@ -1806,9 +1786,9 @@ private:
       @param [in] nmax: maximum difference level (count from 1)
       @param [in] i: current position of data corresponding to the binomial coefficients (count from 0 as starting point)              
       @param [in] ndiv: substep number
-t)
+      @param [in] pars: chainpars controller
    */
-  void edge_diff_calc(double **dpoly, const int nmax, const int i, const int ndiv) {
+    void edge_diff_calc(double **dpoly, const int nmax, const int i, const int ndiv, const chainpars &pars) {
     if (dpoly!=NULL) {
       // safety check
 //      if (!tflag) {
@@ -1829,9 +1809,9 @@ t)
 
       if (i<=nmax||i>=ndiv-nmax) {
         // dt/ds
-        double dts=calc_dt_X(1.0);
+        double dts=calc_dt_X(1.0,pars);
 
-        int** binI = pars->bin_index;
+        int** binI = pars.bin_index;
         for (int j=0; j<nmax; j++) {
           // j+1 indicate the difference degree, count from 1 (first difference)
           const int n = j+1;
@@ -1971,12 +1951,13 @@ public:
   //! Calculate physical time step for X
   /*! Calculate physical time step dt for #X based on ds
      @param [in] ds:  integration step size (not physical time step) 
+     @param [in] pars: chainpars controller
      \return     dt:  physical integration time step for #X
   */
-  double calc_dt_X(const double ds) {
+  double calc_dt_X(const double ds, const chainpars &pars) {
     // determine the physical time step
-    double dt = ds / (pars->alpha * (Ekin + Pt) + pars->beta * w + pars->gamma);
-    if (std::abs(dt) < pars->dtmin && info==NULL) {
+    double dt = ds / (pars.alpha * (Ekin + Pt) + pars.beta * w + pars.gamma);
+    if (std::abs(dt) < pars.dtmin && info==NULL) {
       info=new chaininfo(num);
       info->status = 4;
       info->subdt = dt;
@@ -1987,19 +1968,21 @@ public:
   //! Calculate physical time step for V
   /*! Calculate physical time step dt for #V based on ds
      @param [in] ds:  step size s (not physical time step) 
+     @param [in] pars: chainpars controllers
      \return     dt:  physical integration time step for #V
   */
-  double calc_dt_V(const double ds) {
+    double calc_dt_V(const double ds, const chainpars &pars) {
     // determine velocity integration time step
-    return ds / (pars->gamma - pars->alpha * Pot + pars->beta * W);
+    return ds / (pars.gamma - pars.alpha * Pot + pars.beta * W);
   }
   
 
   //! Calculate next step approximation based on min(X/(gV),V/(gA))
   /*!
+    @param[in] pars: chainpars controllers
     \return: approximation of step size ds
   */
-  double calc_next_step_XVA() {
+  double calc_next_step_XVA(const chainpars &pars) {
     double dsXV=std::numeric_limits<double>::max();
     double dsVA=std::numeric_limits<double>::max();
     for (std::size_t i=0; i<num-1; i++) {
@@ -2009,30 +1992,35 @@ public:
       dsXV = std::min(r/v,dsXV);
       dsVA = std::min(v/a,dsVA);
     }
-    return pars->auto_step_eps*std::min(std::sqrt(dsXV)/calc_dt_X(1.0),std::sqrt(dsVA)/calc_dt_V(1.0));
+    return pars.auto_step_eps*std::min(std::sqrt(dsXV)/calc_dt_X(1.0,pars),std::sqrt(dsVA)/calc_dt_V(1.0,pars));
   }
 
   //! Calculate next step approximation based on custom defined timescale for two-body system
   /*!
     The user-defined two-body timescale function with ::ARC::pair_T type will be performed on all neighbor pairs in chain.
-    Then the minimum timescale \f$ T_m\f$ is selected to calculate next step size: \f$ ds = \eps T_m |Pt|\f$, where \f$\eps\f$ is #auto_step_eps set in chainpars.setAutoStep().
-    @param [in] pt: two-body timescale function with ::ARC::pair_T type
+    Then the minimum timescale \f$ T_m\f$ is selected to calculate next step size: \f$ ds = \eps T_m |Pt|\f$, where \f$\eps\f$ is ::chainpars.auto_step_eps set in chainpars.setAutoStep().
+    @param [in] pt: two-body timescale function with ::pair_T type
+    @param [in] pars: extra parameters used in pt
+    @param [in] auto_step_eps: auto step coefficient from chainpar controller
     \return approximation of step size ds
    */
-  double calc_next_step_custom() {
+  template<class extpar>
+  double calc_next_step_custom(pair_T<particle,extpar> pt, extpar* pars, const double auto_step_eps) {
+#ifdef ARC_DEBUG
     //safety check
-    if (pars->pp_T==NULL) {
+    if (pt==NULL) {
       std::cerr<<"Error: two-body timescale calculator function chainpars.pp_T is not set\n";
       abort();
     }
+#endif
 
     double perim = std::numeric_limits<double>::max();
     for (std::size_t i=0; i<num-1; i++) {
-      const double peri=pars->pp_T(p[list[i]].getMass(),p[list[i+1]].getMass(),X[i],V[i],Int_pars);
+      const double peri=pt(p[list[i]].getMass(),p[list[i+1]].getMass(),X[i],V[i],pars);
       if (perim>peri) perim = peri;
     }
 //    std::cerr<<"perim = "<<perim<<" auto_step_eps"<<pars->auto_step_eps<<" Pt "<<Pt<<std::endl;
-    return pars->auto_step_eps*perim*std::abs(Pt);
+    return auto_step_eps*perim*std::abs(Pt);
   }
   
   //! Add particle
@@ -2049,7 +2037,7 @@ public:
   /*! Add one chain (address pointer) into particle list #p (see ARC::chainlist.add())
     @param [in] a: new chain particle
    */
-  void addP(chain<particle,int_par> &a) {
+  void addP(chain<particle> &a) {
     if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(a);
     F_Pmod=true;
@@ -2108,7 +2096,7 @@ public:
       p.getMassAll(pmass);
       fwrite(pmass,sizeof(double),num,pout);
       // interaction_parameters
-      if (Int_pars) fwrite(Int_pars,sizeof(int_par),1,pout);
+      // if (Int_pars) fwrite(Int_pars,sizeof(int_par),1,pout);
 
       fclose(pout);
 
@@ -2208,31 +2196,19 @@ public:
         abort();
       }
 
-      Int_pars=new int_par;
-      rn = fread(Int_pars,sizeof(int_par),1,pin);
-      if (rn<1) {
-        delete Int_pars;
-        Int_pars=NULL;
-      }
+      //Int_pars=new int_par;
+      //rn = fread(Int_pars,sizeof(int_par),1,pin);
+      //if (rn<1) {
+      //  delete Int_pars;
+      //  Int_pars=NULL;
+      //}
       
       F_load=true;
                  
       // mass of particles
-      p.allocate(n);
+      //p.allocate(n);
       for (std::size_t i=0;i<n;i++) p[i].setMass(pmass[i]);
 
-      // initialization
-      resolve_XV();
-
-      // set relative distance matrix, acceleration, potential and transformation parameter
-      calc_rAPW();
-      
-      // kinetic energy
-      calc_Ekin();
-
-      F_Porigin = 0;
-      F_Pmod = false;
-      
       fclose(pin);
 
 //      std::cerr<<"Chain loading:\nNumber of stars ="<<n<<std::endl;
@@ -2247,9 +2223,9 @@ public:
       delete[] dtemp;
       delete[] pmass;
 
-#ifdef TIME_PROFILE
-      profile.initstep(pars->exp_itermax+1);
-#endif
+//#ifdef TIME_PROFILE
+//      profile.initstep(pars.exp_itermax+1);
+//#endif
     }
   }
 
@@ -2261,47 +2237,52 @@ public:
   void readP(const char* filename) {
     p.read(filename);
   }
-  
-  //! Allocate memory for perturber list
-  /*! Allocate memory for perturber particle list with maximum number of \a n
-     @param [in] n: maximum number of perturbers
+
+  // Copyback data to original particle address
+  /*! If the particle is added by using addP function, then this function is used to write the current chain data back to original particle address
    */
-  void initPext(const std::size_t n) {
-    if (pext.getNmax()) {
-      std::cerr<<"Error: Perturber list is already initialized!\n";
-      abort();
-    }
-    pext.init(n);
+  void copyback() {
+    p.copyback();
   }
-
   
-  //! Add one perturber particle
-  /*! Add one perturber particle (address pointer) into #pext
-     @param [in] a: perturber particle
-   */
-  void addPext(particle &a) { pext.add(a);}
-
-  //! Add one chain as a perturber particle
-  /*! Add one chain as a perturber particle (address pointer) into #pext
-     @param [in] a: the chain perturber 
-   */
-  void addPext(chain<particle,int_par> &a) { pext.add(a);}
-
-  //! Add a list of perturber particles
-  /*! Add a list of perturber particles (address pointer) into #pext
-     @param [in] n: number of particles need to be added
-     @param [in] a: array of perturbers (address)
-   */
-  void addPext(const std::size_t n, particle a[]) { pext.add(n,a); }
-
-  //! Remove one perturber 
-  /*! Remove one perturber from #pext
-     @param [in] i: perturber index in #pext needs to be removed
-     @param [in] option: position update option: 
-                 - true: shift last particle to current position (defaulted);
-                 - false: shift all right particle to left by one
-  */
-  void removePext(const std::size_t i, bool option=true) { pext.remove(i,option); }
+  ////! Allocate memory for perturber list
+  ///*! Allocate memory for perturber particle list with maximum number of \a n
+  //   @param [in] n: maximum number of perturbers
+  // */
+  //void initPext(const std::size_t n) {
+  //  if (pext.getNmax()) {
+  //    std::cerr<<"Error: Perturber list is already initialized!\n";
+  //    abort();
+  //  }
+  //  pext.init(n);
+  //}
+  ////! Add one perturber particle
+  ///*! Add one perturber particle (address pointer) into #pext
+  //   @param [in] a: perturber particle
+  // */
+  //void addPext(particle &a) { pext.add(a);}
+  // 
+  ////! Add one chain as a perturber particle
+  ///*! Add one chain as a perturber particle (address pointer) into #pext
+  //   @param [in] a: the chain perturber 
+  // */
+  //void addPext(chain<particle,int_par> &a) { pext.add(a);}
+  // 
+  ////! Add a list of perturber particles
+  ///*! Add a list of perturber particles (address pointer) into #pext
+  //   @param [in] n: number of particles need to be added
+  //   @param [in] a: array of perturbers (address)
+  // */
+  //void addPext(const std::size_t n, particle a[]) { pext.add(n,a); }
+  // 
+  ////! Remove one perturber 
+  ///*! Remove one perturber from #pext
+  //   @param [in] i: perturber index in #pext needs to be removed
+  //   @param [in] option: position update option: 
+  //               - true: shift last particle to current position (defaulted);
+  //               - false: shift all right particle to left by one
+  //*/
+  //void removePext(const std::size_t i, bool option=true) { pext.remove(i,option); }
   
   //! Indicator of changes in particle list #p
   /*! Reture true if particle list is modifed, in this case, the chain may need to be initialized again
@@ -2325,13 +2306,13 @@ public:
     return p[i];
   }
 
-  //! Get pertuber particle i (const reference)
-  /*!
-    \return: pertuber particle i (const reference)
-   */
-  const particle& getPext(const std::size_t i) const {
-    return pext[i];
-  }
+  ////! Get pertuber particle i (const reference)
+  ///*!
+  //  \return: pertuber particle i (const reference)
+  // */
+  //const particle& getPext(const std::size_t i) const {
+  //  return pext[i];
+  //}
 
   //! Get current number of chain members
   /*!
@@ -2348,47 +2329,63 @@ public:
       Chain order list #list, relative position #X, velocity #V, initial system energy #Pt and initial time transformation parameter #w are calculated.
       The particle modification indicator (isPmod()) will be set to false.
     @param [in] time: current time of particle system
+    @param [in] f: ::pair_AW type acceleration function, used for get initial potential, time transformation parameters.
+    @param [in] int_pars: extra parameters used in f
   */
-  void init(const double time) {
-    // update number indicator
-    // update_num(p.getN());
-    num = p.getN();
-    
-    // Generate chain link list
-    generate_list();
+  template<class extpar>
+  void init(const double time, pair_AW<particle,extpar> f, extpar* int_pars) {
+    if(F_load) {
+        // initialization
+        resolve_XV();
 
-    // set center-of-mass
-    if (F_Porigin==1) {
-      center_shift_init();
-      F_Porigin=0;
+        F_Porigin = 0;
+        F_Pmod = false;
+
+        // get potential and transformation parameter
+        calc_rAPW(f, int_pars);
+      
+        // kinetic energy
+        calc_Ekin();
+        
     }
     else {
-      std::cerr<<"Error: particles are not in original frame!\n";
-      abort();
+        // update number indicator
+        // update_num(p.getN());
+        num = p.getN();
+    
+        // Generate chain link list
+        generate_list();
+
+        // set center-of-mass
+        if (F_Porigin==1) {
+            center_shift_init();
+            F_Porigin=0;
+        }
+        else {
+            std::cerr<<"Error: particles are not in original frame!\n";
+            abort();
+        }
+
+        // set member relative position and velocity
+        calc_XV();
+    
+        // set relative distance matrix, acceleration, potential and transformation parameter, notice force will be recalculated later.
+        calc_rAPW(f, int_pars);
+
+        // Initial intgrt value t
+        t = time;
+
+        // kinetic energy
+        calc_Ekin();
+
+        // initial time step parameter
+        Pt = -Pot - Ekin;
+        w = W;
+
+        // set F_Pmod to false
+        F_Pmod = false;
     }
 
-    // set member relative position and velocity
-    calc_XV();
-    
-    // set relative distance matrix, acceleration, potential and transformation parameter
-    calc_rAPW();
-
-    // Initial intgrt value t
-    t = time;
-
-    // kinetic energy
-    calc_Ekin();
-
-    // initial time step parameter
-    Pt = -Pot - Ekin;
-    w = W;
-
-    // set F_Pmod to false
-    F_Pmod = false;
-
-#ifdef TIME_PROFILE
-    profile.initstep(pars->exp_itermax+1);
-#endif
     /*#ifdef DEBUG
 //    for (int i=0;i<num;i++) {
 //      std::cout<<i<<" m"<<std::setw(WIDTH)<<p[i].getMass()<<std::setw(WIDTH)<<"x";
@@ -2408,24 +2405,24 @@ public:
     
   }
 
-  //! link interaction parameter class
-  /*! link interaction parameter clsss to chain for the acceleration calculation functions
-    @param[in] par: int_par type interaction parameter class. The address will be stored (not copy)
-   */
-  void link_int_par(int_par &par) {
-    if (F_load) {
-      std::cerr<<"Error: interaction parameter variable Int_pars is already set during load(), linking is forbidden!\n";
-      abort();
-    }
-    else Int_pars = &par;
-  }
+  ////! link interaction parameter class
+  ///*! link interaction parameter clsss to chain for the acceleration calculation functions
+  //  @param[in] par: int_par type interaction parameter class. The address will be stored (not copy)
+  // */
+  //void link_int_par(int_par &par) {
+  //  if (F_load) {
+  //    std::cerr<<"Error: interaction parameter variable Int_pars is already set during load(), linking is forbidden!\n";
+  //    abort();
+  //  }
+  //  else Int_pars = &par;
+  //}
 
-  //! Get interaction parameter
-  /*! \return The reference of Int_pars, can be modified
-   */
-  int_par &get_int_par() {
-    return *Int_pars;
-  }
+  ////! Get interaction parameter
+  ///*! \return The reference of Int_pars, can be modified
+  // */
+  //int_par &get_int_par() {
+  //  return *Int_pars;
+  //}
 
   //! Inversed center-of-mass frame shift for particles
   /*! Shift the position and velocities of particles in #p from center-of-mass frame to original frame
@@ -2532,17 +2529,37 @@ public:
       The positions and velocities of particles in #p will be integrated in the center-of-mass frame
       @param [in] s: Integration step size
       @param [in] n: number of sub-steps needed to be divided. Integration step size is (\a s/\a n) and do \a n times as: X(s/2n)V(s/n)X(s/n)V(s/n)..X(s/2n)
-      @param [in] force: external force (not perturber forces which are calculated in pert_force)
+      @param [in] pars: chainpars controller
+      @param [in] f: pair acceleration function (::pair_AW) 
+      @param [in] int_pars: extra parameters used in f or fpert.
       @param [in] check_flag: 2: check link every step; 1: check link at then end; 0 :no check
       @param [in] dpoly: two dimensional array for storing 0 to \a (ndmax-*)'th order central difference of physical time #t at \a s/2 as a function of \a s, array size should be [ndmax][1]
       @param [in] ndmax: dpoly array size and the maximum difference is ndmax-*
+      @param [in] fpert: perturber acceleration function pointer (::ext_Acc)
+      @param [in] pert: perturber particle array
+      @param [in] pertf: perturrber force array for prediction
+      @param [in] npert: number of perturbers
   */             
 //               recur_flag: flag to determine whether to resolve sub-chain particles for force calculations. notice this require the sub-chain to be integrated to current physical time. Thus is this a recursion call (tree-recusion-integration)
 //               upforce: void (const particle * p, const particle *pext, double3* force). function to calculate force based on p and pext, return to force
-  void Leapfrog_step_forward(const double s, const int n, const double3* force=NULL, int check_flag=1, double** dpoly=NULL, const int ndmax=0 ) {
+  template<class pertparticle, class pertforce, class extpar>
+  void Leapfrog_step_forward(const double s, 
+                             const int n, 
+                             chainpars &pars,
+                             pair_AW<particle, extpar> f, 
+                             extpar *int_pars = NULL,
+                             int check_flag = 1, 
+                             double** dpoly = NULL, 
+                             const int ndmax = 0,
+                             ext_Acc<particle, pertparticle, pertforce, extpar> fpert = NULL,
+                             pertparticle* pert = NULL, 
+                             pertforce* pertf = NULL, 
+                             const int npert = 0) {
 #ifdef TIME_PROFILE
     profile.t_lf -= get_wtime();
 #endif
+
+#ifdef ARC_DEBUG
     // Error check
     if (n<=0) {
       std::cerr<<"Error: step number shound be positive, current number is "<<n<<std::endl;
@@ -2564,11 +2581,13 @@ public:
       abort();
     }
 
+#endif
+
     double ds = s/double(n);
     double3* ave_v=new double3[num];  // average velocity
-    bool fpf = false;                 // perturber force indicator
-    const int np = pext.getN();
-    if (np>0) fpf = true;
+//    bool fpf = false;                 // perturber force indicator
+    //const int np = pext.getN();
+    //if (np>0||pars->ext_A!=NULL) fpf = true;
 
     // for polynomial coefficient calculation first point
     // middle difference (first array is used to store the f_1/2)
@@ -2576,13 +2595,13 @@ public:
 #ifdef TIME_PROFILE
       profile.t_dense -= get_wtime();
 #endif
-      if (pars->exp_sequence==3) {
-        dpoly[1][0]=calc_dt_V(1.0);  //storage left edge derivate
-        mid_diff_calc(&dpoly[4],ndmax-4,0,n);
+      if (pars.exp_sequence==3) {
+        dpoly[1][0]=calc_dt_V(1.0,pars);  //storage left edge derivate
+        mid_diff_calc(&dpoly[4],ndmax-4,0,n,pars);
       }
       else {
-        dpoly[0][0]=calc_dt_V(1.0);  //storage left edge derivate
-        edge_diff_calc(&dpoly[1],ndmax-1,0,n);
+        dpoly[0][0]=calc_dt_V(1.0,pars);  //storage left edge derivate
+        edge_diff_calc(&dpoly[1],ndmax-1,0,n,pars);
       }
 #ifdef TIME_PROFILE
       profile.t_dense += get_wtime();
@@ -2593,7 +2612,7 @@ public:
     // integration loop
     for (int i=0;i<n;i++) {
       // half step forward for t (dependence: Ekin, Pt, w)
-      double dt = calc_dt_X(ds*0.5);
+      double dt = calc_dt_X(ds*0.5,pars);
 
       if (info!=NULL) {
         info->inti = i;
@@ -2651,17 +2670,17 @@ public:
       
       
       // perturber force
-      if (fpf) {
+      if (fpert!=NULL) {
         // get original position first, update p.x (dependence: X, cm.x)
         center_shift_inverse_X();
         // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
-        pert_force();
+        fpert(pf, t, p.getData(), p.getN(), pert, pertf, npert, int_pars);
         // reset position to center-of-mass frame, update p.x 
         center_shift_X();
       }
 
       // Update rjk, A, Pot, dWdr, W for half X (dependence: pf, force, p.m, p.x, X)
-      calc_rAPW(force);
+      calc_rAPW(f, int_pars);
       if (info!=NULL) {
         info->inti = i;
         info->subds = ds;
@@ -2673,7 +2692,7 @@ public:
       if (num>2&&check_flag==2) update_link();
 
       // Get time step dt(V) (dependence: Pot, W)
-      double dvt = calc_dt_V(ds);
+      double dvt = calc_dt_V(ds,pars);
 
       // Step forward V (dependence: dt(V), V, A)
       step_forward_V(dvt);
@@ -2682,13 +2701,13 @@ public:
       resolve_XV(ave_v);
 
       // forward Pt and w (dependence: dt(V), ave_v, p.m, p.v, force, dWdr, pf)
-      step_forward_Ptw(dvt,ave_v,force,fpf);
+      if(pars.beta>0)  step_forward_Ptw(dvt,ave_v);
 
       // Calcuale Kinetic energy (dependence: p.m, p.v)
       calc_Ekin();
 
       // step forward for t (dependence: Ekin, Pt, w)
-      dt = calc_dt_X(ds*0.5);
+      dt = calc_dt_X(ds*0.5,pars);
 
       // accident check
       if (info!=NULL) {
@@ -2712,7 +2731,7 @@ public:
 #ifdef TIME_PROFILE
         profile.t_dense -= get_wtime();
 #endif
-        if(pars->exp_sequence==3) {
+        if(pars.exp_sequence==3) {
           if (i==n/2-1) {
             dpoly[0][0]=t; // y
             dpoly[3][0]=2.0*dt/ds; // f(x)
@@ -2720,10 +2739,10 @@ public:
 //            std::cerr<<"Mid time = "<<t<<", n="<<n<<"; i="<<i+1<<std::endl;
 //#endif
           }
-          mid_diff_calc(&dpoly[4],ndmax-4,i+1,n);
+          mid_diff_calc(&dpoly[4],ndmax-4,i+1,n,pars);
         }
         // edge difference
-        else edge_diff_calc(&dpoly[1],ndmax-1,i+1,n);
+        else edge_diff_calc(&dpoly[1],ndmax-1,i+1,n,pars);
 #ifdef TIME_PROFILE
         profile.t_dense += get_wtime();
 #endif
@@ -2734,14 +2753,14 @@ public:
     resolve_X();
 
     // Update rjk, A, Pot, dWdr, W (notice A will be incorrect since pf is not updated)
-    calc_rAPW(force);
+    calc_rAPW(f, int_pars);
 
 #ifdef TIME_PROFILE
     profile.t_dense -= get_wtime();
 #endif
     if(dpoly!=NULL) {
-      if(pars->exp_sequence==3) dpoly[2][0]=calc_dt_V(1.0);
-      else dpoly[0][1]=calc_dt_V(1.0);
+      if(pars.exp_sequence==3) dpoly[2][0]=calc_dt_V(1.0,pars);
+      else dpoly[0][1]=calc_dt_V(1.0,pars);
     }
 #ifdef TIME_PROFILE
     profile.t_dense += get_wtime();
@@ -2774,19 +2793,36 @@ public:
   //! Extrapolation integration
   /*! Use extrapolation method to get highly accurate integration based on Leapfrog_step_forward().
     The auto-determination of extrapolation orders based on the accuracy requirement is used. 
-
      @param [in] ds: integration step size
+     @param [in] pars: chainpars controller
+     @param [in] f: pair acceleration function (::pair_AW) 
+     @param [in] int_pars: extra parameters used in f or fpert.
      @param [in] toff: ending physical time
                       - if value is negative, it means integration will be done with fixed step size \a ds
                       - if value is positive and after step \a ds, the ending physical time is larger than \a toff, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, the data are kept as initial values. Instead, the returning value is the ds modification factor (negative value), which can be used to modified current \a ds and redo the integration by calling this function again with new ds to approach ending physical time of \a toff. Notice if the required time sychronization criterion (set in chainpars.setEXP()) is small (<phase and energy error criterion), several iteration may be needed to get the physical time below this criterion.
-     @param [in] force: external force (not perturber forces which are calculated in pert_force)
      @param [in] err_ignore: if true, force integration and ignore error criterion (default false)
+     @param [in] pairT: custom time step estimation function for neighbor pairs
+     @param [in] fpert: perturber acceleration function pointer (::ext_Acc)
+     @param [in] pert: perturber particle array
+     @param [in] pertf: perturrber force array for prediction
+     @param [in] npert: number of perturbers
      \return factor
             - if factor is positive, it is optimized step size modification factor for next step (\a ds *= factor)
             - if factor is negative and \a toff>0; the -factor is used for calculate new ds' = -factor * \a ds. Thus this function should be called again with new step size ds' and the new result should have ending physical time close to \a toff.
             - if factor is zero, maximum extrapolation sequence index (accuracy order/iteration times) is fixed (\ref ARC::chainpars) and err_ingore is false, it means the error criterion cannot be satisfied with current maximum sequence index. In this case no integration is done and the data are kept as initial values. User should reduce the integration step and re-call this function.
    */
-  double extrapolation_integration(const double ds, const double toff=-1.0, const double3* force=NULL, const bool err_ignore=false) {
+  template<class pertparticle, class pertforce, class extpar>
+  double extrapolation_integration(const double ds, 
+                                   chainpars &pars,
+                                   pair_AW<particle, extpar> f, 
+                                   extpar *int_pars = NULL,
+                                   const double toff=-1.0, 
+                                   const bool err_ignore=false,
+                                   pair_T<particle, extpar> pairT = NULL,
+                                   ext_Acc<particle, pertparticle, pertforce, extpar> fpert=NULL,
+                                   pertparticle* pert = NULL, 
+                                   pertforce* pertf = NULL, 
+                                   const int npert = 0) {
 #ifdef TIME_PROFILE
     profile.t_ep -= get_wtime();
 #endif
@@ -2797,11 +2833,11 @@ public:
     }
     
     // get parameters
-    const double error = pars->exp_error;
-    const std::size_t itermax = pars->exp_itermax;
-    const int method = pars->exp_method;
-    const int sq = pars->exp_sequence;
-    const int *step = pars->step;
+    const double error = pars.exp_error;
+    const std::size_t itermax = pars.exp_itermax;
+    const int method = pars.exp_method;
+    const int sq = pars.exp_sequence;
+    const int *step = pars.step;
     
     // array size indicator for relative position and velocity
     const std::size_t nrel = num-1;
@@ -2866,7 +2902,7 @@ public:
         Ekin = Ekin0;
         Pot = Pot0;
         // reset velocity to get correct w
-        if (pars->beta>0) resolve_V();
+        if (pars.beta>0) resolve_V();
       }
 
       // Dense output
@@ -2875,9 +2911,9 @@ public:
 #endif
       if (ip_flag) {
         // middle difference case: difference order from 1 to 2*intcount+2 (2*kappa-2; kappa=intcount+1), first one is used to storage f(x), 2,3 are used for edge f'(x) at (0, ds)
-        if(sq==3) ndmax[intcount] = 2*std::min(intcount,pars->den_intpmax)+5;
+        if(sq==3) ndmax[intcount] = 2*std::min(intcount,pars.den_intpmax)+5;
         // edge difference case: difference order from 1 to intcount+1, first store f(x)
-        else ndmax[intcount] = std::min(intcount,pars->den_intpmax)+2;
+        else ndmax[intcount] = std::min(intcount,pars.den_intpmax)+2;
         
         // pd[][*]: * storage f(x) and difference
         pd[intcount] = new double*[ndmax[intcount]];
@@ -2890,7 +2926,7 @@ public:
 #endif
 
       // intergration
-      Leapfrog_step_forward(ds,step[intcount],force,0,pd[intcount],ndmax[intcount]);
+    Leapfrog_step_forward<pertparticle,pertforce,extpar>(ds,step[intcount],pars,f,int_pars,0,pd[intcount],ndmax[intcount],fpert,pert,pertf,npert);
 
       // accident detection
       if (info!=NULL) {
@@ -2933,7 +2969,7 @@ public:
         // recalculate the energy
         calc_Ekin();
         // force, potential and W
-        calc_rAPW(force);
+        calc_rAPW(f,int_pars);
 
         // phase error calculation
         for (std::size_t i=0;i<3;i++) CXN[i] = 0.0;
@@ -2954,7 +2990,7 @@ public:
         //        std::cerr<<"Ekin="<<Ekin<<" Pot="<<Pot<<" Pt="<<Pt<<" Ekin0="<<Ekin0<<" Pot0="<<Pot0<<" Pt0="<<d0[1]<<" eerr="<<eerr<<std::endl;
         std::memcpy(CX,CXN,3*sizeof(double));
 
-        if (pars->auto_step==1) {
+        if (pars.auto_step==1) {
           // get error estimation
           double ermax=std::min(EP::extrapolation_error(dn,dsize,intcount),std::min(eerr,cxerr));
           double dsfactor = EP::H_opt_factor(ermax,error,intcount+1);
@@ -2977,7 +3013,7 @@ public:
 #endif 
 
       // error and convergency check
-      if (!pars->exp_fix_iter) {
+      if (!pars.exp_fix_iter) {
         if (cxerr <= 0.5*error && eerr <= 0.1*error) break;
         
         if (cxerr>=cxerr0 || cxerr==0 || eerr >= eerr0) {
@@ -3020,7 +3056,7 @@ public:
     }
 
     // for dense output
-    if (!reset_flag&&ip_flag&&toff>0&&toff<t&&std::abs(toff-t)>pars->dterr) {
+    if (!reset_flag&&ip_flag&&toff>0&&toff<t&&std::abs(toff-t)>pars.dterr) {
 #ifdef TIME_PROFILE
       profile.t_dense -= get_wtime();
 #endif
@@ -3202,7 +3238,7 @@ public:
         // Iteration to get correct physical time position
         double dsi[2]   = {xpoint[0],xpoint[1]};    // edges for iteration
         double tsi[2]   = {fpoint[0][0],fpoint[1][0]}; // edges values
-        const double dterr = pars->dterr;
+        const double dterr = pars.dterr;
         const double dterr3 = 1000*dterr;  // 1000 * time error criterion
 
         bool rf_method=false;
@@ -3271,7 +3307,7 @@ public:
       Ekin = Ekin0;
       Pot  = Pot0;
       // reset velocity to get correct w
-      if (pars->beta>0) resolve_V();
+      if (pars.beta>0) resolve_V();
 
 #ifdef DEBUG
       /*std::cerr<<"Getting: ds= "<<dsm;
@@ -3325,19 +3361,19 @@ public:
     }
     else if (!reset_flag){
       // auto-step
-      if (pars->auto_step==1)
-        dsn = std::min(std::max(dsn,pars->auto_step_fac_min),pars->auto_step_fac_max);
-      else if (pars->auto_step==2) {
-        dsn = calc_next_step_XVA()/ds;
-        dsn = std::min(std::max(dsn,pars->auto_step_fac_min),pars->auto_step_fac_max);
+      if (pars.auto_step==1)
+        dsn = std::min(std::max(dsn,pars.auto_step_fac_min),pars.auto_step_fac_max);
+      else if (pars.auto_step==2) {
+        dsn = calc_next_step_XVA(pars)/ds;
+        dsn = std::min(std::max(dsn,pars.auto_step_fac_min),pars.auto_step_fac_max);
       }
-      else if (pars->auto_step==3) {
-        if      (intcount>pars->auto_step_iter_max) dsn = pars->auto_step_fac_min;
-        else if (intcount<pars->auto_step_iter_min) dsn = pars->auto_step_fac_max;
+      else if (pars.auto_step==3) {
+        if      (intcount>pars.auto_step_iter_max) dsn = pars.auto_step_fac_min;
+        else if (intcount<pars.auto_step_iter_min) dsn = pars.auto_step_fac_max;
         else    dsn = 1.0;
       }
-      else if (pars->auto_step==4)
-        dsn = calc_next_step_custom()/ds;
+      else if (pars.auto_step==4)
+        dsn = calc_next_step_custom(pairT,int_pars,pars.auto_step_eps)/ds;
 
       // update chain link order
       if(num>2) update_link();
@@ -3351,7 +3387,7 @@ public:
       Ekin = Ekin0;
       Pot  = Pot0;
       // reset velocity to get correct w
-      if (pars->beta>0) resolve_V();
+      if (pars.beta>0) resolve_V();
     }
 
     // clear memory
@@ -3367,8 +3403,9 @@ public:
     }
 
 #ifdef TIME_PROFILE
-    profile.stepcount[intcount+1]++;
     profile.t_ep += get_wtime();
+    if(!profile.stepcount) profile.initstep(pars.exp_itermax+1);
+    profile.stepcount[intcount+1]++;
     profile.itercount +=itercount;
 #endif
 
@@ -3485,10 +3522,10 @@ public:
         <<"Physical time: "<<std::setw(width)<<t<<std::endl
         <<"Time momentum Pt: "<<std::setw(width)<<Pt<<std::endl
         <<"Transformation coefficient omega: "<<std::setw(width)<<w<<std::endl
-        <<"---Time step coefficients: "<<std::endl
-        <<"alpha: "<<std::setw(width)<<pars->alpha<<std::endl
-        <<"beta: "<<std::setw(width)<<pars->beta<<std::endl
-        <<"gamma: "<<std::setw(width)<<pars->gamma<<std::endl;
+        <<"---Time step coefficients: "<<std::endl;
+        //<<"alpha: "<<std::setw(width)<<pars.alpha<<std::endl
+        //<<"beta: "<<std::setw(width)<<pars.beta<<std::endl
+        //<<"gamma: "<<std::setw(width)<<pars.gamma<<std::endl;
   }
 
 };
@@ -3496,25 +3533,28 @@ public:
 //! Generalized list to store chain and particle members
 /*! A list that storing chain and particle memory addresses (based on template class particle)
  */
-template <class particle, class int_par>
+template <class particle>
 class chainlist{
   std::size_t num; //!< number of current particles in the list #p
   std::size_t nmax; //!< maximum number of particles allown to store
   std::size_t nchain;  //!< number of chain type members
   bool* cflag; //!< flag array to indicate whether the corresponding particle in #p is chain (true: chain; false: Particle)
   void** p; //!< particle list array (void pointer array)
-  bool alloc_flag ;//!< indicate whether the p stores the particle memory address (false) or allocates new memory (true)
+  particle* data; //!< copy of particle data
+  //bool alloc_flag ;//!< indicate whether the p stores the particle memory address (false) or allocates new memory (true)
+  bool read_flag; //!< indicate whether the data is read from file
+//  bool change_flag; //!< indicate whether the add/remove is used.
 
 public:
   //! Constructor 
   /*! Set current particle number to zero, need to use init() to allocate memory for storing particle addresses
    */
-  chainlist(): num(0), nmax(0), nchain(0), alloc_flag(false) {};
+  chainlist(): num(0), nmax(0), nchain(0), read_flag(false) {};
   
   //! Constructor with maximum number of particle \a n
   /*! Set maximum particle number to \a n and allocate memory for #p to storing the particle addresses (maximum \a n)
    */
-  chainlist(const std::size_t n): alloc_flag(false) { init(n); }
+  chainlist(const std::size_t n): read_flag(false) { init(n); }
 
   //! Initialization with memory allocation
   /*! Set maximum particle number to \a n and allocate memory for #p to storing the particle addresses (maximum \a n)
@@ -3525,53 +3565,57 @@ public:
     nchain = 0;
     cflag=new bool[n];
     p=new void*[n];
+    data=new particle[n];
   }
 
-  //! allocate memory of particles
-  /*! allocate memory of n particle data with type of particle class
-    @param [in] n: number of particles
-   */
-  void allocate(const std::size_t n) {
-    if (num>0&&!alloc_flag) {
-      std::cerr<<"Error: the particle list already stores particle addresses, the allocation of new particle memory is forbidden, please clear first!\n";
-      abort();
-    }
-    if(n+num>nmax) {
-      std::cerr<<"Error: particle number allocated ("<<n<<") + current particle number ("<<num<<") > maximum number allown ("<<nmax<<")!\n";
-      abort();
-    }
-    for (std::size_t i=0; i<n; i++) {
-      p[i+num] = new particle;
-      cflag[i+num] = false;
-    }
-    num += n;
-    alloc_flag = true;
-  }
+//  //! allocate memory of particles
+//  /*! allocate memory of n particle data with type of particle class
+//    @param [in] n: number of particles
+//   */
+//  void allocate(const std::size_t n) {
+//    if (num>0&&!alloc_flag) {
+//      std::cerr<<"Error: the particle list already stores particle addresses, the allocation of new particle memory is forbidden, please clear first!\n";
+//      abort();
+//    }
+//    if(n+num>nmax) {
+//      std::cerr<<"Error: particle number allocated ("<<n<<") + current particle number ("<<num<<") > maximum number allown ("<<nmax<<")!\n";
+//      abort();
+//    }
+//    for (std::size_t i=0; i<n; i++) {
+//      p[i+num] = new particle;
+//      cflag[i+num] = false;
+//    }
+//    num += n;
+//    alloc_flag = true;
+//  }
   
   //! Clear function
   /*! Free dynamical memory space used in particle address list #p
    */
   void clear() {
     if (nmax>0) {
-      if (alloc_flag) 
-        for (std::size_t i=0;i<num;i++)
-          if (p[i]!=NULL) delete (particle*)p[i];
+      //if (alloc_flag) 
+      //  for (std::size_t i=0;i<num;i++)
+      //    if (p[i]!=NULL) delete (particle*)p[i];
       nmax = 0;
       num = 0;
       delete[] cflag;
       delete[] p;
-      alloc_flag = false;
+      delete[] data;
+      read_flag =false;
+      //alloc_flag = false;
     }
   }
 
   //! Destructor
   ~chainlist() {
     if (nmax>0) {
-      if (alloc_flag) 
-        for (std::size_t i=0;i<num;i++)
-          if (p[i]!=NULL) delete (particle*)p[i];
+      //if (alloc_flag) 
+      //  for (std::size_t i=0;i<num;i++)
+      //    if (p[i]!=NULL) delete (particle*)p[i];
       delete[] cflag;
       delete[] p;
+      delete[] data;
     }
   }
 
@@ -3580,6 +3624,11 @@ public:
    */
   std::size_t getN() const {
     return num;
+  }
+
+  //! return particle data first pointer
+  particle* getData() const {
+    return data;
   }
 
   //! Get maximum particle number
@@ -3609,13 +3658,18 @@ public:
     @param [in] a: new particle
    */
   void add(particle &a) {
-    if (alloc_flag) {
-      std::cerr<<"Error: chainlist already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
-      abort();
+    //if (alloc_flag) {
+    //  std::cerr<<"Error: chainlist already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
+    //  abort();
+    //}
+    if(read_flag) {
+        std::cerr<<"Error: chainlist already read data from file, no new particle address can be appended!\n";
+        abort();
     }
     if (num<nmax) {
       cflag[num] = false;
       p[num] = &a;
+      data[num] = a;
       num++;
     }
     else {
@@ -3630,14 +3684,19 @@ public:
     @param [in] a: array of new particles
    */
   void add(const std::size_t n, particle a[]) {
-    if (alloc_flag) {
-      std::cerr<<"Error: chainlist already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
-      abort();
+    if(read_flag) {
+        std::cerr<<"Error: chainlist already read data from file, no new particle address can be appended!\n";
+        abort();
     }
+    //if (alloc_flag) {
+    //  std::cerr<<"Error: chainlist already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
+    //  abort();
+    //}
     if (num+n<=nmax) {
       for (std::size_t i=0;i<n;i++) {
         cflag[num+i] = false;
         p[num+i] = &a[i];
+        data[num+i] = a[i];
       }
       num +=n;
     }
@@ -3651,14 +3710,19 @@ public:
   /*! Add one chain's address at the end of particle address list #p
     @param [in] a: new chain particle
    */
-  void add(chain<particle,int_par> &a) {
-    if (alloc_flag) {
-      std::cerr<<"Error: chainlist already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
-      abort();
+  void add(chain<particle> &a) {
+    if(read_flag) {
+        std::cerr<<"Error: chainlist already read data from file, no new particle address can be appended!\n";
+        abort();
     }
+    //if (alloc_flag) {
+    //  std::cerr<<"Error: chainlist already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
+    //  abort();
+    //}
     if (num<nmax) {
       cflag[num] = true;
       p[num] = &a;
+      data[num] = a.cm;
       num++;
       nchain++;
     }
@@ -3681,8 +3745,9 @@ public:
         if (cflag[i]) nchain--;
         num--;
         cflag[i] = cflag[num];
+        data[i] = data[num];
         p[i] = p[num];
-        if (alloc_flag) p[num]=NULL;
+        //if (alloc_flag) p[num]=NULL;
       }
       else {
         std::cerr<<"Warning!: try to remove non-existing particle (index "<<i<<" > maximum number "<<num<<"std::endl";
@@ -3694,9 +3759,10 @@ public:
         num--;
         for (std::size_t j=i;j<num;j++) {
           cflag[j] = cflag[j+1];
+          data[j] = data[j+1];
           p[j] = p[j+1];
         }
-        if (alloc_flag) p[num]=NULL;
+        //if (alloc_flag) p[num]=NULL;
       }
       else {
         std::cerr<<"Warning!: try to remove non-existing particle (index "<<i<<" > maximum number "<<num<<"std::endl";
@@ -3712,16 +3778,19 @@ public:
            - if \a i^th member is a chain, return the center-of-mass particle in the chain (\ref ARC::chain.cm)
    */
   particle &operator [](const std::size_t i) const {
+    //if (cflag[i]) {
+    //  return ((chain<particle>*)p[i])->cm;
+    //}
+    //else {
+    //  return *((particle*)p[i]);
+    //}
+#ifdef ARC_DEBUG
     if (i>=num) {
-      std::cerr<<"Error: the required index "<<i<<" exceed the current particle list boundary (total number = "<<num<<std::endl;
-      abort();
+        std::cerr<<"Error: the required index "<<i<<" exceed the current particle list boundary (total number = "<<num<<std::endl;
+        abort();
     }
-    if (cflag[i]) {
-      return ((chain<particle,int_par>*)p[i])->cm;
-    }
-    else {
-      return *((particle*)p[i]);
-    }
+#endif
+    return data[i];
   }
 
   //! Dump function for particle data
@@ -3756,9 +3825,11 @@ public:
         abort();
       }
 
-      allocate(n);
-      for (std::size_t i=0; i<n; i++) {
-        rn = fread(p[i+num],sizeof(particle),1,pin);
+      //allocate(n);
+      for (int i=0; i<n; i++) {
+        rn = fread(&data[i+num],sizeof(particle),1,pin);
+        p[i+num]=NULL;
+        cflag[i+num]=false;
         if (rn<1) {
           std::cerr<<"Error: cannot read particle "<<i<<", total particle number is "<<n<<"!\n";
           abort();
@@ -3766,6 +3837,7 @@ public:
       }
       fclose(pin);
     }
+    read_flag = true;
   }
 
   //! Is i^th a chain?
@@ -3778,15 +3850,30 @@ public:
   }
   
   //! Get particle list in a chain type member
-  /*! Return the address of particle list of the i^th member in particle #p (\ref ARC::chain.p)
+  /*! Return the address of particle list of the i^th member in particle #p (ARC::chain.p)
     @param [in] i: member index in list the particle address list #p
     \return
-     - if i^th member in #p is chain, returen the address of particle list (\ref ARC::chain.p).
+     - if i^th member in #p is chain, returen the address of particle list (ARC::chain.p).
      - else return NULL
    */
-  chain<particle, int_par> *getSub (const std::size_t i) const {
-    if (cflag[i]) return (chain<particle, int_par>*)p[i];
+  chain<particle> *getSub (const std::size_t i) const {
+    if (cflag[i]) return (chain<particle>*)p[i];
     else return NULL;
+  }
+
+  //! copy data back to original address
+  /*! If particle is chain, then copy back the data to its cm
+      else copy data back to original address
+   */
+  void copyback() {
+    if(read_flag) {
+        std::cerr<<"Error: data is read from file, cannot copyback!\n";
+        abort();
+    }
+    for(int i=0; i<num; i++) {
+        if(cflag[i]) ((chain<particle>*)p[i])->cm=data[i];
+        else *p[i] = data[i];
+    }
   }
 
 };

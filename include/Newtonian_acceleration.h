@@ -12,6 +12,8 @@
 */
 namespace NTA {
 
+  typedef double double3[3];
+
   //! Newtonian Interaction and time transformation function parameter class
   /*!
     This class store the smooth mass coefficients for TTL methods
@@ -60,7 +62,7 @@ namespace NTA {
     2) If epi<0: \f$mm_{ij} = m_i m_j\f$.\n
     \return status: 0 for normal cases; 1 for the case when two particles have same positions
   */
-  int Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, const double xij[3], const Particle &pi, const Particle &pj, const Newtonian_pars* pars) {
+  int Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, const double xij[3], const Particle &pi, const Particle &pj, Newtonian_pars* pars) {
 
     // safetey check
     if (pars==NULL) {
@@ -108,32 +110,50 @@ namespace NTA {
     return 0;
   }
 
-  //! Newtonian acceleration from particle p to particle i (function type of ::ARC::pair_Ap)
+  //! Newtonian acceleration from perturber pert to particle p (function type of ::ARC::ext_Acc)
   /*! 
-    @param[out]  Aij: acceleration vector. \f$Aij[1:3] = m_i m_p (xp[1:3]-xi[1:3]) / |xp-xi|^3 \f$.
-    @param[out]  Pij: potential. \f$ Pij = - m_i m_p /|xp-xi|^3\f$
-    @param[in]  xi: position vector i.
-    @param[in]  xp: position vector p.
-    @param[in]  pi: particle mass i.
-    @param[in]  pp: particle mass p.
-    @param[in]  pars: Newtonian_pars type data (not used)
+    @param[out] acc: acceleration vector from pert to p. \f$ \sum_j Aij[1:3] = m_i m_p (xp[1:3]-xi[1:3]) / |xp-xi|^3 \f$.
+    @param[in] t: time step for prediction of pert particles
+    @param[in] p: particle array
+    @param[in] np: number of particles
+    @param[in] pert: perturber particle array
+    @param[in] pertf: perturrber force array for prediction
+    @param[in] npert: number of perturbers
+    @param[in] pars: extra parameters (not used)
   */
-  void Newtonian_Ap (double Aij[3], double &Pij, const double xi[3], const double xp[3], const Particle &pi, const Particle &pp, const Newtonian_pars* pars){
-    double mp = pp.getMass();
-    double dx = xp[0] - xi[0];
-    double dy = xp[1] - xi[1];
-    double dz = xp[2] - xi[2];
+  template<class particle>  
+  void Newtonian_extAcc(double3 *acc, const double t, particle *p, const int np, particle *pert, double3 *pertf, const int npert, Newtonian_pars *pars) {
+      double3 xp[npert];
+      for (int i=0; i<npert; i++) {
+          const double* r = pert[i].getPos();
+          const double* v = pert[i].getVel();
+          double dt2 = t*t;
+          for(int j=0; j<3; j++) {
+              xp[i][j] = r[j]+v[j]*t + 0.5*pertf[i][j]*dt2;
+          }
+      }
+      
+      for (int i=0; i<np; i++) {
+          const double* xi = p[i].getPos();
+          acc[i][0] = acc[i][1] = acc[i][2] = 0.0;
+          for (int j=0; j<npert; j++) {
+      
+              double mp = pert[i].getMass();
+              double dx = xp[i][0] - xi[0];
+              double dy = xp[i][1] - xi[1];
+              double dz = xp[i][2] - xi[2];
 
-    double dr2 = dx*dx + dy*dy + dz*dz;
-    double dr  = std::sqrt(dr2);
-    double dr3 = dr*dr2;
+              double dr2 = dx*dx + dy*dy + dz*dz;
+              double dr  = std::sqrt(dr2);
+              double dr3 = dr*dr2;
 
-    Aij[0] = mp * dx / dr3;
-    Aij[1] = mp * dy / dr3;
-    Aij[2] = mp * dz / dr3;
+              acc[i][0] = mp * dx / dr3;
+              acc[i][1] = mp * dy / dr3;
+              acc[i][2] = mp * dz / dr3;
 
-    Pij = - pi.getMass()*mp / dr;
-  
+          }
+      }
+              //Pij = - pi.getMass()*mp / dr;
   }
 
   //! Newtonian two-body kepler period
@@ -145,7 +165,7 @@ namespace NTA {
     @param[in] pars: Newtonian_pars type data (not used)
     \return If the orbit is close, return the period, otherwise return the approximately 10% of free-fall time.
   */
-  double Newtonian_kepler_period (const double m1, const double m2, const double dx[3], const double dv[3], const Newtonian_pars* pars) {
+  double Newtonian_kepler_period (const double m1, const double m2, const double dx[3], const double dv[3], Newtonian_pars* pars) {
     double semi;
     const double dr2  = dx[0]*dx[0] + dx[1]*dx[1] + dx[2]*dx[2];
     const double dv2  = dv[0]*dv[0] + dv[1]*dv[1] + dv[2]*dv[2];
@@ -178,7 +198,7 @@ namespace NTA {
     @param[out] semi: semi-major axis
     @param[out] peri: period
     @param[out] ecc:  eccentricity
-    @param[out] angle[3]: three rotational angles: inclination, z-axis rotation, orbital-plane rotation
+    @param[out] angle: three rotational angles: inclination, z-axis rotation, orbital-plane rotation
     @param[out] true_anomaly: true anomaly
     @param[out] ecc_anomaly: eccentricity anomaly
     @param[out] mean_anomaly: mean anomaly

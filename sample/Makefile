@@ -7,7 +7,8 @@ VPATH=../include
 CXX= g++
 
 ## Flag ----------------------------------------------#
-CXXFLAGS = -O2 -I../include
+CXXFLAGS = -g -I../include -Wall
+CXXFLAGS += -std=c++11
 
 ## OpenMP flag----------------------------------------#
 #CXXFLAGS += -fopenmp -D USE_OMP

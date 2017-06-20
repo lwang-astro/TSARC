@@ -10,7 +10,7 @@
 #include <iomanip>
 #include <cmath>
 
-void chain_print(const ARC::chain<Particle,NTA::Newtonian_pars> &c, const double ds, const double w, const double pre) {
+void chain_print(const ARC::chain<Particle> &c, const double ds, const double w, const double pre) {
   // printing digital precision
   std::cout<<std::setprecision(pre);
 
@@ -36,7 +36,7 @@ void chain_print(const ARC::chain<Particle,NTA::Newtonian_pars> &c, const double
 }  
 
 int main(int argc, char **argv){
-  typedef double double3[3];
+//  typedef double double3[3];
   std::size_t n=3; //particle number
   int w=18; //print width
   int pre=10; //print digital precision
@@ -53,8 +53,8 @@ int main(int argc, char **argv){
   double dtmin=5.4e-20; // mimimum physical time step
   double t=0.0;    // initial physical time
   double tend=-1; // ending physical time
-  bool fflag=false; //external force flag
-  double3* f=NULL;  // external force vectors
+//  bool fflag=false; //external force flag
+//  double3* f=NULL;  // external force vectors
   int dsA=0;   //adjust step size switcher
   bool iterfix=false; //if true, iteration times is fixed to itermax
   int lpflag=0; //if 1, load chain data, 2, load particle data (binary format)
@@ -176,9 +176,9 @@ int main(int argc, char **argv){
       dtmin = atof(optarg);
       dtmin_f = true;
       break;
-    case 'f':
-      fflag = true;
-      break;
+//    case 'f':
+//      fflag = true;
+//      break;
     case 'l':
       lpflag = 1;
       break;
@@ -259,7 +259,7 @@ int main(int argc, char **argv){
            <<"error: "<<err<<std::endl
            <<"terr: "<<terr<<std::endl
            <<"dtmin: "<<dtmin<<std::endl
-           <<"extra-force: "<<fflag<<std::endl
+//           <<"extra-force: "<<fflag<<std::endl
            <<"print width: "<<w<<std::endl
            <<"print precision: "<<pre<<std::endl;
 #endif
@@ -276,9 +276,9 @@ int main(int argc, char **argv){
   }
 
   // chain controller
-  ARC::chainpars<Particle, NTA::Newtonian_pars> pars;
+  ARC::chainpars pars;
 
-  pars.setA(NTA::Newtonian_AW,NTA::Newtonian_Ap,NTA::Newtonian_kepler_period);
+  //pars.setA(NTA::Newtonian_AW,NTA::Newtonian_Ap,NTA::Newtonian_kepler_period);
 
   if (parfile) pars.load(parfile);
   
@@ -319,7 +319,7 @@ int main(int argc, char **argv){
   if (parfile) iterfix=pars.exp_fix_iter;
   if (dsA) {
     iterfix=true;
-    pars.setAutoStep(dsA,std::max(std::min(itermax-3,5),1),std::min(std::max(itermax-5,3),itermax));
+    pars.setAutoStep(dsA,0.7,1.3,0.125,std::max(std::min(itermax-3,5),1),std::min(std::max(itermax-5,3),itermax));
   }
   else {
     double dsA1,dsA2,dsAe;
@@ -329,18 +329,18 @@ int main(int argc, char **argv){
   pars.setIterConst(iterfix);
 
   // new chain class
-  ARC::chain<Particle,NTA::Newtonian_pars> c(n,pars);
+  ARC::chain<Particle> c(n);
 
   Particle *p=NULL;
 
   if (lpflag==0) {
     // reading particle data
     p=new Particle[n];
-    if (fflag) f=new double3[n];
+    //  if (fflag) f=new double3[n];
     for (std::size_t i=0;i<n;i++) {
       double x,y,z,vx,vy,vz,m;
       fs>>m>>x>>y>>z>>vx>>vy>>vz;
-      if (fflag) fs>>f[i][0]>>f[i][1]>>f[i][2];
+//      if (fflag) fs>>f[i][0]>>f[i][1]>>f[i][2];
       if (fs.eof()) {
         std::cerr<<"Error: data file reach end when reading particles (current loaded particle number is "<<i<<"; required N = "<<n<<std::endl;
         abort();
@@ -357,7 +357,7 @@ int main(int argc, char **argv){
   // Newtonian parameter, first is used for smooth mass coefficient control, second is used for adjustable coefficient for smooth mass coefficient
   NTA::Newtonian_pars Int_pars;
   // set pair_AW parameter address
-  if (lpflag!=1) c.link_int_par(Int_pars);
+  //if (lpflag!=1) c.link_int_par(Int_pars);
 
   if (method) {
     if (strcmp(method,"ttl")==0) {
@@ -372,7 +372,7 @@ int main(int argc, char **argv){
   // Int_pars.calc_mm2(pmass,n); //mm2
 
   // initialization of chain system
-  if (lpflag!=1) c.init(t);
+  c.init(t,NTA::Newtonian_AW,&Int_pars);
   
 
   //printing column title
@@ -411,13 +411,13 @@ int main(int argc, char **argv){
 
     // Extrapolation integration
     if (ms) {
-      double dsf=c.extrapolation_integration(ds,tend,f);
+        double dsf=c.extrapolation_integration<Particle,ARC::double3,NTA::Newtonian_pars>(ds,pars,NTA::Newtonian_AW,&Int_pars,tend,false,NTA::Newtonian_kepler_period);
       // indicator whether ending time is reached, if so, modify ds
       if (dsf<0) ds *= -dsf;
       // auto-adjust step size
       else if (dsf==0) {
         c.info->ErrMessage(std::cerr);
-        double dsf=c.extrapolation_integration(0.01*ds,tend,f);
+        double dsf=c.extrapolation_integration<Particle,ARC::double3,NTA::Newtonian_pars>(0.01*ds,pars,NTA::Newtonian_AW,&Int_pars, tend,false,NTA::Newtonian_kepler_period);
         chain_print(c,0.01*ds,w,pre);
         if (dsf<0) ds*= -dsf;
       }
@@ -428,7 +428,7 @@ int main(int argc, char **argv){
     }
     // Leapfrog integration
     else {
-      c.Leapfrog_step_forward(s,nsubstep,f);
+        c.Leapfrog_step_forward<Particle,ARC::double3,NTA::Newtonian_pars>(s,nsubstep,pars,NTA::Newtonian_AW, &Int_pars);
       chain_print(c,s,w,pre);
     }
 #ifdef TIME_PROFILE
@@ -463,7 +463,7 @@ int main(int argc, char **argv){
 #endif
 
   if (p!=NULL) delete[] p;
-  if (fflag) delete[] f;
+//  if (fflag) delete[] f;
   
   return 0;
 }

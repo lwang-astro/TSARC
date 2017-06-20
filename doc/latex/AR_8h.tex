@@ -1,15 +1,14 @@
-\hypertarget{AR_8h}{}\section{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+AR.h File Reference}
-\label{AR_8h}\index{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+A\+R.\+h@{C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+A\+R.\+h}}
-{\ttfamily \#include $<$iostream$>$}\newline
-{\ttfamily \#include $<$iomanip$>$}\newline
-{\ttfamily \#include $<$cstring$>$}\newline
-{\ttfamily \#include $<$cmath$>$}\newline
-{\ttfamily \#include $<$cstdlib$>$}\newline
-{\ttfamily \#include $<$cstdio$>$}\newline
-{\ttfamily \#include $<$limits$>$}\newline
-{\ttfamily \#include \char`\"{}extrapolation.\+h\char`\"{}}\newline
-Include dependency graph for A\+R.\+h\+:
-\nopagebreak
+\hypertarget{AR_8h}{}\section{/mnt/c/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+AR.h File Reference}
+\label{AR_8h}\index{/mnt/c/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+A\+R.\+h@{/mnt/c/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\+A\+R.\+h}}
+{\ttfamily \#include $<$iostream$>$}\\*
+{\ttfamily \#include $<$iomanip$>$}\\*
+{\ttfamily \#include $<$cstring$>$}\\*
+{\ttfamily \#include $<$cmath$>$}\\*
+{\ttfamily \#include $<$cstdlib$>$}\\*
+{\ttfamily \#include $<$cstdio$>$}\\*
+{\ttfamily \#include $<$limits$>$}\\*
+{\ttfamily \#include \char`\"{}extrapolation.\+h\char`\"{}}\\*
+Include dependency graph for A\+R.\+h\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -19,22 +18,31 @@ Include dependency graph for A\+R.\+h\+:
 \subsection*{Classes}
 \begin{DoxyCompactItemize}
 \item 
-class \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain$<$ particle, int\+\_\+par $>$}
+class \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain$<$ particle $>$}
 \begin{DoxyCompactList}\small\item\em \hyperlink{namespaceARC}{A\+RC} class based on template class particle. \end{DoxyCompactList}\item 
-class \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist$<$ particle, int\+\_\+par $>$}
+class \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist$<$ particle $>$}
 \begin{DoxyCompactList}\small\item\em Generalized list to store chain and particle members. \end{DoxyCompactList}\item 
-class \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars$<$ particle, int\+\_\+par $>$}
-\begin{DoxyCompactList}\small\item\em The chain parameter controller class. \end{DoxyCompactList}\item 
-class \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars$<$ particle, int\+\_\+par $>$}
+class \hyperlink{classARC_1_1chainpars}{A\+R\+C\+::chainpars}
 \begin{DoxyCompactList}\small\item\em The chain parameter controller class. \end{DoxyCompactList}\item 
 class \hyperlink{classARC_1_1chaininfo}{A\+R\+C\+::chaininfo}
 \begin{DoxyCompactList}\small\item\em class for storing the information of chain (for decision making) \end{DoxyCompactList}\item 
-class \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain$<$ particle, int\+\_\+par $>$}
+class \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain$<$ particle $>$}
 \begin{DoxyCompactList}\small\item\em \hyperlink{namespaceARC}{A\+RC} class based on template class particle. \end{DoxyCompactList}\item 
-class \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist$<$ particle, int\+\_\+par $>$}
+class \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist$<$ particle $>$}
 \begin{DoxyCompactList}\small\item\em Generalized list to store chain and particle members. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \subsection*{Namespaces}
 \begin{DoxyCompactItemize}
 \item 
  \hyperlink{namespaceARC}{A\+RC}
 \begin{DoxyCompactList}\small\item\em Algorithmic regularization chain (\hyperlink{namespaceARC}{A\+RC}) namespace. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef double \hyperlink{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{A\+R\+C\+::double3}\mbox{[}3\mbox{]}
+\item 
+{\footnotesize template$<$class particle , class pertparticle , class force , class extpar $>$ }\\using \hyperlink{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{A\+R\+C\+::ext\+\_\+\+Acc} = void($\ast$)(double3 $\ast$acc, const double t, particle $\ast$p, const int np, pertparticle $\ast$pert, force $\ast$fpert, const int npert, extpar $\ast$pars)
+\begin{DoxyCompactList}\small\item\em external acceleration function pointer \end{DoxyCompactList}\item 
+{\footnotesize template$<$class particle , class extpar $>$ }\\using \hyperlink{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{A\+R\+C\+::pair\+\_\+\+AW} = int($\ast$)(double $\ast$Aij, double \&Pij, double $\ast$d\+Wij, double \&Wij, const double $\ast$Xij, const particle \&pi, const particle \&pj, extpar $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function $\partial W_{ij}/\partial \mathbf{x}_i$ and $W_{ij}$ (from particle j to particle i). \end{DoxyCompactList}\item 
+{\footnotesize template$<$class particle , class extpar $>$ }\\using \hyperlink{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{A\+R\+C\+::pair\+\_\+T} = double($\ast$)(const double m1, const double m2, const double $\ast$x, const double $\ast$v, extpar $\ast$pars)
+\begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation the timescale of two-\/body motion. \end{DoxyCompactList}\end{DoxyCompactItemize}
