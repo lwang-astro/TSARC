@@ -61,7 +61,7 @@ Particle kepler_print(const std::size_t id, const std::size_t ib, Particle* c[2]
     return Particle(mt,xcm,vcm);
 }
 
-void chain_print(const ARC::chain<Particle,NTA::Newtonian_pars> &c, const double ds, const double w, const double pre) {
+void chain_print(const ARC::chain<Particle> &c, const double ds, const double w, const double pre) {
   // printing digital precision
   std::cout<<std::setprecision(pre);
 
@@ -130,9 +130,9 @@ int main(int argc, char **argv){
   }
 
   // chain controller
-  ARC::chainpars<Particle, NTA::Newtonian_pars> pars;
+  ARC::chainpars pars;
 
-  pars.setA(NTA::Newtonian_AW,NTA::Newtonian_Ap,NTA::Newtonian_kepler_period);
+  //pars.setA(NTA::Newtonian_AW,NTA::Newtonian_Ap,NTA::Newtonian_kepler_period);
 
   //pars.setErr(err,dtmin,terr);
   //pars.setIterSeq(itermax,msq,intpmax);
@@ -180,12 +180,12 @@ int main(int argc, char **argv){
   NTA::Newtonian_pars Int_pars;
 
   // new chain class
-  ARC::chain<Particle,NTA::Newtonian_pars> c(N,pars);
+  ARC::chain<Particle> c(N);
   
-  c.link_int_par(Int_pars);
+  //c.link_int_par(Int_pars);
   c.addP(N,p);
 
-  c.init(0.0);
+  c.init(0.0,NTA::Newtonian_AW,&Int_pars);
 
   // printing data
   print_pars pw;
@@ -200,7 +200,7 @@ int main(int argc, char **argv){
   double ds = s;
 
   for(int i=0;i<n;i++) {
-    double dsf=c.extrapolation_integration(ds);
+      double dsf=c.extrapolation_integration<Particle, double, NTA::Newtonian_pars>(ds,pars,NTA::Newtonian_AW,&Int_pars);
     if (dsf==0) {
       c.info->ErrMessage(std::cerr);
       abort();
