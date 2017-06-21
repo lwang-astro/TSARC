@@ -35,12 +35,19 @@ Algorithmic regularization chain (\hyperlink{namespaceARC}{A\+RC}) namespace.
 All major \hyperlink{namespaceARC}{A\+RC} classes and related acceleration functions (typedef) are defined 
 
 \subsection{Typedef Documentation}
+\hypertarget{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{}\label{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d} 
 \index{A\+RC@{A\+RC}!double3@{double3}}
 \index{double3@{double3}!A\+RC@{A\+RC}}
-\subsubsection[{\texorpdfstring{double3}{double3}}]{\setlength{\rightskip}{0pt plus 5cm}typedef double A\+R\+C\+::double3\mbox{[}3\mbox{]}}\hypertarget{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{}\label{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}
+\subsubsection{\texorpdfstring{double3}{double3}}
+{\footnotesize\ttfamily typedef double A\+R\+C\+::double3\mbox{[}3\mbox{]}}
+
+\hypertarget{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{}\label{namespaceARC_a7aeda3b3bd009af7ac964748834dd312} 
 \index{A\+RC@{A\+RC}!ext\+\_\+\+Acc@{ext\+\_\+\+Acc}}
 \index{ext\+\_\+\+Acc@{ext\+\_\+\+Acc}!A\+RC@{A\+RC}}
-\subsubsection[{\texorpdfstring{ext\+\_\+\+Acc}{ext_Acc}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class particle , class pertparticle , class force , class extpar $>$ using {\bf A\+R\+C\+::ext\+\_\+\+Acc} = typedef void($\ast$)({\bf double3} $\ast$acc, const double t, particle $\ast$p, const int np, pertparticle $\ast$pert, force $\ast$fpert, const int npert, extpar $\ast$pars)}\hypertarget{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{}\label{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}
+\subsubsection{\texorpdfstring{ext\+\_\+\+Acc}{ext\_Acc}}
+{\footnotesize\ttfamily template$<$class particle , class pertparticle , class force , class extpar $>$ \\
+using \hyperlink{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{A\+R\+C\+::ext\+\_\+\+Acc} = typedef void($\ast$)(\hyperlink{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{double3} $\ast$acc, const double t, particle $\ast$p, const int np, pertparticle $\ast$pert, force $\ast$fpert, const int npert, extpar $\ast$pars)}
+
 
 
 external acceleration function pointer 
@@ -64,9 +71,13 @@ Use to predict perturber at new time t
 \mbox{\tt in}  & {\em pars} & extra parameters \\
 \hline
 \end{DoxyParams}
+\hypertarget{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{}\label{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63} 
 \index{A\+RC@{A\+RC}!pair\+\_\+\+AW@{pair\+\_\+\+AW}}
 \index{pair\+\_\+\+AW@{pair\+\_\+\+AW}!A\+RC@{A\+RC}}
-\subsubsection[{\texorpdfstring{pair\+\_\+\+AW}{pair_AW}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class particle , class extpar $>$ using {\bf A\+R\+C\+::pair\+\_\+\+AW} = typedef int ($\ast$) (double$\ast$ Aij, double \&Pij, double $\ast$d\+Wij, double \&Wij, const double$\ast$ Xij, const particle \&pi, const particle \&pj, extpar$\ast$ pars)}\hypertarget{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{}\label{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}
+\subsubsection{\texorpdfstring{pair\+\_\+\+AW}{pair\_AW}}
+{\footnotesize\ttfamily template$<$class particle , class extpar $>$ \\
+using \hyperlink{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{A\+R\+C\+::pair\+\_\+\+AW} = typedef int ($\ast$) (double$\ast$ Aij, double \&Pij, double $\ast$d\+Wij, double \&Wij, const double$\ast$ Xij, const particle \&pi, const particle \&pj, extpar$\ast$ pars)}
+
 
 
 Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function $\partial W_{ij}/\partial \mathbf{x}_i$ and $W_{ij}$ (from particle j to particle i). 
@@ -93,9 +104,13 @@ Notice the particle i and j are also passed as arguments. But it is only used to
 \begin{DoxyReturn}{Returns}
 user-\/defined status (defaulted should be zero) 
 \end{DoxyReturn}
+\hypertarget{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{}\label{namespaceARC_aa489b85f285776ca334a82d85dc0381a} 
 \index{A\+RC@{A\+RC}!pair\+\_\+T@{pair\+\_\+T}}
 \index{pair\+\_\+T@{pair\+\_\+T}!A\+RC@{A\+RC}}
-\subsubsection[{\texorpdfstring{pair\+\_\+T}{pair_T}}]{\setlength{\rightskip}{0pt plus 5cm}template$<$class particle , class extpar $>$ using {\bf A\+R\+C\+::pair\+\_\+T} = typedef double ($\ast$) (const double m1, const double m2, const double$\ast$ x, const double$\ast$ v, extpar$\ast$ pars)}\hypertarget{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{}\label{namespaceARC_aa489b85f285776ca334a82d85dc0381a}
+\subsubsection{\texorpdfstring{pair\+\_\+T}{pair\_T}}
+{\footnotesize\ttfamily template$<$class particle , class extpar $>$ \\
+using \hyperlink{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{A\+R\+C\+::pair\+\_\+T} = typedef double ($\ast$) (const double m1, const double m2, const double$\ast$ x, const double$\ast$ v, extpar$\ast$ pars)}
+
 
 
 Function pointer type to function for calculation the timescale of two-\/body motion. 

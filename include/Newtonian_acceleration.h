@@ -121,8 +121,7 @@ namespace NTA {
     @param[in] npert: number of perturbers
     @param[in] pars: extra parameters (not used)
   */
-  template<class particle>  
-  void Newtonian_extAcc(double3 *acc, const double t, particle *p, const int np, particle *pert, double3 *pertf, const int npert, Newtonian_pars *pars) {
+  void Newtonian_extAcc(double3 *acc, const double t, Particle *p, const int np, Particle *pert, double3 *pertf, const int npert, Newtonian_pars *pars) {
       double3 xp[npert];
       for (int i=0; i<npert; i++) {
           const double* r = pert[i].getPos();

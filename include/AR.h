@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <cstdio>
 #include <limits>
+#include <typeinfo>
+#include <typeindex>
 #ifdef USE_OMP
 #include <omp.h>
 #endif
@@ -139,7 +141,7 @@ using pair_T = double (*) (const double m1, const double m2, const double* x, co
 
 //! The chain parameter controller class
 /*!
-  This class control integration methods and error parameters for \ref chain
+  This class control acceleration function, integration methods and error parameters for \ref chain
  */
 class chainpars{
 template <class T> friend class chain;
@@ -165,12 +167,19 @@ private:
   std::size_t auto_step_iter_min;   ///< mimimum iteration level
   std::size_t auto_step_iter_max;   ///< maximum iteration level
 
-public:
   // pair force
   // pair_AW pp_AW;  ///< acceleration and dW/dr of two particle
   // pair_Ap pp_Ap;  ///< accelaration of two particle
   // pair_T  pp_T;   ///< two-body timescale calculator
   // ext_Acc ext_A;  ///< external acceleration function, if give, external force will be added to pert force
+  void* pp_AW;
+  void* pp_T;
+  void* ext_A;
+  std::type_index* pp_AW_type;
+  std::type_index* pp_T_type;
+  std::type_index* ext_A_type;
+    
+public:
   
   // time step
   double dtmin; ///< minimum physical time step
@@ -191,6 +200,8 @@ public:
       - No auto-step
    */
   chainpars() {
+    pp_AW = ext_A = pp_T = NULL;
+    pp_AW_type = ext_A_type = pp_T_type = NULL;
     step = NULL;
     bin_index = NULL;
     setabg();
@@ -218,6 +229,8 @@ public:
     @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
    */
   chainpars(const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
+    pp_AW = ext_A = pp_T = NULL;
+    pp_AW_type = ext_A_type = pp_T_type = NULL;
     step = NULL;
     bin_index = NULL;
     setabg(a,b,g);
@@ -237,30 +250,37 @@ public:
           delete[] bin_index[i];
       delete[] bin_index;
     }
+    if (pp_AW_type!=NULL) {
+        delete pp_AW_type;
+    }
+    if (ext_A_type!=NULL) {
+        delete ext_A_type;
+    }
+    if (pp_T_type!=NULL) {
+        delete pp_T_type;
+    }
   }
 
-  ////! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ calculator
-  ///*! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ for two particles. This is the basic functions used for interaction between chain members and from perturbers.
-  //  @param [in] aw: acceleration, potential and time transformation function \f$\partial W/\partial r\f$, \f$W\f$ of two particles calculation function pointer with pair_AW type. (interaction between memebrs). Notice this function defines \f$\partial W/\partial r\f$ and \f$W\f$, and these time transformation functions are only used when #beta>0 (see setabg()).
-  //  @param [in] ap: acceleration calculation function pointer with pair_Ap type. (interaction between members and perturbers)
-  //  @param [in] exta: external force(acceleration) function pointer with ext_Acc type
-  //  @param [in] at: two-body timescale calculation function pointer with pair_T type. (this will be used for new step size estimation)
-  //*/
-  //void setA(pair_AW aw, pair_Ap ap, ext_Acc exta=NULL, pair_T at=NULL) {
-  //  pp_AW = aw;
-  //  pp_Ap = ap;
-  //  ext_A = exta;
-  //  pp_T  = at;
-  //  // safety check
-  //  if (pp_AW==NULL) {
-  //    std::cerr<<"Error: accelaration and time trasnformation calculator function is NULL\n";
-  //    abort();
-  //  }
-  //  if (pp_Ap==NULL) {
-  //    std::cerr<<"Error: accelaration calculator function is NULL\n";
-  //    abort();
-  //  }
-  //}
+  //! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ calculator
+  /*! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ for two particles. This is the basic functions used for interaction between chain members and from perturbers.
+    @param [in] aw: acceleration, potential and time transformation function \f$\partial W/\partial r\f$, \f$W\f$ of two particles calculation function pointer with pair_AW type. (interaction between memebrs). Notice this function defines \f$\partial W/\partial r\f$ and \f$W\f$, and these time transformation functions are only used when #beta>0 (see setabg()).
+    @param [in] exta: external force(acceleration) function pointer with ext_Acc type
+    @param [in] at: two-body timescale calculation function pointer with pair_T type. (this will be used for new step size estimation)
+  */
+  template<class particle, class pertparticle, class pertforce, class extpar>
+  void setA(pair_AW<particle,extpar> aw, ext_Acc<particle, pertparticle, pertforce, extpar> exta=NULL, pair_T<particle, extpar> at=NULL) {
+    pp_AW = (void*)aw;
+    ext_A = (void*)exta;
+    pp_T  = (void*)at;
+    pp_AW_type = new std::type_index(typeid(aw));
+    ext_A_type = new std::type_index(typeid(exta));
+    pp_T_type  = new std::type_index(typeid(at));
+    // safety check
+    if (pp_AW==NULL) {
+      std::cerr<<"Error: accelaration and time trasnformation calculator function is NULL\n";
+      abort();
+    }
+  }
   
      
   //! Set time step transformation parameter
@@ -2329,11 +2349,16 @@ public:
       Chain order list #list, relative position #X, velocity #V, initial system energy #Pt and initial time transformation parameter #w are calculated.
       The particle modification indicator (isPmod()) will be set to false.
     @param [in] time: current time of particle system
-    @param [in] f: ::pair_AW type acceleration function, used for get initial potential, time transformation parameters.
+    @param [in] pars: chainpars controller
     @param [in] int_pars: extra parameters used in f
   */
   template<class extpar>
-  void init(const double time, pair_AW<particle,extpar> f, extpar* int_pars) {
+  void init(const double time, const chainpars &pars, extpar* int_pars) {
+    pair_AW<particle,extpar> f = reinterpret_cast<pair_AW<particle,extpar>>(pars.pp_AW);
+    if(std::type_index(typeid(f))!=*pars.pp_AW_type) {
+        std::cerr<<"Error: acceleration function type not matched the data type\n";
+        abort();
+    }
     if(F_load) {
         // initialization
         resolve_XV();
@@ -2530,15 +2555,13 @@ public:
       @param [in] s: Integration step size
       @param [in] n: number of sub-steps needed to be divided. Integration step size is (\a s/\a n) and do \a n times as: X(s/2n)V(s/n)X(s/n)V(s/n)..X(s/2n)
       @param [in] pars: chainpars controller
-      @param [in] f: pair acceleration function (::pair_AW) 
       @param [in] int_pars: extra parameters used in f or fpert.
-      @param [in] check_flag: 2: check link every step; 1: check link at then end; 0 :no check
-      @param [in] dpoly: two dimensional array for storing 0 to \a (ndmax-*)'th order central difference of physical time #t at \a s/2 as a function of \a s, array size should be [ndmax][1]
-      @param [in] ndmax: dpoly array size and the maximum difference is ndmax-*
-      @param [in] fpert: perturber acceleration function pointer (::ext_Acc)
       @param [in] pert: perturber particle array
       @param [in] pertf: perturrber force array for prediction
       @param [in] npert: number of perturbers
+      @param [in] check_flag: 2: check link every step; 1: check link at then end; 0 :no check
+      @param [in] dpoly: two dimensional array for storing 0 to \a (ndmax-*)'th order central difference of physical time #t at \a s/2 as a function of \a s, array size should be [ndmax][1]
+      @param [in] ndmax: dpoly array size and the maximum difference is ndmax-*
   */             
 //               recur_flag: flag to determine whether to resolve sub-chain particles for force calculations. notice this require the sub-chain to be integrated to current physical time. Thus is this a recursion call (tree-recusion-integration)
 //               upforce: void (const particle * p, const particle *pext, double3* force). function to calculate force based on p and pext, return to force
@@ -2546,18 +2569,19 @@ public:
   void Leapfrog_step_forward(const double s, 
                              const int n, 
                              chainpars &pars,
-                             pair_AW<particle, extpar> f, 
                              extpar *int_pars = NULL,
-                             int check_flag = 1, 
-                             double** dpoly = NULL, 
-                             const int ndmax = 0,
-                             ext_Acc<particle, pertparticle, pertforce, extpar> fpert = NULL,
                              pertparticle* pert = NULL, 
                              pertforce* pertf = NULL, 
-                             const int npert = 0) {
+                             const int npert = 0,
+                             int check_flag = 1, 
+                             double** dpoly = NULL, 
+                             const int ndmax = 0) {
 #ifdef TIME_PROFILE
     profile.t_lf -= get_wtime();
 #endif
+
+    pair_AW<particle,extpar> f = reinterpret_cast<pair_AW<particle,extpar>>(pars.pp_AW);
+    ext_Acc<particle,pertparticle,pertforce,extpar> fpert = reinterpret_cast<ext_Acc<particle,pertparticle,pertforce,extpar>>(pars.ext_A);
 
 #ifdef ARC_DEBUG
     // Error check
@@ -2581,6 +2605,12 @@ public:
       abort();
     }
 
+    if(fpert!=NULL) {
+        if(std::type_index(typeid(fpert))!=*pars.ext_A_type) {
+            std::cerr<<"Error: perturber function type not matched the data type\n";
+            abort();
+        }
+    }
 #endif
 
     double ds = s/double(n);
@@ -2795,17 +2825,14 @@ public:
     The auto-determination of extrapolation orders based on the accuracy requirement is used. 
      @param [in] ds: integration step size
      @param [in] pars: chainpars controller
-     @param [in] f: pair acceleration function (::pair_AW) 
-     @param [in] int_pars: extra parameters used in f or fpert.
      @param [in] toff: ending physical time
                       - if value is negative, it means integration will be done with fixed step size \a ds
                       - if value is positive and after step \a ds, the ending physical time is larger than \a toff, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, the data are kept as initial values. Instead, the returning value is the ds modification factor (negative value), which can be used to modified current \a ds and redo the integration by calling this function again with new ds to approach ending physical time of \a toff. Notice if the required time sychronization criterion (set in chainpars.setEXP()) is small (<phase and energy error criterion), several iteration may be needed to get the physical time below this criterion.
-     @param [in] err_ignore: if true, force integration and ignore error criterion (default false)
-     @param [in] pairT: custom time step estimation function for neighbor pairs
-     @param [in] fpert: perturber acceleration function pointer (::ext_Acc)
+     @param [in] int_pars: extra parameters used in f or fpert.
      @param [in] pert: perturber particle array
      @param [in] pertf: perturrber force array for prediction
      @param [in] npert: number of perturbers
+     @param [in] err_ignore: if true, force integration and ignore error criterion (default false)
      \return factor
             - if factor is positive, it is optimized step size modification factor for next step (\a ds *= factor)
             - if factor is negative and \a toff>0; the -factor is used for calculate new ds' = -factor * \a ds. Thus this function should be called again with new step size ds' and the new result should have ending physical time close to \a toff.
@@ -2814,18 +2841,21 @@ public:
   template<class pertparticle, class pertforce, class extpar>
   double extrapolation_integration(const double ds, 
                                    chainpars &pars,
-                                   pair_AW<particle, extpar> f, 
+                                   const double toff = -1, 
                                    extpar *int_pars = NULL,
-                                   const double toff=-1.0, 
-                                   const bool err_ignore=false,
-                                   pair_T<particle, extpar> pairT = NULL,
-                                   ext_Acc<particle, pertparticle, pertforce, extpar> fpert=NULL,
                                    pertparticle* pert = NULL, 
                                    pertforce* pertf = NULL, 
-                                   const int npert = 0) {
+                                   const int npert = 0,
+                                   const bool err_ignore=false) {
 #ifdef TIME_PROFILE
     profile.t_ep -= get_wtime();
 #endif
+    pair_AW<particle,extpar> f = reinterpret_cast<pair_AW<particle,extpar>>(pars.pp_AW);
+    if(std::type_index(typeid(f))!=*pars.pp_AW_type) {
+        std::cerr<<"Error: acceleration function type not matched the data type\n";
+        abort();
+    }
+
     // clear info if exist
     if (info){
       delete info;
@@ -2926,7 +2956,7 @@ public:
 #endif
 
       // intergration
-    Leapfrog_step_forward<pertparticle,pertforce,extpar>(ds,step[intcount],pars,f,int_pars,0,pd[intcount],ndmax[intcount],fpert,pert,pertf,npert);
+      Leapfrog_step_forward<pertparticle,pertforce,extpar>(ds,step[intcount],pars,int_pars,pert,pertf,npert,0,pd[intcount],ndmax[intcount]);
 
       // accident detection
       if (info!=NULL) {
@@ -3372,9 +3402,14 @@ public:
         else if (intcount<pars.auto_step_iter_min) dsn = pars.auto_step_fac_max;
         else    dsn = 1.0;
       }
-      else if (pars.auto_step==4)
-        dsn = calc_next_step_custom(pairT,int_pars,pars.auto_step_eps)/ds;
-
+      else if (pars.auto_step==4) {
+        pair_T<particle,extpar> pp_T = reinterpret_cast<pair_T<particle,extpar>>(pars.pp_T);
+        if(std::type_index(typeid(pp_T))!=*pars.pp_T_type) {
+            std::cerr<<"Error: pair timescale function type not matched!\n";
+            abort();
+        }
+        dsn = calc_next_step_custom(pp_T,int_pars,pars.auto_step_eps)/ds;
+      }
       // update chain link order
       if(num>2) update_link();
     }

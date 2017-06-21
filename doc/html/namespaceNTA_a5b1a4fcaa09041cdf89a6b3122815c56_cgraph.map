@@ -1,0 +1,5 @@
+<map id="NTA::Newtonian_extAcc" name="NTA::Newtonian_extAcc">
+<area shape="rect" id="node2" href="$classParticle.html#a4ec76421cddd91b1f27357fb182f6923" title="Get position (required for ARC::chain) " alt="" coords="218,5,330,32"/>
+<area shape="rect" id="node3" href="$classParticle.html#ab3d63df7f8c22f232b096ae33b6ea3ac" title="Get velocity (required for ARC::chain) " alt="" coords="219,56,329,83"/>
+<area shape="rect" id="node4" href="$classParticle.html#a2576aff503f68e78ced91406512b1255" title="Get mass (required for ARC::chain) " alt="" coords="213,107,335,133"/>
+</map>

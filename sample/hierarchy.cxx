@@ -132,7 +132,7 @@ int main(int argc, char **argv){
   // chain controller
   ARC::chainpars pars;
 
-  //pars.setA(NTA::Newtonian_AW,NTA::Newtonian_Ap,NTA::Newtonian_kepler_period);
+  pars.setA(NTA::Newtonian_AW,NTA::Newtonian_extAcc,NTA::Newtonian_kepler_period);
 
   //pars.setErr(err,dtmin,terr);
   //pars.setIterSeq(itermax,msq,intpmax);
@@ -185,7 +185,7 @@ int main(int argc, char **argv){
   //c.link_int_par(Int_pars);
   c.addP(N,p);
 
-  c.init(0.0,NTA::Newtonian_AW,&Int_pars);
+  c.init(0.0,pars,&Int_pars);
 
   // printing data
   print_pars pw;
@@ -200,7 +200,7 @@ int main(int argc, char **argv){
   double ds = s;
 
   for(int i=0;i<n;i++) {
-      double dsf=c.extrapolation_integration<Particle, double, NTA::Newtonian_pars>(ds,pars,NTA::Newtonian_AW,&Int_pars);
+      double dsf=c.extrapolation_integration<Particle, ARC::double3, NTA::Newtonian_pars>(ds,pars,-1,&Int_pars);
     if (dsf==0) {
       c.info->ErrMessage(std::cerr);
       abort();

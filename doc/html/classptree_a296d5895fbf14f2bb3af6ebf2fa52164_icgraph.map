@@ -1,5 +1,5 @@
 <map id="ptree::fill" name="ptree::fill">
-<area shape="rect" id="node2" href="$classptree.html#a128cebcb837edbd16dd6dd9c7784ddd9" title="construct the tree py filling two particles " alt="" coords="131,5,229,32"/>
-<area shape="rect" id="node3" href="$classptree.html#ae4c20eddf5cfcf45e5f809567c967bf9" title="Split (delete) one leaf, create a new branch (ptree) and store two particles. " alt="" coords="135,56,225,83"/>
-<area shape="rect" id="node4" href="$classptree.html#a84643c9c87f4ed74ec06542e22c8bee7" title="add a particle pair to one of the leaf " alt="" coords="277,81,363,108"/>
+<area shape="rect" id="node2" href="$classptree.html#a128cebcb837edbd16dd6dd9c7784ddd9" title="construct the tree py filling two particles " alt="" coords="128,5,220,32"/>
+<area shape="rect" id="node3" href="$classptree.html#ae4c20eddf5cfcf45e5f809567c967bf9" title="Split (delete) one leaf, create a new branch (ptree) and store two particles. " alt="" coords="131,56,217,83"/>
+<area shape="rect" id="node4" href="$classptree.html#a84643c9c87f4ed74ec06542e22c8bee7" title="add a particle pair to one of the leaf " alt="" coords="268,81,349,108"/>
 </map>
