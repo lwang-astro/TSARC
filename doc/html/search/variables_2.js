@@ -1,9 +1,8 @@
 var searchData=
 [
-  ['eerr',['eerr',['../classARC_1_1chaininfo.html#a2a4787b1089da59e9ad8f008d211faed',1,'ARC::chaininfo']]],
-  ['eerr0',['eerr0',['../classARC_1_1chaininfo.html#aa25da11049199a727d6d94c172ed93ae',1,'ARC::chaininfo']]],
-  ['ekin',['Ekin',['../classARC_1_1chaininfo.html#a7732d57314ddb49eb996eb41056a0140',1,'ARC::chaininfo']]],
-  ['epi',['epi',['../classNTA_1_1Newtonian__pars.html#a4c4f79cd0d1600f8f038cdec15981268',1,'NTA::Newtonian_pars']]],
-  ['exp_5ferror',['exp_error',['../classARC_1_1chainpars.html#a7ee477ebe8b1d67457891ab58560c074',1,'ARC::chainpars']]],
-  ['exp_5ffix_5fiter',['exp_fix_iter',['../classARC_1_1chainpars.html#a3f16e6ea9497e294265c4a17df0394ba',1,'ARC::chainpars']]]
+  ['i1',['i1',['../classARC_1_1chaininfo.html#a50deb77aefe8f664d65f7320098d4726',1,'ARC::chaininfo']]],
+  ['i2',['i2',['../classARC_1_1chaininfo.html#a60f94a1f01c83934ad975f5d82638ef1',1,'ARC::chaininfo']]],
+  ['info',['info',['../classARC_1_1chain.html#a2b0336aa1235e52e0bb586ba4bcaa211',1,'ARC::chain']]],
+  ['intcount',['intcount',['../classARC_1_1chaininfo.html#a0bd3d3a4b97bba8fa1baea9f077f30a7',1,'ARC::chaininfo']]],
+  ['inti',['inti',['../classARC_1_1chaininfo.html#ab043612acf18c1c850737f67bcb6e141',1,'ARC::chaininfo']]]
 ];

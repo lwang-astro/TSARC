@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['perr',['perr',['../classARC_1_1chaininfo.html#a83dc2c6904ccf789ac299db95fa57bc5',1,'ARC::chaininfo']]],
-  ['perr0',['perr0',['../classARC_1_1chaininfo.html#aa5687aa0deb33f878f2283befe978d5f',1,'ARC::chaininfo']]],
-  ['pot',['Pot',['../classARC_1_1chaininfo.html#afcefd59678495b4fb0e42b5b481cd875',1,'ARC::chaininfo']]]
+  ['status',['status',['../classARC_1_1chaininfo.html#a64ae72bf5fd209d92b95393826f2a358',1,'ARC::chaininfo']]],
+  ['subds',['subds',['../classARC_1_1chaininfo.html#a3185aadb946f5d958016a35f40d0341f',1,'ARC::chaininfo']]],
+  ['subdt',['subdt',['../classARC_1_1chaininfo.html#a470e18cf65e805ff41ea3098da9cdd10',1,'ARC::chaininfo']]]
 ];

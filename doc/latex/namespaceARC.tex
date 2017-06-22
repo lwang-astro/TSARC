@@ -9,7 +9,7 @@ Algorithmic regularization chain (\hyperlink{namespaceARC}{A\+RC}) namespace.
 \begin{DoxyCompactItemize}
 \item 
 class \hyperlink{classARC_1_1chain}{chain}
-\begin{DoxyCompactList}\small\item\em \hyperlink{namespaceARC}{A\+RC} class based on template class particle. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em \hyperlink{namespaceARC}{A\+RC} class based on template class particle\+\_\+. \end{DoxyCompactList}\item 
 class \hyperlink{classARC_1_1chaininfo}{chaininfo}
 \begin{DoxyCompactList}\small\item\em class for storing the information of chain (for decision making) \end{DoxyCompactList}\item 
 class \hyperlink{classARC_1_1chainlist}{chainlist}
@@ -21,11 +21,11 @@ class \hyperlink{classARC_1_1chainpars}{chainpars}
 \item 
 typedef double \hyperlink{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{double3}\mbox{[}3\mbox{]}
 \item 
-{\footnotesize template$<$class particle , class pertparticle , class force , class extpar $>$ }\\using \hyperlink{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{ext\+\_\+\+Acc} = void($\ast$)(\hyperlink{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{double3} $\ast$acc, const double t, particle $\ast$p, const int np, pertparticle $\ast$pert, force $\ast$fpert, const int npert, extpar $\ast$pars)
+{\footnotesize template$<$class particle\+\_\+ , class pertparticle\+\_\+ , class force\+\_\+ , class extpar\+\_\+ $>$ }\\using \hyperlink{namespaceARC_aa423c7d6aff9481c040a20b3c5c6ff4e}{ext\+\_\+\+Acc} = void($\ast$)(\hyperlink{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{double3} $\ast$acc, const double t, particle\+\_\+ $\ast$p, const int np, pertparticle\+\_\+ $\ast$pert, force\+\_\+ $\ast$fpert, const int npert, extpar\+\_\+ $\ast$pars)
 \begin{DoxyCompactList}\small\item\em external acceleration function pointer \end{DoxyCompactList}\item 
-{\footnotesize template$<$class particle , class extpar $>$ }\\using \hyperlink{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{pair\+\_\+\+AW} = int($\ast$)(double $\ast$Aij, double \&Pij, double $\ast$d\+Wij, double \&Wij, const double $\ast$Xij, const particle \&pi, const particle \&pj, extpar $\ast$pars)
+{\footnotesize template$<$class particle\+\_\+ , class extpar\+\_\+ $>$ }\\using \hyperlink{namespaceARC_afc1f57a75859038cbd2492366fd1849c}{pair\+\_\+\+AW} = int($\ast$)(double $\ast$Aij, double \&Pij, double $\ast$d\+Wij, double \&Wij, const double $\ast$Xij, const particle\+\_\+ \&pi, const particle\+\_\+ \&pj, extpar\+\_\+ $\ast$pars)
 \begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function $\partial W_{ij}/\partial \mathbf{x}_i$ and $W_{ij}$ (from particle j to particle i). \end{DoxyCompactList}\item 
-{\footnotesize template$<$class particle , class extpar $>$ }\\using \hyperlink{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{pair\+\_\+T} = double($\ast$)(const double m1, const double m2, const double $\ast$x, const double $\ast$v, extpar $\ast$pars)
+{\footnotesize template$<$class particle\+\_\+ , class extpar\+\_\+ $>$ }\\using \hyperlink{namespaceARC_af6dbf77cf2968752315f7712eb2515a3}{pair\+\_\+T} = double($\ast$)(const double m1, const double m2, const double $\ast$x, const double $\ast$v, extpar\+\_\+ $\ast$pars)
 \begin{DoxyCompactList}\small\item\em Function pointer type to function for calculation the timescale of two-\/body motion. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
@@ -41,12 +41,12 @@ All major \hyperlink{namespaceARC}{A\+RC} classes and related acceleration funct
 \subsubsection{\texorpdfstring{double3}{double3}}
 {\footnotesize\ttfamily typedef double A\+R\+C\+::double3\mbox{[}3\mbox{]}}
 
-\hypertarget{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{}\label{namespaceARC_a7aeda3b3bd009af7ac964748834dd312} 
+\hypertarget{namespaceARC_aa423c7d6aff9481c040a20b3c5c6ff4e}{}\label{namespaceARC_aa423c7d6aff9481c040a20b3c5c6ff4e} 
 \index{A\+RC@{A\+RC}!ext\+\_\+\+Acc@{ext\+\_\+\+Acc}}
 \index{ext\+\_\+\+Acc@{ext\+\_\+\+Acc}!A\+RC@{A\+RC}}
 \subsubsection{\texorpdfstring{ext\+\_\+\+Acc}{ext\_Acc}}
-{\footnotesize\ttfamily template$<$class particle , class pertparticle , class force , class extpar $>$ \\
-using \hyperlink{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{A\+R\+C\+::ext\+\_\+\+Acc} = typedef void($\ast$)(\hyperlink{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{double3} $\ast$acc, const double t, particle $\ast$p, const int np, pertparticle $\ast$pert, force $\ast$fpert, const int npert, extpar $\ast$pars)}
+{\footnotesize\ttfamily template$<$class particle\+\_\+ , class pertparticle\+\_\+ , class force\+\_\+ , class extpar\+\_\+ $>$ \\
+using \hyperlink{namespaceARC_aa423c7d6aff9481c040a20b3c5c6ff4e}{A\+R\+C\+::ext\+\_\+\+Acc} = typedef void($\ast$)(\hyperlink{namespaceARC_affb4fe085f3ea94b378be8bc9382a75d}{double3} $\ast$acc, const double t, particle\+\_\+ $\ast$p, const int np, pertparticle\+\_\+ $\ast$pert, force\+\_\+ $\ast$fpert, const int npert, extpar\+\_\+ $\ast$pars)}
 
 
 
@@ -71,12 +71,12 @@ Use to predict perturber at new time t
 \mbox{\tt in}  & {\em pars} & extra parameters \\
 \hline
 \end{DoxyParams}
-\hypertarget{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{}\label{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63} 
+\hypertarget{namespaceARC_afc1f57a75859038cbd2492366fd1849c}{}\label{namespaceARC_afc1f57a75859038cbd2492366fd1849c} 
 \index{A\+RC@{A\+RC}!pair\+\_\+\+AW@{pair\+\_\+\+AW}}
 \index{pair\+\_\+\+AW@{pair\+\_\+\+AW}!A\+RC@{A\+RC}}
 \subsubsection{\texorpdfstring{pair\+\_\+\+AW}{pair\_AW}}
-{\footnotesize\ttfamily template$<$class particle , class extpar $>$ \\
-using \hyperlink{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{A\+R\+C\+::pair\+\_\+\+AW} = typedef int ($\ast$) (double$\ast$ Aij, double \&Pij, double $\ast$d\+Wij, double \&Wij, const double$\ast$ Xij, const particle \&pi, const particle \&pj, extpar$\ast$ pars)}
+{\footnotesize\ttfamily template$<$class particle\+\_\+ , class extpar\+\_\+ $>$ \\
+using \hyperlink{namespaceARC_afc1f57a75859038cbd2492366fd1849c}{A\+R\+C\+::pair\+\_\+\+AW} = typedef int ($\ast$) (double$\ast$ Aij, double \&Pij, double $\ast$d\+Wij, double \&Wij, const double$\ast$ Xij, const particle\+\_\+ \&pi, const particle\+\_\+ \&pj, extpar\+\_\+$\ast$ pars)}
 
 
 
@@ -104,12 +104,12 @@ Notice the particle i and j are also passed as arguments. But it is only used to
 \begin{DoxyReturn}{Returns}
 user-\/defined status (defaulted should be zero) 
 \end{DoxyReturn}
-\hypertarget{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{}\label{namespaceARC_aa489b85f285776ca334a82d85dc0381a} 
+\hypertarget{namespaceARC_af6dbf77cf2968752315f7712eb2515a3}{}\label{namespaceARC_af6dbf77cf2968752315f7712eb2515a3} 
 \index{A\+RC@{A\+RC}!pair\+\_\+T@{pair\+\_\+T}}
 \index{pair\+\_\+T@{pair\+\_\+T}!A\+RC@{A\+RC}}
 \subsubsection{\texorpdfstring{pair\+\_\+T}{pair\_T}}
-{\footnotesize\ttfamily template$<$class particle , class extpar $>$ \\
-using \hyperlink{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{A\+R\+C\+::pair\+\_\+T} = typedef double ($\ast$) (const double m1, const double m2, const double$\ast$ x, const double$\ast$ v, extpar$\ast$ pars)}
+{\footnotesize\ttfamily template$<$class particle\+\_\+ , class extpar\+\_\+ $>$ \\
+using \hyperlink{namespaceARC_af6dbf77cf2968752315f7712eb2515a3}{A\+R\+C\+::pair\+\_\+T} = typedef double ($\ast$) (const double m1, const double m2, const double$\ast$ x, const double$\ast$ v, extpar\+\_\+$\ast$ pars)}
 
 
 

@@ -1,5 +1,5 @@
-\hypertarget{classARC_1_1chainlist}{}\section{A\+RC\+:\+:chainlist$<$ particle $>$ Class Template Reference}
-\label{classARC_1_1chainlist}\index{A\+R\+C\+::chainlist$<$ particle $>$@{A\+R\+C\+::chainlist$<$ particle $>$}}
+\hypertarget{classARC_1_1chainlist}{}\section{A\+RC\+:\+:chainlist$<$ particle\+\_\+ $>$ Class Template Reference}
+\label{classARC_1_1chainlist}\index{A\+R\+C\+::chainlist$<$ particle\+\_\+ $>$@{A\+R\+C\+::chainlist$<$ particle\+\_\+ $>$}}
 
 
 Generalized list to store chain and particle members.  
@@ -12,85 +12,81 @@ Generalized list to store chain and particle members.
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hyperlink{classARC_1_1chainlist_ab4e3b53aee12e8970d94e1b368088bfa}{chainlist} ()
+\hyperlink{classARC_1_1chainlist_a12641a795a63d6152c22fc4b363e28c1}{chainlist} ()
 \begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
-\hyperlink{classARC_1_1chainlist_a80fdd1846ac0d15cee0726a0f9548371}{chainlist} (const std\+::size\+\_\+t n)
+\hyperlink{classARC_1_1chainlist_a85e9f10829f11483253d992aceb901a2}{chainlist} (const std\+::size\+\_\+t n)
 \begin{DoxyCompactList}\small\item\em Constructor with maximum number of particle {\itshape n}. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainlist_a84a2c65edf27bd25254e188ebf7d5dce}{init} (const std\+::size\+\_\+t n)
-\begin{DoxyCompactList}\small\item\em Initialization with memory allocation. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainlist_ad0b0f86e25b46acf2a9507c1a7deb700}{clear} ()
+void \hyperlink{classARC_1_1chainlist_ab212df89ec5a2e81ce7525adc04001c1}{allocate} (const std\+::size\+\_\+t n)
+\begin{DoxyCompactList}\small\item\em Memory allocation of particle and particle address array. \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chainlist_af6b33790ba054657d9e132c177ed7f04}{clear} ()
 \begin{DoxyCompactList}\small\item\em Clear function. \end{DoxyCompactList}\item 
-\hyperlink{classARC_1_1chainlist_ab24d982dbeee6269f2912747db6f9be4}{$\sim$chainlist} ()
+\hyperlink{classARC_1_1chainlist_ae4e636b2eb05e8e5665315e8215e2c6d}{$\sim$chainlist} ()
 \begin{DoxyCompactList}\small\item\em Destructor. \end{DoxyCompactList}\item 
-std\+::size\+\_\+t \hyperlink{classARC_1_1chainlist_a9b45780f42626b14e3a2fd7b5de4bf32}{getN} () const
+std\+::size\+\_\+t \hyperlink{classARC_1_1chainlist_a4292d4468e5d710392f11cee0c1f01b9}{getN} () const
 \begin{DoxyCompactList}\small\item\em Get current particle number. \end{DoxyCompactList}\item 
-particle $\ast$ \hyperlink{classARC_1_1chainlist_a04c91168be9a14ed7b9bd958d6b1f369}{get\+Data} () const
+particle $\ast$ \hyperlink{classARC_1_1chainlist_a0e19bd06e5aa685e88948c947cd06552}{get\+Data} () const
 \begin{DoxyCompactList}\small\item\em return particle data first pointer \end{DoxyCompactList}\item 
-std\+::size\+\_\+t \hyperlink{classARC_1_1chainlist_a2ba52f639df8bbd830b669c78c954131}{get\+Nmax} () const
+std\+::size\+\_\+t \hyperlink{classARC_1_1chainlist_a582f94629e7433bab30f7ab5e4ef588f}{get\+Nmax} () const
 \begin{DoxyCompactList}\small\item\em Get maximum particle number. \end{DoxyCompactList}\item 
-std\+::size\+\_\+t \hyperlink{classARC_1_1chainlist_aa1bd568975acc3bab3410e4fc9cb4d94}{get\+Nchain} () const
-\begin{DoxyCompactList}\small\item\em Get number of chain members. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainlist_a5cf42b57b7088cf7418ae3d9f1b610fa}{get\+Mass\+All} (double mass\mbox{[}$\,$\mbox{]})
+void \hyperlink{classARC_1_1chainlist_a85bba1921256d2a1a6784006927ad397}{get\+Mass\+All} (double mass\mbox{[}$\,$\mbox{]})
 \begin{DoxyCompactList}\small\item\em Get particle masses and store into array. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainlist_afa780edfa301cc22cf189e63d7a59c2c}{add} (particle \&a)
+{\footnotesize template$<$class Tp $>$ }\\void \hyperlink{classARC_1_1chainlist_a598c1819d8e715ec0a24669e5bb06c6a}{add} (const Tp \&a)
 \begin{DoxyCompactList}\small\item\em Add new particle. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainlist_a2dba82eb1c3caa32fc76b619c5379da5}{add} (const std\+::size\+\_\+t n, particle a\mbox{[}$\,$\mbox{]})
+{\footnotesize template$<$class Tp $>$ }\\void \hyperlink{classARC_1_1chainlist_a1d73020beb10702237c27745c3ba851f}{add} (const std\+::size\+\_\+t n, Tp a\mbox{[}$\,$\mbox{]})
 \begin{DoxyCompactList}\small\item\em Add a list of particles. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainlist_a28fd6f0d4ba0ec36601dc92d340b2d2b}{add} (\hyperlink{classARC_1_1chain}{chain}$<$ particle $>$ \&a)
-\begin{DoxyCompactList}\small\item\em Add a chain in particle address list \#p. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainlist_acfd8eb70053894bd0883a77d6c111932}{remove} (const std\+::size\+\_\+t i, bool option=true)
+void \hyperlink{classARC_1_1chainlist_aa767ec18c7ed7372a1ef1a4b27a171c3}{load} (const std\+::size\+\_\+t n, particle a\mbox{[}$\,$\mbox{]})
+\begin{DoxyCompactList}\small\item\em load a list of particles \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chainlist_adcf73b53ad0da50299f4ef3f5fefae04}{remove} (const std\+::size\+\_\+t i, bool option=true)
 \begin{DoxyCompactList}\small\item\em remove one particle \end{DoxyCompactList}\item 
-particle \& \hyperlink{classARC_1_1chainlist_a1d932a24ef6bbf98df3bc2a8b6162ddc}{operator\mbox{[}$\,$\mbox{]}} (const std\+::size\+\_\+t i) const
-\begin{DoxyCompactList}\small\item\em Return the i$^\wedge$th of memebr\textquotesingle{}s reference in the list. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainlist_a2dd5af449a9e85f487e1a2332b64060f}{dump} (const char $\ast$filename)
+particle \& \hyperlink{classARC_1_1chainlist_a995cc0dd04b7c6d8e61080db801845c1}{operator\mbox{[}$\,$\mbox{]}} (const std\+::size\+\_\+t i) const
+\begin{DoxyCompactList}\small\item\em Return the i$^\wedge$th of memebr\textquotesingle{}s reference in the particle \#data. \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chainlist_a4b42fabdc7ff6edca56ce65b316f581f}{dump} (const char $\ast$filename)
 \begin{DoxyCompactList}\small\item\em Dump function for particle data. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainlist_aea5f83e036a5e4649158f13cf341a31e}{read} (const char $\ast$filename)
+void \hyperlink{classARC_1_1chainlist_adfa67e2ccdbdfd7ed945fa7617f90ecc}{read} (const char $\ast$filename)
 \begin{DoxyCompactList}\small\item\em Read function for particle data. \end{DoxyCompactList}\item 
-bool \hyperlink{classARC_1_1chainlist_a192f6db3659e5329d137de18c8c4b029}{is\+Chain} (const std\+::size\+\_\+t i) const
-\begin{DoxyCompactList}\small\item\em Is i$^\wedge$th a chain? \end{DoxyCompactList}\item 
-\hyperlink{classARC_1_1chain}{chain}$<$ particle $>$ $\ast$ \hyperlink{classARC_1_1chainlist_a14c6b75c2d3e97cf9babcac2aa014e8a}{get\+Sub} (const std\+::size\+\_\+t i) const
-\begin{DoxyCompactList}\small\item\em Get particle list in a chain type member. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainlist_a2249db484a34384214c4fbba8d4d19ad}{copyback} ()
-\begin{DoxyCompactList}\small\item\em copy data back to original address \end{DoxyCompactList}\end{DoxyCompactItemize}
+void \hyperlink{classARC_1_1chainlist_aba70559e1b70882256a7805744e22b25}{copyback} ()
+\begin{DoxyCompactList}\small\item\em copy data back to original address \end{DoxyCompactList}\item 
+bool \hyperlink{classARC_1_1chainlist_a0e2f35b8eabe9d9ecd77ed9f24e083de}{is\+\_\+alloc} () const
+\begin{DoxyCompactList}\small\item\em show whether the chainlist allocated memory \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
-\subsubsection*{template$<$class particle$>$\newline
-class A\+R\+C\+::chainlist$<$ particle $>$}
+\subsubsection*{template$<$class particle\+\_\+$>$\newline
+class A\+R\+C\+::chainlist$<$ particle\+\_\+ $>$}
 
 Generalized list to store chain and particle members. 
 
-A list that storing chain and particle memory addresses (based on template class particle) 
+A list that storing particle memory addresses and their copy (based on template class particle\+\_\+) 
 
 \subsection{Constructor \& Destructor Documentation}
-\hypertarget{classARC_1_1chainlist_ab4e3b53aee12e8970d94e1b368088bfa}{}\label{classARC_1_1chainlist_ab4e3b53aee12e8970d94e1b368088bfa} 
+\hypertarget{classARC_1_1chainlist_a12641a795a63d6152c22fc4b363e28c1}{}\label{classARC_1_1chainlist_a12641a795a63d6152c22fc4b363e28c1} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!chainlist@{chainlist}}
 \index{chainlist@{chainlist}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{chainlist()}{chainlist()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-\hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::\hyperlink{classARC_1_1chainlist}{chainlist} (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+\hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::\hyperlink{classARC_1_1chainlist}{chainlist} (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
 Constructor. 
 
-Set current particle number to zero, need to use \hyperlink{classARC_1_1chainlist_a84a2c65edf27bd25254e188ebf7d5dce}{init()} to allocate memory for storing particle addresses \hypertarget{classARC_1_1chainlist_a80fdd1846ac0d15cee0726a0f9548371}{}\label{classARC_1_1chainlist_a80fdd1846ac0d15cee0726a0f9548371} 
+Set current particle number to zero, need to use \hyperlink{classARC_1_1chainlist_ab212df89ec5a2e81ce7525adc04001c1}{allocate()} to allocate memory for storing particle addresses, or \hyperlink{classARC_1_1chainlist_aa767ec18c7ed7372a1ef1a4b27a171c3}{load()} to point to exited particle array, or \hyperlink{classARC_1_1chainlist_adfa67e2ccdbdfd7ed945fa7617f90ecc}{read()} to get particle data from a file \hypertarget{classARC_1_1chainlist_a85e9f10829f11483253d992aceb901a2}{}\label{classARC_1_1chainlist_a85e9f10829f11483253d992aceb901a2} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!chainlist@{chainlist}}
 \index{chainlist@{chainlist}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{chainlist()}{chainlist()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-\hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::\hyperlink{classARC_1_1chainlist}{chainlist} (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+\hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::\hyperlink{classARC_1_1chainlist}{chainlist} (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
 Constructor with maximum number of particle {\itshape n}. 
 
-Set maximum particle number to {\itshape n} and allocate memory for \#p to storing the particle addresses (maximum {\itshape n}) \hypertarget{classARC_1_1chainlist_ab24d982dbeee6269f2912747db6f9be4}{}\label{classARC_1_1chainlist_ab24d982dbeee6269f2912747db6f9be4} 
+Set maximum particle number to {\itshape n} and allocate memory for \#p to storing the particle addresses (maximum {\itshape n}) \hypertarget{classARC_1_1chainlist_ae4e636b2eb05e8e5665315e8215e2c6d}{}\label{classARC_1_1chainlist_ae4e636b2eb05e8e5665315e8215e2c6d} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!````~chainlist@{$\sim$chainlist}}
 \index{````~chainlist@{$\sim$chainlist}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{$\sim$chainlist()}{~chainlist()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-\hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::$\sim$\hyperlink{classARC_1_1chainlist}{chainlist} (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+\hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::$\sim$\hyperlink{classARC_1_1chainlist}{chainlist} (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -99,18 +95,19 @@ Destructor.
 
 
 \subsection{Member Function Documentation}
-\hypertarget{classARC_1_1chainlist_afa780edfa301cc22cf189e63d7a59c2c}{}\label{classARC_1_1chainlist_afa780edfa301cc22cf189e63d7a59c2c} 
+\hypertarget{classARC_1_1chainlist_a598c1819d8e715ec0a24669e5bb06c6a}{}\label{classARC_1_1chainlist_a598c1819d8e715ec0a24669e5bb06c6a} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!add@{add}}
 \index{add@{add}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
-\subsubsection{\texorpdfstring{add()}{add()}\hspace{0.1cm}{\footnotesize\ttfamily [1/3]}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::add (\begin{DoxyParamCaption}\item[{particle \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+\subsubsection{\texorpdfstring{add()}{add()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+template$<$class Tp $>$ \\
+void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::add (\begin{DoxyParamCaption}\item[{const Tp \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
 Add new particle. 
 
-Add new particle address at the end of the particle address list \#p 
+Add new particle address at the end of the particle address list \#p (particle type should be derived class from particle\+\_\+), and copy it to \#data 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em a} & new particle \\
 \hline
@@ -120,49 +117,53 @@ Here is the caller graph for this function\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=309pt]{classARC_1_1chainlist_afa780edfa301cc22cf189e63d7a59c2c_icgraph}
+\includegraphics[width=309pt]{classARC_1_1chainlist_a598c1819d8e715ec0a24669e5bb06c6a_icgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chainlist_a2dba82eb1c3caa32fc76b619c5379da5}{}\label{classARC_1_1chainlist_a2dba82eb1c3caa32fc76b619c5379da5} 
+\hypertarget{classARC_1_1chainlist_a1d73020beb10702237c27745c3ba851f}{}\label{classARC_1_1chainlist_a1d73020beb10702237c27745c3ba851f} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!add@{add}}
 \index{add@{add}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
-\subsubsection{\texorpdfstring{add()}{add()}\hspace{0.1cm}{\footnotesize\ttfamily [2/3]}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::add (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n,  }\item[{particle}]{a\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+\subsubsection{\texorpdfstring{add()}{add()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+template$<$class Tp $>$ \\
+void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::add (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n,  }\item[{Tp}]{a\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
 Add a list of particles. 
 
-A\+DD a list of particles at the end of the particle address list \#p 
+A\+DD a list of particles at the end of the particle address list \#p and copy it to \#data (particle type should be derived class from particle\+\_\+) 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em n} & number of new particles \\
 \hline
 \mbox{\tt in}  & {\em a} & array of new particles \\
 \hline
 \end{DoxyParams}
-\hypertarget{classARC_1_1chainlist_a28fd6f0d4ba0ec36601dc92d340b2d2b}{}\label{classARC_1_1chainlist_a28fd6f0d4ba0ec36601dc92d340b2d2b} 
-\index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!add@{add}}
-\index{add@{add}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
-\subsubsection{\texorpdfstring{add()}{add()}\hspace{0.1cm}{\footnotesize\ttfamily [3/3]}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::add (\begin{DoxyParamCaption}\item[{\hyperlink{classARC_1_1chain}{chain}$<$ particle $>$ \&}]{a }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+\hypertarget{classARC_1_1chainlist_ab212df89ec5a2e81ce7525adc04001c1}{}\label{classARC_1_1chainlist_ab212df89ec5a2e81ce7525adc04001c1} 
+\index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!allocate@{allocate}}
+\index{allocate@{allocate}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
+\subsubsection{\texorpdfstring{allocate()}{allocate()}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::allocate (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
-Add a chain in particle address list \#p. 
+Memory allocation of particle and particle address array. 
 
-Add one chain\textquotesingle{}s address at the end of particle address list \#p 
-\begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em a} & new chain particle \\
-\hline
-\end{DoxyParams}
-\hypertarget{classARC_1_1chainlist_ad0b0f86e25b46acf2a9507c1a7deb700}{}\label{classARC_1_1chainlist_ad0b0f86e25b46acf2a9507c1a7deb700} 
+Set maximum particle number to {\itshape n} and allocate memory for \#p to storing the particle addresses (maximum {\itshape n}) and \#data to storing particle copies Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=326pt]{classARC_1_1chainlist_ab212df89ec5a2e81ce7525adc04001c1_icgraph}
+\end{center}
+\end{figure}
+\hypertarget{classARC_1_1chainlist_af6b33790ba054657d9e132c177ed7f04}{}\label{classARC_1_1chainlist_af6b33790ba054657d9e132c177ed7f04} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!clear@{clear}}
 \index{clear@{clear}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{clear()}{clear()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::clear (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::clear (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -178,34 +179,36 @@ Free dynamical memory space used in particle address list \#p Here is the caller
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=314pt]{classARC_1_1chainlist_ad0b0f86e25b46acf2a9507c1a7deb700_icgraph}
+\includegraphics[width=314pt]{classARC_1_1chainlist_af6b33790ba054657d9e132c177ed7f04_icgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chainlist_a2249db484a34384214c4fbba8d4d19ad}{}\label{classARC_1_1chainlist_a2249db484a34384214c4fbba8d4d19ad} 
+\hypertarget{classARC_1_1chainlist_aba70559e1b70882256a7805744e22b25}{}\label{classARC_1_1chainlist_aba70559e1b70882256a7805744e22b25} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!copyback@{copyback}}
 \index{copyback@{copyback}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{copyback()}{copyback()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::copyback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::copyback (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
 copy data back to original address 
 
-If particle is chain, then copy back the data to its cm else copy data back to original address Here is the caller graph for this function\+:
+! Is i$^\wedge$th a chain? $\ast$! Check whether the i$^\wedge$th member in the particle address list is chain ! Get particle list in a chain type member $\ast$! Return the address of particle list of the i$^\wedge$th member in particle \#p (A\+R\+C\+::chain.\+p)
+
+copy the data back to original address assuming data type as particle\+\_\+ Here is the caller graph for this function\+:
 \nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=350pt]{classARC_1_1chainlist_a2249db484a34384214c4fbba8d4d19ad_icgraph}
+\includegraphics[width=342pt]{classARC_1_1chainlist_aba70559e1b70882256a7805744e22b25_icgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chainlist_a2dd5af449a9e85f487e1a2332b64060f}{}\label{classARC_1_1chainlist_a2dd5af449a9e85f487e1a2332b64060f} 
+\hypertarget{classARC_1_1chainlist_a4b42fabdc7ff6edca56ce65b316f581f}{}\label{classARC_1_1chainlist_a4b42fabdc7ff6edca56ce65b316f581f} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!dump@{dump}}
 \index{dump@{dump}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{dump()}{dump()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::dump (\begin{DoxyParamCaption}\item[{const char $\ast$}]{filename }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::dump (\begin{DoxyParamCaption}\item[{const char $\ast$}]{filename }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -216,12 +219,12 @@ Dump particle data into file using fwrite (binary format). Number of particles i
 \mbox{\tt in}  & {\em filename} & file to store the data \\
 \hline
 \end{DoxyParams}
-\hypertarget{classARC_1_1chainlist_a04c91168be9a14ed7b9bd958d6b1f369}{}\label{classARC_1_1chainlist_a04c91168be9a14ed7b9bd958d6b1f369} 
+\hypertarget{classARC_1_1chainlist_a0e19bd06e5aa685e88948c947cd06552}{}\label{classARC_1_1chainlist_a0e19bd06e5aa685e88948c947cd06552} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!get\+Data@{get\+Data}}
 \index{get\+Data@{get\+Data}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{get\+Data()}{getData()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-particle$\ast$ \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::get\+Data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+particle$\ast$ \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::get\+Data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -232,20 +235,23 @@ Here is the caller graph for this function\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=343pt]{classARC_1_1chainlist_a04c91168be9a14ed7b9bd958d6b1f369_icgraph}
+\includegraphics[width=343pt]{classARC_1_1chainlist_a0e19bd06e5aa685e88948c947cd06552_icgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chainlist_a5cf42b57b7088cf7418ae3d9f1b610fa}{}\label{classARC_1_1chainlist_a5cf42b57b7088cf7418ae3d9f1b610fa} 
+\hypertarget{classARC_1_1chainlist_a85bba1921256d2a1a6784006927ad397}{}\label{classARC_1_1chainlist_a85bba1921256d2a1a6784006927ad397} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!get\+Mass\+All@{get\+Mass\+All}}
 \index{get\+Mass\+All@{get\+Mass\+All}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{get\+Mass\+All()}{getMassAll()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::get\+Mass\+All (\begin{DoxyParamCaption}\item[{double}]{mass\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::get\+Mass\+All (\begin{DoxyParamCaption}\item[{double}]{mass\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
 Get particle masses and store into array. 
 
+! Get number of chain members $\ast$! \begin{DoxyReturn}{Returns}
+Number of chain members in particle address list \#p
+\end{DoxyReturn}
 Obtain particle masses and store into the double array 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em mass} & double array to store the particle masses \\
@@ -256,15 +262,15 @@ Here is the caller graph for this function\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=342pt]{classARC_1_1chainlist_a5cf42b57b7088cf7418ae3d9f1b610fa_icgraph}
+\includegraphics[width=342pt]{classARC_1_1chainlist_a85bba1921256d2a1a6784006927ad397_icgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chainlist_a9b45780f42626b14e3a2fd7b5de4bf32}{}\label{classARC_1_1chainlist_a9b45780f42626b14e3a2fd7b5de4bf32} 
+\hypertarget{classARC_1_1chainlist_a4292d4468e5d710392f11cee0c1f01b9}{}\label{classARC_1_1chainlist_a4292d4468e5d710392f11cee0c1f01b9} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!getN@{getN}}
 \index{getN@{getN}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{get\+N()}{getN()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-std\+::size\+\_\+t \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::getN (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+std\+::size\+\_\+t \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::getN (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -278,29 +284,15 @@ Here is the caller graph for this function\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=330pt]{classARC_1_1chainlist_a9b45780f42626b14e3a2fd7b5de4bf32_icgraph}
+\includegraphics[width=330pt]{classARC_1_1chainlist_a4292d4468e5d710392f11cee0c1f01b9_icgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chainlist_aa1bd568975acc3bab3410e4fc9cb4d94}{}\label{classARC_1_1chainlist_aa1bd568975acc3bab3410e4fc9cb4d94} 
-\index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!get\+Nchain@{get\+Nchain}}
-\index{get\+Nchain@{get\+Nchain}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
-\subsubsection{\texorpdfstring{get\+Nchain()}{getNchain()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-std\+::size\+\_\+t \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::get\+Nchain (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
-
-
-
-Get number of chain members. 
-
-\begin{DoxyReturn}{Returns}
-Number of chain members in particle address list \#p 
-\end{DoxyReturn}
-\hypertarget{classARC_1_1chainlist_a2ba52f639df8bbd830b669c78c954131}{}\label{classARC_1_1chainlist_a2ba52f639df8bbd830b669c78c954131} 
+\hypertarget{classARC_1_1chainlist_a582f94629e7433bab30f7ab5e4ef588f}{}\label{classARC_1_1chainlist_a582f94629e7433bab30f7ab5e4ef588f} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!get\+Nmax@{get\+Nmax}}
 \index{get\+Nmax@{get\+Nmax}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{get\+Nmax()}{getNmax()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-std\+::size\+\_\+t \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::get\+Nmax (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+std\+::size\+\_\+t \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::get\+Nmax (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -309,102 +301,85 @@ Get maximum particle number.
 \begin{DoxyReturn}{Returns}
 Current maximum particle number that can be stored in particle address list \#p 
 \end{DoxyReturn}
-\hypertarget{classARC_1_1chainlist_a14c6b75c2d3e97cf9babcac2aa014e8a}{}\label{classARC_1_1chainlist_a14c6b75c2d3e97cf9babcac2aa014e8a} 
-\index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!get\+Sub@{get\+Sub}}
-\index{get\+Sub@{get\+Sub}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
-\subsubsection{\texorpdfstring{get\+Sub()}{getSub()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-\hyperlink{classARC_1_1chain}{chain}$<$particle$>$$\ast$ \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::get\+Sub (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+\hypertarget{classARC_1_1chainlist_a0e2f35b8eabe9d9ecd77ed9f24e083de}{}\label{classARC_1_1chainlist_a0e2f35b8eabe9d9ecd77ed9f24e083de} 
+\index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!is\+\_\+alloc@{is\+\_\+alloc}}
+\index{is\+\_\+alloc@{is\+\_\+alloc}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
+\subsubsection{\texorpdfstring{is\+\_\+alloc()}{is\_alloc()}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+bool \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::is\+\_\+alloc (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
-Get particle list in a chain type member. 
+show whether the chainlist allocated memory 
 
-Return the address of particle list of the i$^\wedge$th member in particle \#p (A\+R\+C\+::chain.\+p) 
-\begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em i} & member index in list the particle address list \#p \\
-\hline
-\end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-
-\begin{DoxyItemize}
-\item if i$^\wedge$th member in \#p is chain, returen the address of particle list (A\+R\+C\+::chain.\+p).
-\item else return N\+U\+LL 
-\end{DoxyItemize}
+if allocated, ture; otherwise false 
 \end{DoxyReturn}
-\hypertarget{classARC_1_1chainlist_a84a2c65edf27bd25254e188ebf7d5dce}{}\label{classARC_1_1chainlist_a84a2c65edf27bd25254e188ebf7d5dce} 
-\index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!init@{init}}
-\index{init@{init}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
-\subsubsection{\texorpdfstring{init()}{init()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::init (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
-
-
-
-Initialization with memory allocation. 
-
-Set maximum particle number to {\itshape n} and allocate memory for \#p to storing the particle addresses (maximum {\itshape n}) Here is the caller graph for this function\+:
+Here is the caller graph for this function\+:
 \nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=318pt]{classARC_1_1chainlist_a84a2c65edf27bd25254e188ebf7d5dce_icgraph}
+\includegraphics[width=300pt]{classARC_1_1chainlist_a0e2f35b8eabe9d9ecd77ed9f24e083de_icgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chainlist_a192f6db3659e5329d137de18c8c4b029}{}\label{classARC_1_1chainlist_a192f6db3659e5329d137de18c8c4b029} 
-\index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!is\+Chain@{is\+Chain}}
-\index{is\+Chain@{is\+Chain}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
-\subsubsection{\texorpdfstring{is\+Chain()}{isChain()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-bool \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::is\+Chain (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+\hypertarget{classARC_1_1chainlist_aa767ec18c7ed7372a1ef1a4b27a171c3}{}\label{classARC_1_1chainlist_aa767ec18c7ed7372a1ef1a4b27a171c3} 
+\index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!load@{load}}
+\index{load@{load}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
+\subsubsection{\texorpdfstring{load()}{load()}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::load (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n,  }\item[{particle}]{a\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
-Is i$^\wedge$th a chain? 
+load a list of particles 
 
-Check whether the i$^\wedge$th member in the particle address list is chain 
+different from \hyperlink{classARC_1_1chainlist_a598c1819d8e715ec0a24669e5bb06c6a}{add()}, this function will directly register the first particle address and the number of particles. Thus no copies of particles are made. This is used when all particles are continued distributed in memory. This function can not be used when \hyperlink{classARC_1_1chainlist_ab212df89ec5a2e81ce7525adc04001c1}{allocate()} is already called. 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em i} & member index in list \#p \\
+\mbox{\tt in}  & {\em n} & number of new particles \\
+\hline
+\mbox{\tt in}  & {\em a} & array of new particles \\
 \hline
 \end{DoxyParams}
-\begin{DoxyReturn}{Returns}
-true\+: chain; false\+: particle 
-\end{DoxyReturn}
-\hypertarget{classARC_1_1chainlist_a1d932a24ef6bbf98df3bc2a8b6162ddc}{}\label{classARC_1_1chainlist_a1d932a24ef6bbf98df3bc2a8b6162ddc} 
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=310pt]{classARC_1_1chainlist_aa767ec18c7ed7372a1ef1a4b27a171c3_icgraph}
+\end{center}
+\end{figure}
+\hypertarget{classARC_1_1chainlist_a995cc0dd04b7c6d8e61080db801845c1}{}\label{classARC_1_1chainlist_a995cc0dd04b7c6d8e61080db801845c1} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!operator\mbox{[}\mbox{]}@{operator[]}}
 \index{operator\mbox{[}\mbox{]}@{operator[]}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{operator[]()}{operator[]()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-particle\& \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::operator\mbox{[}$\,$\mbox{]} (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+particle\& \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::operator\mbox{[}$\,$\mbox{]} (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
-Return the i$^\wedge$th of memebr\textquotesingle{}s reference in the list. 
+Return the i$^\wedge$th of memebr\textquotesingle{}s reference in the particle \#data. 
 
-\mbox{[}\mbox{]} Operator overloading, return the i$^\wedge$th particle reference from the particle address list \#p 
+\mbox{[}\mbox{]} Operator overloading, return the i$^\wedge$th particle reference from the particle (copied) data list 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em i} & the index of member in the list \#p \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
-
-\begin{DoxyItemize}
-\item if {\itshape i$^\wedge$th} member is particle, return particle reference
-\item if {\itshape i$^\wedge$th} member is a chain, return the center-\/of-\/mass particle in the chain (\hyperlink{classARC_1_1chain_ae9f6a5cbf7aac2b33c7274e7e10916ed}{A\+R\+C\+::chain\+::cm}) 
-\end{DoxyItemize}
+particle reference in chainlist \#data 
 \end{DoxyReturn}
-\hypertarget{classARC_1_1chainlist_aea5f83e036a5e4649158f13cf341a31e}{}\label{classARC_1_1chainlist_aea5f83e036a5e4649158f13cf341a31e} 
+\hypertarget{classARC_1_1chainlist_adfa67e2ccdbdfd7ed945fa7617f90ecc}{}\label{classARC_1_1chainlist_adfa67e2ccdbdfd7ed945fa7617f90ecc} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!read@{read}}
 \index{read@{read}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{read()}{read()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::read (\begin{DoxyParamCaption}\item[{const char $\ast$}]{filename }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::read (\begin{DoxyParamCaption}\item[{const char $\ast$}]{filename }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
 Read function for particle data. 
 
-Read particle data using fread (binary format). Number of particles should be first variable, then the data of particles (the data structure should be consistent with particle class). Notice if read is used, the particle data memory is allocated inside chainlist, this is different from \hyperlink{classARC_1_1chainlist_afa780edfa301cc22cf189e63d7a59c2c}{add()} function. 
+Read particle data using fread (binary format). Number of particles should be first variable, then the data of particles (the data structure should be consistent with particle class). Notice if read is used, the particle data memory is allocated inside chainlist, this is different from \hyperlink{classARC_1_1chainlist_a598c1819d8e715ec0a24669e5bb06c6a}{add()} function. 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em filename} & file to read the data \\
 \hline
@@ -414,19 +389,21 @@ Here is the caller graph for this function\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=317pt]{classARC_1_1chainlist_aea5f83e036a5e4649158f13cf341a31e_icgraph}
+\includegraphics[width=317pt]{classARC_1_1chainlist_adfa67e2ccdbdfd7ed945fa7617f90ecc_icgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chainlist_acfd8eb70053894bd0883a77d6c111932}{}\label{classARC_1_1chainlist_acfd8eb70053894bd0883a77d6c111932} 
+\hypertarget{classARC_1_1chainlist_adcf73b53ad0da50299f4ef3f5fefae04}{}\label{classARC_1_1chainlist_adcf73b53ad0da50299f4ef3f5fefae04} 
 \index{A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}!remove@{remove}}
 \index{remove@{remove}!A\+R\+C\+::chainlist@{A\+R\+C\+::chainlist}}
 \subsubsection{\texorpdfstring{remove()}{remove()}}
-{\footnotesize\ttfamily template$<$class particle$>$ \\
-void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle $>$\+::remove (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i,  }\item[{bool}]{option = {\ttfamily true} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+$>$ \\
+void \hyperlink{classARC_1_1chainlist}{A\+R\+C\+::chainlist}$<$ particle\+\_\+ $>$\+::remove (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i,  }\item[{bool}]{option = {\ttfamily true} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
 remove one particle 
+
+! Add a chain in particle address list \#p $\ast$! Add one chain\textquotesingle{}s address at the end of particle address list \#p
 
 remove one particle from \#p 
 \begin{DoxyParams}[1]{Parameters}
@@ -444,7 +421,7 @@ Here is the caller graph for this function\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=342pt]{classARC_1_1chainlist_acfd8eb70053894bd0883a77d6c111932_icgraph}
+\includegraphics[width=342pt]{classARC_1_1chainlist_adcf73b53ad0da50299f4ef3f5fefae04_icgraph}
 \end{center}
 \end{figure}
 

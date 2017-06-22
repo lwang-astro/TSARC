@@ -100,7 +100,7 @@ $(document).ready(function(){initNavTree('namespaceARC.html','');});
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chain.html">chain</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> class based on template class particle.  <a href="classARC_1_1chain.html#details">More...</a><br /></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a> class based on template class particle_.  <a href="classARC_1_1chain.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chaininfo.html">chaininfo</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">class for storing the information of chain (for decision making)  <a href="classARC_1_1chaininfo.html#details">More...</a><br /></td></tr>
@@ -116,18 +116,18 @@ Classes</h2></td></tr>
 Typedefs</h2></td></tr>
 <tr class="memitem:affb4fe085f3ea94b378be8bc9382a75d"><td class="memItemLeft" align="right" valign="top">typedef double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespaceARC.html#affb4fe085f3ea94b378be8bc9382a75d">double3</a>[3]</td></tr>
 <tr class="separator:affb4fe085f3ea94b378be8bc9382a75d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7aeda3b3bd009af7ac964748834dd312"><td class="memTemplParams" colspan="2">template&lt;class particle , class pertparticle , class force , class extpar &gt; </td></tr>
-<tr class="memitem:a7aeda3b3bd009af7ac964748834dd312"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceARC.html#a7aeda3b3bd009af7ac964748834dd312">ext_Acc</a> = void(*)(<a class="el" href="namespaceARC.html#affb4fe085f3ea94b378be8bc9382a75d">double3</a> *acc, const double t, particle *p, const int np, pertparticle *pert, force *fpert, const int npert, extpar *pars)</td></tr>
-<tr class="memdesc:a7aeda3b3bd009af7ac964748834dd312"><td class="mdescLeft">&#160;</td><td class="mdescRight">external acceleration function pointer  <a href="#a7aeda3b3bd009af7ac964748834dd312">More...</a><br /></td></tr>
-<tr class="separator:a7aeda3b3bd009af7ac964748834dd312"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a270b4c77765cacf073a5ef5f928f1d63"><td class="memTemplParams" colspan="2">template&lt;class particle , class extpar &gt; </td></tr>
-<tr class="memitem:a270b4c77765cacf073a5ef5f928f1d63"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceARC.html#a270b4c77765cacf073a5ef5f928f1d63">pair_AW</a> = int(*)(double *Aij, double &amp;Pij, double *dWij, double &amp;Wij, const double *Xij, const particle &amp;pi, const particle &amp;pj, extpar *pars)</td></tr>
-<tr class="memdesc:a270b4c77765cacf073a5ef5f928f1d63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \(\partial W_{ij}/\partial \mathbf{x}_i\) and \(W_{ij}\) (from particle j to particle i).  <a href="#a270b4c77765cacf073a5ef5f928f1d63">More...</a><br /></td></tr>
-<tr class="separator:a270b4c77765cacf073a5ef5f928f1d63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa489b85f285776ca334a82d85dc0381a"><td class="memTemplParams" colspan="2">template&lt;class particle , class extpar &gt; </td></tr>
-<tr class="memitem:aa489b85f285776ca334a82d85dc0381a"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceARC.html#aa489b85f285776ca334a82d85dc0381a">pair_T</a> = double(*)(const double m1, const double m2, const double *x, const double *v, extpar *pars)</td></tr>
-<tr class="memdesc:aa489b85f285776ca334a82d85dc0381a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function pointer type to function for calculation the timescale of two-body motion.  <a href="#aa489b85f285776ca334a82d85dc0381a">More...</a><br /></td></tr>
-<tr class="separator:aa489b85f285776ca334a82d85dc0381a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa423c7d6aff9481c040a20b3c5c6ff4e"><td class="memTemplParams" colspan="2">template&lt;class particle_ , class pertparticle_ , class force_ , class extpar_ &gt; </td></tr>
+<tr class="memitem:aa423c7d6aff9481c040a20b3c5c6ff4e"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceARC.html#aa423c7d6aff9481c040a20b3c5c6ff4e">ext_Acc</a> = void(*)(<a class="el" href="namespaceARC.html#affb4fe085f3ea94b378be8bc9382a75d">double3</a> *acc, const double t, particle_ *p, const int np, pertparticle_ *pert, force_ *fpert, const int npert, extpar_ *pars)</td></tr>
+<tr class="memdesc:aa423c7d6aff9481c040a20b3c5c6ff4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">external acceleration function pointer  <a href="#aa423c7d6aff9481c040a20b3c5c6ff4e">More...</a><br /></td></tr>
+<tr class="separator:aa423c7d6aff9481c040a20b3c5c6ff4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc1f57a75859038cbd2492366fd1849c"><td class="memTemplParams" colspan="2">template&lt;class particle_ , class extpar_ &gt; </td></tr>
+<tr class="memitem:afc1f57a75859038cbd2492366fd1849c"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceARC.html#afc1f57a75859038cbd2492366fd1849c">pair_AW</a> = int(*)(double *Aij, double &amp;Pij, double *dWij, double &amp;Wij, const double *Xij, const particle_ &amp;pi, const particle_ &amp;pj, extpar_ *pars)</td></tr>
+<tr class="memdesc:afc1f57a75859038cbd2492366fd1849c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \(\partial W_{ij}/\partial \mathbf{x}_i\) and \(W_{ij}\) (from particle j to particle i).  <a href="#afc1f57a75859038cbd2492366fd1849c">More...</a><br /></td></tr>
+<tr class="separator:afc1f57a75859038cbd2492366fd1849c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6dbf77cf2968752315f7712eb2515a3"><td class="memTemplParams" colspan="2">template&lt;class particle_ , class extpar_ &gt; </td></tr>
+<tr class="memitem:af6dbf77cf2968752315f7712eb2515a3"><td class="memTemplItemLeft" align="right" valign="top">using&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespaceARC.html#af6dbf77cf2968752315f7712eb2515a3">pair_T</a> = double(*)(const double m1, const double m2, const double *x, const double *v, extpar_ *pars)</td></tr>
+<tr class="memdesc:af6dbf77cf2968752315f7712eb2515a3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function pointer type to function for calculation the timescale of two-body motion.  <a href="#af6dbf77cf2968752315f7712eb2515a3">More...</a><br /></td></tr>
+<tr class="separator:af6dbf77cf2968752315f7712eb2515a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Algorithmic regularization chain (<a class="el" href="namespaceARC.html" title="Algorithmic regularization chain (ARC) namespace. ">ARC</a>) namespace. </p>
@@ -147,16 +147,16 @@ Typedefs</h2></td></tr>
 
 </div>
 </div>
-<a id="a7aeda3b3bd009af7ac964748834dd312"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7aeda3b3bd009af7ac964748834dd312">&sect;&nbsp;</a></span>ext_Acc</h2>
+<a id="aa423c7d6aff9481c040a20b3c5c6ff4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa423c7d6aff9481c040a20b3c5c6ff4e">&sect;&nbsp;</a></span>ext_Acc</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class particle , class pertparticle , class force , class extpar &gt; </div>
+template&lt;class particle_ , class pertparticle_ , class force_ , class extpar_ &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="namespaceARC.html#a7aeda3b3bd009af7ac964748834dd312">ARC::ext_Acc</a> = typedef void(*)(<a class="el" href="namespaceARC.html#affb4fe085f3ea94b378be8bc9382a75d">double3</a> *acc, const double t, particle *p, const int np, pertparticle *pert, force *fpert, const int npert, extpar *pars)</td>
+          <td class="memname">using <a class="el" href="namespaceARC.html#aa423c7d6aff9481c040a20b3c5c6ff4e">ARC::ext_Acc</a> = typedef void(*)(<a class="el" href="namespaceARC.html#affb4fe085f3ea94b378be8bc9382a75d">double3</a> *acc, const double t, particle_ *p, const int np, pertparticle_ *pert, force_ *fpert, const int npert, extpar_ *pars)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -178,16 +178,16 @@ template&lt;class particle , class pertparticle , class force , class extpar &gt
 
 </div>
 </div>
-<a id="a270b4c77765cacf073a5ef5f928f1d63"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a270b4c77765cacf073a5ef5f928f1d63">&sect;&nbsp;</a></span>pair_AW</h2>
+<a id="afc1f57a75859038cbd2492366fd1849c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc1f57a75859038cbd2492366fd1849c">&sect;&nbsp;</a></span>pair_AW</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class particle , class extpar &gt; </div>
+template&lt;class particle_ , class extpar_ &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="namespaceARC.html#a270b4c77765cacf073a5ef5f928f1d63">ARC::pair_AW</a> = typedef int (*) (double* Aij, double &amp;Pij, double *dWij, double &amp;Wij, const double* Xij, const particle &amp;pi, const particle &amp;pj, extpar* pars)</td>
+          <td class="memname">using <a class="el" href="namespaceARC.html#afc1f57a75859038cbd2492366fd1849c">ARC::pair_AW</a> = typedef int (*) (double* Aij, double &amp;Pij, double *dWij, double &amp;Wij, const double* Xij, const particle_ &amp;pi, const particle_ &amp;pj, extpar_* pars)</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -210,16 +210,16 @@ template&lt;class particle , class extpar &gt; </div>
 
 </div>
 </div>
-<a id="aa489b85f285776ca334a82d85dc0381a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa489b85f285776ca334a82d85dc0381a">&sect;&nbsp;</a></span>pair_T</h2>
+<a id="af6dbf77cf2968752315f7712eb2515a3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af6dbf77cf2968752315f7712eb2515a3">&sect;&nbsp;</a></span>pair_T</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class particle , class extpar &gt; </div>
+template&lt;class particle_ , class extpar_ &gt; </div>
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="namespaceARC.html#aa489b85f285776ca334a82d85dc0381a">ARC::pair_T</a> = typedef double (*) (const double m1, const double m2, const double* x, const double* v, extpar* pars)</td>
+          <td class="memname">using <a class="el" href="namespaceARC.html#af6dbf77cf2968752315f7712eb2515a3">ARC::pair_T</a> = typedef double (*) (const double m1, const double m2, const double* x, const double* v, extpar_* pars)</td>
         </tr>
       </table>
 </div><div class="memdoc">

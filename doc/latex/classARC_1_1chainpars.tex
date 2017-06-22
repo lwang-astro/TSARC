@@ -18,7 +18,7 @@ The chain parameter controller class.
 \begin{DoxyCompactList}\small\item\em constructor \end{DoxyCompactList}\item 
 \hyperlink{classARC_1_1chainpars_a032873f782645efb6e60dc77f6d425dc}{$\sim$chainpars} ()
 \begin{DoxyCompactList}\small\item\em destructor \end{DoxyCompactList}\item 
-{\footnotesize template$<$class particle , class pertparticle , class pertforce , class extpar $>$ }\\void \hyperlink{classARC_1_1chainpars_ad77ec5334198faaf5957ab6d02aa9b39}{setA} (\hyperlink{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{pair\+\_\+\+AW}$<$ particle, extpar $>$ aw, \hyperlink{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{ext\+\_\+\+Acc}$<$ particle, pertparticle, pertforce, extpar $>$ exta=N\+U\+LL, \hyperlink{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{pair\+\_\+T}$<$ particle, extpar $>$ at=N\+U\+LL)
+{\footnotesize template$<$class particle\+\_\+ , class pertparticle\+\_\+ , class pertforce\+\_\+ , class extpar\+\_\+ $>$ }\\void \hyperlink{classARC_1_1chainpars_ab66fadaa08cb449e1b49dd58e2d4b14f}{setA} (\hyperlink{namespaceARC_afc1f57a75859038cbd2492366fd1849c}{pair\+\_\+\+AW}$<$ particle\+\_\+, extpar\+\_\+ $>$ aw, \hyperlink{namespaceARC_aa423c7d6aff9481c040a20b3c5c6ff4e}{ext\+\_\+\+Acc}$<$ particle\+\_\+, pertparticle\+\_\+, pertforce\+\_\+, extpar\+\_\+ $>$ exta=N\+U\+LL, \hyperlink{namespaceARC_af6dbf77cf2968752315f7712eb2515a3}{pair\+\_\+T}$<$ particle\+\_\+, extpar\+\_\+ $>$ at=N\+U\+LL)
 \begin{DoxyCompactList}\small\item\em Set acceleration, potential, time transformation function $\partial W/\partial r$ and $W$ calculator. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chainpars_a37f8af288217cbfc61a3593e21976d06}{setabg} (const double a=1.\+0, const double b=0.\+0, const double g=0.\+0)
 \begin{DoxyCompactList}\small\item\em Set time step transformation parameter. \end{DoxyCompactList}\item 
@@ -48,7 +48,7 @@ void \hyperlink{classARC_1_1chainpars_a4d1d61e7cb4383caa891fdc84ae5af42}{get\+Au
 \begin{DoxyCompactList}\small\item\em Get auto-\/step parameters. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chainpars_a926438a652307d24bd8a03b0ca926382}{dump} (const char $\ast$filename) const
 \begin{DoxyCompactList}\small\item\em parameters dumping \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chainpars_aa42cf56363fba1701a26cc445eda01d5}{load} (const char $\ast$filename)
+void \hyperlink{classARC_1_1chainpars_a68f92497bf003803c01fee179d0db68f}{read} (const char $\ast$filename)
 \begin{DoxyCompactList}\small\item\em parameters loading from a dumped file \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chainpars_a3bd667353d49614c52ad6c965a7480f3}{print} (std\+::ostream \&fout)
 \begin{DoxyCompactList}\small\item\em Print parameter table. \end{DoxyCompactList}\end{DoxyCompactItemize}
@@ -259,21 +259,6 @@ Get extrapolation maximum iteration times (maximum sequence index)
 
 Get sequence method indices. 
 
-\hypertarget{classARC_1_1chainpars_aa42cf56363fba1701a26cc445eda01d5}{}\label{classARC_1_1chainpars_aa42cf56363fba1701a26cc445eda01d5} 
-\index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!load@{load}}
-\index{load@{load}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
-\subsubsection{\texorpdfstring{load()}{load()}}
-{\footnotesize\ttfamily void A\+R\+C\+::chainpars\+::load (\begin{DoxyParamCaption}\item[{const char $\ast$}]{filename }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
-
-
-
-parameters loading from a dumped file 
-
-Load parameters from a dumped file. All dynamical array will be initialized after reading parameters. Notice this function will load all parameters except acceleration function pointers \#pp\+\_\+\+AW and \#pp\+\_\+\+Ap. \hyperlink{classARC_1_1chainpars_ad77ec5334198faaf5957ab6d02aa9b39}{set\+A()} should be called before chain integration. The reading data list is shown in \hyperlink{classARC_1_1chainpars_a926438a652307d24bd8a03b0ca926382}{dump()} 
-\begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em filename} & file to read the data \\
-\hline
-\end{DoxyParams}
 \hypertarget{classARC_1_1chainpars_a3bd667353d49614c52ad6c965a7480f3}{}\label{classARC_1_1chainpars_a3bd667353d49614c52ad6c965a7480f3} 
 \index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!print@{print}}
 \index{print@{print}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
@@ -289,12 +274,27 @@ Print parameter table
 \mbox{\tt in}  & {\em fout} & ofstream for printing \\
 \hline
 \end{DoxyParams}
-\hypertarget{classARC_1_1chainpars_ad77ec5334198faaf5957ab6d02aa9b39}{}\label{classARC_1_1chainpars_ad77ec5334198faaf5957ab6d02aa9b39} 
+\hypertarget{classARC_1_1chainpars_a68f92497bf003803c01fee179d0db68f}{}\label{classARC_1_1chainpars_a68f92497bf003803c01fee179d0db68f} 
+\index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!read@{read}}
+\index{read@{read}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
+\subsubsection{\texorpdfstring{read()}{read()}}
+{\footnotesize\ttfamily void A\+R\+C\+::chainpars\+::read (\begin{DoxyParamCaption}\item[{const char $\ast$}]{filename }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+parameters loading from a dumped file 
+
+Load parameters from a dumped file. All dynamical array will be initialized after reading parameters. Notice this function will load all parameters except acceleration function pointers \#pp\+\_\+\+AW and \#pp\+\_\+\+Ap. \hyperlink{classARC_1_1chainpars_ab66fadaa08cb449e1b49dd58e2d4b14f}{set\+A()} should be called before chain integration. The reading data list is shown in \hyperlink{classARC_1_1chainpars_a926438a652307d24bd8a03b0ca926382}{dump()} 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em filename} & file to read the data \\
+\hline
+\end{DoxyParams}
+\hypertarget{classARC_1_1chainpars_ab66fadaa08cb449e1b49dd58e2d4b14f}{}\label{classARC_1_1chainpars_ab66fadaa08cb449e1b49dd58e2d4b14f} 
 \index{A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}!setA@{setA}}
 \index{setA@{setA}!A\+R\+C\+::chainpars@{A\+R\+C\+::chainpars}}
 \subsubsection{\texorpdfstring{set\+A()}{setA()}}
-{\footnotesize\ttfamily template$<$class particle , class pertparticle , class pertforce , class extpar $>$ \\
-void A\+R\+C\+::chainpars\+::setA (\begin{DoxyParamCaption}\item[{\hyperlink{namespaceARC_a270b4c77765cacf073a5ef5f928f1d63}{pair\+\_\+\+AW}$<$ particle, extpar $>$}]{aw,  }\item[{\hyperlink{namespaceARC_a7aeda3b3bd009af7ac964748834dd312}{ext\+\_\+\+Acc}$<$ particle, pertparticle, pertforce, extpar $>$}]{exta = {\ttfamily NULL},  }\item[{\hyperlink{namespaceARC_aa489b85f285776ca334a82d85dc0381a}{pair\+\_\+T}$<$ particle, extpar $>$}]{at = {\ttfamily NULL} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+ , class pertparticle\+\_\+ , class pertforce\+\_\+ , class extpar\+\_\+ $>$ \\
+void A\+R\+C\+::chainpars\+::setA (\begin{DoxyParamCaption}\item[{\hyperlink{namespaceARC_afc1f57a75859038cbd2492366fd1849c}{pair\+\_\+\+AW}$<$ particle\+\_\+, extpar\+\_\+ $>$}]{aw,  }\item[{\hyperlink{namespaceARC_aa423c7d6aff9481c040a20b3c5c6ff4e}{ext\+\_\+\+Acc}$<$ particle\+\_\+, pertparticle\+\_\+, pertforce\+\_\+, extpar\+\_\+ $>$}]{exta = {\ttfamily NULL},  }\item[{\hyperlink{namespaceARC_af6dbf77cf2968752315f7712eb2515a3}{pair\+\_\+T}$<$ particle\+\_\+, extpar\+\_\+ $>$}]{at = {\ttfamily NULL} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 

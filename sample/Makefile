@@ -13,8 +13,8 @@ CXXFLAGS += -std=c++11
 ## OpenMP flag----------------------------------------#
 #CXXFLAGS += -fopenmp -D USE_OMP
 
-## Time profile---------------------------------------#
-CXXFLAGS += -D TIME_PROFILE
+## profile---------------------------------------#
+CXXFLAGS += -D ARC_PROFILE
 
 ## for debug------------------------------------------#
 CXXFLAGS += -O2 

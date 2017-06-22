@@ -183,7 +183,7 @@ int main(int argc, char **argv){
   ARC::chain<Particle> c(N);
   
   //c.link_int_par(Int_pars);
-  c.addP(N,p);
+  c.linkP(N,p);
 
   c.init(0.0,pars,&Int_pars);
 

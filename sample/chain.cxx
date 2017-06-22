@@ -286,7 +286,7 @@ int main(int argc, char **argv){
 
   pars.setA(NTA::Newtonian_AW,NTA::Newtonian_extAcc,NTA::Newtonian_kepler_period);
 
-  if (parfile) pars.load(parfile);
+  if (parfile) pars.read(parfile);
   
   // set error parameter
   if (parfile) {
@@ -358,10 +358,10 @@ int main(int argc, char **argv){
       }
       p[i]=Particle(m,x,y,z,vx,vy,vz);
     }
-    c.addP(n,p);
+    c.linkP(n,p);
   }
   else {
-    if (lpflag==1) c.load(filename);
+    if (lpflag==1) c.read(filename);
     else if (lpflag==2) c.readP(filename);
   }
 
@@ -441,12 +441,12 @@ int main(int argc, char **argv){
         c.Leapfrog_step_forward<Particle,ARC::double3,NTA::Newtonian_pars>(s,nsubstep,pars,&Int_pars,&p[n],pf,npert);
       chain_print(c,s,w,pre);
     }
-#ifdef TIME_PROFILE
+#ifdef ARC_PROFILE
     std::cerr<<"Time_profile: Step: "<<i<<"  Acc+Pot(s): "<<c.profile.t_apw<<"  Update_link(s): "<<c.profile.t_uplink<<"  Leap-frog(s): "<<c.profile.t_lf<<"  Extrapolation(s): "<<c.profile.t_ep<<"  Perturbation(s): "<<c.profile.t_pext<<"  Dense_output(s): "<<c.profile.t_dense<<std::endl;
 #endif
   }
   
-#ifdef TIME_PROFILE
+#ifdef ARC_PROFILE
   // if extrapolation method is used, counting the iteration (maximum sequence index) level
   if (ms) {
     int* step=new int[itermax+1];

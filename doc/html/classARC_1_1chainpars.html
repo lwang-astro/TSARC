@@ -112,10 +112,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a032873f782645efb6e60dc77f6d425dc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a032873f782645efb6e60dc77f6d425dc">~chainpars</a> ()</td></tr>
 <tr class="memdesc:a032873f782645efb6e60dc77f6d425dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">destructor  <a href="#a032873f782645efb6e60dc77f6d425dc">More...</a><br /></td></tr>
 <tr class="separator:a032873f782645efb6e60dc77f6d425dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad77ec5334198faaf5957ab6d02aa9b39"><td class="memTemplParams" colspan="2">template&lt;class particle , class pertparticle , class pertforce , class extpar &gt; </td></tr>
-<tr class="memitem:ad77ec5334198faaf5957ab6d02aa9b39"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#ad77ec5334198faaf5957ab6d02aa9b39">setA</a> (<a class="el" href="namespaceARC.html#a270b4c77765cacf073a5ef5f928f1d63">pair_AW</a>&lt; particle, extpar &gt; aw, <a class="el" href="namespaceARC.html#a7aeda3b3bd009af7ac964748834dd312">ext_Acc</a>&lt; particle, pertparticle, pertforce, extpar &gt; exta=NULL, <a class="el" href="namespaceARC.html#aa489b85f285776ca334a82d85dc0381a">pair_T</a>&lt; particle, extpar &gt; at=NULL)</td></tr>
-<tr class="memdesc:ad77ec5334198faaf5957ab6d02aa9b39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set acceleration, potential, time transformation function \(\partial W/\partial r\) and \(W\) calculator.  <a href="#ad77ec5334198faaf5957ab6d02aa9b39">More...</a><br /></td></tr>
-<tr class="separator:ad77ec5334198faaf5957ab6d02aa9b39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab66fadaa08cb449e1b49dd58e2d4b14f"><td class="memTemplParams" colspan="2">template&lt;class particle_ , class pertparticle_ , class pertforce_ , class extpar_ &gt; </td></tr>
+<tr class="memitem:ab66fadaa08cb449e1b49dd58e2d4b14f"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#ab66fadaa08cb449e1b49dd58e2d4b14f">setA</a> (<a class="el" href="namespaceARC.html#afc1f57a75859038cbd2492366fd1849c">pair_AW</a>&lt; particle_, extpar_ &gt; aw, <a class="el" href="namespaceARC.html#aa423c7d6aff9481c040a20b3c5c6ff4e">ext_Acc</a>&lt; particle_, pertparticle_, pertforce_, extpar_ &gt; exta=NULL, <a class="el" href="namespaceARC.html#af6dbf77cf2968752315f7712eb2515a3">pair_T</a>&lt; particle_, extpar_ &gt; at=NULL)</td></tr>
+<tr class="memdesc:ab66fadaa08cb449e1b49dd58e2d4b14f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set acceleration, potential, time transformation function \(\partial W/\partial r\) and \(W\) calculator.  <a href="#ab66fadaa08cb449e1b49dd58e2d4b14f">More...</a><br /></td></tr>
+<tr class="separator:ab66fadaa08cb449e1b49dd58e2d4b14f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37f8af288217cbfc61a3593e21976d06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a37f8af288217cbfc61a3593e21976d06">setabg</a> (const double a=1.0, const double b=0.0, const double g=0.0)</td></tr>
 <tr class="memdesc:a37f8af288217cbfc61a3593e21976d06"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set time step transformation parameter.  <a href="#a37f8af288217cbfc61a3593e21976d06">More...</a><br /></td></tr>
 <tr class="separator:a37f8af288217cbfc61a3593e21976d06"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -158,9 +158,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a926438a652307d24bd8a03b0ca926382"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a926438a652307d24bd8a03b0ca926382">dump</a> (const char *filename) const</td></tr>
 <tr class="memdesc:a926438a652307d24bd8a03b0ca926382"><td class="mdescLeft">&#160;</td><td class="mdescRight">parameters dumping  <a href="#a926438a652307d24bd8a03b0ca926382">More...</a><br /></td></tr>
 <tr class="separator:a926438a652307d24bd8a03b0ca926382"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa42cf56363fba1701a26cc445eda01d5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#aa42cf56363fba1701a26cc445eda01d5">load</a> (const char *filename)</td></tr>
-<tr class="memdesc:aa42cf56363fba1701a26cc445eda01d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">parameters loading from a dumped file  <a href="#aa42cf56363fba1701a26cc445eda01d5">More...</a><br /></td></tr>
-<tr class="separator:aa42cf56363fba1701a26cc445eda01d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a68f92497bf003803c01fee179d0db68f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a68f92497bf003803c01fee179d0db68f">read</a> (const char *filename)</td></tr>
+<tr class="memdesc:a68f92497bf003803c01fee179d0db68f"><td class="mdescLeft">&#160;</td><td class="mdescRight">parameters loading from a dumped file  <a href="#a68f92497bf003803c01fee179d0db68f">More...</a><br /></td></tr>
+<tr class="separator:a68f92497bf003803c01fee179d0db68f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3bd667353d49614c52ad6c965a7480f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classARC_1_1chainpars.html#a3bd667353d49614c52ad6c965a7480f3">print</a> (std::ostream &amp;fout)</td></tr>
 <tr class="memdesc:a3bd667353d49614c52ad6c965a7480f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Print parameter table.  <a href="#a3bd667353d49614c52ad6c965a7480f3">More...</a><br /></td></tr>
 <tr class="separator:a3bd667353d49614c52ad6c965a7480f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -644,40 +644,6 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="aa42cf56363fba1701a26cc445eda01d5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa42cf56363fba1701a26cc445eda01d5">&sect;&nbsp;</a></span>load()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void ARC::chainpars::load </td>
-          <td>(</td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>filename</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>parameters loading from a dumped file </p>
-<p>Load parameters from a dumped file. All dynamical array will be initialized after reading parameters. Notice this function will load all parameters except acceleration function pointers #pp_AW and #pp_Ap. <a class="el" href="classARC_1_1chainpars.html#ad77ec5334198faaf5957ab6d02aa9b39" title="Set acceleration, potential, time transformation function  and  calculator. ">setA()</a> should be called before chain integration. The reading data list is shown in <a class="el" href="classARC_1_1chainpars.html#a926438a652307d24bd8a03b0ca926382" title="parameters dumping ">dump()</a> </p><dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">filename</td><td>file to read the data </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
 <a id="a3bd667353d49614c52ad6c965a7480f3"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3bd667353d49614c52ad6c965a7480f3">&sect;&nbsp;</a></span>print()</h2>
 
@@ -712,13 +678,47 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="ad77ec5334198faaf5957ab6d02aa9b39"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad77ec5334198faaf5957ab6d02aa9b39">&sect;&nbsp;</a></span>setA()</h2>
+<a id="a68f92497bf003803c01fee179d0db68f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a68f92497bf003803c01fee179d0db68f">&sect;&nbsp;</a></span>read()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void ARC::chainpars::read </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>filename</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>parameters loading from a dumped file </p>
+<p>Load parameters from a dumped file. All dynamical array will be initialized after reading parameters. Notice this function will load all parameters except acceleration function pointers #pp_AW and #pp_Ap. <a class="el" href="classARC_1_1chainpars.html#ab66fadaa08cb449e1b49dd58e2d4b14f" title="Set acceleration, potential, time transformation function  and  calculator. ">setA()</a> should be called before chain integration. The reading data list is shown in <a class="el" href="classARC_1_1chainpars.html#a926438a652307d24bd8a03b0ca926382" title="parameters dumping ">dump()</a> </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">filename</td><td>file to read the data </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="ab66fadaa08cb449e1b49dd58e2d4b14f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab66fadaa08cb449e1b49dd58e2d4b14f">&sect;&nbsp;</a></span>setA()</h2>
 
 <div class="memitem">
 <div class="memproto">
 <div class="memtemplate">
-template&lt;class particle , class pertparticle , class pertforce , class extpar &gt; </div>
+template&lt;class particle_ , class pertparticle_ , class pertforce_ , class extpar_ &gt; </div>
 <table class="mlabels">
   <tr>
   <td class="mlabels-left">
@@ -726,19 +726,19 @@ template&lt;class particle , class pertparticle , class pertforce , class extpar
         <tr>
           <td class="memname">void ARC::chainpars::setA </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespaceARC.html#a270b4c77765cacf073a5ef5f928f1d63">pair_AW</a>&lt; particle, extpar &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceARC.html#afc1f57a75859038cbd2492366fd1849c">pair_AW</a>&lt; particle_, extpar_ &gt;&#160;</td>
           <td class="paramname"><em>aw</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceARC.html#a7aeda3b3bd009af7ac964748834dd312">ext_Acc</a>&lt; particle, pertparticle, pertforce, extpar &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceARC.html#aa423c7d6aff9481c040a20b3c5c6ff4e">ext_Acc</a>&lt; particle_, pertparticle_, pertforce_, extpar_ &gt;&#160;</td>
           <td class="paramname"><em>exta</em> = <code>NULL</code>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespaceARC.html#aa489b85f285776ca334a82d85dc0381a">pair_T</a>&lt; particle, extpar &gt;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespaceARC.html#af6dbf77cf2968752315f7712eb2515a3">pair_T</a>&lt; particle_, extpar_ &gt;&#160;</td>
           <td class="paramname"><em>at</em> = <code>NULL</code>&#160;</td>
         </tr>
         <tr>

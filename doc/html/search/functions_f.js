@@ -5,7 +5,7 @@ var searchData=
   ['seq_5fharmonic',['seq_Harmonic',['../namespaceEP.html#a6197a74bc7ca232ffcc84872d8f4f779',1,'EP']]],
   ['seq_5fromberg',['seq_Romberg',['../namespaceEP.html#afaef3617ed3fb4ad4627c19e955c5457',1,'EP']]],
   ['set',['set',['../classParticle.html#a662b86df904c9a664e0e45d93b1f4715',1,'Particle::set(const double m, const double rx, const double ry, const double rz, const double vx, const double vy, const double vz)'],['../classParticle.html#a840d9f228177200f22ef062e4cc24851',1,'Particle::set(const double m, const double r[3], const double v[3])'],['../classParticle.html#a77b1b13894b46abed113c461270ed927',1,'Particle::set(const Particle &amp;a)']]],
-  ['seta',['setA',['../classARC_1_1chainpars.html#ad77ec5334198faaf5957ab6d02aa9b39',1,'ARC::chainpars']]],
+  ['seta',['setA',['../classARC_1_1chainpars.html#ab66fadaa08cb449e1b49dd58e2d4b14f',1,'ARC::chainpars']]],
   ['setabg',['setabg',['../classARC_1_1chainpars.html#a37f8af288217cbfc61a3593e21976d06',1,'ARC::chainpars']]],
   ['setautostep',['setAutoStep',['../classARC_1_1chainpars.html#a12066ef8bca0ad69362d608959c9149b',1,'ARC::chainpars']]],
   ['setdenintpmax',['setDenIntpmax',['../classARC_1_1chainpars.html#aa19305c22ed42da4256e968ba38df871',1,'ARC::chainpars']]],

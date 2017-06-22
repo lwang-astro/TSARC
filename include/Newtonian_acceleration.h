@@ -146,9 +146,9 @@ namespace NTA {
               double dr  = std::sqrt(dr2);
               double dr3 = dr*dr2;
 
-              acc[i][0] = mp * dx / dr3;
-              acc[i][1] = mp * dy / dr3;
-              acc[i][2] = mp * dz / dr3;
+              acc[i][0] += mp * dx / dr3;
+              acc[i][1] += mp * dy / dr3;
+              acc[i][2] += mp * dz / dr3;
 
           }
       }

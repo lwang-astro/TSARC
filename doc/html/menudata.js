@@ -8,6 +8,7 @@ var menudata={children:[
 {text:'Typedefs',url:'namespacemembers_type.html'}]}]},
 {text:'Classes',url:'annotated.html',children:[
 {text:'Class List',url:'annotated.html'},
+{text:'Class Hierarchy',url:'inherits.html'},
 {text:'Class Members',url:'functions.html',children:[
 {text:'All',url:'functions.html',children:[
 {text:'a',url:'functions.html#index_a'},

@@ -1,7 +1,9 @@
 var searchData=
 [
-  ['data',['data',['../classARC_1_1chaininfo.html#aee6f50a67bbc6f5ed555faa6fe2ecf51',1,'ARC::chaininfo']]],
-  ['ds',['ds',['../classARC_1_1chaininfo.html#af689a2456268b30374ae6046704511f0',1,'ARC::chaininfo']]],
-  ['dterr',['dterr',['../classARC_1_1chainpars.html#ad3a3e8f9199180ec82b9c257b1e8570e',1,'ARC::chainpars']]],
-  ['dtmin',['dtmin',['../classARC_1_1chainpars.html#ac414014d19915aecb35245ba11649c2e',1,'ARC::chainpars']]]
+  ['eerr',['eerr',['../classARC_1_1chaininfo.html#a2a4787b1089da59e9ad8f008d211faed',1,'ARC::chaininfo']]],
+  ['eerr0',['eerr0',['../classARC_1_1chaininfo.html#aa25da11049199a727d6d94c172ed93ae',1,'ARC::chaininfo']]],
+  ['ekin',['Ekin',['../classARC_1_1chaininfo.html#a7732d57314ddb49eb996eb41056a0140',1,'ARC::chaininfo']]],
+  ['epi',['epi',['../classNTA_1_1Newtonian__pars.html#a4c4f79cd0d1600f8f038cdec15981268',1,'NTA::Newtonian_pars']]],
+  ['exp_5ferror',['exp_error',['../classARC_1_1chainpars.html#a7ee477ebe8b1d67457891ab58560c074',1,'ARC::chainpars']]],
+  ['exp_5ffix_5fiter',['exp_fix_iter',['../classARC_1_1chainpars.html#a3f16e6ea9497e294265c4a17df0394ba',1,'ARC::chainpars']]]
 ];

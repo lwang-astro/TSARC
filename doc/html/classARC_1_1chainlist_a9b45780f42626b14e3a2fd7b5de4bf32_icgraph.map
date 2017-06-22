@@ -1,5 +1,0 @@
-<map id="ARC::chainlist::getN" name="ARC::chainlist::getN">
-<area shape="rect" id="node2" href="$classARC_1_1chain.html#aed5f04b05a5875cd9a8b45da8fdfa28c" title="Data reading from file function. " alt="" coords="205,5,325,32"/>
-<area shape="rect" id="node3" href="$classARC_1_1chain.html#a269690a2daece1dacb21a78e11b019a6" title="Initialization. " alt="" coords="209,56,322,83"/>
-<area shape="rect" id="node4" href="$classARC_1_1chain.html#a80fd78294335c1990783ec562213342b" title="Leapfrog integrator. " alt="" coords="192,107,339,149"/>
-</map>
