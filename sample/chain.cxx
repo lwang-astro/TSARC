@@ -91,7 +91,7 @@ int main(int argc, char **argv){
   };
   
   int option_index;
-  while ((copt = getopt_long(argc, argv, "N:n:t:s:a:r:m:q:i:e:d:flh", long_options, &option_index)) != -1)
+  while ((copt = getopt_long(argc, argv, "N:n:t:s:a:r:m:q:i:e:d:p:lh", long_options, &option_index)) != -1)
     switch (copt) {
     case 0:
 #ifdef DEBUG

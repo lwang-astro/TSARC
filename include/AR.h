@@ -1202,20 +1202,20 @@ private:
      @param [in] dt: time step for V
      @param [in] ave_v: averaged velocity
    */
-  void step_forward_Ptw(const double dt, const double3* ave_v) {
+  void step_forward_Ptw(const double dt, const double3* ave_v, const bool calc_w_flag) {
     double dPt = 0.0;
-    double dw = 0.0;
+    double dw  = 0.0;
     for (std::size_t i=0;i<num;i++) {
-        dPt -= p[i].getMass() * ( ave_v[i][0] * pf[i][0] 
-                                  + ave_v[i][1] * pf[i][1] 
-                                  + ave_v[i][2] * pf[i][2]);
+        dPt -= p[i].getMass() * (ave_v[i][0] * pf[i][0] +
+                                 ave_v[i][1] * pf[i][1] +
+                                 ave_v[i][2] * pf[i][2]);
         
-        dw += ( ave_v[i][0] * dWdr[i][0]
-                + ave_v[i][1] * dWdr[i][1]
-                + ave_v[i][2] * dWdr[i][2]);
+        if(calc_w_flag) dw += (ave_v[i][0] * dWdr[i][0] +
+                               ave_v[i][1] * dWdr[i][1] +
+                               ave_v[i][2] * dWdr[i][2]);
     }
     Pt += dt * dPt;
-    w += dt * dw;
+    w  += dt * dw;
   }
 
   //! resolve X and V
@@ -2262,6 +2262,11 @@ public:
   /*! If the particle is added by using addP function, then this function is used to write the current chain data back to original particle address
    */
   void copyback() {
+#ifdef ARC_DEBUG
+    if(F_Porigin!=1) {
+        std::cerr<<"Warning: particles are copied back but not in original frame!\n";
+    }
+#endif
     p.copyback();
   }
   
@@ -2731,7 +2736,8 @@ public:
       resolve_XV(ave_v);
 
       // forward Pt and w (dependence: dt(V), ave_v, p.m, p.v, force, dWdr, pf)
-      if(pars.beta>0)  step_forward_Ptw(dvt,ave_v);
+      const bool dw_calc_flag = pars.beta>0;
+      step_forward_Ptw(dvt,ave_v,dw_calc_flag);
 
       // Calcuale Kinetic energy (dependence: p.m, p.v)
       calc_Ekin();
@@ -2851,11 +2857,12 @@ public:
     profile.t_ep -= get_wtime();
 #endif
     pair_AW<particle,extpar> f = reinterpret_cast<pair_AW<particle,extpar>>(pars.pp_AW);
+#ifdef ARC_DEBUG
     if(std::type_index(typeid(f))!=*pars.pp_AW_type) {
         std::cerr<<"Error: acceleration function type not matched the data type\n";
         abort();
     }
-
+#endif
     // clear info if exist
     if (info){
       delete info;
@@ -2932,7 +2939,7 @@ public:
         Ekin = Ekin0;
         Pot = Pot0;
         // reset velocity to get correct w
-        if (pars.beta>0) resolve_V();
+        resolve_V();
       }
 
       // Dense output
@@ -3337,7 +3344,7 @@ public:
       Ekin = Ekin0;
       Pot  = Pot0;
       // reset velocity to get correct w
-      if (pars.beta>0) resolve_V();
+      resolve_V();
 
 #ifdef DEBUG
       /*std::cerr<<"Getting: ds= "<<dsm;
@@ -3422,7 +3429,7 @@ public:
       Ekin = Ekin0;
       Pot  = Pot0;
       // reset velocity to get correct w
-      if (pars.beta>0) resolve_V();
+      resolve_V();
     }
 
     // clear memory

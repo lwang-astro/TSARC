@@ -137,10 +137,10 @@ namespace NTA {
           acc[i][0] = acc[i][1] = acc[i][2] = 0.0;
           for (int j=0; j<npert; j++) {
       
-              double mp = pert[i].getMass();
-              double dx = xp[i][0] - xi[0];
-              double dy = xp[i][1] - xi[1];
-              double dz = xp[i][2] - xi[2];
+              double mp = pert[j].getMass();
+              double dx = xp[j][0] - xi[0];
+              double dy = xp[j][1] - xi[1];
+              double dz = xp[j][2] - xi[2];
 
               double dr2 = dx*dx + dy*dy + dz*dz;
               double dr  = std::sqrt(dr2);

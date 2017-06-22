@@ -7,7 +7,7 @@ VPATH=../include
 CXX= g++
 
 ## Flag ----------------------------------------------#
-CXXFLAGS = -g -I../include -Wall
+CXXFLAGS = -I../include -Wall
 CXXFLAGS += -std=c++11
 
 ## OpenMP flag----------------------------------------#
@@ -17,7 +17,10 @@ CXXFLAGS += -std=c++11
 CXXFLAGS += -D TIME_PROFILE
 
 ## for debug------------------------------------------#
-#CXXFLAGS += -g -D DEBUG -fbounds-check -Wall
+CXXFLAGS += -O2 
+#CXXFLAGS += -g -fbounds-check
+#CXXFLAGS += -D DEBUG 
+CXXFLAGS += -D ARC_DEBUG
 
 ## Target --------------------------------------------#
 
