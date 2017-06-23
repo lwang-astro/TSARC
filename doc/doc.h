@@ -420,6 +420,6 @@ Then the cost of dense output over extrapolation integration is
 where \f$\langle n_i\rangle\f$ is the average \f$ n_i \f$ from \f$ i=1,\kappa\f$.
 In the case of 4k sequence, \f$\langle n_i\rangle  \propto \kappa\f$.
 The value of \f$\kappa\f$ depends on the computational error criterion and the integration step size \f$ \Delta s\f$. 
-Usually \f$ \kappa>4 \f$, thus if \f$ N \f$ is not large (\f$ N < 5 \f$), the full dense output with all variables is can be more computational expensive.
+Usually \f$ \kappa>4 \f$, thus if \f$ N \f$ is not large (\f$ N < 5 \f$), the full dense output with all variables can be more computational expensive.
 
 */

@@ -2026,23 +2026,28 @@ public:
     @param [in] auto_step_eps: auto step coefficient from chainpar controller
     \return approximation of step size ds
    */
-  template<class extpar_>
-  double calc_next_step_custom(pair_T<particle,extpar_> pt, extpar_* pars, const double auto_step_eps) {
+  template<class chainpars_, class extpar_>
+  double calc_next_step_custom(const chainpars_& pars, extpar_* extpars) {
+      pair_T<particle,extpar_> pp_T = reinterpret_cast<pair_T<particle,extpar_>>(pars.pp_T);
 #ifdef ARC_DEBUG
-    //safety check
-    if (pt==NULL) {
-      std::cerr<<"Error: two-body timescale calculator function chainpars.pp_T is not set\n";
-      abort();
-    }
+      if(std::type_index(typeid(pp_T))!=*pars.pp_T_type) {
+          std::cerr<<"Error: pair timescale function type not matched!\n";
+          abort();
+      }
+      //safety check
+      if (pp_T==NULL) {
+          std::cerr<<"Error: two-body timescale calculator function chainpars.pp_T is not set\n";
+          abort();
+      }
 #endif
 
     double perim = std::numeric_limits<double>::max();
     for (std::size_t i=0; i<num-1; i++) {
-      const double peri=pt(p[list[i]].getMass(),p[list[i+1]].getMass(),X[i],V[i],pars);
+      const double peri=pp_T(p[list[i]].getMass(),p[list[i+1]].getMass(),X[i],V[i],extpars);
       if (perim>peri) perim = peri;
     }
 //    std::cerr<<"perim = "<<perim<<" auto_step_eps"<<pars->auto_step_eps<<" Pt "<<Pt<<std::endl;
-    return auto_step_eps*perim*std::abs(Pt);
+    return pars.auto_step_eps*perim*std::abs(Pt);
   }
   
   //! Add particle
@@ -3430,12 +3435,7 @@ public:
         else    dsn = 1.0;
       }
       else if (pars.auto_step==4) {
-        pair_T<particle,extpar_> pp_T = reinterpret_cast<pair_T<particle,extpar_>>(pars.pp_T);
-        if(std::type_index(typeid(pp_T))!=*pars.pp_T_type) {
-            std::cerr<<"Error: pair timescale function type not matched!\n";
-            abort();
-        }
-        dsn = calc_next_step_custom(pp_T,int_pars,pars.auto_step_eps)/ds;
+        dsn = calc_next_step_custom(pars,int_pars)/ds;
       }
       // update chain link order
       if(num>2) update_link();
