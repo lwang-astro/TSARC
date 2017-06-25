@@ -2056,7 +2056,7 @@ public:
    */
   template <class Tp>
   void addP(Tp &a) {
-    if (!p.is_alloc) p.allocate(nmax);
+    if (!p.is_alloc()) p.allocate(nmax);
     if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(a);
     F_Pmod=true;
@@ -2079,7 +2079,7 @@ public:
    */
   template<class Tp>
   void addP(const std::size_t n, Tp a[]) {
-    if (!p.is_alloc) p.allocate(nmax);
+    if (!p.is_alloc()) p.allocate(nmax);
     if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(n,a);
     F_Pmod=true;
@@ -3965,7 +3965,7 @@ public:
     //    abort();
     //}
     if(!alloc_flag) return;
-    for(int i=0; i<num; i++) {
+    for(std::size_t i=0; i<num; i++) {
         //if(cflag[i]) ((chain<particle>*)p[i])->cm=data[i];
         //else *p[i] = data[i];
         if(p[i]!=NULL) *p[i] = data[i];
