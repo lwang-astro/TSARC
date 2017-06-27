@@ -51,10 +51,10 @@ public:
 
   chainprofile() {reset_tp();}  ///< initialization 
 
-  void initstep(const std::size_t n) {
+  void initstep(const int n) {
     if (!stepcount) {
       stepcount=new int[n];
-      for (std::size_t i=0; i<n; i++) stepcount[i]=0;
+      for (int i=0; i<n; i++) stepcount[i]=0;
     }
   }
 
@@ -154,8 +154,8 @@ private:
   // extrapolation control parameter
   int exp_method;         ///< 1: Polynomial method; others: Rational interpolation method
   int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
-  std::size_t exp_itermax; ///< maximum times for iteration.
-  std::size_t den_intpmax; ///< maximum derivates for dense output interpolation
+  int exp_itermax; ///< maximum times for iteration.
+  int den_intpmax; ///< maximum derivates for dense output interpolation
 
   int* step; ///< substep sequence
   int** bin_index; ///< binomial coefficients
@@ -164,8 +164,8 @@ private:
   double auto_step_fac_min; ///< minimum reduction factor
   double auto_step_fac_max; ///< maximum reduction factor
   double auto_step_eps;     ///< coefficient
-  std::size_t auto_step_iter_min;   ///< mimimum iteration level
-  std::size_t auto_step_iter_max;   ///< maximum iteration level
+  int auto_step_iter_min;   ///< mimimum iteration level
+  int auto_step_iter_max;   ///< maximum iteration level
 
   // pair force
   // pair_AW pp_AW;  ///< acceleration and dW/dr of two particle
@@ -228,7 +228,7 @@ public:
     @param [in] dense_intpmax: maximum derivate index for dense output interpolation (defaulted #itermax/2)
     @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
    */
-  chainpars(const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const std::size_t itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
+  chainpars(const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const int itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
     pp_AW = ext_A = pp_T = NULL;
     pp_AW_type = ext_A_type = pp_T_type = NULL;
     step = NULL;
@@ -245,7 +245,7 @@ public:
   ~chainpars() {
     if (step!=NULL) delete[] step;
     if (bin_index!=NULL) {
-      for (std::size_t i=0;i<exp_itermax;i++) 
+      for (int i=0;i<exp_itermax;i++) 
         if (bin_index[i]!=NULL)
           delete[] bin_index[i];
       delete[] bin_index;
@@ -356,13 +356,13 @@ public:
     @param [in] sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
     @param [in] intpmax: maximum derivate index for dense ouput interpolation (defaulted #itermax/2)
   */
-  void setIterSeq(const std::size_t itermax=20, const int sequence=2, const std::size_t intpmax=0) {
+  void setIterSeq(const int itermax=20, const int sequence=2, const int intpmax=0) {
     exp_sequence = sequence;
 
     // delete binomial array
     if (bin_index!=NULL) {
       if (step!=NULL) {
-        for (std::size_t i=0; i<(std::size_t)step[exp_itermax]; i++)
+        for (int i=0; i<step[exp_itermax]; i++)
           if (bin_index[i]!=NULL) delete[] bin_index[i];
         delete[] bin_index;
       }
@@ -384,7 +384,7 @@ public:
 
     // calculate binomial coefficients
     bin_index = new int*[step[itermax]];
-    for (std::size_t i=0; i<(std::size_t)step[itermax]; i++) {
+    for (int i=0; i<step[itermax]; i++) {
       bin_index[i] = new int[i+1];
       if (i>0) EP::binomial_recursive_generator(bin_index[i],bin_index[i-1],i+1);
       else EP::binomial_recursive_generator(bin_index[i],NULL,i+1);
@@ -404,7 +404,7 @@ public:
   /*!
     @param [in] intpmax: maximum derivate index for dense ouput interpolation (defaulted #itermax/2)
    */
-  void setDenIntpmax(const std::size_t intpmax) {
+  void setDenIntpmax(const int intpmax) {
     if (intpmax>exp_itermax) {
       std::cerr<<"Error: dense output interpolation derivate index ("<<intpmax<<") cannot be larger than extrapolation maximum sequence index ("<<exp_itermax<<")!\n";
       abort();
@@ -449,7 +449,7 @@ public:
       @param[in] iter_min: if \a option = 3, it is the minimum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 5)
       @param[in] iter_max: if \a option = 3, it is the maximum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 17)
   */
-  void setAutoStep(const int option, const double factor_min=0.7, const double factor_max=1.3, const double eps=0.125, const std::size_t iter_min=5, const std::size_t iter_max=17) {
+  void setAutoStep(const int option, const double factor_min=0.7, const double factor_max=1.3, const double eps=0.125, const int iter_min=5, const int iter_max=17) {
     if (option<0||option>4) {
       std::cerr<<"Error: autostep options should be set from 0 to 4, current value: "<<option<<"!\n";
       abort();
@@ -495,7 +495,7 @@ public:
       @param[in] iter_min: if \a option = 3, it is the minimum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 5)
       @param[in] iter_max: if \a option = 3, it is the maximum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 17)
    */
-  void getAutoStep(int &option, double &factor_min, double &factor_max, double &eps, std::size_t &iter_min, std::size_t &iter_max) const {
+  void getAutoStep(int &option, double &factor_min, double &factor_max, double &eps, int &iter_min, int &iter_max) const {
     option = auto_step;
     factor_min = auto_step_fac_min;
     factor_max = auto_step_fac_max;
@@ -518,8 +518,8 @@ public:
       fwrite(&gamma, sizeof(double),1,pout);
       fwrite(&exp_method,  sizeof(int),1,pout);
       fwrite(&exp_sequence,sizeof(int),1,pout);
-      fwrite(&exp_itermax, sizeof(std::size_t),1,pout);
-      fwrite(&den_intpmax, sizeof(std::size_t),1,pout);
+      fwrite(&exp_itermax, sizeof(int),1,pout);
+      fwrite(&den_intpmax, sizeof(int),1,pout);
       fwrite(&exp_error,   sizeof(double),1,pout);
       fwrite(&exp_fix_iter,sizeof(bool),1,pout);
       fwrite(&dtmin, sizeof(double),1,pout);
@@ -528,8 +528,8 @@ public:
       fwrite(&auto_step_fac_min, sizeof(double),1,pout);
       fwrite(&auto_step_fac_max, sizeof(double),1,pout);
       fwrite(&auto_step_eps,     sizeof(double),1,pout);
-      fwrite(&auto_step_iter_min,sizeof(std::size_t),1,pout);
-      fwrite(&auto_step_iter_max,sizeof(std::size_t),1,pout);
+      fwrite(&auto_step_iter_min,sizeof(int),1,pout);
+      fwrite(&auto_step_iter_max,sizeof(int),1,pout);
     }
   }
 
@@ -546,7 +546,7 @@ public:
     else {
       step = NULL;
       bin_index = NULL;
-      std::size_t rn;
+      int rn;
       double a,b,g;
       rn = fread(&a, sizeof(double), 1 ,pin);
       if(rn<1) {
@@ -566,7 +566,7 @@ public:
       setabg(a,b,g);
 
       double error,dtm,dte;
-      std::size_t itermax,intpmax;
+      int itermax,intpmax;
       int ext_method, ext_sequence;
       bool ext_iteration_const;
       
@@ -580,12 +580,12 @@ public:
         std::cerr<<"Error: cannot read exp_sequence!\n";
         abort();
       }
-      rn = fread(&itermax, sizeof(std::size_t), 1 ,pin);
+      rn = fread(&itermax, sizeof(int), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read exp_itermax!\n";
         abort();
       }
-      rn = fread(&intpmax, sizeof(std::size_t), 1 ,pin);
+      rn = fread(&intpmax, sizeof(int), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read den_intpmax!\n";
         abort();
@@ -617,7 +617,7 @@ public:
 
       int as;
       double asmin, asmax, aseps;
-      std::size_t asitmin, asitmax;
+      int asitmin, asitmax;
       rn = fread(&as, sizeof(int), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read auto_step!\n";
@@ -638,12 +638,12 @@ public:
         std::cerr<<"Error: cannot read auto_step_eps!\n";
         abort();
       }
-      rn = fread(&asitmin, sizeof(std::size_t), 1 ,pin);
+      rn = fread(&asitmin, sizeof(int), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read auto_step_iter_min!\n";
         abort();
       }
-      rn = fread(&asitmax, sizeof(std::size_t), 1 ,pin);
+      rn = fread(&asitmax, sizeof(int), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read auto_step_iter_max!\n";
         abort();
@@ -718,7 +718,7 @@ public:
     Set all variables to infinity
     @param[in] n: number of particles
    */
-  chaininfo(const std::size_t n) {
+  chaininfo(const int n) {
     status = 0;
     const double infd = std::numeric_limits<double>::infinity();
     intcount = inti = i1 = i2 = -1;
@@ -771,10 +771,10 @@ public:
         <<"Time momemtum Pt: "<<data[1]<<std::endl
         <<"Integrated time transformation function w: "<<data[2]<<std::endl
         <<"Relative positions and velocity: \n";
-    for (std::size_t i=1; i<(std::size_t)num; i++) {
+    for (int i=1; i<num; i++) {
       fout<<"No. "<<i<<" ";
-      for (std::size_t k=0; k<3; k++) fout<<data[3*i+k]<<" ";
-      for (std::size_t k=0; k<3; k++) fout<<data[3*(i+num-1)+k]<<" ";
+      for (int k=0; k<3; k++) fout<<data[3*i+k]<<" ";
+      for (int k=0; k<3; k++) fout<<data[3*(i+num-1)+k]<<" ";
       fout<<std::endl;
     }
     fout<<"====================================================================\n";
@@ -832,7 +832,7 @@ class chain: public particle_{
   double3 *acc; ///< acceleration   
   double3 *pf;  ///< perturber force
   double3 *dWdr; ///< \partial Omega/ \partial rk
-  std::size_t *list;   ///< chain index list
+  int *list;   ///< chain index list
   ///< acc, pf, dWdr keep the same particle order as particle list p.
 
   //integration parameters=======================================//
@@ -846,8 +846,8 @@ class chain: public particle_{
   double Pot;   ///< potential
 
   //number =======================================================//
-  std::size_t num;      ///< total number of chain particles
-  std::size_t nmax;     ///< maximum number 
+  int num;      ///< total number of chain particles
+  int nmax;     ///< maximum number 
 
   //monitor flags
   bool F_Pmod;     ///< indicate whether particle list is modified (true: modified)
@@ -869,7 +869,7 @@ public:
   /*! Construct chain with allocated memory
       @param [in] n: maximum number of particles (will be used to allocate memory)
    */
-  chain(const std::size_t n):   num(0), info(NULL){
+  chain(const int n):   num(0), info(NULL){
     nmax=0;
     allocate(n);
   }
@@ -883,7 +883,7 @@ public:
   /*! Allocate memory for maximum particle number n
      @param [in] n: maximum number of particles
    */
-  void allocate(const std::size_t n) {
+  void allocate(const int n) {
     if (nmax) {
       std::cerr<<"Error: chain memory allocation is already done\n";
       abort();
@@ -894,7 +894,7 @@ public:
     acc=new double3[n];
     pf=new double3[n];
     dWdr=new double3[n];
-    list=new std::size_t[n];
+    list=new int[n];
     //p.allocate(n);
     F_Pmod=false;
     F_Porigin=1;
@@ -952,7 +952,7 @@ private:
 //  /*! Update the number of particle (#num) due to current particle list number
 //     @param [in] n: current particle number in particle list #p
 //  */
-//  void update_num(const std::size_t n) {
+//  void update_num(const int n) {
 //    if (n>nmax) {
 //      std::cerr<<"Error: particle number "<<n<<" is larger than Chain number limit "<<num<<std::endl;
 //      abort();
@@ -967,20 +967,20 @@ private:
   */
   void generate_list() {
     bool *is_checked=new bool[num];
-    for (std::size_t i=0; i<num; i++) is_checked[i] = false;
-    std::size_t inext=0;
-    for (std::size_t i=0; i<num; i++) {
+    for (int i=0; i<num; i++) is_checked[i] = false;
+    int inext=0;
+    for (int i=0; i<num; i++) {
       // initial rjk; mark checked particle
       is_checked[inext] = true;
 
       // initial chain_mem
       list[i]=inext;
-      std::size_t inow=inext;
+      int inow=inext;
     
       // make chain
       double rmin=HUGE;
 //      bool first=true;
-      for (std::size_t j=1; j<num; j++) {
+      for (int j=1; j<num; j++) {
         if(is_checked[j]) continue;
         const double* rj = p[j].getPos();
         const double* ri = p[inow].getPos();
@@ -1008,7 +1008,7 @@ private:
   /*! Get chain member relative position #X and velocity #V based on #list
   */
   void calc_XV() {
-    for (std::size_t i=0;i<num-1;i++) {
+    for (int i=0;i<num-1;i++) {
       const double *ri1 = p[list[i+1]].getPos();
       const double *ri = p[list[i]].getPos();
       X[i][0] = ri1[0] - ri[0];
@@ -1053,18 +1053,18 @@ private:
 #ifdef USE_OMP
 #pragma omp parallel for reduction(+:Pot_c), reduction(+:W_c)
 #endif
-    for (std::size_t j=0;j<num;j++) {
-      std::size_t lj = list[j];
+    for (int j=0;j<num;j++) {
+      int lj = list[j];
       const particle *pj= &p[lj];
 
-      for (std::size_t k=0; k<3; k++) {
+      for (int k=0; k<3; k++) {
         acc [lj][k]=0.0; // reset Acceleration
         dWdr[lj][k]=0.0; // reset dW/dr
       }
 
-      for (std::size_t k=0;k<num;k++) {
+      for (int k=0;k<num;k++) {
         if(k==j) continue;
-        std::size_t lk = list[k];
+        int lk = list[k];
         const particle *pk= &p[lk];
         const double* xj = pj->getPos();
         double3 xjk;
@@ -1111,10 +1111,10 @@ private:
 //          chain<particle, int_par>*ck = p.getSub(lk);
 //          // center shift to current frame
 //          ck->center_shift_inverse_X();
-//          const std::size_t cn = ck->p.getN();
+//          const int cn = ck->p.getN();
 //          Pt = 0;
-//          for (std::size_t i=0;i<3;i++) At[i]=0.0;
-//          for (std::size_t i=0;i<cn;i++) {
+//          for (int i=0;i<3;i++) At[i]=0.0;
+//          for (int i=0;i<cn;i++) {
 //            double Ptemp;
 //            double3 Atemp;
 //            pars->pp_Ap(Atemp, Ptemp, xj, ck->p[i].getPos(), *pj, ck->p[i]);
@@ -1163,7 +1163,7 @@ private:
   //! Calculate kinetic energy
   void calc_Ekin(){
     Ekin = 0.0;
-    for (std::size_t i=0; i<num; i++) {
+    for (int i=0; i<num; i++) {
       const double *vi=p[i].getVel();
       Ekin += 0.5 * p[i].getMass() * (vi[0]*vi[0]+vi[1]*vi[1]+vi[2]*vi[2]);
     }
@@ -1175,7 +1175,7 @@ private:
    */
   void step_forward_X(const double dt) {
     // step forward relative X
-    for (std::size_t i=0;i<num-1;i++) {
+    for (int i=0;i<num-1;i++) {
       X[i][0] += dt * V[i][0];
       X[i][1] += dt * V[i][1];
       X[i][2] += dt * V[i][2];
@@ -1188,9 +1188,9 @@ private:
    */
   void step_forward_V(const double dt) {
     // step forward V
-    for (std::size_t i=0;i<num-1;i++) {
-      std::size_t k = list[i];
-      std::size_t k1 = list[i+1];
+    for (int i=0;i<num-1;i++) {
+      int k = list[i];
+      int k1 = list[i+1];
       V[i][0] += dt * (acc[k1][0]-acc[k][0]);
       V[i][1] += dt * (acc[k1][1]-acc[k][1]);
       V[i][2] += dt * (acc[k1][2]-acc[k][2]);
@@ -1207,7 +1207,7 @@ private:
   void step_forward_Ptw(const double dt, const double3* ave_v, const bool calc_w_flag) {
     double dPt = 0.0;
     double dw  = 0.0;
-    for (std::size_t i=0;i<num;i++) {
+    for (int i=0;i<num;i++) {
         dPt -= p[i].getMass() * (ave_v[i][0] * pf[i][0] +
                                  ave_v[i][1] * pf[i][1] +
                                  ave_v[i][2] * pf[i][2]);
@@ -1229,7 +1229,7 @@ private:
   void resolve_XV(double3* ave_v=NULL) {
     // backup old v
     if (ave_v!=NULL) {
-      for (std::size_t i=0;i<num;i++) {
+      for (int i=0;i<num;i++) {
         const double *vi = p[i].getVel();
         ave_v[i][0] = vi[0];
         ave_v[i][1] = vi[1];
@@ -1240,7 +1240,7 @@ private:
     // first member
     double3 vc;
     double3 xc;
-    const std::size_t lk1=list[0];
+    const int lk1=list[0];
     const double  mk1 = p[lk1].getMass();
     const double *rk1 = p[lk1].getPos();
     const double *vk1 = p[lk1].getVel();
@@ -1251,9 +1251,9 @@ private:
     vc[1] = mk1 * vk1[1];
     vc[2] = mk1 * vk1[2];
     // others
-    for (std::size_t i=0;i<num-1;i++) {
-      const std::size_t lk = list[i];
-      const std::size_t lkn = list[i+1];
+    for (int i=0;i<num-1;i++) {
+      const int lk = list[i];
+      const int lkn = list[i+1];
       const double *rk = p[lk].getPos();
       p[lkn].setPos(rk[0] + X[i][0],
                     rk[1] + X[i][1],
@@ -1285,7 +1285,7 @@ private:
     vc[1] /= mc;
     vc[2] /= mc;
     
-    for (std::size_t i=0;i<num;i++) {
+    for (int i=0;i<num;i++) {
       // center-of-mass correction
       const double *ri = p[i].getPos();
       p[i].setPos(ri[0] - xc[0],
@@ -1314,16 +1314,16 @@ private:
     // resolve current X
     double3 xc;
     // first member
-    const std::size_t lk1=list[0];
+    const int lk1=list[0];
     const double  mk1 = p[lk1].getMass();
     const double *rk1 = p[lk1].getPos();
     xc[0] = mk1 * rk1[0];
     xc[1] = mk1 * rk1[1];
     xc[2] = mk1 * rk1[2];
     // others
-    for (std::size_t i=0;i<num-1;i++) {
-      const std::size_t lk = list[i];
-      const std::size_t lkn = list[i+1];
+    for (int i=0;i<num-1;i++) {
+      const int lk = list[i];
+      const int lkn = list[i+1];
       const double *rk = p[lk].getPos();
       p[lkn].setPos(rk[0] + X[i][0],
                     rk[1] + X[i][1],
@@ -1343,7 +1343,7 @@ private:
     xc[1] /= mc;
     xc[2] /= mc;
     
-    for (std::size_t i=0;i<num;i++) {
+    for (int i=0;i<num;i++) {
       // center-of-mass correction
       const double *ri = p[i].getPos();
       p[i].setPos(ri[0] - xc[0],
@@ -1361,16 +1361,16 @@ private:
     // resolve current V
     // first member
     double3 vc;
-    const std::size_t lk1=list[0];
+    const int lk1=list[0];
     const double  mk1 = p[lk1].getMass();
     const double *vk1 = p[lk1].getVel();
     vc[0] = mk1 * vk1[0];
     vc[1] = mk1 * vk1[1];
     vc[2] = mk1 * vk1[2];
     // others
-    for (std::size_t i=0;i<num-1;i++) {
-      const std::size_t lk = list[i];
-      const std::size_t lkn = list[i+1];
+    for (int i=0;i<num-1;i++) {
+      const int lk = list[i];
+      const int lkn = list[i+1];
       const double *vk = p[lk].getVel();
       p[lkn].setVel(vk[0] + V[i][0],
                     vk[1] + V[i][1],
@@ -1390,7 +1390,7 @@ private:
     vc[1] /= mc;
     vc[2] /= mc;
     
-    for (std::size_t i=0;i<num;i++) {
+    for (int i=0;i<num;i++) {
       // center-of-mass correction
       const double *vi = p[i].getVel();
       p[i].setVel(vi[0] - vc[0],
@@ -1416,16 +1416,16 @@ private:
       abort();
     }
     const int np = pext.getN();
-    for (std::size_t i=0;i<num;i++) 
-        for (std::size_t j=0;j<3;j++) pf[i][j] = 0.0;
+    for (int i=0;i<num;i++) 
+        for (int j=0;j<3;j++) pf[i][j] = 0.0;
 
     //predict
-    for (std::size_t i=0; i<np;i++) {
+    for (int i=0; i<np;i++) {
         pert_predict(t, pext[j], 
     }
 
-    for (std::size_t i=0;i<num;i++) {
-        for (std::size_t j=0;j<(std::size_t)np;j++) {
+    for (int i=0;i<num;i++) {
+        for (int j=0;j<np;j++) {
             double3 At={0};
             double Pt;
             const particle* pi=&p[i];
@@ -1437,8 +1437,8 @@ private:
                 chain<particle, int_par>*cj = pext.getSub(j);
                 // get center-of-mass position for shifting;
                 const double* xc=cj->particle::getPos();
-                const std::size_t cn = cj->pext.getN();
-                for (std::size_t k=0;k<cn;k++) {
+                const int cn = cj->pext.getN();
+                for (int k=0;k<cn;k++) {
 
                     double3 xk;
                     std::memcpy(xk,cj->p[k].getPos(),3*sizeof(double));
@@ -1485,19 +1485,19 @@ private:
     bool modified=false; // indicator
 #ifdef DEBUG        
     std::cerr<<"current:";
-    for (std::size_t i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
+    for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
     std::cerr<<"\n";
 #endif
     
     // create reverse index of link
-    std::size_t* rlink = new std::size_t[num];
-    std::size_t* roldlink = new std::size_t[num];
-    for (std::size_t i=0;i<num;i++) rlink[list[i]] = i;
-    std::memcpy(roldlink,rlink,num*sizeof(std::size_t));
+    int* rlink = new int[num];
+    int* roldlink = new int[num];
+    for (int i=0;i<num;i++) rlink[list[i]] = i;
+    std::memcpy(roldlink,rlink,num*sizeof(int));
 
     // backup previous link
-    std::size_t* listbk = new std::size_t[num];
-    std::memcpy(listbk,list,num*sizeof(std::size_t));
+    int* listbk = new int[num];
+    std::memcpy(listbk,list,num*sizeof(int));
 
     // backup current X
     double3* Xbk = new double3[num-1];
@@ -1509,18 +1509,18 @@ private:
 
     // create mask to avoid dup. check;
     bool* mask = new bool[num];
-    for (std::size_t i=0;i<num;i++) mask[i] = false;
+    for (int i=0;i<num;i++) mask[i] = false;
 
     const double NUMERIC_DOUBLE_MAX = std::numeric_limits<double>::max();
-    for (std::size_t k=0;k<num-1;k++) {
-      std::size_t lk  = list[k];
+    for (int k=0;k<num-1;k++) {
+      int lk  = list[k];
        mask[lk] = true;
-      std::size_t lkn = list[k+1];
+      int lkn = list[k+1];
       // possible new index
-      std::size_t lku = lkn;
+      int lku = lkn;
       // calculate distance
       double rmin = NUMERIC_DOUBLE_MAX;
-      for (std::size_t j=0;j<num;j++) {
+      for (int j=0;j<num;j++) {
         if (mask[j]||j==k) continue;
         const double* xk = p[lk].getPos();
         const double* xj = p[j].getPos();
@@ -1536,9 +1536,9 @@ private:
       if (lku!=lkn) {
 #ifdef DEBUG        
         std::cerr<<"Switch: "<<k<<" new: "<<lku<<" old: "<<lkn<<std::endl;
-        for (std::size_t i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
+        for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
         std::cerr<<"\n Rlink";
-        for (std::size_t i=0;i<num;i++) std::cerr<<std::setw(4)<<rlink[i];
+        for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<rlink[i];
         std::cerr<<"\n";
 #endif
         modified=true;
@@ -1549,9 +1549,9 @@ private:
         rlink[lku] = k+1;
         mask[lku] = true;
 #ifdef DEBUG        
-        for (std::size_t i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
+        for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
         std::cerr<<"\n Rlink";
-        for (std::size_t i=0;i<num;i++) std::cerr<<std::setw(4)<<rlink[i];
+        for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<rlink[i];
         std::cerr<<"\n";
 #endif
       }
@@ -1559,9 +1559,9 @@ private:
       if (lk!=listbk[k]||lku!=listbk[k+1]) {
         // update X and V
         // left boundary
-        std::size_t rlk = roldlink[lk];
+        int rlk = roldlink[lk];
         if (rlk<k) {
-          for (std::size_t j=rlk;j<k;j++) {
+          for (int j=rlk;j<k;j++) {
 #ifdef DEBUG
             std::cerr<<"Add V["<<j<<"] to V["<<k<<"]\n";
 #endif
@@ -1575,7 +1575,7 @@ private:
           }
         }
         else if (rlk>k) {
-          for (std::size_t j=k;j<rlk;j++) {
+          for (int j=k;j<rlk;j++) {
 #ifdef DEBUG
             std::cerr<<"Minus V["<<j<<"] from V["<<k<<"]\n";
 #endif
@@ -1591,7 +1591,7 @@ private:
         // right boundary
         rlk = roldlink[lku];
         if (rlk<k+1) {
-          for (std::size_t j=rlk;j<k+1;j++) {
+          for (int j=rlk;j<k+1;j++) {
 #ifdef DEBUG
             std::cerr<<"Minus V["<<j<<"] from V["<<k<<"]\n";
 #endif
@@ -1605,7 +1605,7 @@ private:
           }
         }
         else if (rlk>k+1) {
-          for (std::size_t j=k+1;j<rlk;j++) {
+          for (int j=k+1;j<rlk;j++) {
 #ifdef DEBUG
             std::cerr<<"Add V["<<j<<"] to V["<<k<<"]\n";
 #endif
@@ -1647,7 +1647,7 @@ private:
     double3 cmr={};
     double3 cmv={};
     double  cmm=0;
-    for (std::size_t i=0;i<num;i++) {
+    for (int i=0;i<num;i++) {
       const double *ri = p[i].getPos();
       const double *vi = p[i].getVel();
       const double mi = p[i].getMass();
@@ -1674,7 +1674,7 @@ private:
     particle::setVel(cmv[0],cmv[1],cmv[2]);
 
     // shifting
-    for (std::size_t i=0;i<num;i++) {
+    for (int i=0;i<num;i++) {
       const double *ri = p[i].getPos();
       const double *vi = p[i].getVel();
       p[i].setPos(ri[0] - cmr[0],
@@ -1695,7 +1695,7 @@ private:
     }
     else {
       const double *rc = particle::getPos();
-      for (std::size_t i=0;i<num;i++) {
+      for (int i=0;i<num;i++) {
         const double *ri = p[i].getPos();
         p[i].setPos(ri[0] + rc[0],
                     ri[1] + rc[1],
@@ -1718,7 +1718,7 @@ private:
     }
     else {
       const double *rc = particle::getPos();
-      for (std::size_t i=0;i<num;i++) {
+      for (int i=0;i<num;i++) {
         const double *ri = p[i].getPos();
         p[i].setPos(ri[0] - rc[0],
                     ri[1] - rc[1],
@@ -1739,11 +1739,11 @@ private:
     @param [in] ndiv: substep number
     @param [in] pars: chainpars controller
   */
-    void mid_diff_calc(double **dpoly, const std::size_t nmax, const std::size_t i, const int ndiv, chainpars &pars) {
+    void mid_diff_calc(double **dpoly, const int nmax, const int i, const int ndiv, chainpars &pars) {
     // safety check
     if (dpoly!=NULL) {
       // difference level should not exceed the point number
-      if (2*nmax>(std::size_t)ndiv) {
+      if (2*nmax>(int)ndiv) {
         std::cerr<<"Error: maximum difference order "<<nmax<<" *2 > total step number "<<ndiv<<"!\n";
         abort();
       }
@@ -1754,19 +1754,19 @@ private:
       }
       if (i>=ndiv/2-nmax&&i<=ndiv/2+nmax) {
 //        if (!tflag) {
-//          const std::size_t dsize=6*num-3;
+//          const int dsize=6*num-3;
 //          //initial dpoly to zero
-//          for (std::size_t j=0; j<nmax; j++) if(i==0) std::memset(dpoly[j],0,dsize*sizeof(double));
+//          for (int j=0; j<nmax; j++) if(i==0) std::memset(dpoly[j],0,dsize*sizeof(double));
 //        }
 //        else
-        if(i==0) for (std::size_t j=0; j<nmax; j++) dpoly[j][0] = 0.0;
+        if(i==0) for (int j=0; j<nmax; j++) dpoly[j][0] = 0.0;
 
         // dt/ds
         double dts=calc_dt_X(1.0,pars);
         
         int** binI = pars.bin_index;
         // formula delta^n f(x) = sum_ik=0,n (-1)^(n-ik) (n n-ik) f(x+2*ik*h)
-        for (std::size_t j=0; j<nmax; j++) {
+        for (int j=0; j<nmax; j++) {
           if ((i%2&&j%2)||(i%2==0&&j%2==0)) {
             // n=j+1 indicate the difference degree (first difference is j=0)
             const int n=j+1;
@@ -1784,8 +1784,8 @@ private:
 //              if (!tflag) {
 //                dpoly[j][1] += coff * Pt;
 //                dpoly[j][2] += coff * w;
-//                for (std::size_t k=0; k<num-1; k++) {
-//                  for (std::size_t kk=0; kk<3; kk++) {
+//                for (int k=0; k<num-1; k++) {
+//                  for (int kk=0; kk<3; kk++) {
 //                    dpoly[j][3*(1+k)+kk] += coff * X[k][kk];
 //                    dpoly[j][3*(num+k)+kk] += coff * V[k][kk];
 //                  }
@@ -1814,7 +1814,7 @@ private:
     if (dpoly!=NULL) {
       // safety check
 //      if (!tflag) {
-//        const std::size_t dsize=12*num-6;
+//        const int dsize=12*num-6;
 //        // i indicate the position, i=0 means x0
 //        if(i==0) for (int j=0; j<nmax; j++) std::memset(dpoly[j],0,dsize*sizeof(double)); // reset data array at i=0
 //      }
@@ -1846,8 +1846,8 @@ private:
 //            if (!tflag) {
 //              dpoly[j][1] += coff * Pt;
 //              dpoly[j][2] += coff * w;
-//              for (std::size_t k=0; k<num-1; k++) {
-//                for (std::size_t kk=0; kk<3; kk++) {
+//              for (int k=0; k<num-1; k++) {
+//                for (int kk=0; kk<3; kk++) {
 //                  dpoly[j][3*(1+k)+kk] += coff * X[k][kk];
 //                  dpoly[j][3*(num+k)+kk] += coff * V[k][kk];
 //                }
@@ -1864,12 +1864,12 @@ private:
           if (i>=ishift) {
             double coff = ((iright%2)?-1:1)*binI[n][iright];
 //            if (!tflag) {
-//              const std::size_t ir = 6*num-3;
+//              const int ir = 6*num-3;
 //              dpoly[j][0+ir] += coff * t;
 //              dpoly[j][1+ir] += coff * Pt;
 //              dpoly[j][2+ir] += coff * w;
-//              for (std::size_t k=0; k<num-1; k++) {
-//                for (std::size_t kk=0; kk<3; kk++) {
+//              for (int k=0; k<num-1; k++) {
+//                for (int kk=0; kk<3; kk++) {
 //                  dpoly[j][3*(1+k)+kk+ir] += coff * X[k][kk];
 //                  dpoly[j][3*(num+k)+kk+ir] += coff * V[k][kk];
 //                }
@@ -1930,9 +1930,9 @@ public:
     \return the acceleraction difference of this pair
    */
   double find_strong_pair(int pindex[2]) {
-    std::size_t k=0;
+    int k=0;
     double accm = 0;
-    for (std::size_t i=0; i<num-1; i++) {
+    for (int i=0; i<num-1; i++) {
       const double accx = acc[i+1][0]-acc[i][0];
       const double accy = acc[i+1][1]-acc[i][1];
       const double accz = acc[i+1][2]-acc[i][2];
@@ -1954,9 +1954,9 @@ public:
     \return the relative distance of this pair
    */
   double find_closest_pair(int pindex[2]) {
-    std::size_t k=0;
+    int k=0;
     double Xm = std::numeric_limits<double>::max();
-    for (std::size_t i=0; i<num-1; i++) {
+    for (int i=0; i<num-1; i++) {
       double Xi2 = X[i][0]*X[i][0] + X[i][1]*X[i][1] + X[i][2]*X[i][2];
       if (Xm > Xi2) {
         Xm = Xi2;
@@ -2007,7 +2007,7 @@ public:
   double calc_next_step_XVA(const chainpars &pars) {
     double dsXV=std::numeric_limits<double>::max();
     double dsVA=std::numeric_limits<double>::max();
-    for (std::size_t i=0; i<num-1; i++) {
+    for (int i=0; i<num-1; i++) {
       double r = X[i][0]*X[i][0]+X[i][1]*X[i][1]+X[i][2]*X[i][2];
       double v = V[i][0]*V[i][0]+V[i][1]*V[i][1]+V[i][2]*V[i][2];
       double a = acc[i][0]*acc[i][0]+acc[i][1]*acc[i][1]+acc[i][2]*acc[i][2];
@@ -2042,7 +2042,7 @@ public:
 #endif
 
     double perim = std::numeric_limits<double>::max();
-    for (std::size_t i=0; i<num-1; i++) {
+    for (int i=0; i<num-1; i++) {
       const double peri=pp_T(p[list[i]].getMass(),p[list[i+1]].getMass(),X[i],V[i],extpars);
       if (perim>peri) perim = peri;
     }
@@ -2078,7 +2078,7 @@ public:
     @param [in] a: array of new particles
    */
   template<class Tp>
-  void addP(const std::size_t n, Tp a[]) {
+  void addP(const int n, Tp a[]) {
     if (!p.is_alloc()) p.allocate(nmax);
     if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
     p.add(n,a);
@@ -2090,7 +2090,7 @@ public:
     @param [in] n: number of particles need to be added
     @param [in] a: array of new particles
    */
-  void linkP(const std::size_t n, particle a[]) {
+  void linkP(const int n, particle a[]) {
     if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
     p.load(n,a);
     F_Pmod=true;
@@ -2103,7 +2103,7 @@ public:
                  - true: shift last particle to current position (defaulted);
                  - false: shift all right particle to left by one
   */
-  void removeP(const std::size_t i, bool option=true) { 
+  void removeP(const int i, bool option=true) { 
       p.remove(i,option); 
       F_Pmod=true; 
   }
@@ -2122,11 +2122,11 @@ public:
     if (pout==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
     else {
       // number of particles
-      fwrite(&num,sizeof(std::size_t),1,pout);
+      fwrite(&num,sizeof(int),1,pout);
       // chain list
-      fwrite(list,sizeof(std::size_t),num,pout);
+      fwrite(list,sizeof(int),num,pout);
       // data
-      const std::size_t dsize=6*num-3;
+      const int dsize=6*num-3;
       double *dtemp=new double[dsize+1];
       dtemp[dsize]=dsize;
       backup(dtemp);
@@ -2147,11 +2147,11 @@ public:
 
 //      std::cerr<<"Chain dumping:\nNumber of stars ="<<num<<std::endl;
 //      std::cerr<<"Chain list index =";
-//      for (std::size_t i=0; i<num;i++) std::cerr<<list[i]<<" ";
+//      for (int i=0; i<num;i++) std::cerr<<list[i]<<" ";
 //      std::cerr<<"\nChain parameters t, B, w, X[][], V[][]= ";
-//      for (std::size_t i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
+//      for (int i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
 //      std::cerr<<"\nMass of particles =";
-//      for (std::size_t i=0; i<num;i++) std::cerr<<pmass[i]<<" ";
+//      for (int i=0; i<num;i++) std::cerr<<pmass[i]<<" ";
 //      std::cerr<<std::endl;
       
       delete[] dtemp;
@@ -2181,9 +2181,9 @@ public:
     if (pin==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
     else {
       // number of particles
-      std::size_t n;
-      std::size_t rn;
-      rn = fread(&n,sizeof(std::size_t),1,pin);
+      int n;
+      int rn;
+      rn = fread(&n,sizeof(int),1,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read number of particles!\n";
         abort();
@@ -2195,14 +2195,14 @@ public:
       num = n;
 
       // chain list
-      rn = fread(list,sizeof(std::size_t),n,pin);
+      rn = fread(list,sizeof(int),n,pin);
       if(rn<n) {
         std::cerr<<"Error: reading chain list fails, required number of data is "<<n<<", only got "<<rn<<"!\n";
         abort();
       }
       
       // data
-      const std::size_t dsize=6*n-3;
+      const int dsize=6*n-3;
       double *dtemp=new double[dsize+1];
       rn = fread(dtemp,sizeof(double),dsize+1,pin);
       if(rn<=dsize) {
@@ -2252,7 +2252,7 @@ public:
                  
       // mass of particles
       p.allocate(n);
-      for (std::size_t i=0;i<n;i++) {
+      for (int i=0;i<n;i++) {
           p.add(particle());
           p[i].setMass(pmass[i]);
       }
@@ -2261,11 +2261,11 @@ public:
 
 //      std::cerr<<"Chain loading:\nNumber of stars ="<<n<<std::endl;
 //      std::cerr<<"Chain list index =";
-//      for (std::size_t i=0; i<n;i++) std::cerr<<list[i]<<" ";
+//      for (int i=0; i<n;i++) std::cerr<<list[i]<<" ";
 //      std::cerr<<"\nChain parameters t, B, w, X[][], V[][]= ";
-//      for (std::size_t i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
+//      for (int i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
 //      std::cerr<<"\nMass of particles =";
-//      for (std::size_t i=0; i<n;i++) std::cerr<<pmass[i]<<" ";
+//      for (int i=0; i<n;i++) std::cerr<<pmass[i]<<" ";
 //      std::cerr<<std::endl;
       
       delete[] dtemp;
@@ -2299,7 +2299,7 @@ public:
   ///*! Allocate memory for perturber particle list with maximum number of \a n
   //   @param [in] n: maximum number of perturbers
   // */
-  //void initPext(const std::size_t n) {
+  //void initPext(const int n) {
   //  if (pext.getNmax()) {
   //    std::cerr<<"Error: Perturber list is already initialized!\n";
   //    abort();
@@ -2323,7 +2323,7 @@ public:
   //   @param [in] n: number of particles need to be added
   //   @param [in] a: array of perturbers (address)
   // */
-  //void addPext(const std::size_t n, particle a[]) { pext.add(n,a); }
+  //void addPext(const int n, particle a[]) { pext.add(n,a); }
   // 
   ////! Remove one perturber 
   ///*! Remove one perturber from #pext
@@ -2332,7 +2332,7 @@ public:
   //               - true: shift last particle to current position (defaulted);
   //               - false: shift all right particle to left by one
   //*/
-  //void removePext(const std::size_t i, bool option=true) { pext.remove(i,option); }
+  //void removePext(const int i, bool option=true) { pext.remove(i,option); }
   
   //! Indicator of changes in particle list #p
   /*! Reture true if particle list is modifed, in this case, the chain may need to be initialized again
@@ -2352,7 +2352,7 @@ public:
   /*!
     \return: particle i (const reference)
    */
-  const particle& getP(const std::size_t i) const {
+  const particle& getP(const int i) const {
     return p[i];
   }
 
@@ -2360,7 +2360,7 @@ public:
   ///*!
   //  \return: pertuber particle i (const reference)
   // */
-  //const particle& getPext(const std::size_t i) const {
+  //const particle& getPext(const int i) const {
   //  return pext[i];
   //}
 
@@ -2490,7 +2490,7 @@ public:
     else {
       const double *rc = particle::getPos();
       const double *vc = particle::getVel();
-      for (std::size_t i=0;i<num;i++) {
+      for (int i=0;i<num;i++) {
         if (F_Porigin==0) {
           const double *ri = p[i].getPos();
           p[i].setPos(ri[0] + rc[0],
@@ -2514,7 +2514,7 @@ public:
     if (F_Porigin>0) {
       const double *rc = particle::getPos();
       const double *vc = particle::getVel();
-      for (std::size_t i=0;i<num;i++) {
+      for (int i=0;i<num;i++) {
         const double *ri = p[i].getPos();
         p[i].setPos(ri[0] - rc[0],
                     ri[1] - rc[1],
@@ -2543,12 +2543,12 @@ public:
      @param [out] db: backup array (size should be 6*#num-3) where #num is the total number of particles in #p
    */
   void backup(double* db) {
-    const std::size_t dsize=6*num-3;
-    if ((std::size_t)db[dsize]!=dsize) {
-      std::cerr<<"Error: data array size ("<<(std::size_t)db[dsize]<<") for backup is not matched, should be ("<<dsize<<")!\n";
+    const int dsize=6*num-3;
+    if ((int)db[dsize]!=dsize) {
+      std::cerr<<"Error: data array size ("<<(int)db[dsize]<<") for backup is not matched, should be ("<<dsize<<")!\n";
       abort();
     }
-    const std::size_t ndata=3*(num-1);
+    const int ndata=3*(num-1);
     db[0] = t;
     db[1] = Pt;
     db[2] = w;
@@ -2566,12 +2566,12 @@ public:
      @param [in] db: one dimensional array that storing chain data (array size should be 6*#num-3) where #num is the total number of particles in #p
    */
   void restore(double* db) {
-    const std::size_t dsize=6*num-3;
-    if ((std::size_t)db[dsize]!=dsize) {
-      std::cerr<<"Error: data array size ("<<(std::size_t)db[dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
+    const int dsize=6*num-3;
+    if ((int)db[dsize]!=dsize) {
+      std::cerr<<"Error: data array size ("<<(int)db[dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
       abort();
     }
-    const std::size_t ndata=3*(num-1);
+    const int ndata=3*(num-1);
     t = db[0];
     Pt = db[1];
     w = db[2];
@@ -2693,16 +2693,16 @@ public:
       profile.t_lf += get_wtime();
 #endif
       // check sub-chain 
-      const std::size_t nct = p.getNchain();
+      const int nct = p.getNchain();
       if (recur_flag&&nct>0) {
         // get chainlist table
         chain<particle,int_par> **clist = new chain<particle,int_par>*[nct];
 
         // looping to link sub-chains
-        const std::size_t nt = p.getN();
+        const int nt = p.getN();
 
-        std::size_t k = 0;
-        for (std::size_t j=0; j<nt; j++) {
+        int k = 0;
+        for (int j=0; j<nt; j++) {
           if (p.isChain(j)) {
             clist[k] = p.getSub(j);
             k++;
@@ -2710,7 +2710,7 @@ public:
         }
 
         // call tree recursion integration
-        for (std::size_t j=0; j<k; j++) {
+        for (int j=0; j<k; j++) {
           // recursively call leapfrog until reaching the deepest branch.
           if (clist[j]->p.getNchain()>0)  clist[j]->Leapfrog_step_forward(ds, n, t, force, 1, true);
           else clist[j]->extrapolation_integration(ds, t, force);
@@ -2896,17 +2896,17 @@ public:
     
     // get parameters
     const double error = pars.exp_error;
-    const std::size_t itermax = pars.exp_itermax;
+    const int itermax = pars.exp_itermax;
     const int method = pars.exp_method;
     const int sq = pars.exp_sequence;
     const int *step = pars.step;
     
     // array size indicator for relative position and velocity
-    const std::size_t nrel = num-1;
+    const int nrel = num-1;
     // data storage size (extra one is used to show the size of the array for safety check)
-    const std::size_t dsize = 6*nrel+3;
+    const int dsize = 6*nrel+3;
     // edge difference array size;
-    // const std::size_t psize=dsize*2;
+    // const int psize=dsize*2;
     
     // for storage
     // for convenient, the data are storaged in one array with size (2*nrel+1)*3, which represents t, Pt, w, X[3][nrel], V[3][nrel]
@@ -2914,7 +2914,7 @@ public:
     double* dn[itermax];
     d0[dsize] = (double)dsize;    // label for safety check
     dtemp[dsize] = (double)dsize; // label for safety check
-    for (std::size_t i=0; i<itermax; i++) {
+    for (int i=0; i<itermax; i++) {
       dn[i] = new double[dsize+1];
       dn[i][dsize] = (double)dsize; // label for safety check
     }
@@ -2927,7 +2927,7 @@ public:
     bool ip_flag = true;  // interpolation coefficient calculation flag
     double** pd[itermax]; // central difference, [*] indicate different accuracy level 
     int ndmax[itermax];   // maximum difference order
-    std::size_t pnn;      // data size
+    int pnn;      // data size
     if(sq==3) pnn = 1;     // middle difference case
     else pnn = 2;         // edge two points case
 #ifdef ARC_PROFILE
@@ -2952,8 +2952,8 @@ public:
     // new step
     double dsn = 1.0;
     
-    std::size_t intcount = 0;  // iteration counter
-    std::size_t itercount = 0; // iteration efforts count
+    int intcount = 0;  // iteration counter
+    int itercount = 0; // iteration efforts count
     
     bool reset_flag=false;  // reseting flag
     
@@ -3006,8 +3006,8 @@ public:
         backup(dn[intcount]);
 
         // relative position vector between first and last particle for phase error check
-        for (std::size_t i=0;i<3;i++) CX[i] = 0.0;
-        for (std::size_t i=0;i<num-1;i++) {
+        for (int i=0;i<3;i++) CX[i] = 0.0;
+        for (int i=0;i<num-1;i++) {
           CX[0] += X[i][0];
           CX[1] += X[i][1];
           CX[2] += X[i][2];
@@ -3034,8 +3034,8 @@ public:
         calc_rAPW(f,int_pars);
 
         // phase error calculation
-        for (std::size_t i=0;i<3;i++) CXN[i] = 0.0;
-        for (std::size_t i=0;i<nrel;i++) {
+        for (int i=0;i<3;i++) CXN[i] = 0.0;
+        for (int i=0;i<nrel;i++) {
           CXN[0] += X[i][0];
           CXN[1] += X[i][1];
           CXN[2] += X[i][2];
@@ -3080,7 +3080,7 @@ public:
         
         if (cxerr>=cxerr0 || cxerr==0 || eerr >= eerr0) {
           if (cxerr < error && eerr < error) break;
-          else if (intcount > std::min((size_t)10,itermax)){
+          else if (intcount > std::min(10,itermax)){
 //#ifdef ARC_WARN            
 //            std::cerr<<"Warning: extrapolation cannot converge anymore, energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", try to change the error criterion (notice energy error is cumulative value)\n";
 //#endif
@@ -3127,7 +3127,7 @@ public:
       std::cerr<<"ds="<<ds<<" step[0]="<<step[0]<<" terr="<<toff-t<<" t="<<t<<" toff="<<toff<<std::endl;
 #endif
       // calculate derivates from differences
-      for (std::size_t i=0; i<intcount; i++) {
+      for (int i=0; i<intcount; i++) {
         // first difference pointer
         double **pdptr;
         int dpsize;
@@ -3151,10 +3151,10 @@ public:
       
       // extrapolation table
       double* pn[intcount];
-      for (std::size_t i=0; i<intcount; i++) pn[i] = new double[pnn];
+      for (int i=0; i<intcount; i++) pn[i] = new double[pnn];
 
       // starting accuracy index
-      std::size_t istart=0;
+      int istart=0;
       
       // from low difference order (1) to high difference order (ndmax) 
       for (int i=0; i<ndmax[intcount-1]; i++) {
@@ -3170,7 +3170,7 @@ public:
         std::cerr<<"Poly calc order="<<istart<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<istart<<"="<<pd[istart][i][0]<<"\t"<<pd[istart][i][3]<<std::endl;
 #endif
         // extrapolation to higher order accuracy
-        for (std::size_t j=istart+1; j<intcount; j++) {
+        for (int j=istart+1; j<intcount; j++) {
 #ifdef DEBUG
           std::cerr<<"Poly calc order="<<j<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
 #endif
@@ -3293,7 +3293,7 @@ public:
 
 #ifdef DEBUG
         std::cerr<<"PCOFF: ";
-        for (std::size_t i=0;i<(std::size_t)ndmax[intcount-1]+2;i++) std::cerr<<" "<<pcoff[i];
+        for (int i=0;i<ndmax[intcount-1]+2;i++) std::cerr<<" "<<pcoff[i];
         std::cerr<<std::endl;
 #endif
 
@@ -3373,20 +3373,20 @@ public:
 
 #ifdef DEBUG
       /*std::cerr<<"Getting: ds= "<<dsm;
-      for (std::size_t i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
+      for (int i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
       std::cerr<<std::endl;
       
       EP::Hermite_interpolation_polynomial(0,dtemp,&pcoff,xpoint,dsize,2,nlev);
       std::cerr<<"Starting:";
-      for (std::size_t i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
+      for (int i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
       std::cerr<<std::endl;
 
       std::cerr<<"Ending:";
       EP::Hermite_interpolation_polynomial(ds,dtemp,&pcoff,xpoint,dsize,2,nlev);
-      for (std::size_t i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
+      for (int i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
       std::cerr<<std::endl;
       */
-      for (std::size_t i=0; i<=1000; i++) {
+      for (int i=0; i<=1000; i++) {
         dsm = ds/1000*i;
         EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
 //        EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,npoints,nlev);
@@ -3402,15 +3402,15 @@ public:
         std::cerr<<"Loop: "<<dsm;
         std::cerr<<" "<<std::setprecision(15)<<tpre;
 //        std::cerr<<" "<<(Ekin-Pot+Pt)/Pt;
-//        for (std::size_t i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
+//        for (int i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
         std::cerr<<std::endl;
       }
       
 #endif
 
       // clear memory
-      for (std::size_t i=0; i<intcount; i++) delete[] pn[i];
-      for (std::size_t i=0; i<(std::size_t) nlev[1]-1; i++) delete dfptr[i];
+      for (int i=0; i<intcount; i++) delete[] pn[i];
+      for (int i=0; i<nlev[1]-1; i++) delete dfptr[i];
       delete[] dfptr;
       delete[] pcoff;
       delete[] xpoint;
@@ -3453,10 +3453,10 @@ public:
     }
 
     // clear memory
-    for (std::size_t i=0; i<itermax; i++) delete[] dn[i];
+    for (int i=0; i<itermax; i++) delete[] dn[i];
 
     if (ip_flag) {
-      for (std::size_t i=0; i<intcount; i++) {
+      for (int i=0; i<intcount; i++) {
         if (pd[i]!=NULL) {
           for (int j=0; j<ndmax[i]; j++) delete[] pd[i][j];
           delete[] pd[i];
@@ -3522,8 +3522,8 @@ public:
   /*! Obtain the chain list index ordered by the nearest distances of particles.
     @param[out] indexlist: integer array to store the chain list (size of num)
    */
-  void getList(std::size_t* indexlist) {
-    std::memcpy(indexlist,list,num*sizeof(std::size_t));
+  void getList(int* indexlist) {
+    std::memcpy(indexlist,list,num*sizeof(int));
   }
   
   //! print chain data
@@ -3540,29 +3540,29 @@ public:
     char xyz[4]={'x','y','z','r'};
     fout<<std::setprecision(precision);
     fout<<"---- particle list------\n ";
-    for (std::size_t i=0;i<num;i++) fout<<std::setw(width)<<list[i];
+    for (int i=0;i<num;i++) fout<<std::setw(width)<<list[i];
     fout<<"\n----- relative position X ------\n";
-    for (std::size_t k=0;k<3;k++) {
+    for (int k=0;k<3;k++) {
       fout<<xyz[k];
-      for (std::size_t i=0;i<num-1;i++) fout<<std::setw(width)<<X[i][k];
+      for (int i=0;i<num-1;i++) fout<<std::setw(width)<<X[i][k];
       fout<<std::endl;
     }
     fout<<"\n----- relative velocity V ------\n";
-    for (std::size_t k=0;k<3;k++) {
+    for (int k=0;k<3;k++) {
       fout<<xyz[k];
-      for (std::size_t i=0;i<num-1;i++) fout<<std::setw(width)<<V[i][k];
+      for (int i=0;i<num-1;i++) fout<<std::setw(width)<<V[i][k];
       fout<<std::endl;
     }
     fout<<"\n----- Acceleration A ------\n";
-    for (std::size_t k=0;k<3;k++) {
+    for (int k=0;k<3;k++) {
       fout<<xyz[k];
-      for (std::size_t i=0;i<num;i++) fout<<std::setw(width)<<acc[i][k];
+      for (int i=0;i<num;i++) fout<<std::setw(width)<<acc[i][k];
       fout<<std::endl;
     }
     fout<<"\n----- part omega / part rk ------\n";
-    for (std::size_t k=0;k<3;k++) {
+    for (int k=0;k<3;k++) {
       fout<<xyz[k];
-      for (std::size_t i=0;i<num;i++) fout<<std::setw(width)<<dWdr[i][k];
+      for (int i=0;i<num;i++) fout<<std::setw(width)<<dWdr[i][k];
       fout<<std::endl;
     }
     fout<<"\n----- system parameters ------\n"
@@ -3598,9 +3598,9 @@ public:
 template <class particle_>
 class chainlist{
   typedef particle_ particle;
-  std::size_t num; //!< number of current particles in the list #p
-  std::size_t nmax; //!< maximum number of particles allown to store
-  // std::size_t nchain;  //!< number of chain type members
+  int num; //!< number of current particles in the list #p
+  int nmax; //!< maximum number of particles allown to store
+  // int nchain;  //!< number of chain type members
   // bool* cflag; //!< flag array to indicate whether the corresponding particle in #p is chain (true: chain; false: Particle)
   particle** p; //!< particle list array (void pointer array)
   particle* data; //!< copy of particle data
@@ -3617,7 +3617,7 @@ public:
   //! Constructor with maximum number of particle \a n
   /*! Set maximum particle number to \a n and allocate memory for #p to storing the particle addresses (maximum \a n)
    */
-  chainlist(const std::size_t n) {
+  chainlist(const int n) {
       alloc_flag = false;
       allocate(n); 
   }
@@ -3625,7 +3625,7 @@ public:
   //! Memory allocation of particle and particle address array
   /*! Set maximum particle number to \a n and allocate memory for #p to storing the particle addresses (maximum \a n) and #data to storing particle copies
    */
-  void allocate(const std::size_t n) {
+  void allocate(const int n) {
     num = 0;
     nmax = n;
     // nchain = 0;
@@ -3646,7 +3646,7 @@ public:
 //  /*! allocate memory of n particle data with type of particle class
 //    @param [in] n: number of particles
 //   */
-//  void allocate(const std::size_t n) {
+//  void allocate(const int n) {
 //    if (num>0&&!alloc_flag) {
 //      std::cerr<<"Error: the particle list already stores particle addresses, the allocation of new particle memory is forbidden, please clear first!\n";
 //      abort();
@@ -3655,7 +3655,7 @@ public:
 //      std::cerr<<"Error: particle number allocated ("<<n<<") + current particle number ("<<num<<") > maximum number allown ("<<nmax<<")!\n";
 //      abort();
 //    }
-//    for (std::size_t i=0; i<n; i++) {
+//    for (int i=0; i<n; i++) {
 //      p[i+num] = new particle;
 //      cflag[i+num] = false;
 //    }
@@ -3669,7 +3669,7 @@ public:
   void clear() {
     if (alloc_flag) {
       //if (alloc_flag) 
-      //  for (std::size_t i=0;i<num;i++)
+      //  for (int i=0;i<num;i++)
       //    if (p[i]!=NULL) delete (particle*)p[i];
       // delete[] cflag;
       delete[] p;
@@ -3687,7 +3687,7 @@ public:
   ~chainlist() {
     if (alloc_flag>0) {
       //if (alloc_flag) 
-      //  for (std::size_t i=0;i<num;i++)
+      //  for (int i=0;i<num;i++)
       //    if (p[i]!=NULL) delete (particle*)p[i];
       // delete[] cflag;
       delete[] p;
@@ -3698,7 +3698,7 @@ public:
   //! Get current particle number
   /*! \return Current particle number in particle address list #p
    */
-  std::size_t getN() const {
+  int getN() const {
     return num;
   }
 
@@ -3710,14 +3710,14 @@ public:
   //! Get maximum particle number
   /*! \return Current maximum particle number that can be stored in particle address list #p
    */
-  std::size_t getNmax() const {
+  int getNmax() const {
     return nmax;
   }
   
   ////! Get number of chain members
   ///*! \return Number of chain members in particle address list #p
   // */
-  //std::size_t getNchain() const {
+  //int getNchain() const {
   //  return nchain;
   //}
 
@@ -3726,7 +3726,7 @@ public:
     @param[in] mass: double array to store the particle masses
    */
   void getMassAll(double mass[]) {
-    for (std::size_t i=0;i<num;i++) mass[i] = (*this)[i].getMass();
+    for (int i=0;i<num;i++) mass[i] = (*this)[i].getMass();
   }
 
   //! Add new particle
@@ -3762,7 +3762,7 @@ public:
     @param [in] a: array of new particles
    */
   template<class Tp>
-  void add(const std::size_t n, Tp a[]) {
+  void add(const int n, Tp a[]) {
     //if(alloc_flag) {
     //    std::cerr<<"Error: chainlist already read data from file, no new particle address can be appended!\n";
     //    abort();
@@ -3772,7 +3772,7 @@ public:
     //  abort();
     //}
     if (num+n<=nmax) {
-      for (std::size_t i=0;i<n;i++) {
+      for (int i=0;i<n;i++) {
           //cflag[num+i] = false;
           p[num+i] = (particle*)&a[i];
           data[num+i] = a[i];
@@ -3790,7 +3790,7 @@ public:
     @param [in] n: number of new particles
     @param [in] a: array of new particles
    */
-  void load(const std::size_t n, particle a[]) {
+  void load(const int n, particle a[]) {
       if(alloc_flag) {
           std::cerr<<"Error: chainlist already allocate memory for particle data, please call clear() first before using load()!\n";
           abort();
@@ -3837,7 +3837,7 @@ public:
                  - true: shift last particle to current position (defaulted);
                  - false: shift all right particle to left by one
   */
-  void remove(const std::size_t i, bool option=true) {
+  void remove(const int i, bool option=true) {
     if (option) {
       if (i<num-1) {
         // if (cflag[i]) nchain--;
@@ -3855,7 +3855,7 @@ public:
       if (i<num-1) {
         // if (cflag[i]) nchain--;
         num--;
-        for (std::size_t j=i;j<num;j++) {
+        for (int j=i;j<num;j++) {
           //cflag[j] = cflag[j+1];
           data[j] = data[j+1];
           p[j] = p[j+1];
@@ -3873,7 +3873,7 @@ public:
     @param [in] i: the index of member in the list #p
     \return particle reference in chainlist #data
    */
-  particle &operator [](const std::size_t i) const {
+  particle &operator [](const int i) const {
     //if (cflag[i]) {
     //  return ((chain<particle>*)p[i])->cm;
     //}
@@ -3898,7 +3898,7 @@ public:
     if (pout==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
     else {
       fwrite(&num,sizeof(int),1,pout);
-      for (std::size_t i=0; i<num; i++) {
+      for (int i=0; i<num; i++) {
         fwrite(&((*this)[i]),sizeof(particle),1,pout);
       }
       fclose(pout);
@@ -3915,7 +3915,7 @@ public:
     if (pin==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
     else {
       int n;
-      std::size_t rn = fread(&n,sizeof(int),1,pin);
+      int rn = fread(&n,sizeof(int),1,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read particle number!\n";
         abort();
@@ -3940,7 +3940,7 @@ public:
   //   @param [in] i: member index in list #p
   //   \return  true: chain; false: particle
   // */
-  //bool isChain (const std::size_t i) const {
+  //bool isChain (const int i) const {
   //  return cflag[i];
   //}
   
@@ -3951,7 +3951,7 @@ public:
   //   - if i^th member in #p is chain, returen the address of particle list (ARC::chain.p).
   //   - else return NULL
   // */
-  //chain<particle> *getSub (const std::size_t i) const {
+  //chain<particle> *getSub (const int i) const {
   //  if (cflag[i]) return (chain<particle>*)p[i];
   //  else return NULL;
   //}
@@ -3965,7 +3965,7 @@ public:
     //    abort();
     //}
     if(!alloc_flag) return;
-    for(std::size_t i=0; i<num; i++) {
+    for(int i=0; i<num; i++) {
         //if(cflag[i]) ((chain<particle>*)p[i])->cm=data[i];
         //else *p[i] = data[i];
         if(p[i]!=NULL) *p[i] = data[i];

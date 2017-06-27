@@ -37,7 +37,7 @@ void chain_print(const ARC::chain<Particle> &c, const double ds, const double w,
 
 int main(int argc, char **argv){
 //  typedef double double3[3];
-  std::size_t n=3; //particle number
+  int n=3; //particle number
   int w=18; //print width
   int pre=10; //print digital precision
   int nstep=1000; // total step size
@@ -329,7 +329,7 @@ int main(int argc, char **argv){
   }
   else {
     double dsA1,dsA2,dsAe;
-    std::size_t dsAi1,dsAi2;
+    int dsAi1,dsAi2;
     pars.getAutoStep(dsA,dsA1,dsA2,dsAe,dsAi1,dsAi2);
   }
   pars.setIterConst(iterfix);
@@ -345,10 +345,10 @@ int main(int argc, char **argv){
     p=new Particle[n+npert];
     pf=new ARC::double3[npert];
     for (int i=0;i<npert;i++) {
-        for(std::size_t j=0; j<3;j++) pf[i][j] = 0.0;
+        for(int j=0; j<3;j++) pf[i][j] = 0.0;
     }
     //  if (fflag) f=new double3[n];
-    for (std::size_t i=0;i<n+npert;i++) {
+    for (int i=0;i<n+npert;i++) {
       double x,y,z,vx,vy,vz,m;
       fs>>m>>x>>y>>z>>vx>>vy>>vz;
 //      if (fflag) fs>>f[i][0]>>f[i][1]>>f[i][2];
@@ -403,6 +403,10 @@ int main(int argc, char **argv){
 
   // printing data
   chain_print(c,0,w,pre);
+
+  if (dsA==4) {
+      ds = c.calc_next_step_custom(pars, &Int_pars);
+  }
 
   // integration loop
   while (true) {
