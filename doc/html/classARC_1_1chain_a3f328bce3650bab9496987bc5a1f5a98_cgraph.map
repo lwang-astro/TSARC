@@ -1,3 +1,5 @@
 <map id="ARC::chain::read" name="ARC::chain::read">
-<area shape="rect" id="node2" href="$classARC_1_1chainlist.html#a4292d4468e5d710392f11cee0c1f01b9" title="Get current particle number. " alt="" coords="176,5,315,32"/>
+<area shape="rect" id="node2" href="$classARC_1_1chainlist.html#a461f4b2936307305b9092a4f81197e6b" title="Get current particle number. " alt="" coords="185,5,323,32"/>
+<area shape="rect" id="node3" href="$classARC_1_1chainlist.html#a5efea9e6b234b5f2d20693468398a177" title="Memory allocation of particle and particle address array. " alt="" coords="176,56,332,83"/>
+<area shape="rect" id="node4" href="$classARC_1_1chainlist.html#a598c1819d8e715ec0a24669e5bb06c6a" title="Add new particle. " alt="" coords="187,107,321,133"/>
 </map>

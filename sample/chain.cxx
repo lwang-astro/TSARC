@@ -331,7 +331,7 @@ int main(int argc, char **argv){
     int dsAi1,dsAi2;
     pars.getAutoStep(dsA,dsA1,dsA2,dsAe,dsAi1,dsAi2);
   }
-  if (dsA!=4) iterfix=true;
+  if (dsA&&dsA!=4) iterfix=true;
   pars.setIterConst(iterfix);
 
   // new chain class

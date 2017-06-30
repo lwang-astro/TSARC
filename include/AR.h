@@ -45,6 +45,8 @@ public:
   double t_pext;   ///< perturber force
   double t_dense;  ///< dense output
   double t_init;   ///< initialization
+  double t_newdt;  ///< new timestep
+  double t_check;  ///< for debug
 
   int* stepcount;  ///< iteration step count in extrapolation
   int  itercount;  ///< total substep in extrapolation
@@ -67,11 +69,31 @@ public:
     t_pext=0.0;
     t_dense=0.0;
     t_init=0.0;
+    t_newdt=0.0;
+    t_check=0.0;
     stepcount=NULL;
     itercount=0;
   }
 
   ~chainprofile() { if (stepcount) delete[] stepcount;}
+
+  //! print profile
+  /*!
+    @param[in] fout: out stream
+    @param[in] i: step index
+   */
+  void print(std::ostream & fout, const int i) {
+      fout<<"Time_profile: Step: "<<i
+          <<"  Acc+Pot(s): "<<t_apw
+          <<"  Update_link(s): "<<t_uplink
+          <<"  Leap-frog(s): "<<t_lf
+          <<"  Extrapolation(s): "<<t_ep
+          <<"  Perturbation(s): "<<t_pext
+          <<"  Dense_output(s): "<<t_dense
+          <<"  New_ds_(s): "<<t_newdt
+          <<"  check(s): " <<t_check
+          <<std::endl;
+  }
 
 };
     
@@ -82,6 +104,7 @@ template <class particle_> class chain;
 template <class particle_> class chainlist;
 class chainpars;
 class chaininfo;
+class chainslowdown;
 
 //! external acceleration function pointer
 /*!
@@ -193,7 +216,7 @@ public:
   /*! - ARC method use logarithmic Hamiltonian (logH) (#alpha = 1.0, #beta = 0.0 #gamma = 0.0).
       - Phase/energy error limit #exp_error = 1e-10.
       - Minimum physical time step #dtmin = 5.4e-20.
-      - Time synchronization error limit #dterr = 1e-10.
+      - Time synchronization (relative to time step) physical time error limit #dterr = 1e-6.
       - Maximum extrapolation sequence index (accuracy order/iteration times) #exp_itermax = 20
       - The maximum sequence index (iteration times) is adjusted by error criterion
       - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
@@ -221,7 +244,7 @@ public:
                 - g: Constant coefficient (no time transformation) #gamma
     @param [in] error: Phase/energy error limit (defaulted #exp_error = 1e-10)
     @param [in] dtm: Minimum physical time step (defaulted #dtmin = 5.4e-20)
-    @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
+    @param [in] dte: Relative time synchronization error limit (defaulted #dterr = 1e-6)
     @param [in] itermax: Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20)
     @param [in] ext_method: 1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational)
     @param [in] ext_sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
@@ -449,7 +472,7 @@ public:
       @param[in] iter_min: if \a option = 3, it is the minimum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 5)
       @param[in] iter_max: if \a option = 3, it is the maximum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 17)
   */
-  void setAutoStep(const int option, const double factor_min=0.7, const double factor_max=1.3, const double eps=0.125, const int iter_min=5, const int iter_max=17) {
+  void setAutoStep(const int option, const double factor_min=0.7, const double factor_max=1.3, const double eps=0.5, const int iter_min=5, const int iter_max=17) {
     if (option<0||option>4) {
       std::cerr<<"Error: autostep options should be set from 0 to 4, current value: "<<option<<"!\n";
       abort();
@@ -802,7 +825,94 @@ public:
   }
 };
   
-  
+//! Slow-down parameter control class
+/*! Determine the slow-down factor due to the perturbation and internal force
+    \f$ \kappa = k_0 / [F_{pert,max}/F_{inner}] \f$
+ */
+class chainslowdown{
+template <class T> friend class chain;
+private:
+    double kappa;          // slow-down factor
+    double fpertsqmax;     // maximum perturbation force square recorded
+    double fpertsqlast;    // last perturbation force square record
+    double Trecord;      // current time
+    double kref;    ///< reference kappa factor; slow-down factor kappa = max(1,kref/(perturbation/internal force))
+    double Tperi;        ///< period for checking
+    double finnersq;     ///< inner force square reference for slow-down determination
+    bool is_used;         ///< if false, slow-down is switched off
+public:
+
+    chainslowdown(): kappa(1.0), fpertsqmax(0.0), fpertsqlast(0.0), Trecord(0.0), kref(1.0e-05), Tperi(0.0), finnersq(0.0), is_used(false) {}
+    
+    //! initialize slow-down parameters
+    /*! Set slow-down parameters, slow-down method will be switched on
+      @param [in] f_inner_sq: inner force square reference
+      @param [in] t_peri: Period of system 
+      @param [in] k_ref: Fpert/Finner criterion (default 1.0e-5)
+    */
+    void setSlowDownPars(const double f_inner_sq, const double t_peri, const double k_ref=1.0e-5) {
+        finnersq = f_inner_sq;
+        Tperi    = t_peri;
+        kref     = k_ref;
+        is_used  = true;
+    }
+
+    //! Update maximum perturbation force \f$ F_{pert,max}\f$
+    /*! Update maximum perturbation force and record this input (only last one is recorded)
+      @param[in] fpertsq: new perturbation force square
+     */
+    void updatefpertsq(const double fpertsq) {
+        fpertsqmax = fpertsq>fpertsqmax? fpertsq: fpertsqmax;
+        fpertsqlast = fpertsq;
+    }
+    
+    //! Update slow-down factor
+    /*! Update slow-down factor 
+        @param[in] time: current time for checking. if #time> record time + #Tperi, the kappa is updated
+        @param[in] tend: ending physical time for integration, if tend-time<#Tperi, \f$kappa = 1.0\f$
+     */
+    void updatekappa(const double time, const double tend) {
+#ifdef ARC_DEBUG
+        assert(finnersq>0);
+        assert(Tperi>0);
+#endif
+        if(time>Trecord + Tperi) {
+            Trecord = time;
+            if (fpertsqmax>0) kappa = std::max(1.0,kref/(std::sqrt(fpertsqmax/finnersq)));
+            else kappa = (tend-time)/Tperi;
+            fpertsqmax = fpertsqlast;
+        }
+        if(tend - time < Tperi) kappa = 1.0;
+    }
+
+    //! adjust slow-down factor
+    /*! Obtain current slow-down factor
+      @param [in] dt: physical time step (assume dt is constant before next update of kappa) without slow-down factor
+     */
+    void adjustkappa(const double dt) {
+        if(is_used) {
+            double dp = Tperi/dt;
+            int kp = (kappa+1.0)/dp;
+            kappa = std::max(1.0,kappa * (kp*dp -1.0));
+        }
+        else kappa = 1.0;
+    }
+
+    // Get slow-down factor
+    /*!
+      \return get adjusted kappa by keeping phase corrected
+    */
+    double getkappa() const {
+        return kappa;
+    }
+
+    //! Switcher of slow-down
+    /*! @param[in] used: if true, switch on, else switch off
+     */
+    void switcher(const bool used) {
+        is_used = used;
+    }
+};
 
 //! ARC class based on template class particle_
 /*!
@@ -861,6 +971,9 @@ public:
   //particle cm;              ///< center mass particle
   chaininfo *info;          ///< chain information
 
+  // slowdown control
+  chainslowdown slowdown;      ///< chain slowdown controller
+
 #ifdef ARC_PROFILE
   chainprofile profile;
 #endif
@@ -869,7 +982,7 @@ public:
   /*! Construct chain with allocated memory
       @param [in] n: maximum number of particles (will be used to allocate memory)
    */
-  chain(const int n):   num(0), info(NULL){
+  chain(const int n):   num(0), info(NULL), slowdown(){
     nmax=0;
     allocate(n);
   }
@@ -877,7 +990,7 @@ public:
   //! Constructor
   /*! Construct chain without memory allocate, need to call allocate() later. 
    */
-  chain(): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_read(false), info(NULL) {}
+  chain(): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_read(false), info(NULL), slowdown() {}
 
   //! Allocate memory
   /*! Allocate memory for maximum particle number n
@@ -1147,9 +1260,9 @@ private:
         }
       }
       // add perturber force
-      acc[lj][0] += pf[lj][0];
-      acc[lj][1] += pf[lj][1];
-      acc[lj][2] += pf[lj][2];
+      acc[lj][0] += slowdown.kappa*pf[lj][0];
+      acc[lj][1] += slowdown.kappa*pf[lj][1];
+      acc[lj][2] += slowdown.kappa*pf[lj][2];
     }
 
     // Write potential and w
@@ -1886,7 +1999,7 @@ private:
   }
 
   //! diff_dev_calc
-  /*£¡ Calcualte derivates from differences: \d^(n)f/ h^n
+  /*! Calcualte derivates from differences: \d^(n)f/ h^n
     @param [in,out] dpoly: two dimensional storing differences, will be updated to derivates. Array size is [nmax][dsize]. 
                           first [] indicate different level of differences, second [] indicate the difference of data. 
                           If dpoly is NULL, no calculation will be done.
@@ -1904,6 +2017,21 @@ private:
       for (int j=0; j<dsize; j++) dpoly[i][j] /= hn;
       hn *= h;
     }
+  }
+
+  //! update slow-down perturbation force
+  /*! Update slow-down perturbation maximum force
+   */
+  void updateSlowDownFpert() {
+      for (int i=0; i<num-1; i++) {
+          int k = list[i];
+          int k1 = list[i+1];
+          double fp[3] = {pf[k1][0]-pf[k][0],
+                          pf[k1][1]-pf[k][1],
+                          pf[k1][2]-pf[k][2]};
+          double fp2 = fp[0]*fp[0] + fp[1]*fp[1] + fp[2]*fp[2];
+          slowdown.updatefpertsq(fp2);
+      }
   }
 
 //  // collect accident information
@@ -2021,9 +2149,8 @@ public:
   /*!
     The user-defined two-body timescale function with ::ARC::pair_T type will be performed on all neighbor pairs in chain.
     Then the minimum timescale \f$ T_m\f$ is selected to calculate next step size: \f$ ds = eps T_m |Pt|\f$, where \f$eps\f$ is ::chainpars.auto_step_eps set in chainpars.setAutoStep().
-    @param [in] pt: two-body timescale function with ::pair_T type
-    @param [in] pars: extra parameters used in pt
-    @param [in] auto_step_eps: auto step coefficient from chainpar controller
+    @param [in] pars: chainpars controllers
+    @param [in] extpars: extra parameters used in pt
     \return approximation of step size ds
    */
   template<class chainpars_, class extpar_>
@@ -2046,10 +2173,10 @@ public:
       const double peri=pp_T(p[list[i]].getMass(),p[list[i+1]].getMass(),X[i],V[i],extpars);
       if (perim>peri) perim = peri;
     }
-//    std::cerr<<"perim = "<<perim<<" auto_step_eps"<<pars->auto_step_eps<<" Pt "<<Pt<<std::endl;
+//    std::cerr<<"perim = "<<perim<<" auto_step_eps"<<pars.auto_step_eps<<" Pt "<<Pt<<std::endl;
     return pars.auto_step_eps*perim*std::abs(Pt);
   }
-  
+
   //! Add particle
   /*! Add one particle (address pointer) into particle list #p and copy it (see ARC::chainlist.add())
      @param [in] a: new particle
@@ -2398,7 +2525,10 @@ public:
 
         // get potential and transformation parameter
         calc_rAPW(f, int_pars);
-      
+
+        // update slow-down
+        updateSlowDownFpert();
+ 
         // kinetic energy
         calc_Ekin();
         
@@ -2427,6 +2557,9 @@ public:
         // set relative distance matrix, acceleration, potential and transformation parameter, notice force will be recalculated later.
         calc_rAPW(f, int_pars);
 
+        // update slow-down
+        updateSlowDownFpert();
+ 
         // Initial intgrt value t
         t = time;
 
@@ -2748,6 +2881,9 @@ public:
         break;
       }
 
+      // update slow-down
+      updateSlowDownFpert();
+
       // Update chain list order if necessary, update list, X, V (dependence: p.x, X, V)
       if (num>2&&check_flag==2) update_link();
 
@@ -2815,6 +2951,9 @@ public:
 
     // Update rjk, A, Pot, dWdr, W (notice A will be incorrect since pf is not updated)
     calc_rAPW(f, int_pars);
+
+    // update slow-down
+    updateSlowDownFpert();
 
 #ifdef ARC_PROFILE
     profile.t_dense -= get_wtime();
@@ -3033,6 +3172,9 @@ public:
         // force, potential and W
         calc_rAPW(f,int_pars);
 
+        // update slow-down
+        updateSlowDownFpert();
+
         // phase error calculation
         for (int i=0;i<3;i++) CXN[i] = 0.0;
         for (int i=0;i<nrel;i++) {
@@ -3118,7 +3260,7 @@ public:
     }
 
     // for dense output
-    if (!reset_flag&&ip_flag&&toff>0&&toff<t&&std::abs(toff-t)>pars.dterr) {
+    if (!reset_flag&&ip_flag&&toff>0&&toff<t&&std::abs((toff-t)/(t-d0[0]))>pars.dterr) {
 #ifdef ARC_PROFILE
       profile.t_dense -= get_wtime();
 #endif
@@ -3300,7 +3442,7 @@ public:
         // Iteration to get correct physical time position
         double dsi[2]   = {xpoint[0],xpoint[1]};    // edges for iteration
         double tsi[2]   = {fpoint[0][0],fpoint[1][0]}; // edges values
-        const double dterr = pars.dterr;
+        const double dterr = pars.dterr*(t-d0[0]);
         const double dterr3 = 1000*dterr;  // 1000 * time error criterion
 
         bool rf_method=false;
@@ -3423,6 +3565,9 @@ public:
     }
     else if (!reset_flag){
       // auto-step
+#ifdef ARC_PROFILE
+      profile.t_newdt -= get_wtime();
+#endif
       if (pars.auto_step==1)
         dsn = std::min(std::max(dsn,pars.auto_step_fac_min),pars.auto_step_fac_max);
       else if (pars.auto_step==2) {
@@ -3437,6 +3582,9 @@ public:
       else if (pars.auto_step==4) {
         dsn = calc_next_step_custom(pars,int_pars)/ds;
       }
+#ifdef ARC_PROFILE
+      profile.t_newdt += get_wtime();
+#endif
       // update chain link order
       if(num>2) update_link();
     }
@@ -3478,7 +3626,7 @@ public:
   /*! \return current physical time
    */
   double getTime() const {
-    return t;
+    return slowdown.kappa*t;
   }
   //! Get current kinetic energy
   /*! \return current kinetic energy

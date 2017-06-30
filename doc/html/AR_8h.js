@@ -4,6 +4,7 @@ var AR_8h =
     [ "chainlist", "classARC_1_1chainlist.html", "classARC_1_1chainlist" ],
     [ "chainpars", "classARC_1_1chainpars.html", "classARC_1_1chainpars" ],
     [ "chaininfo", "classARC_1_1chaininfo.html", "classARC_1_1chaininfo" ],
+    [ "chainslowdown", "classARC_1_1chainslowdown.html", "classARC_1_1chainslowdown" ],
     [ "chain", "classARC_1_1chain.html", "classARC_1_1chain" ],
     [ "chainlist", "classARC_1_1chainlist.html", "classARC_1_1chainlist" ],
     [ "double3", "AR_8h.html#affb4fe085f3ea94b378be8bc9382a75d", null ],

@@ -1,6 +1,6 @@
 var classARC_1_1chaininfo =
 [
-    [ "chaininfo", "classARC_1_1chaininfo.html#a9e67e1e081f3a09d8c8bec3b55d108d1", null ],
+    [ "chaininfo", "classARC_1_1chaininfo.html#a443631a28e2cd66512683df4669088eb", null ],
     [ "~chaininfo", "classARC_1_1chaininfo.html#aca51a64943e31e1ac33473fb90c39a17", null ],
     [ "clear", "classARC_1_1chaininfo.html#ae65957f4d894671dd467a376b898e1a5", null ],
     [ "ErrMessage", "classARC_1_1chaininfo.html#a07ad3dcb9540f02984195045357166b0", null ],

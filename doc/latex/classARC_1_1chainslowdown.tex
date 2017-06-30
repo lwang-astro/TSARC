@@ -1,0 +1,163 @@
+\hypertarget{classARC_1_1chainslowdown}{}\section{A\+RC\+:\+:chainslowdown Class Reference}
+\label{classARC_1_1chainslowdown}\index{A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}}
+
+
+Slow-\/down parameter control class.  
+
+
+
+
+{\ttfamily \#include $<$A\+R.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classARC_1_1chainslowdown_a3e91bbce388e9f0b01e2af5504dc694c}{chainslowdown} ()
+\item 
+void \hyperlink{classARC_1_1chainslowdown_ae60599148a33aa6b8f8a592015dcd5f7}{set\+Slow\+Down\+Pars} (const double f\+\_\+inner\+\_\+sq, const double t\+\_\+peri, const double k\+\_\+ref=1.\+0e-\/5)
+\begin{DoxyCompactList}\small\item\em initialize slow-\/down parameters \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chainslowdown_a3e4c09e74bbcae1620434f44bf447688}{updatefpertsq} (const double fpertsq)
+\begin{DoxyCompactList}\small\item\em Update maximum perturbation force $ F_{pert,max}$. \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chainslowdown_a934410c48096b12d93883967aae1883c}{updatekappa} (const double time, const double tend)
+\begin{DoxyCompactList}\small\item\em Update slow-\/down factor. \end{DoxyCompactList}\item 
+void \hyperlink{classARC_1_1chainslowdown_a5093b87af419b0a39dd73bfff7fd4915}{adjustkappa} (const double dt)
+\begin{DoxyCompactList}\small\item\em adjust slow-\/down factor \end{DoxyCompactList}\item 
+double \hyperlink{classARC_1_1chainslowdown_ac2504c790361770d774ad5db9afd9384}{getkappa} () const
+\item 
+void \hyperlink{classARC_1_1chainslowdown_ab6c31af1a15646feb388d486c8197c56}{switcher} (const bool used)
+\begin{DoxyCompactList}\small\item\em Switcher of slow-\/down. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$class T $>$ }\\class \hyperlink{classARC_1_1chainslowdown_a498fbb4337b9878a5f0044996e4a2489}{chain}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Slow-\/down parameter control class. 
+
+Determine the slow-\/down factor due to the perturbation and internal force $ \kappa = k_0 / [F_{pert,max}/F_{inner}] $ 
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classARC_1_1chainslowdown_a3e91bbce388e9f0b01e2af5504dc694c}{}\label{classARC_1_1chainslowdown_a3e91bbce388e9f0b01e2af5504dc694c} 
+\index{A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}!chainslowdown@{chainslowdown}}
+\index{chainslowdown@{chainslowdown}!A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}}
+\subsubsection{\texorpdfstring{chainslowdown()}{chainslowdown()}}
+{\footnotesize\ttfamily A\+R\+C\+::chainslowdown\+::chainslowdown (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classARC_1_1chainslowdown_a5093b87af419b0a39dd73bfff7fd4915}{}\label{classARC_1_1chainslowdown_a5093b87af419b0a39dd73bfff7fd4915} 
+\index{A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}!adjustkappa@{adjustkappa}}
+\index{adjustkappa@{adjustkappa}!A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}}
+\subsubsection{\texorpdfstring{adjustkappa()}{adjustkappa()}}
+{\footnotesize\ttfamily void A\+R\+C\+::chainslowdown\+::adjustkappa (\begin{DoxyParamCaption}\item[{const double}]{dt }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+adjust slow-\/down factor 
+
+Obtain current slow-\/down factor 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em dt} & physical time step (assume dt is constant before next update of kappa) without slow-\/down factor \\
+\hline
+\end{DoxyParams}
+\hypertarget{classARC_1_1chainslowdown_ac2504c790361770d774ad5db9afd9384}{}\label{classARC_1_1chainslowdown_ac2504c790361770d774ad5db9afd9384} 
+\index{A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}!getkappa@{getkappa}}
+\index{getkappa@{getkappa}!A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}}
+\subsubsection{\texorpdfstring{getkappa()}{getkappa()}}
+{\footnotesize\ttfamily double A\+R\+C\+::chainslowdown\+::getkappa (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+\begin{DoxyReturn}{Returns}
+get adjusted kappa by keeping phase corrected 
+\end{DoxyReturn}
+\hypertarget{classARC_1_1chainslowdown_ae60599148a33aa6b8f8a592015dcd5f7}{}\label{classARC_1_1chainslowdown_ae60599148a33aa6b8f8a592015dcd5f7} 
+\index{A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}!set\+Slow\+Down\+Pars@{set\+Slow\+Down\+Pars}}
+\index{set\+Slow\+Down\+Pars@{set\+Slow\+Down\+Pars}!A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}}
+\subsubsection{\texorpdfstring{set\+Slow\+Down\+Pars()}{setSlowDownPars()}}
+{\footnotesize\ttfamily void A\+R\+C\+::chainslowdown\+::set\+Slow\+Down\+Pars (\begin{DoxyParamCaption}\item[{const double}]{f\+\_\+inner\+\_\+sq,  }\item[{const double}]{t\+\_\+peri,  }\item[{const double}]{k\+\_\+ref = {\ttfamily 1.0e-\/5} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+initialize slow-\/down parameters 
+
+Set slow-\/down parameters, slow-\/down method will be switched on 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em f\+\_\+inner\+\_\+sq} & inner force square reference \\
+\hline
+\mbox{\tt in}  & {\em t\+\_\+peri} & Period of system \\
+\hline
+\mbox{\tt in}  & {\em k\+\_\+ref} & Fpert/\+Finner criterion (default 1.\+0e-\/5) \\
+\hline
+\end{DoxyParams}
+\hypertarget{classARC_1_1chainslowdown_ab6c31af1a15646feb388d486c8197c56}{}\label{classARC_1_1chainslowdown_ab6c31af1a15646feb388d486c8197c56} 
+\index{A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}!switcher@{switcher}}
+\index{switcher@{switcher}!A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}}
+\subsubsection{\texorpdfstring{switcher()}{switcher()}}
+{\footnotesize\ttfamily void A\+R\+C\+::chainslowdown\+::switcher (\begin{DoxyParamCaption}\item[{const bool}]{used }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Switcher of slow-\/down. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em used} & if true, switch on, else switch off \\
+\hline
+\end{DoxyParams}
+\hypertarget{classARC_1_1chainslowdown_a3e4c09e74bbcae1620434f44bf447688}{}\label{classARC_1_1chainslowdown_a3e4c09e74bbcae1620434f44bf447688} 
+\index{A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}!updatefpertsq@{updatefpertsq}}
+\index{updatefpertsq@{updatefpertsq}!A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}}
+\subsubsection{\texorpdfstring{updatefpertsq()}{updatefpertsq()}}
+{\footnotesize\ttfamily void A\+R\+C\+::chainslowdown\+::updatefpertsq (\begin{DoxyParamCaption}\item[{const double}]{fpertsq }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Update maximum perturbation force $ F_{pert,max}$. 
+
+Update maximum perturbation force and record this input (only last one is recorded) 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em fpertsq} & new perturbation force square \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=324pt]{classARC_1_1chainslowdown_a3e4c09e74bbcae1620434f44bf447688_icgraph}
+\end{center}
+\end{figure}
+\hypertarget{classARC_1_1chainslowdown_a934410c48096b12d93883967aae1883c}{}\label{classARC_1_1chainslowdown_a934410c48096b12d93883967aae1883c} 
+\index{A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}!updatekappa@{updatekappa}}
+\index{updatekappa@{updatekappa}!A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}}
+\subsubsection{\texorpdfstring{updatekappa()}{updatekappa()}}
+{\footnotesize\ttfamily void A\+R\+C\+::chainslowdown\+::updatekappa (\begin{DoxyParamCaption}\item[{const double}]{time,  }\item[{const double}]{tend }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Update slow-\/down factor. 
+
+Update slow-\/down factor 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em time} & current time for checking. if \#time$>$ record time + \#\+Tperi, the kappa is updated \\
+\hline
+\mbox{\tt in}  & {\em tend} & ending physical time for integration, if tend-\/time$<$\#\+Tperi, $kappa = 1.0$ \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Friends And Related Function Documentation}
+\hypertarget{classARC_1_1chainslowdown_a498fbb4337b9878a5f0044996e4a2489}{}\label{classARC_1_1chainslowdown_a498fbb4337b9878a5f0044996e4a2489} 
+\index{A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}!chain@{chain}}
+\index{chain@{chain}!A\+R\+C\+::chainslowdown@{A\+R\+C\+::chainslowdown}}
+\subsubsection{\texorpdfstring{chain}{chain}}
+{\footnotesize\ttfamily template$<$class T $>$ \\
+friend class \hyperlink{classARC_1_1chain}{chain}\hspace{0.3cm}{\ttfamily [friend]}}
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+C\+:/\+Users/longw/\+Documents/\+Git\+Hub/\+A\+R\+C/include/\hyperlink{AR_8h}{A\+R.\+h}\end{DoxyCompactItemize}

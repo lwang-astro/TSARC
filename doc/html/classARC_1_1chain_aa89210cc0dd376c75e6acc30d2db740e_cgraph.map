@@ -1,5 +1,0 @@
-<map id="ARC::chain::addP" name="ARC::chain::addP">
-<area shape="rect" id="node2" href="$classARC_1_1chainlist.html#a0e2f35b8eabe9d9ecd77ed9f24e083de" title="show whether the chainlist allocated memory " alt="" coords="195,5,316,47"/>
-<area shape="rect" id="node3" href="$classARC_1_1chainlist.html#ab212df89ec5a2e81ce7525adc04001c1" title="Memory allocation of particle and particle address array. " alt="" coords="177,71,333,98"/>
-<area shape="rect" id="node4" href="$classARC_1_1chainlist.html#a598c1819d8e715ec0a24669e5bb06c6a" title="Add new particle. " alt="" coords="189,122,322,149"/>
-</map>

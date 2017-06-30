@@ -272,7 +272,7 @@ Performance Analysis</h2>
 <p>where \( C_{DIFF} \) is the number of operations for adding one \( f(x) \) value during the computation of difference (31). For the two dense output methods discussed Section <a class="el" href="index.html#dense_sec">Dense Output for Time Synchronization</a>, the cost formula is similar (but the \( \kappa \) can be significant difference in practice).</p>
 <p>As we discussed in Section <a class="el" href="index.html#dense_sec">Dense Output for Time Synchronization</a>, we can do interpolation for all variables and the cost of dense output is \( C_{DEN}*(6N+3) \). Then the cost of dense output over extrapolation integration is</p>
 <p>(40) \( \frac{C_{DEN}}{C_{EINT}} \approx \frac{O(\kappa^3)}{O(\langle n_i\rangle*N)} \)</p>
-<p>where \(\langle n_i\rangle\) is the average \( n_i \) from \( i=1,\kappa\). In the case of 4k sequence, \(\langle n_i\rangle \propto \kappa\). The value of \(\kappa\) depends on the computational error criterion and the integration step size \( \Delta s\). Usually \( \kappa&gt;4 \), thus if \( N \) is not large ( \( N &lt; 5 \)), the full dense output with all variables is can be more computational expensive. </p>
+<p>where \(\langle n_i\rangle\) is the average \( n_i \) from \( i=1,\kappa\). In the case of 4k sequence, \(\langle n_i\rangle \propto \kappa\). The value of \(\kappa\) depends on the computational error criterion and the integration step size \( \Delta s\). Usually \( \kappa&gt;4 \), thus if \( N \) is not large ( \( N &lt; 5 \)), the full dense output with all variables can be more computational expensive. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->

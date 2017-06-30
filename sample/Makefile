@@ -20,7 +20,7 @@ CXXFLAGS += -D ARC_PROFILE
 CXXFLAGS += -O2 
 #CXXFLAGS += -g -fbounds-check
 #CXXFLAGS += -D DEBUG 
-CXXFLAGS += -D ARC_DEBUG
+#CXXFLAGS += -D ARC_DEBUG
 
 ## Target --------------------------------------------#
 

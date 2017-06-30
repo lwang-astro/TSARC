@@ -26,17 +26,17 @@ Collaboration diagram for A\+RC\+:\+:chain$<$ particle\+\_\+ $>$\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=232pt]{classARC_1_1chain__coll__graph}
+\includegraphics[width=350pt]{classARC_1_1chain__coll__graph}
 \end{center}
 \end{figure}
 \subsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\hyperlink{classARC_1_1chain_a8a3daa4bad15c5faeaebece934a0ae4a}{chain} (const std\+::size\+\_\+t n)
+\hyperlink{classARC_1_1chain_a57b7cc99d82b1228aefc88d0c5feb509}{chain} (const int n)
 \begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
 \hyperlink{classARC_1_1chain_a8590b2bc343867d9ef246946f3002063}{chain} ()
 \begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chain_aee00fac50bb4a5a24ab1af5e563bdf98}{allocate} (const std\+::size\+\_\+t n)
+void \hyperlink{classARC_1_1chain_a9ccc3dbc93660e08d78532b64500a0f5}{allocate} (const int n)
 \begin{DoxyCompactList}\small\item\em Allocate memory. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chain_a4cf8d7e8253d71ce0110fb827add1b32}{clear} ()
 \begin{DoxyCompactList}\small\item\em Clear function. \end{DoxyCompactList}\item 
@@ -52,15 +52,15 @@ double \hyperlink{classARC_1_1chain_a000772c395f316bbda100e58e1dc7db4}{calc\+\_\
 \begin{DoxyCompactList}\small\item\em Calculate physical time step for V. \end{DoxyCompactList}\item 
 double \hyperlink{classARC_1_1chain_ae09a8f3826db280d8bdcf9d40085bf3a}{calc\+\_\+next\+\_\+step\+\_\+\+X\+VA} (const \hyperlink{classARC_1_1chainpars}{chainpars} \&pars)
 \begin{DoxyCompactList}\small\item\em Calculate next step approximation based on min(X/(gV),V/(gA)) \end{DoxyCompactList}\item 
-{\footnotesize template$<$class extpar\+\_\+ $>$ }\\double \hyperlink{classARC_1_1chain_a39cf4c21491c5e23b34d8bd6fe99b091}{calc\+\_\+next\+\_\+step\+\_\+custom} (\hyperlink{namespaceARC_af6dbf77cf2968752315f7712eb2515a3}{pair\+\_\+T}$<$ particle, extpar\+\_\+ $>$ pt, extpar\+\_\+ $\ast$pars, const double auto\+\_\+step\+\_\+eps)
+{\footnotesize template$<$class chainpars\+\_\+ , class extpar\+\_\+ $>$ }\\double \hyperlink{classARC_1_1chain_a368f78726cba200f698ed0925f61d4fd}{calc\+\_\+next\+\_\+step\+\_\+custom} (const chainpars\+\_\+ \&pars, extpar\+\_\+ $\ast$extpars)
 \begin{DoxyCompactList}\small\item\em Calculate next step approximation based on custom defined timescale for two-\/body system. \end{DoxyCompactList}\item 
 {\footnotesize template$<$class Tp $>$ }\\void \hyperlink{classARC_1_1chain_a2df655cb46fcb7e892f196340e7d5c83}{addP} (Tp \&a)
 \begin{DoxyCompactList}\small\item\em Add particle. \end{DoxyCompactList}\item 
-{\footnotesize template$<$class Tp $>$ }\\void \hyperlink{classARC_1_1chain_aa89210cc0dd376c75e6acc30d2db740e}{addP} (const std\+::size\+\_\+t n, Tp a\mbox{[}$\,$\mbox{]})
+{\footnotesize template$<$class Tp $>$ }\\void \hyperlink{classARC_1_1chain_afe416c7e33c99c4e9cdd1391bae332ec}{addP} (const int n, Tp a\mbox{[}$\,$\mbox{]})
 \begin{DoxyCompactList}\small\item\em Add a list of particle. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chain_ac9771f362ea8f985973f27973c0ee31f}{linkP} (const std\+::size\+\_\+t n, particle a\mbox{[}$\,$\mbox{]})
+void \hyperlink{classARC_1_1chain_a8e3a7952b6364eb5730004d50ac5eb4c}{linkP} (const int n, particle a\mbox{[}$\,$\mbox{]})
 \begin{DoxyCompactList}\small\item\em Link a list of particles without coping. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chain_ab19c57af30f8eebd5dfac3de2cab2ade}{removeP} (const std\+::size\+\_\+t i, bool option=true)
+void \hyperlink{classARC_1_1chain_a8ba21a4be849607692d73e846802a287}{removeP} (const int i, bool option=true)
 \begin{DoxyCompactList}\small\item\em remove one particle \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chain_a6caef2b2dc81cc944377a3ea511c0fe8}{dump} (const char $\ast$filename)
 \begin{DoxyCompactList}\small\item\em Data Dumping to file function. \end{DoxyCompactList}\item 
@@ -69,12 +69,12 @@ void \hyperlink{classARC_1_1chain_a3f328bce3650bab9496987bc5a1f5a98}{read} (cons
 void \hyperlink{classARC_1_1chain_a5325cc6945e9992b431450f7846e91e5}{readP} (const char $\ast$filename)
 \begin{DoxyCompactList}\small\item\em Read particle data from file. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chain_a4f6a1518c7c788a9ef3d12dd8e5aec7a}{resolve} ()
-\begin{DoxyCompactList}\small\item\em resolve particles and copy back to original particle address (if particles are not linked by \hyperlink{classARC_1_1chain_ac9771f362ea8f985973f27973c0ee31f}{link\+P()}) \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em resolve particles and copy back to original particle address (if particles are not linked by \hyperlink{classARC_1_1chain_a8e3a7952b6364eb5730004d50ac5eb4c}{link\+P()}) \end{DoxyCompactList}\item 
 bool \hyperlink{classARC_1_1chain_a22fd005339b734ba2973ba47bf5ddc62}{is\+Pmod} () const
 \begin{DoxyCompactList}\small\item\em Indicator of changes in particle list \#p. \end{DoxyCompactList}\item 
 int \hyperlink{classARC_1_1chain_a7ced7404d896ed78a109868a10ee6b56}{is\+Porigin} () const
 \begin{DoxyCompactList}\small\item\em Indicator of particle frame. \end{DoxyCompactList}\item 
-const particle \& \hyperlink{classARC_1_1chain_ae6fa4b4a95b1caff98b55ebc5964e956}{getP} (const std\+::size\+\_\+t i) const
+const particle \& \hyperlink{classARC_1_1chain_a256800adf6453d8550cdc6c3212959a0}{getP} (const int i) const
 \begin{DoxyCompactList}\small\item\em Get particle i (const reference) \end{DoxyCompactList}\item 
 const int \hyperlink{classARC_1_1chain_a6069646256b45896e6395205826ad05f}{getN} () const
 \begin{DoxyCompactList}\small\item\em Get current number of chain members. \end{DoxyCompactList}\item 
@@ -104,7 +104,7 @@ double \hyperlink{classARC_1_1chain_a77c4c630698faa32f9f37cb5a14dc53f}{getw} () 
 \begin{DoxyCompactList}\small\item\em Get current integrated time transformation function value $w$. \end{DoxyCompactList}\item 
 double \hyperlink{classARC_1_1chain_add329711458ff60b5a4a1ce5adaa6a31}{getW} () const
 \begin{DoxyCompactList}\small\item\em Get current time transformation function value $W$. \end{DoxyCompactList}\item 
-void \hyperlink{classARC_1_1chain_ad5df8eec118fdb768b1f192916c7d9a6}{get\+List} (std\+::size\+\_\+t $\ast$indexlist)
+void \hyperlink{classARC_1_1chain_ac1e6e8a2b02cb987c6da8ea2a8d06129}{get\+List} (int $\ast$indexlist)
 \begin{DoxyCompactList}\small\item\em Get chain list. \end{DoxyCompactList}\item 
 void \hyperlink{classARC_1_1chain_a273fcff566c74ef64ee1e785c1550eb5}{print} (std\+::ostream \&fout, const int precision=15, const int width=15)
 \begin{DoxyCompactList}\small\item\em print chain data \end{DoxyCompactList}\end{DoxyCompactItemize}
@@ -112,7 +112,9 @@ void \hyperlink{classARC_1_1chain_a273fcff566c74ef64ee1e785c1550eb5}{print} (std
 \begin{DoxyCompactItemize}
 \item 
 \hyperlink{classARC_1_1chaininfo}{chaininfo} $\ast$ \hyperlink{classARC_1_1chain_a2b0336aa1235e52e0bb586ba4bcaa211}{info}
-\begin{DoxyCompactList}\small\item\em chain information \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em chain information \end{DoxyCompactList}\item 
+\hyperlink{classARC_1_1chainslowdown}{chainslowdown} \hyperlink{classARC_1_1chain_a3a524e2f3dc8a0edd490307e7d3c1670}{slowdown}
+\begin{DoxyCompactList}\small\item\em chain slowdown controller \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \subsection{Detailed Description}
@@ -138,12 +140,12 @@ The basic way to use \hyperlink{namespaceARC}{A\+RC} integration is shown as fol
 Because of time now is an integrated variable, the time after integration cannot be predicted. Thus if you want to stop the integration at a certain physical time, you need to use \hyperlink{classARC_1_1chain_acd19e23d46d38d66c5eb60a2e9afe727}{chain.\+extrapolation\+\_\+integration()} with dense output. To get better accuracy of physical time from intepolation, the 4k sequences (set in chainpars.\+set\+E\+X\+P()) is strongly suggested to be used. If 4k sequences are used, the dense output method for G\+BS is used and the accuracy of time intepolation is close to the accuracy of integration. Please check the document of \hyperlink{classARC_1_1chain_acd19e23d46d38d66c5eb60a2e9afe727}{chain.\+extrapolation\+\_\+integration()} for detail. 
 
 \subsection{Constructor \& Destructor Documentation}
-\hypertarget{classARC_1_1chain_a8a3daa4bad15c5faeaebece934a0ae4a}{}\label{classARC_1_1chain_a8a3daa4bad15c5faeaebece934a0ae4a} 
+\hypertarget{classARC_1_1chain_a57b7cc99d82b1228aefc88d0c5feb509}{}\label{classARC_1_1chain_a57b7cc99d82b1228aefc88d0c5feb509} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!chain@{chain}}
 \index{chain@{chain}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{chain()}{chain()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
 {\footnotesize\ttfamily template$<$class particle\+\_\+ $>$ \\
-\hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::\hyperlink{classARC_1_1chain}{chain} (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+\hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::\hyperlink{classARC_1_1chain}{chain} (\begin{DoxyParamCaption}\item[{const int}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -165,7 +167,7 @@ Construct chain with allocated memory
 
 Constructor. 
 
-Construct chain without memory allocate, need to call \hyperlink{classARC_1_1chain_aee00fac50bb4a5a24ab1af5e563bdf98}{allocate()} later. \hypertarget{classARC_1_1chain_af83c26f178fd88947cdd53fa4b6cb047}{}\label{classARC_1_1chain_af83c26f178fd88947cdd53fa4b6cb047} 
+Construct chain without memory allocate, need to call \hyperlink{classARC_1_1chain_a9ccc3dbc93660e08d78532b64500a0f5}{allocate()} later. \hypertarget{classARC_1_1chain_af83c26f178fd88947cdd53fa4b6cb047}{}\label{classARC_1_1chain_af83c26f178fd88947cdd53fa4b6cb047} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!````~chain@{$\sim$chain}}
 \index{````~chain@{$\sim$chain}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{$\sim$chain()}{~chain()}}
@@ -176,6 +178,14 @@ Construct chain without memory allocate, need to call \hyperlink{classARC_1_1cha
 
 destructor 
 
+Here is the call graph for this function\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=324pt]{classARC_1_1chain_af83c26f178fd88947cdd53fa4b6cb047_cgraph}
+\end{center}
+\end{figure}
 
 
 \subsection{Member Function Documentation}
@@ -204,13 +214,13 @@ Here is the call graph for this function\+:
 \includegraphics[width=326pt]{classARC_1_1chain_a2df655cb46fcb7e892f196340e7d5c83_cgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chain_aa89210cc0dd376c75e6acc30d2db740e}{}\label{classARC_1_1chain_aa89210cc0dd376c75e6acc30d2db740e} 
+\hypertarget{classARC_1_1chain_afe416c7e33c99c4e9cdd1391bae332ec}{}\label{classARC_1_1chain_afe416c7e33c99c4e9cdd1391bae332ec} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!addP@{addP}}
 \index{addP@{addP}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{add\+P()}{addP()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
 {\footnotesize\ttfamily template$<$class particle\+\_\+ $>$ \\
 template$<$class Tp $>$ \\
-void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::addP (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n,  }\item[{Tp}]{a\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::addP (\begin{DoxyParamCaption}\item[{const int}]{n,  }\item[{Tp}]{a\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -230,15 +240,15 @@ Here is the call graph for this function\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=326pt]{classARC_1_1chain_aa89210cc0dd376c75e6acc30d2db740e_cgraph}
+\includegraphics[width=326pt]{classARC_1_1chain_afe416c7e33c99c4e9cdd1391bae332ec_cgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chain_aee00fac50bb4a5a24ab1af5e563bdf98}{}\label{classARC_1_1chain_aee00fac50bb4a5a24ab1af5e563bdf98} 
+\hypertarget{classARC_1_1chain_a9ccc3dbc93660e08d78532b64500a0f5}{}\label{classARC_1_1chain_a9ccc3dbc93660e08d78532b64500a0f5} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!allocate@{allocate}}
 \index{allocate@{allocate}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{allocate()}{allocate()}}
 {\footnotesize\ttfamily template$<$class particle\+\_\+ $>$ \\
-void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::allocate (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::allocate (\begin{DoxyParamCaption}\item[{const int}]{n }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -314,25 +324,23 @@ Calculate physical time step dt for \#X based on ds
 \begin{DoxyReturn}{Returns}
 dt\+: physical integration time step for \#X 
 \end{DoxyReturn}
-\hypertarget{classARC_1_1chain_a39cf4c21491c5e23b34d8bd6fe99b091}{}\label{classARC_1_1chain_a39cf4c21491c5e23b34d8bd6fe99b091} 
+\hypertarget{classARC_1_1chain_a368f78726cba200f698ed0925f61d4fd}{}\label{classARC_1_1chain_a368f78726cba200f698ed0925f61d4fd} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!calc\+\_\+next\+\_\+step\+\_\+custom@{calc\+\_\+next\+\_\+step\+\_\+custom}}
 \index{calc\+\_\+next\+\_\+step\+\_\+custom@{calc\+\_\+next\+\_\+step\+\_\+custom}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{calc\+\_\+next\+\_\+step\+\_\+custom()}{calc\_next\_step\_custom()}}
 {\footnotesize\ttfamily template$<$class particle\+\_\+ $>$ \\
-template$<$class extpar\+\_\+ $>$ \\
-double \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::calc\+\_\+next\+\_\+step\+\_\+custom (\begin{DoxyParamCaption}\item[{\hyperlink{namespaceARC_af6dbf77cf2968752315f7712eb2515a3}{pair\+\_\+T}$<$ particle, extpar\+\_\+ $>$}]{pt,  }\item[{extpar\+\_\+ $\ast$}]{pars,  }\item[{const double}]{auto\+\_\+step\+\_\+eps }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+template$<$class chainpars\+\_\+ , class extpar\+\_\+ $>$ \\
+double \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::calc\+\_\+next\+\_\+step\+\_\+custom (\begin{DoxyParamCaption}\item[{const chainpars\+\_\+ \&}]{pars,  }\item[{extpar\+\_\+ $\ast$}]{extpars }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
 Calculate next step approximation based on custom defined timescale for two-\/body system. 
 
-The user-\/defined two-\/body timescale function with \hyperlink{namespaceARC_af6dbf77cf2968752315f7712eb2515a3}{A\+R\+C\+::pair\+\_\+T} type will be performed on all neighbor pairs in chain. Then the minimum timescale $ T_m$ is selected to calculate next step size\+: $ ds = eps T_m |Pt|$, where $eps$ is \+::chainpars.\+auto\+\_\+step\+\_\+eps set in \hyperlink{classARC_1_1chainpars_a12066ef8bca0ad69362d608959c9149b}{chainpars.\+set\+Auto\+Step()}. 
+The user-\/defined two-\/body timescale function with \hyperlink{namespaceARC_af6dbf77cf2968752315f7712eb2515a3}{A\+R\+C\+::pair\+\_\+T} type will be performed on all neighbor pairs in chain. Then the minimum timescale $ T_m$ is selected to calculate next step size\+: $ ds = eps T_m |Pt|$, where $eps$ is \+::chainpars.\+auto\+\_\+step\+\_\+eps set in \hyperlink{classARC_1_1chainpars_a049e663206a8fba9bc0abc7a0be805eb}{chainpars.\+set\+Auto\+Step()}. 
 \begin{DoxyParams}[1]{Parameters}
-\mbox{\tt in}  & {\em pt} & two-\/body timescale function with \hyperlink{namespaceARC_af6dbf77cf2968752315f7712eb2515a3}{pair\+\_\+T} type \\
+\mbox{\tt in}  & {\em pars} & chainpars controllers \\
 \hline
-\mbox{\tt in}  & {\em pars} & extra parameters used in pt \\
-\hline
-\mbox{\tt in}  & {\em auto\+\_\+step\+\_\+eps} & auto step coefficient from chainpar controller \\
+\mbox{\tt in}  & {\em extpars} & extra parameters used in pt \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
@@ -529,12 +537,12 @@ Get current kinetic energy.
 \begin{DoxyReturn}{Returns}
 current kinetic energy 
 \end{DoxyReturn}
-\hypertarget{classARC_1_1chain_ad5df8eec118fdb768b1f192916c7d9a6}{}\label{classARC_1_1chain_ad5df8eec118fdb768b1f192916c7d9a6} 
+\hypertarget{classARC_1_1chain_ac1e6e8a2b02cb987c6da8ea2a8d06129}{}\label{classARC_1_1chain_ac1e6e8a2b02cb987c6da8ea2a8d06129} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!get\+List@{get\+List}}
 \index{get\+List@{get\+List}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{get\+List()}{getList()}}
 {\footnotesize\ttfamily template$<$class particle\+\_\+ $>$ \\
-void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::get\+List (\begin{DoxyParamCaption}\item[{std\+::size\+\_\+t $\ast$}]{indexlist }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::get\+List (\begin{DoxyParamCaption}\item[{int $\ast$}]{indexlist }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -558,15 +566,15 @@ Get current number of chain members.
 
 ! Get pertuber particle i (const reference) $\ast$!
 
-Notice this is not always the number of particles. If Add\+P(), \hyperlink{classARC_1_1chain_ab19c57af30f8eebd5dfac3de2cab2ade}{remove\+P()} are used, \hyperlink{classARC_1_1chain_a9ddc18539223abcb6451805abc15aea9}{init()} should be called first to get consistent number. \begin{DoxyReturn}{Returns}
+Notice this is not always the number of particles. If Add\+P(), \hyperlink{classARC_1_1chain_a8ba21a4be849607692d73e846802a287}{remove\+P()} are used, \hyperlink{classARC_1_1chain_a9ddc18539223abcb6451805abc15aea9}{init()} should be called first to get consistent number. \begin{DoxyReturn}{Returns}
 \+: number of chain members 
 \end{DoxyReturn}
-\hypertarget{classARC_1_1chain_ae6fa4b4a95b1caff98b55ebc5964e956}{}\label{classARC_1_1chain_ae6fa4b4a95b1caff98b55ebc5964e956} 
+\hypertarget{classARC_1_1chain_a256800adf6453d8550cdc6c3212959a0}{}\label{classARC_1_1chain_a256800adf6453d8550cdc6c3212959a0} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!getP@{getP}}
 \index{getP@{getP}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{get\+P()}{getP()}}
 {\footnotesize\ttfamily template$<$class particle\+\_\+ $>$ \\
-const particle\& \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::getP (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+const particle\& \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::getP (\begin{DoxyParamCaption}\item[{const int}]{i }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -753,12 +761,12 @@ Here is the call graph for this function\+:
 \includegraphics[width=343pt]{classARC_1_1chain_a0e375d50ca9a4c01f780dd5698fe6914_cgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chain_ac9771f362ea8f985973f27973c0ee31f}{}\label{classARC_1_1chain_ac9771f362ea8f985973f27973c0ee31f} 
+\hypertarget{classARC_1_1chain_a8e3a7952b6364eb5730004d50ac5eb4c}{}\label{classARC_1_1chain_a8e3a7952b6364eb5730004d50ac5eb4c} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!linkP@{linkP}}
 \index{linkP@{linkP}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{link\+P()}{linkP()}}
 {\footnotesize\ttfamily template$<$class particle\+\_\+ $>$ \\
-void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::linkP (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{n,  }\item[{particle}]{a\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::linkP (\begin{DoxyParamCaption}\item[{const int}]{n,  }\item[{particle}]{a\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
@@ -776,7 +784,7 @@ Here is the call graph for this function\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=310pt]{classARC_1_1chain_ac9771f362ea8f985973f27973c0ee31f_cgraph}
+\includegraphics[width=310pt]{classARC_1_1chain_a8e3a7952b6364eb5730004d50ac5eb4c_cgraph}
 \end{center}
 \end{figure}
 \hypertarget{classARC_1_1chain_a273fcff566c74ef64ee1e785c1550eb5}{}\label{classARC_1_1chain_a273fcff566c74ef64ee1e785c1550eb5} 
@@ -822,7 +830,7 @@ Here is the call graph for this function\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=312pt]{classARC_1_1chain_a3f328bce3650bab9496987bc5a1f5a98_cgraph}
+\includegraphics[width=325pt]{classARC_1_1chain_a3f328bce3650bab9496987bc5a1f5a98_cgraph}
 \end{center}
 \end{figure}
 \hypertarget{classARC_1_1chain_a5325cc6945e9992b431450f7846e91e5}{}\label{classARC_1_1chain_a5325cc6945e9992b431450f7846e91e5} 
@@ -849,18 +857,18 @@ Here is the call graph for this function\+:
 \includegraphics[width=317pt]{classARC_1_1chain_a5325cc6945e9992b431450f7846e91e5_cgraph}
 \end{center}
 \end{figure}
-\hypertarget{classARC_1_1chain_ab19c57af30f8eebd5dfac3de2cab2ade}{}\label{classARC_1_1chain_ab19c57af30f8eebd5dfac3de2cab2ade} 
+\hypertarget{classARC_1_1chain_a8ba21a4be849607692d73e846802a287}{}\label{classARC_1_1chain_a8ba21a4be849607692d73e846802a287} 
 \index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!removeP@{removeP}}
 \index{removeP@{removeP}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
 \subsubsection{\texorpdfstring{remove\+P()}{removeP()}}
 {\footnotesize\ttfamily template$<$class particle\+\_\+ $>$ \\
-void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::removeP (\begin{DoxyParamCaption}\item[{const std\+::size\+\_\+t}]{i,  }\item[{bool}]{option = {\ttfamily true} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::removeP (\begin{DoxyParamCaption}\item[{const int}]{i,  }\item[{bool}]{option = {\ttfamily true} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
 
 
 
 remove one particle 
 
-remove one particle from \#p (see \hyperlink{classARC_1_1chainlist_adcf73b53ad0da50299f4ef3f5fefae04}{A\+R\+C\+::chainlist.\+remove()}) 
+remove one particle from \#p (see \hyperlink{classARC_1_1chainlist_ac11bd643c5ae8e8ec42623041a1ef34c}{A\+R\+C\+::chainlist.\+remove()}) 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\tt in}  & {\em i} & particle index in \#p needs to be removed \\
 \hline
@@ -876,7 +884,7 @@ Here is the call graph for this function\+:
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=342pt]{classARC_1_1chain_ab19c57af30f8eebd5dfac3de2cab2ade_cgraph}
+\includegraphics[width=342pt]{classARC_1_1chain_a8ba21a4be849607692d73e846802a287_cgraph}
 \end{center}
 \end{figure}
 \hypertarget{classARC_1_1chain_a4f6a1518c7c788a9ef3d12dd8e5aec7a}{}\label{classARC_1_1chain_a4f6a1518c7c788a9ef3d12dd8e5aec7a} 
@@ -888,7 +896,7 @@ void \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::re
 
 
 
-resolve particles and copy back to original particle address (if particles are not linked by \hyperlink{classARC_1_1chain_ac9771f362ea8f985973f27973c0ee31f}{link\+P()}) 
+resolve particles and copy back to original particle address (if particles are not linked by \hyperlink{classARC_1_1chain_a8e3a7952b6364eb5730004d50ac5eb4c}{link\+P()}) 
 
 If particles are in center-\/of-\/mass frame, return to original frame and then copyback to original address Here is the call graph for this function\+:
 \nopagebreak
@@ -934,6 +942,17 @@ Restore integration data from one dimensional array, the order of data should be
 
 
 chain information 
+
+\hypertarget{classARC_1_1chain_a3a524e2f3dc8a0edd490307e7d3c1670}{}\label{classARC_1_1chain_a3a524e2f3dc8a0edd490307e7d3c1670} 
+\index{A\+R\+C\+::chain@{A\+R\+C\+::chain}!slowdown@{slowdown}}
+\index{slowdown@{slowdown}!A\+R\+C\+::chain@{A\+R\+C\+::chain}}
+\subsubsection{\texorpdfstring{slowdown}{slowdown}}
+{\footnotesize\ttfamily template$<$class particle\+\_\+ $>$ \\
+\hyperlink{classARC_1_1chainslowdown}{chainslowdown} \hyperlink{classARC_1_1chain}{A\+R\+C\+::chain}$<$ particle\+\_\+ $>$\+::slowdown}
+
+
+
+chain slowdown controller 
 
 
 
