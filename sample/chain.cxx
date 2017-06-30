@@ -324,7 +324,6 @@ int main(int argc, char **argv){
   // fix iteration flag, switch on if auto-step adjustment is used
   if (parfile) iterfix=pars.exp_fix_iter;
   if (dsA) {
-    iterfix=true;
     pars.setAutoStep(dsA,0.7,1.3,0.125,std::max(std::min(itermax-3,5),1),std::min(std::max(itermax-5,3),itermax));
   }
   else {
@@ -332,6 +331,7 @@ int main(int argc, char **argv){
     int dsAi1,dsAi2;
     pars.getAutoStep(dsA,dsA1,dsA2,dsAe,dsAi1,dsAi2);
   }
+  if (dsA!=4) iterfix=true;
   pars.setIterConst(iterfix);
 
   // new chain class
@@ -401,11 +401,15 @@ int main(int argc, char **argv){
   // step size
   double ds = s;
 
+  // print chain pars
+  pars.print(std::cerr);
+
   // printing data
   chain_print(c,0,w,pre);
 
   if (dsA==4) {
       ds = c.calc_next_step_custom(pars, &Int_pars);
+      std::cerr<<"Initial step size ds = "<<ds<<std::endl;
   }
 
   // integration loop
@@ -436,7 +440,10 @@ int main(int argc, char **argv){
         if (dsf<0) ds*= -dsf;
       }
       else {
-        if(dsA) ds*= dsf;
+        if(dsA) {
+            ds*= dsf;
+            std::cerr<<"Step change ds = "<<ds<<std::endl;
+        }
         chain_print(c,ds,w,pre);
       }
     }
@@ -446,7 +453,7 @@ int main(int argc, char **argv){
       chain_print(c,s,w,pre);
     }
 #ifdef ARC_PROFILE
-    std::cerr<<"Time_profile: Step: "<<i<<"  Acc+Pot(s): "<<c.profile.t_apw<<"  Update_link(s): "<<c.profile.t_uplink<<"  Leap-frog(s): "<<c.profile.t_lf<<"  Extrapolation(s): "<<c.profile.t_ep<<"  Perturbation(s): "<<c.profile.t_pext<<"  Dense_output(s): "<<c.profile.t_dense<<std::endl;
+    c.profile.print(std::cerr,i);
 #endif
   }
   
