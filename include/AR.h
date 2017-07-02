@@ -840,10 +840,20 @@ private:
     double Tperi;        ///< period for checking
     double finnersq;     ///< inner force square reference for slow-down determination
     bool is_used;         ///< if false, slow-down is switched off
-public:
 
+public:
+    //! defaulted constructor
     chainslowdown(): kappa(1.0), fpertsqmax(0.0), fpertsqlast(0.0), Trecord(0.0), kref(1.0e-05), Tperi(0.0), finnersq(0.0), is_used(false) {}
     
+    //! Update maximum perturbation force \f$ F_{pert,max}\f$
+    /*! Update maximum perturbation force and record this input (only last one is recorded)
+      @param[in] fpertsq: new perturbation force square
+     */
+    void updatefpertsq(const double fpertsq) {
+        fpertsqmax = fpertsq>fpertsqmax? fpertsq: fpertsqmax;
+        fpertsqlast = fpertsq;
+    }
+
     //! initialize slow-down parameters
     /*! Set slow-down parameters, slow-down method will be switched on
       @param [in] f_inner_sq: inner force square reference
@@ -853,17 +863,9 @@ public:
     void setSlowDownPars(const double f_inner_sq, const double t_peri, const double k_ref=1.0e-5) {
         finnersq = f_inner_sq;
         Tperi    = t_peri;
+        Trecord  = -Tperi;
         kref     = k_ref;
         is_used  = true;
-    }
-
-    //! Update maximum perturbation force \f$ F_{pert,max}\f$
-    /*! Update maximum perturbation force and record this input (only last one is recorded)
-      @param[in] fpertsq: new perturbation force square
-     */
-    void updatefpertsq(const double fpertsq) {
-        fpertsqmax = fpertsq>fpertsqmax? fpertsq: fpertsqmax;
-        fpertsqlast = fpertsq;
     }
     
     //! Update slow-down factor
@@ -876,7 +878,7 @@ public:
         assert(finnersq>0);
         assert(Tperi>0);
 #endif
-        if(time>Trecord + Tperi) {
+        if(time>=Trecord + Tperi) {
             Trecord = time;
             if (fpertsqmax>0) kappa = std::max(1.0,kref/(std::sqrt(fpertsqmax/finnersq)));
             else kappa = (tend-time)/Tperi;
