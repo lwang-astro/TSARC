@@ -880,6 +880,12 @@ public:
 #endif
         if(time>=Trecord + Tperi) {
             Trecord = time;
+#ifdef ARC_DEBUG
+            if(fpertsqmax/finnersq>1e-6) {
+                std::cerr<<"Warning!: perturbation too strong, fpert = "<<sqrt(fpertsqmax)<<" finner = "<<sqrt(finnersq)<<" fpert/finner = "<<sqrt(fpertsqmax/finnersq)<<std::endl;
+                assert(fpertsqmax<finnersq);
+            }
+#endif
             if (fpertsqmax>0) kappa = std::max(1.0,kref/(std::sqrt(fpertsqmax/finnersq)));
             else kappa = (tend-time)/Tperi;
             fpertsqmax = fpertsqlast;
