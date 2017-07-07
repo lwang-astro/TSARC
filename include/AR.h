@@ -1144,6 +1144,13 @@ private:
     }
   }
 
+  //! initial perturbation acceleration #pf
+  /*! Reset pf to zero
+   */ 
+  void initial_pf() {
+    for (int i=0; i<num; i++) 
+        for (int j=0; j<3; j++) pf[i][j] = 0.0;
+  }
 
   //! Calculate acceleration (potential) and transformation parameter
   /*! Get distance Matrix, acceleration, dm/dr, potential and transformation parameter
@@ -1522,7 +1529,7 @@ private:
 
 /*
   //! Perturber force calculation
-  *! Get pertrber force based on porturber list #pext
+  *! Get perturber force based on porturber list #pext
     @param [in] t: physical time for prediction
     @param [in] resolve_flag: whether resolve perturber member if it is a chain 
     \return flag: true: pertubers exist. false: no perturbers
@@ -2531,6 +2538,9 @@ public:
         F_Porigin = 0;
         F_Pmod = false;
 
+        // initial pf
+        initial_pf();
+
         // get potential and transformation parameter
         calc_rAPW(f, int_pars);
 
@@ -2562,6 +2572,9 @@ public:
         // set member relative position and velocity
         calc_XV();
     
+        // initial pf
+        initial_pf();
+        
         // set relative distance matrix, acceleration, potential and transformation parameter, notice force will be recalculated later.
         calc_rAPW(f, int_pars);
 
@@ -2872,12 +2885,15 @@ public:
       
       // perturber force
       if (fpert!=NULL) {
-        // get original position first, update p.x (dependence: X, particle::x)
-        center_shift_inverse_X();
+        // should not do this, since center of mass position is changed during integration
+        //// get original position first, update p.x (dependence: X, particle::x)
+        //// center_shift_inverse_X();
+
         // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
         fpert(pf, t, p.getData(), p.getN(), pert, pertf, npert, int_pars);
-        // reset position to center-of-mass frame, update p.x 
-        center_shift_X();
+
+        //// reset position to center-of-mass frame, update p.x 
+        //// center_shift_X();
       }
 
       // Update rjk, A, Pot, dWdr, W for half X (dependence: pf, force, p.m, p.x, X)
@@ -3007,8 +3023,8 @@ public:
                       - if value is negative, it means integration will be done with fixed step size \a ds
                       - if value is positive and after step \a ds, the ending physical time is larger than \a toff, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, the data are kept as initial values. Instead, the returning value is the ds modification factor (negative value), which can be used to modified current \a ds and redo the integration by calling this function again with new ds to approach ending physical time of \a toff. Notice if the required time sychronization criterion (set in chainpars.setEXP()) is small (<phase and energy error criterion), several iteration may be needed to get the physical time below this criterion.
      @param [in] int_pars: extra parameters used in f or fpert.
-     @param [in] pert: perturber particle array
-     @param [in] pertf: perturrber force array for prediction
+     @param [in] pert: perturber particle array. Notice the c.m. of chain also need to be updated during perturbation force calculation, thus it is convinient to set first perturber as chain c.m.
+     @param [in] pertf: perturrber force array for prediction. For the same purpose as above, the first force can be set as chain c.m. force
      @param [in] npert: number of perturbers
      @param [in] err_ignore: if true, force integration and ignore error criterion (default false)
      \return factor
