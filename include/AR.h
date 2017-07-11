@@ -2890,7 +2890,7 @@ public:
         //// center_shift_inverse_X();
 
         // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
-        fpert(pf, t, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+        fpert(pf, slowdown.kappa*t, p.getData(), p.getN(), pert, pertf, npert, int_pars);
 
         //// reset position to center-of-mass frame, update p.x 
         //// center_shift_X();
@@ -3057,6 +3057,9 @@ public:
       info=NULL;
     }
     
+    // slowdown time
+    const double toff_sd = toff/slowdown.kappa;
+
     // get parameters
     const double error = pars.exp_error;
     const int itermax = pars.exp_itermax;
@@ -3284,13 +3287,13 @@ public:
     }
 
     // for dense output
-    if (!reset_flag&&ip_flag&&toff>0&&toff<t&&std::abs((toff-t)/(t-d0[0]))>pars.dterr) {
+    if (!reset_flag&&ip_flag&&toff_sd>0&&toff_sd<t&&std::abs((toff_sd-t)/(t-d0[0]))>pars.dterr) {
 #ifdef ARC_PROFILE
       profile.t_dense -= get_wtime();
 #endif
 
 #ifdef DEBUG
-      std::cerr<<"ds="<<ds<<" step[0]="<<step[0]<<" terr="<<toff-t<<" t="<<t<<" toff="<<toff<<std::endl;
+      std::cerr<<"ds="<<ds<<" step[0]="<<step[0]<<" terr="<<toff_sd-t<<" t="<<t<<" toff_sd="<<toff_sd<<std::endl;
 #endif
       // calculate derivates from differences
       for (int i=0; i<intcount; i++) {
@@ -3384,7 +3387,7 @@ public:
         
         // first choose the half side for interpolation
         const double tmid = pd[intcount-1][0][0];  // middle time
-        if (toff>tmid) {
+        if (toff_sd>tmid) {
         
           xpoint[0]=0.5*ds;
           xpoint[1]=ds;
@@ -3402,7 +3405,7 @@ public:
           }
           dfptr[0][1]=pd[intcount-1][2]; //right edge
         }
-        else if (toff==tmid) {
+        else if (toff_sd==tmid) {
           dsm = 0.5;
           no_intp_flag = true;
         }
@@ -3473,7 +3476,7 @@ public:
         int find_root_count=0;
         do {
           if (rf_method) {
-            dsm = (dsi[0]*(tsi[1]-toff)-dsi[1]*(tsi[0]-toff))/(tsi[1]-tsi[0]);  // Use regula falsi method to find accurate ds
+            dsm = (dsi[0]*(tsi[1]-toff_sd)-dsi[1]*(tsi[0]-toff_sd))/(tsi[1]-tsi[0]);  // Use regula falsi method to find accurate ds
           }
           else {
             dsm = (dsi[0]+dsi[1])*0.5;      // Use bisection method to get approximate region
@@ -3487,11 +3490,11 @@ public:
             info->status = 5;
             info->intcount = intcount;
             info->ds = ds;
-            info->terr = tpre-toff;
+            info->terr = tpre-toff_sd;
             break;
           }
         
-          if (tpre > toff) {
+          if (tpre > toff_sd) {
             if (dsi[1]==dsm) break;
             dsi[1] = dsm;
             tsi[1] = tpre;
@@ -3502,9 +3505,9 @@ public:
             tsi[0] = tpre;
           }
 #ifdef DEBUG
-          std::cerr<<std::setprecision(15)<<"Find root: dsm="<<dsm<<"; t="<<tpre<<"; error="<<tpre-toff<<"; ds="<<ds<<std::endl;
+          std::cerr<<std::setprecision(15)<<"Find root: dsm="<<dsm<<"; t="<<tpre<<"; error="<<tpre-toff_sd<<"; ds="<<ds<<std::endl;
 #endif
-          if(std::abs(tpre-toff)<dterr3) rf_method=true;
+          if(std::abs(tpre-toff_sd)<dterr3) rf_method=true;
           find_root_count++;
           if (find_root_count>100) {
             reset_flag=true;
@@ -3512,10 +3515,10 @@ public:
             info->status = 3;
             info->intcount = intcount;
             info->ds = ds;
-            info->terr = tpre-toff;
+            info->terr = tpre-toff_sd;
             break;
           }
-        } while (std::abs(tpre-toff)>0.1*dterr);
+        } while (std::abs(tpre-toff_sd)>0.1*dterr);
 
         // Get the interpolation result
         //EP::Hermite_interpolation_polynomial(dsm,dtemp,&pcoff,xpoint,1,npoints,nlev);
