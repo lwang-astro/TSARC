@@ -899,9 +899,8 @@ public:
      */
     void adjustkappa(const double dt) {
         if(is_used) {
-            double dp = Tperi/dt;
-            int kp = (kappa+1.0)/dp;
-            kappa = std::max(1.0,kappa * (kp*dp -1.0));
+            int kp = (kappa-1.0)/kappa*dt/Tperi;
+            kappa = std::max(1.0,dt/(dt-kp*Tperi));
         }
         else kappa = 1.0;
     }
@@ -1336,9 +1335,9 @@ private:
     double dPt = 0.0;
     double dw  = 0.0;
     for (int i=0;i<num;i++) {
-        dPt -= p[i].getMass() * (ave_v[i][0] * pf[i][0] +
-                                 ave_v[i][1] * pf[i][1] +
-                                 ave_v[i][2] * pf[i][2]);
+        dPt -= p[i].getMass() * (ave_v[i][0] * slowdown.kappa*pf[i][0] +
+                                 ave_v[i][1] * slowdown.kappa*pf[i][1] +
+                                 ave_v[i][2] * slowdown.kappa*pf[i][2]);
         
         if(calc_w_flag) dw += (ave_v[i][0] * dWdr[i][0] +
                                ave_v[i][1] * dWdr[i][1] +
@@ -2920,7 +2919,7 @@ public:
       // Get averaged velocity, update p.x, p.v, ave_v (dependence: X, V)
       resolve_XV(ave_v);
 
-      // forward Pt and w (dependence: dt(V), ave_v, p.m, p.v, force, dWdr, pf)
+      // forward Pt and w (dependence: dt(V), ave_v, p.m, p.v, dWdr, pf)
       const bool dw_calc_flag = pars.beta>0;
       step_forward_Ptw(dvt,ave_v,dw_calc_flag);
 
