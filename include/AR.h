@@ -870,7 +870,7 @@ public:
     
     //! Update slow-down factor
     /*! Update slow-down factor 
-        @param[in] time: current time for checking. if #time> record time + #Tperi, the kappa is updated
+        @param[in] time: current time for checking. if #time> record time + #Tperi, the kappa is updated (if time = 0. it is initialization)
         @param[in] tend: ending physical time for integration, if tend-time<#Tperi, \f$kappa = 1.0\f$
      */
     void updatekappa(const double time, const double tend) {
@@ -890,7 +890,7 @@ public:
             else kappa = (tend-time)/Tperi;
             fpertsqmax = fpertsqlast;
         }
-        if(tend - time < Tperi) kappa = 1.0;
+        if(tend - time < Tperi&&time!=0.0) kappa = 1.0;
     }
 
     //! adjust slow-down factor
