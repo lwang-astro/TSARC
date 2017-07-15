@@ -890,7 +890,7 @@ public:
             else kappa = (tend-time)/Tperi;
             fpertsqmax = fpertsqlast;
         }
-        if(tend - time < Tperi&&time!=0.0) kappa = 1.0;
+        if(tend - time < Tperi) kappa = 1.0;
     }
 
     //! adjust slow-down factor
@@ -2544,7 +2544,7 @@ public:
         calc_rAPW(f, int_pars);
 
         // update slow-down
-        updateSlowDownFpert();
+        // updateSlowDownFpert();
  
         // kinetic energy
         calc_Ekin();
@@ -2578,7 +2578,7 @@ public:
         calc_rAPW(f, int_pars);
 
         // update slow-down
-        updateSlowDownFpert();
+        // updateSlowDownFpert();
  
         // Initial intgrt value t
         t = time;
