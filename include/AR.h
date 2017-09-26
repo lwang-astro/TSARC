@@ -3366,6 +3366,7 @@ public:
       double** fpoint;
       // final derivate starting pointer
       double*** dfptr;
+      int dfptr_size=0;
       // checking flag
       bool no_intp_flag=false;
 
@@ -3398,7 +3399,8 @@ public:
           fpoint[0] = pd[intcount-1][0];
           fpoint[1] = dn[intcount-1];
 
-          for (int i=0;i<nlev[0]-1;i++) {
+          dfptr_size = nlev[0]-1;
+          for (int i=0;i<dfptr_size;i++) {
             dfptr[i]=new double*[2];
             dfptr[i][0]=pd[intcount-1][i+3];
             dfptr[i][1]=NULL;
@@ -3419,7 +3421,8 @@ public:
           fpoint[0] = d0;
           fpoint[1] = pd[intcount-1][0];
 
-          for (int i=0;i<nlev[1]-1;i++) {
+          dfptr_size = nlev[1]-1;
+          for (int i=0;i<dfptr_size;i++) {
             dfptr[i]=new double*[2];
             dfptr[i][0]=NULL;
             dfptr[i][1]=pd[intcount-1][i+3];
@@ -3447,7 +3450,8 @@ public:
         // \sum nlev = 2*intcount+2;
         pcoff= new double[2*ndmax[intcount-1]+2];
 
-        dfptr=new double**[nlev[0]-1];
+        dfptr_size = nlev[0]-1;
+        dfptr=new double**[dfptr_size];
         for (int i=0;i<nlev[0]-1;i++) {
           dfptr[i] = new double*[2];
           dfptr[i][0] = pd[intcount-1][i];
@@ -3579,7 +3583,8 @@ public:
 
       // clear memory
       for (int i=0; i<intcount; i++) delete[] pn[i];
-      for (int i=0; i<nlev[1]-1; i++) delete dfptr[i];
+      if (dfptr_size>0) 
+          for (int i=0; i<dfptr_size; i++) delete dfptr[i];
       delete[] dfptr;
       delete[] pcoff;
       delete[] xpoint;
