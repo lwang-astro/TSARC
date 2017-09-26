@@ -480,10 +480,12 @@ int main(int argc, char **argv){
       itersum += std::max(stepcount[i]*(i-1),0);
     }
     std::cerr<<"Sum-of-steps: "<<c.profile.itercount<<" Sum-of-iterations: "<<itersum<<std::endl;
+    delete [] step;
   }
 #endif
 
   if (p!=NULL) delete[] p;
+  if (pf!=NULL) delete[] pf;
 //  if (fflag) delete[] f;
   
   return 0;

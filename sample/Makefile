@@ -15,6 +15,7 @@ CXXFLAGS += -std=c++11
 
 ## profile---------------------------------------#
 CXXFLAGS += -D ARC_PROFILE
+CXXLIBS += -L$(GPERF_PATH) -lprofiler -ltcmalloc
 
 ## for debug------------------------------------------#
 CXXFLAGS += -O2 
@@ -25,7 +26,7 @@ CXXFLAGS += -O2
 ## Target --------------------------------------------#
 
 $(TARGET): %: %.cxx AR.h extrapolation.h
-	$(CXX) $(CXXFLAGS) $< -o $@
+	$(CXX) $(CXXFLAGS) $< -o $@ $(CXXLIBS)
 
 clean:
 	rm -f $(TARGET)

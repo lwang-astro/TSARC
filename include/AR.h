@@ -266,13 +266,14 @@ public:
 
   //! destructor
   ~chainpars() {
-    if (step!=NULL) delete[] step;
     if (bin_index!=NULL) {
-      for (int i=0;i<exp_itermax;i++) 
-        if (bin_index[i]!=NULL)
-          delete[] bin_index[i];
+      if (step!=NULL) {
+        for (int i=0; i<step[exp_itermax]; i++)
+          if (bin_index[i]!=NULL) delete[] bin_index[i];
+      }
       delete[] bin_index;
     }
+    if (step!=NULL) delete[] step;
     if (pp_AW_type!=NULL) {
         delete pp_AW_type;
     }
@@ -387,8 +388,8 @@ public:
       if (step!=NULL) {
         for (int i=0; i<step[exp_itermax]; i++)
           if (bin_index[i]!=NULL) delete[] bin_index[i];
-        delete[] bin_index;
       }
+      delete[] bin_index;
     }
     
     // reset step array
@@ -811,7 +812,7 @@ public:
     @param[in] stat: user-defined status number (non-zero value)
     @param[in] message: user-defined status corresponding output message), this will overlap defaulted message when \a stat=1 to 5
    */
-  void ErrMessage(std::ostream & fout, const int precision=10, const int stat=0, char* message=NULL) {
+  void ErrMessage(std::ostream & fout, const int precision=10, const int stat=0, const char* message=NULL) {
     if (stat!=0&&status==stat) fout<<"Status ["<<stat<<"]: "<<message<<std::endl;
     else {
       if (status==0) fout<<"Normal status [0]:\n";
