@@ -36,7 +36,7 @@ static double get_wtime(){
 }
 
 //! A structure storing time profile 
-class chainprofile{
+class Profile{
 public:
   double t_apw;    ///< APW calculation
   double t_uplink; ///< update link
@@ -51,7 +51,7 @@ public:
   int* stepcount;  ///< iteration step count in extrapolation
   int  itercount;  ///< total substep in extrapolation
 
-  chainprofile() {reset_tp();}  ///< initialization 
+  Profile() {reset_tp();}  ///< initialization 
 
   void initstep(const int n) {
     if (!stepcount) {
@@ -75,7 +75,7 @@ public:
     itercount=0;
   }
 
-  ~chainprofile() { if (stepcount) delete[] stepcount;}
+  ~Profile() { if (stepcount) delete[] stepcount;}
 
   //! print profile
   /*!
@@ -100,11 +100,11 @@ public:
 #endif
 
 //declaration
-template <class particle_> class chain;
-template <class particle_> class chainlist;
-class chainpars;
-class chaininfo;
-class chainslowdown;
+template <class particle_> class Integrator;
+template <class particle_> class ParticleList;
+class Parameters;
+class ErrorInfo;
+class SlowDown;
 
 //! external acceleration function pointer
 /*!
@@ -126,8 +126,8 @@ using ext_Acc = void(*)(double3 *acc, const double t, particle_ *p, const int np
   Notice the particle i and j are also passed as arguments. But it is only used to get extra information in addition to relative position xij. The velocity information should not be used. Otherwise the Leap-frog algorithm is broken.
   @param[out] Aij: acceleration vector for particle i.
   @param[out] Pij: potential of particle i from particle j (cumulative total potential only count the case of j>i)
-  @param[out] dWij: time transformation function partial derivate \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (component from j to i; used when #beta>0; see ARC::chainpars.setabg()) .
-  @param[out] Wij: time transformation function component from j to i (used when #beta>0; notice in \ref ARC::chain the cumulative total W only count the case of j>i).
+  @param[out] dWij: time transformation function partial derivate \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ (component from j to i; used when #beta>0; see ARC::Parameters.setabg()) .
+  @param[out] Wij: time transformation function component from j to i (used when #beta>0; notice in \ref ARC::Integrator the cumulative total W only count the case of j>i).
   @param[in] Xij: relative position (1:3) \f$ \mathbf{x}_j - \mathbf{x}_i \f$
   @param[in] pi: particle i.
   @param[in] pj: particle j.
@@ -164,10 +164,10 @@ using pair_T = double (*) (const double m1, const double m2, const double* x, co
 
 //! The chain parameter controller class
 /*!
-  This class control acceleration function, integration methods and error parameters for \ref chain
+  This class control acceleration function, integration methods and error parameters for \ref Integrator
  */
-class chainpars{
-template <class T> friend class chain;
+class Parameters{
+template <class T> friend class Integrator;
 private:
   // time step integration parameter
   double alpha; ///< logH cofficient
@@ -222,7 +222,7 @@ public:
       - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
       - No auto-step
    */
-  chainpars() {
+  Parameters() {
     pp_AW = ext_A = pp_T = NULL;
     pp_AW_type = ext_A_type = pp_T_type = NULL;
     step = NULL;
@@ -251,7 +251,7 @@ public:
     @param [in] dense_intpmax: maximum derivate index for dense output interpolation (defaulted #itermax/2)
     @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
    */
-  chainpars(const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const int itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
+  Parameters(const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const int itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
     pp_AW = ext_A = pp_T = NULL;
     pp_AW_type = ext_A_type = pp_T_type = NULL;
     step = NULL;
@@ -265,7 +265,7 @@ public:
   }
 
   //! destructor
-  ~chainpars() {
+  ~Parameters() {
     if (step!=NULL) delete[] step;
     if (bin_index!=NULL) {
       for (int i=0;i<exp_itermax;i++) 
@@ -559,7 +559,7 @@ public:
   //! parameters loading from a dumped file
   /*! Load parameters from a dumped file. All dynamical array will be initialized after reading parameters.
     Notice this function will load all parameters except acceleration function pointers #pp_AW and #pp_Ap. 
-    setA() should be called before chain integration.
+    setA() should be called before integration.
     The reading data list is shown in dump()
     @param [in] filename: file to read the data
    */
@@ -680,7 +680,7 @@ public:
     @param[in] fout: ofstream for printing
    */
   void print(std::ostream & fout) {
-    fout<<"======================Chain parameter table=========================\n"
+    fout<<"======================ARC parameter table=========================\n"
         <<"Time step transformation parameters:\n"
         <<"  alpha = "<<alpha<<"  beta = "<<beta<<"  gamma = "<<gamma<<std::endl
         <<"Extrapolation parameters:\n"
@@ -717,11 +717,11 @@ public:
   }
 };
 
-//! class for storing the information of chain (for decision making)
+//! class for storing the information of integration (for decision making)
 /*!
-    It is used to store the information when an accident happen with chain.status != 0.
+    It is used to store the information when an accident happen with Integrator.status != 0.
  */
-class chaininfo{
+class ErrorInfo{
 public:
   int  status;    ///< current status of integration
   int  intcount;  ///< current extrapolation sequence index when an accident happen
@@ -734,14 +734,14 @@ public:
   double eerr,eerr0;  ///< energy error (current and previous)
   double Ekin,Pot,W;  ///< kinetic energy, potential energy and time transformation function
   double terr;    ///< time error
-  double* data;   ///< chain data for backuping
+  double* data;   ///< Particle data for backuping
 
   //! constructor
   /*!
     Set all variables to infinity
     @param[in] n: number of particles
    */
-  chaininfo(const int n) {
+  ErrorInfo(const int n) {
     status = 0;
     const double infd = std::numeric_limits<double>::infinity();
     intcount = inti = i1 = i2 = -1;
@@ -764,18 +764,18 @@ public:
   }
   
   //! destructor
-  ~chaininfo() {
+  ~ErrorInfo() {
     if (data) delete[] data;
   }
 
-  //! print chain information
-  /*! Print chain information
+  //! print Integrator information
+  /*! Print Integrator information
       @param[in] fout: ofstream for printing
       @param[in] precision: printed precision for one variable
   */
   void print(std::ostream & fout, const int precision=10) {
     double inf=std::numeric_limits<double>::infinity();
-    fout<<"=======================Chain information============================\n";
+    fout<<"=======================Integrator information============================\n";
     fout<<std::setprecision(precision);
     if (ds    <inf) fout<<"step size: "<<ds<<std::endl;
     if (subds <inf) fout<<"sub-step size: "<<subds<<std::endl;
@@ -829,8 +829,8 @@ public:
 /*! Determine the slow-down factor due to the perturbation and internal force
     \f$ \kappa = k_0 / [F_{pert,max}/F_{inner}] \f$
  */
-class chainslowdown{
-template <class T> friend class chain;
+class SlowDown{
+template <class T> friend class Integrator;
 private:
     double kappa;          // slow-down factor
     double fpertsqmax;     // maximum perturbation force square recorded
@@ -843,7 +843,7 @@ private:
 
 public:
     //! defaulted constructor
-    chainslowdown(): kappa(1.0), fpertsqmax(0.0), fpertsqlast(0.0), Trecord(0.0), kref(1.0e-05), Tperi(0.0), finnersq(0.0), is_used(false) {}
+    SlowDown(): kappa(1.0), fpertsqmax(0.0), fpertsqlast(0.0), Trecord(0.0), kref(1.0e-05), Tperi(0.0), finnersq(0.0), is_used(false) {}
     
     //! Update maximum perturbation force \f$ F_{pert,max}\f$
     /*! Update maximum perturbation force and record this input (only last one is recorded)
@@ -928,28 +928,28 @@ public:
   It depend on the template class particle_. This particle_ class should contain public member functions for reading and writing mass, position and velocity (see sample in Particle::setPos(), Particle::setVel(), Particle::setMass(), Particle::getPos(), Particle::getVel(), Particle::getMass())
 
   The basic way to use ARC integration is shown as following:
-  1. Construct a chain class with template class particle_ and a parameter controller of \ref ARC::chainpars. (The \ref ARC::chainpars should be configured first before doing integration. see its document for detail).
-  2. Add existed particle 'A' (or a list of particles, or a chain type particle) into chain particle list chain.p using chain.addP(). Notice the chain.addP() only registers the particle A's memory address into chain.p and copy data into local array.
-  3. Initialize chain with chain.init(). Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \ref chain::p will be shifted from their original frame to their center-of-mass frame. The particle type member variable \ref chain.cm stores the center-of-mass data of these particles (the mass of \ref chain.cm is the total mass of all member particles).
-  4. Call integration functions (chain.Leapfrog_step_forward() or chain.extrapolation_integration()). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
-  5. After call integration functions, the particles are integrated to new time. Because in ARC method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in chain.extrapolation_integration() document).
-  6. Notice that after chain.init() and integration, the particles are always in the center-of-mass frame. If you want to shift them back to the original frame, the chain.center_shift_inverse() should be used. But after this function is used, you should use chain.center_shift() before the next integration. If you want the original partical address to be updated, copyback() should be called.
+  1. Construct a Integrator class with template class particle_ and a parameter controller of \ref ARC::Parameters. (The \ref ARC::Parameters should be configured first before doing integration. see its document for detail).
+  2. Add existed particle 'A' (or a list of particles, or a type particle) into Integrator particle list Integrator.p using Integrator.addP(). Notice the Integrator.addP() only registers the particle A's memory address into Integrator.p and copy data into local array.
+  3. Initialize Integrator with Integrator.init(). Notice this function is necessary to be called before integration. Also be careful that after this initialization, the positions and velocites of particles registered in \ref Integrator::p will be shifted from their original frame to their center-of-mass frame. The particle type member variable \ref Integrator.cm stores the center-of-mass data of these particles (the mass of \ref Integrator.cm is the total mass of all member particles).
+  4. Call integration functions (Integrator.Leapfrog_step_forward() or Integrator.extrapolation_integration()). The former use only Leapfrog method and the latter use extrapolation method to obtain high accuracy of integration.
+  5. After call integration functions, the particles are integrated to new time. Because in ARC method, the time is also integrated and cannot be predicted before integration, thus the iteration need to be done to get correct physical time you want (see detailed in Integrator.extrapolation_integration() document).
+  6. Notice that after Integrator.init() and integration, the particles are always in the center-of-mass frame. If you want to shift them back to the original frame, the Integrator.center_shift_inverse() should be used. But after this function is used, you should use Integrator.center_shift() before the next integration. If you want the original partical address to be updated, copyback() should be called.
 
   Because of time now is an integrated variable, the time after integration cannot be predicted. 
-  Thus if you want to stop the integration at a certain physical time, you need to use chain.extrapolation_integration() with dense output.
-  To get better accuracy of physical time from intepolation, the 4k sequences (set in chainpars.setEXP()) is strongly suggested to be used. 
+  Thus if you want to stop the integration at a certain physical time, you need to use Integrator.extrapolation_integration() with dense output.
+  To get better accuracy of physical time from intepolation, the 4k sequences (set in Parameters.setEXP()) is strongly suggested to be used. 
   If 4k sequences are used, the dense output method for GBS is used and the accuracy of time intepolation is close to the accuracy of integration.
-  Please check the document of chain.extrapolation_integration() for detail.
+  Please check the document of Integrator.extrapolation_integration() for detail.
  */
 template <class particle_>
-class chain: public particle_{
+class Integrator: public particle_{
   typedef particle_ particle;
   double3 *X;  ///< relative position 
   double3 *V;  ///< relative velocity
   double3 *acc; ///< acceleration   
   double3 *pf;  ///< perturber force
   double3 *dWdr; ///< \partial Omega/ \partial rk
-  int *list;   ///< chain index list
+  int *list;   ///< Integrator index list
   ///< acc, pf, dWdr keep the same particle order as particle list p.
 
   //integration parameters=======================================//
@@ -963,7 +963,7 @@ class chain: public particle_{
   double Pot;   ///< potential
 
   //number =======================================================//
-  int num;      ///< total number of chain particles
+  int num;      ///< total number of particles
   int nmax;     ///< maximum number 
 
   //monitor flags
@@ -971,33 +971,33 @@ class chain: public particle_{
   int  F_Porigin;  ///< indicate whether particle is shifted back to original frame (1: original frame: 0: center-of-mass frame; 2: only position is original frame)
   bool F_read;     ///< indicate whether read() funcion is used
 
-  chainlist<particle> p;    ///< particle list
+  ParticleList<particle> p;    ///< particle list
 
 public:
 
   //particle cm;              ///< center mass particle
-  chaininfo *info;          ///< chain information
+  ErrorInfo *info;          ///< Integrator information
 
   // slowdown control
-  chainslowdown slowdown;      ///< chain slowdown controller
+  SlowDown slowdown;      ///< Integrator slowdown controller
 
 #ifdef ARC_PROFILE
-  chainprofile profile;
+  Profile profile;
 #endif
   
   //! Constructor
-  /*! Construct chain with allocated memory
+  /*! Construct Integrator with allocated memory
       @param [in] n: maximum number of particles (will be used to allocate memory)
    */
-  chain(const int n):   num(0), info(NULL), slowdown(){
+  Integrator(const int n):   num(0), info(NULL), slowdown(){
     nmax=0;
     allocate(n);
   }
 
   //! Constructor
-  /*! Construct chain without memory allocate, need to call allocate() later. 
+  /*! Construct Integrator without memory allocate, need to call allocate() later. 
    */
-  chain(): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_read(false), info(NULL), slowdown() {}
+  Integrator(): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_read(false), info(NULL), slowdown() {}
 
   //! Allocate memory
   /*! Allocate memory for maximum particle number n
@@ -1005,7 +1005,7 @@ public:
    */
   void allocate(const int n) {
     if (nmax) {
-      std::cerr<<"Error: chain memory allocation is already done\n";
+      std::cerr<<"Error: Integrator memory allocation is already done\n";
       abort();
     }
     nmax = n;
@@ -1052,7 +1052,7 @@ public:
   }
 
   //! destructor
-  ~chain() {
+  ~Integrator() {
     if (nmax>0) {
       delete[] X;
       delete[] V;
@@ -1074,16 +1074,16 @@ private:
 //  */
 //  void update_num(const int n) {
 //    if (n>nmax) {
-//      std::cerr<<"Error: particle number "<<n<<" is larger than Chain number limit "<<num<<std::endl;
+//      std::cerr<<"Error: particle number "<<n<<" is larger than Integrator number limit "<<num<<std::endl;
 //      abort();
 //    }
 //    else{
-//      num = n; ///< Update Chain number
+//      num = n; ///< Update Integrator number
 //    }
 //  }
 
-  //! generate the chain list 
-  /*! generate the chain list (#list) by N^2 searching the particle list (#p)
+  //! generate the Integrator list 
+  /*! generate the Integrator list (#list) by N^2 searching the particle list (#p)
   */
   void generate_list() {
     bool *is_checked=new bool[num];
@@ -1093,11 +1093,11 @@ private:
       // initial rjk; mark checked particle
       is_checked[inext] = true;
 
-      // initial chain_mem
+      // initial Integrator_mem
       list[i]=inext;
       int inow=inext;
     
-      // make chain
+      // make Integrator
       double rmin=HUGE;
 //      bool first=true;
       for (int j=1; j<num; j++) {
@@ -1125,7 +1125,7 @@ private:
   }
 
   //! Calculate relative position and velocity
-  /*! Get chain member relative position #X and velocity #V based on #list
+  /*! Get Integrator member relative position #X and velocity #V based on #list
   */
   void calc_XV() {
     for (int i=0;i<num-1;i++) {
@@ -1154,12 +1154,12 @@ private:
   //! Calculate acceleration (potential) and transformation parameter
   /*! Get distance Matrix, acceleration, dm/dr, potential and transformation parameter
       based on particle masses in #p, using current #X, #V
-      (notice the acceleration and dW/dr array index follow particle p to avoid additional shift when chain list change).
+      (notice the acceleration and dW/dr array index follow particle p to avoid additional shift when Integrator list change).
 
       @param [in] fforce: force function pointer (::pair_AW)
       @param [in] pars: extra parameters used in fforce
   */
-  //      @param [in] resolve_flag: flag to determine whether to resolve sub-chain particles for force calculations. (defaulted false)
+  //      @param [in] resolve_flag: flag to determine whether to resolve sub-Integrator particles for force calculations. (defaulted false)
   template<class extpar_>
   void calc_rAPW (pair_AW<particle,extpar_> fforce, extpar_ *pars) {
 #ifdef ARC_PROFILE
@@ -1227,7 +1227,7 @@ private:
         // force calculation function from k to j
         int stat = fforce(At, Pt, dWt, Wt, xjk, *pj, *pk, pars);
         if (stat!=0&&info==NULL) {
-          info = new chaininfo(num);
+          info = new ErrorInfo(num);
           info->status = stat;
           info->i1 = lj;
           info->i2 = lk;
@@ -1235,7 +1235,7 @@ private:
 
 //        // resolve sub-chain
 //        if(resolve_flag && p.isChain(lk)) {
-//          chain<particle, int_par>*ck = p.getSub(lk);
+//          Integrator<particle, int_par>*ck = p.getSub(lk);
 //          // center shift to current frame
 //          ck->center_shift_inverse_X();
 //          const int cn = ck->p.getN();
@@ -1349,8 +1349,8 @@ private:
 
   //! resolve X and V
   /*! resolve relative #X, #V to physical x, v and calculated the averaged velocity of old and new values.
-      Notice the center-of-mass particle mass in Chain.cm is used.
-      The total mass of particles should be consistent with particle::getMass(). Otherwise update Chain.cm first.
+      Notice the center-of-mass particle mass in Integrator.cm is used.
+      The total mass of particles should be consistent with particle::getMass(). Otherwise update Integrator.cm first.
       @param [out] ave_v: averaged velocity array (return values)
    */
   void resolve_XV(double3* ave_v=NULL) {
@@ -1434,8 +1434,8 @@ private:
 
   //! Resolve X
   /*! Resolve relative #X to physical x (center-of-mass frame)
-      Notice the center-of-mass particle mass in #Chain.cm is used.
-      The total mass of particles should be consistent with particle::getMass(). Otherwise update Chain.cm first.
+      Notice the center-of-mass particle mass in #Integrator.cm is used.
+      The total mass of particles should be consistent with particle::getMass(). Otherwise update Integrator.cm first.
    */
   void resolve_X() {
     // resolve current X
@@ -1481,8 +1481,8 @@ private:
 
   //! Resolve V
   /*! Resolve relative velocity #V to physical  v (center-of-mass frame)
-    Notice the center-of-mass particle mass in Chain.cm is used.
-    The total mass of particles should be consistent with particle::getMass(). Otherwise update Chain.cm first.
+    Notice the center-of-mass particle mass in Integrator.cm is used.
+    The total mass of particles should be consistent with particle::getMass(). Otherwise update Integrator.cm first.
    */
   void resolve_V() {
     // resolve current V
@@ -1530,7 +1530,7 @@ private:
   //! Perturber force calculation
   *! Get perturber force based on porturber list #pext
     @param [in] t: physical time for prediction
-    @param [in] resolve_flag: whether resolve perturber member if it is a chain 
+    @param [in] resolve_flag: whether resolve perturber member if it is a Integrator 
     \return flag: true: pertubers exist. false: no perturbers
   *
   bool pert_force(const double t, const bool resolve_flag=false) {
@@ -1539,7 +1539,7 @@ private:
 #endif
     // safety check
     if (pars->pp_Ap==NULL) {
-      std::cerr<<"Error: acceleration calculation function chainpars.pp_Ap is not set!\n";
+      std::cerr<<"Error: acceleration calculation function Parameters.pp_Ap is not set!\n";
       abort();
     }
     const int np = pext.getN();
@@ -1559,9 +1559,9 @@ private:
             const double* xi=pi->getPos();
 //          const double  mi=pi->getMass();
           
-            // check sub-chain system
-            if (resolve_flag && pext.isChain(j)) {
-                chain<particle, int_par>*cj = pext.getSub(j);
+            // check sub-Integrator system
+            if (resolve_flag && pext.isIntegrator(j)) {
+                Integrator<particle, int_par>*cj = pext.getSub(j);
                 // get center-of-mass position for shifting;
                 const double* xc=cj->particle::getPos();
                 const int cn = cj->pext.getN();
@@ -1602,7 +1602,7 @@ private:
 */   
 
   //! Update #list order based on the relative distances
-  /*! Update chain #list order based on current relative distance #X
+  /*! Update Integrator #list order based on current relative distance #X
     \return flag: if link is modified, return true
    */
   bool update_link(){
@@ -1767,7 +1767,7 @@ private:
   }
 
   //! Center of mass shift 
-  /*! Shift positions and velocities of N (#num) particles (#p) based on their center-of-mass, write center-of-mass particle to chain
+  /*! Shift positions and velocities of N (#num) particles (#p) based on their center-of-mass, write center-of-mass particle to Integrator
   */
   void center_shift_init() {
     // center mass
@@ -1814,7 +1814,7 @@ private:
   }
 
   //! Inversed center of mass shift for #X
-  /*! Shift back positions of N (num) particles (p) based on chain center-of-mass
+  /*! Shift back positions of N (num) particles (p) based on Integrator center-of-mass
   */
   void center_shift_inverse_X() {
     if (F_Porigin>0) {
@@ -1833,7 +1833,7 @@ private:
   }
 
   //! Center of mass shift for #X
-  /*! Shift positions and velocities of N (num) particles (p) based on chain center-of-mass
+  /*! Shift positions and velocities of N (num) particles (p) based on Integrator center-of-mass
   */
   void center_shift_X() {
     if (F_Porigin==0) {
@@ -1864,9 +1864,9 @@ private:
     @param [in] nmax: maximum difference level (count from 1)
     @param [in] i: current position of dataset corresponding to the binomial coefficients (count from 0 as starting point)
     @param [in] ndiv: substep number
-    @param [in] pars: chainpars controller
+    @param [in] pars: Parameters controller
   */
-    void mid_diff_calc(double **dpoly, const int nmax, const int i, const int ndiv, chainpars &pars) {
+    void mid_diff_calc(double **dpoly, const int nmax, const int i, const int ndiv, Parameters &pars) {
     // safety check
     if (dpoly!=NULL) {
       // difference level should not exceed the point number
@@ -1935,9 +1935,9 @@ private:
       @param [in] nmax: maximum difference level (count from 1)
       @param [in] i: current position of data corresponding to the binomial coefficients (count from 0 as starting point)              
       @param [in] ndiv: substep number
-      @param [in] pars: chainpars controller
+      @param [in] pars: Parameters controller
    */
-    void edge_diff_calc(double **dpoly, const int nmax, const int i, const int ndiv, const chainpars &pars) {
+    void edge_diff_calc(double **dpoly, const int nmax, const int i, const int ndiv, const Parameters &pars) {
     if (dpoly!=NULL) {
       // safety check
 //      if (!tflag) {
@@ -2050,7 +2050,7 @@ private:
 
 //  // collect accident information
 //  void info_collection(const int status, const int intcount=-1, const double perr=-1.0, const double perr0=-1.0, const double eerr=-1.0, const double eerr0=-1.0, const double terr=-1.0, const int i1=-1, const int i2=-1, const int inti=-1) {
-//    info = new chaininfo(num);
+//    info = new ErrorInfo(num);
 //    info->status = 1;
 //    info->intcount = intcount+1;
 //    info->perr = perr;
@@ -2115,14 +2115,14 @@ public:
   //! Calculate physical time step for X
   /*! Calculate physical time step dt for #X based on ds
      @param [in] ds:  integration step size (not physical time step) 
-     @param [in] pars: chainpars controller
+     @param [in] pars: Parameters controller
      \return     dt:  physical integration time step for #X
   */
-  double calc_dt_X(const double ds, const chainpars &pars) {
+  double calc_dt_X(const double ds, const Parameters &pars) {
     // determine the physical time step
     double dt = ds / (pars.alpha * (Ekin + Pt) + pars.beta * w + pars.gamma);
     if (std::abs(dt) < pars.dtmin && info==NULL) {
-      info=new chaininfo(num);
+      info=new ErrorInfo(num);
       info->status = 4;
       info->subdt = dt;
     }
@@ -2132,10 +2132,10 @@ public:
   //! Calculate physical time step for V
   /*! Calculate physical time step dt for #V based on ds
      @param [in] ds:  step size s (not physical time step) 
-     @param [in] pars: chainpars controllers
+     @param [in] pars: Parameters controllers
      \return     dt:  physical integration time step for #V
   */
-    double calc_dt_V(const double ds, const chainpars &pars) {
+    double calc_dt_V(const double ds, const Parameters &pars) {
     // determine velocity integration time step
     return ds / (pars.gamma - pars.alpha * Pot + pars.beta * W);
   }
@@ -2143,10 +2143,10 @@ public:
 
   //! Calculate next step approximation based on min(X/(gV),V/(gA))
   /*!
-    @param[in] pars: chainpars controllers
+    @param[in] pars: Parameters controllers
     \return: approximation of step size ds
   */
-  double calc_next_step_XVA(const chainpars &pars) {
+  double calc_next_step_XVA(const Parameters &pars) {
     double dsXV=std::numeric_limits<double>::max();
     double dsVA=std::numeric_limits<double>::max();
     for (int i=0; i<num-1; i++) {
@@ -2161,14 +2161,14 @@ public:
 
   //! Calculate next step approximation based on custom defined timescale for two-body system
   /*!
-    The user-defined two-body timescale function with ::ARC::pair_T type will be performed on all neighbor pairs in chain.
-    Then the minimum timescale \f$ T_m\f$ is selected to calculate next step size: \f$ ds = eps T_m |Pt|\f$, where \f$eps\f$ is ::chainpars.auto_step_eps set in chainpars.setAutoStep().
-    @param [in] pars: chainpars controllers
+    The user-defined two-body timescale function with ::ARC::pair_T type will be performed on all neighbor pairs in Integrator.
+    Then the minimum timescale \f$ T_m\f$ is selected to calculate next step size: \f$ ds = eps T_m |Pt|\f$, where \f$eps\f$ is ::Parameters.auto_step_eps set in Parameters.setAutoStep().
+    @param [in] pars: Parameters controllers
     @param [in] extpars: extra parameters used in pt
     \return approximation of step size ds
    */
-  template<class chainpars_, class extpar_>
-  double calc_next_step_custom(const chainpars_& pars, extpar_* extpars) {
+  template<class Parameters_, class extpar_>
+  double calc_next_step_custom(const Parameters_& pars, extpar_* extpars) {
       pair_T<particle,extpar_> pp_T = reinterpret_cast<pair_T<particle,extpar_>>(pars.pp_T);
 #ifdef ARC_DEBUG
       if(std::type_index(typeid(pp_T))!=*pars.pp_T_type) {
@@ -2177,7 +2177,7 @@ public:
       }
       //safety check
       if (pp_T==NULL) {
-          std::cerr<<"Error: two-body timescale calculator function chainpars.pp_T is not set\n";
+          std::cerr<<"Error: two-body timescale calculator function Parameters.pp_T is not set\n";
           abort();
       }
 #endif
@@ -2192,7 +2192,7 @@ public:
   }
 
   //! Add particle
-  /*! Add one particle (address pointer) into particle list #p and copy it (see ARC::chainlist.add())
+  /*! Add one particle (address pointer) into particle list #p and copy it (see ARC::ParticleList.add())
      @param [in] a: new particle
    */
   template <class Tp>
@@ -2203,18 +2203,18 @@ public:
     F_Pmod=true;
   }
   
-  ////! Add chain as a particle in #p
-  ///*! Add one chain (address pointer) into particle list #p (see ARC::chainlist.add())
-  //  @param [in] a: new chain particle
+  ////! Add Integrator as a particle in #p
+  ///*! Add one Integrator (address pointer) into particle list #p (see ARC::ParticleList.add())
+  //  @param [in] a: new Integrator particle
   // */
-  //void addP(chain<particle> &a) {
+  //void addP(Integrator<particle> &a) {
   //  if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
   //  p.add(a);
   //  F_Pmod=true;
   //}
   
   //! Add a list of particle
-  /*! Add a list of particles addresses and copy (see ARC::chainlist.add())
+  /*! Add a list of particles addresses and copy (see ARC::ParticleList.add())
     @param [in] n: number of particles need to be added
     @param [in] a: array of new particles
    */
@@ -2238,7 +2238,7 @@ public:
   }
 
   //! remove one particle
-  /*! remove one particle from #p (see ARC::chainlist.remove())
+  /*! remove one particle from #p (see ARC::ParticleList.remove())
      @param [in] i: particle index in #p needs to be removed
      @param [in] option: position update option: 
                  - true: shift last particle to current position (defaulted);
@@ -2250,9 +2250,9 @@ public:
   }
 
   //! Data Dumping to file function
-  /*! Dump chain data into file (binary format) using fwrite. 
+  /*! Dump Integrator data into file (binary format) using fwrite. 
       The first variable in the dumping data is particle number #num
-      The second is the particle chain list index array #list
+      The second is the particle Integrator list index array #list
       The third is one dimensional array data storing #t, #B, #w, #X, #V generated by using backup().
       The forth is center of mass particle data
       The fifth is one dimensional array storing the masses of particles
@@ -2264,7 +2264,7 @@ public:
     else {
       // number of particles
       fwrite(&num,sizeof(int),1,pout);
-      // chain list
+      // Integrator list
       fwrite(list,sizeof(int),num,pout);
       // data
       const int dsize=6*num-3;
@@ -2286,10 +2286,10 @@ public:
 
       fclose(pout);
 
-//      std::cerr<<"Chain dumping:\nNumber of stars ="<<num<<std::endl;
-//      std::cerr<<"Chain list index =";
+//      std::cerr<<"Integrator dumping:\nNumber of stars ="<<num<<std::endl;
+//      std::cerr<<"Integrator list index =";
 //      for (int i=0; i<num;i++) std::cerr<<list[i]<<" ";
-//      std::cerr<<"\nChain parameters t, B, w, X[][], V[][]= ";
+//      std::cerr<<"\nIntegrator parameters t, B, w, X[][], V[][]= ";
 //      for (int i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
 //      std::cerr<<"\nMass of particles =";
 //      for (int i=0; i<num;i++) std::cerr<<pmass[i]<<" ";
@@ -2300,16 +2300,16 @@ public:
     }
   }
 
-  // Dump all data including chain, chainpars and necessary information (chain.smpars and #ds)
+  // Dump all data including Integrator, Parameters and necessary information (Integrator.smpars and #ds)
   /*
-    call chain.dump, chain.dump
+    call Integrator.dump, Integrator.dump
    */
   
 
   //! Data reading from file function
-  /*! Read chain data from binary file generated by dump(). 
+  /*! Read Integrator data from binary file generated by dump(). 
       The first variable in the dumping data is particle number #num
-      The second is the particle chain list index array #list
+      The second is the particle Integrator list index array #list
       The third is one dimensional array data storing #t, #B, #w, #X, #V generated by using backup().
       The forth is center of mass particle data
       The fifth is one dimensional array storing the masses of particles
@@ -2335,10 +2335,10 @@ public:
       }
       num = n;
 
-      // chain list
+      // Integrator list
       rn = fread(list,sizeof(int),n,pin);
       if(rn<n) {
-        std::cerr<<"Error: reading chain list fails, required number of data is "<<n<<", only got "<<rn<<"!\n";
+        std::cerr<<"Error: reading Integrator list fails, required number of data is "<<n<<", only got "<<rn<<"!\n";
         abort();
       }
       
@@ -2347,7 +2347,7 @@ public:
       double *dtemp=new double[dsize+1];
       rn = fread(dtemp,sizeof(double),dsize+1,pin);
       if(rn<=dsize) {
-        std::cerr<<"Error: reading chain data fails, required data size is "<<dsize+1<<", only got "<<rn<<"!\n";
+        std::cerr<<"Error: reading Integrator data fails, required data size is "<<dsize+1<<", only got "<<rn<<"!\n";
         abort();
       }
       
@@ -2400,10 +2400,10 @@ public:
 
       fclose(pin);
 
-//      std::cerr<<"Chain loading:\nNumber of stars ="<<n<<std::endl;
-//      std::cerr<<"Chain list index =";
+//      std::cerr<<"Integrator loading:\nNumber of stars ="<<n<<std::endl;
+//      std::cerr<<"Integrator list index =";
 //      for (int i=0; i<n;i++) std::cerr<<list[i]<<" ";
-//      std::cerr<<"\nChain parameters t, B, w, X[][], V[][]= ";
+//      std::cerr<<"\nIntegrator parameters t, B, w, X[][], V[][]= ";
 //      for (int i=0; i<dsize+1;i++) std::cerr<<dtemp[i]<<" ";
 //      std::cerr<<"\nMass of particles =";
 //      for (int i=0; i<n;i++) std::cerr<<pmass[i]<<" ";
@@ -2420,7 +2420,7 @@ public:
 
   //! Read particle data from file
   /*! Read particle data using fread (binary format). Number of particles should be first variable, then the data of particles (the data structure should be consistent with particle class).
-      Notice if read is used, the particle data memory is allocated inside chainlist of chain.
+      Notice if read is used, the particle data memory is allocated inside ParticleList of Integrator.
     @param [in] filename: file to read the data
    */
   void readP(const char* filename) {
@@ -2453,11 +2453,11 @@ public:
   // */
   //void addPext(particle &a) { pext.add(a);}
   // 
-  ////! Add one chain as a perturber particle
-  ///*! Add one chain as a perturber particle (address pointer) into #pext
-  //   @param [in] a: the chain perturber 
+  ////! Add one Integrator as a perturber particle
+  ///*! Add one Integrator as a perturber particle (address pointer) into #pext
+  //   @param [in] a: the Integrator perturber 
   // */
-  //void addPext(chain<particle,int_par> &a) { pext.add(a);}
+  //void addPext(Integrator<particle,int_par> &a) { pext.add(a);}
   // 
   ////! Add a list of perturber particles
   ///*! Add a list of perturber particles (address pointer) into #pext
@@ -2476,7 +2476,7 @@ public:
   //void removePext(const int i, bool option=true) { pext.remove(i,option); }
   
   //! Indicator of changes in particle list #p
-  /*! Reture true if particle list is modifed, in this case, the chain may need to be initialized again
+  /*! Reture true if particle list is modifed, in this case, the Integrator may need to be initialized again
       \return true: Particle list is modified
   */
   bool isPmod() const { return F_Pmod; }
@@ -2505,26 +2505,26 @@ public:
   //  return pext[i];
   //}
 
-  //! Get current number of chain members
+  //! Get current number of Integrator members
   /*!
     Notice this is not always the number of particles.
     If AddP(), removeP() are used, init() should be called first to get consistent number.
-    \return: number of chain members
+    \return: number of Integrator members
   */
   const int getN() const{
     return num;
   }
 
   //! Initialization
-  /*! Initialize chain based on particle list #p. After this function, positions and velocities of particles in #p will be shifted to their center-of-mass frame. \n
-      Chain order list #list, relative position #X, velocity #V, initial system energy #Pt and initial time transformation parameter #w are calculated.
+  /*! Initialize Integrator based on particle list #p. After this function, positions and velocities of particles in #p will be shifted to their center-of-mass frame. \n
+      Integrator order list #list, relative position #X, velocity #V, initial system energy #Pt and initial time transformation parameter #w are calculated.
       The particle modification indicator (isPmod()) will be set to false.
     @param [in] time: current time of particle system
-    @param [in] pars: chainpars controller
+    @param [in] pars: Parameters controller
     @param [in] int_pars: extra parameters used in f
   */
   template<class extpar_>
-  void init(const double time, const chainpars &pars, extpar_* int_pars) {
+  void init(const double time, const Parameters &pars, extpar_* int_pars) {
     pair_AW<particle,extpar_> f = reinterpret_cast<pair_AW<particle,extpar_>>(pars.pp_AW);
     if(std::type_index(typeid(f))!=*pars.pp_AW_type) {
         std::cerr<<"Error: acceleration function type not matched the data type\n";
@@ -2555,7 +2555,7 @@ public:
         // update_num(p.getN());
         num = p.getN();
     
-        // Generate chain link list
+        // Generate Integrator link list
         generate_list();
 
         // set center-of-mass
@@ -2614,7 +2614,7 @@ public:
   }
 
   ////! link interaction parameter class
-  ///*! link interaction parameter clsss to chain for the acceleration calculation functions
+  ///*! link interaction parameter clsss to Integrator for the acceleration calculation functions
   //  @param[in] par: int_par type interaction parameter class. The address will be stored (not copy)
   // */
   //void link_int_par(int_par &par) {
@@ -2686,8 +2686,8 @@ public:
     }      
   }
 
-  //! Backup chain data (#t, #Pt, #w, #X, #V)
-  /*! Backup chain data to one dimensional array. 
+  //! Backup Integrator data (#t, #Pt, #w, #X, #V)
+  /*! Backup Integrator data to one dimensional array. 
       - #t : current physical time
       - #Pt : current time momentum (system binding energy)
       - #w : current time transformation parameter
@@ -2709,14 +2709,14 @@ public:
     std::memcpy(&db[3+ndata], V[0], ndata*sizeof(double));
   }
      
-  //! Restore chain data (#t, #Pt, #w, #X, #V)
+  //! Restore Integrator data (#t, #Pt, #w, #X, #V)
   /*! Restore integration data from one dimensional array, the order of data should be #t, #Pt, #w, #X[#num][3], #V[#num][3]
       - #t : current physical time
       - #Pt : current time momentum (system binding energy)
       - #w : current time transformation parameter
       - #X : current relative position array
       - #V : current relative velocite array
-     @param [in] db: one dimensional array that storing chain data (array size should be 6*#num-3) where #num is the total number of particles in #p
+     @param [in] db: one dimensional array that storing Integrator data (array size should be 6*#num-3) where #num is the total number of particles in #p
    */
   void restore(double* db) {
     const int dsize=6*num-3;
@@ -2737,7 +2737,7 @@ public:
       The positions and velocities of particles in #p will be integrated in the center-of-mass frame
       @param [in] s: Integration step size
       @param [in] n: number of sub-steps needed to be divided. Integration step size is (\a s/\a n) and do \a n times as: X(s/2n)V(s/n)X(s/n)V(s/n)..X(s/2n)
-      @param [in] pars: chainpars controller
+      @param [in] pars: Parameters controller
       @param [in] int_pars: extra parameters used in f or fpert.
       @param [in] pert: perturber particle array
       @param [in] pertf: perturrber force array for prediction
@@ -2746,12 +2746,12 @@ public:
       @param [in] dpoly: two dimensional array for storing 0 to \a (ndmax-*)'th order central difference of physical time #t at \a s/2 as a function of \a s, array size should be [ndmax][1]
       @param [in] ndmax: dpoly array size and the maximum difference is ndmax-*
   */             
-//               recur_flag: flag to determine whether to resolve sub-chain particles for force calculations. notice this require the sub-chain to be integrated to current physical time. Thus is this a recursion call (tree-recusion-integration)
+//               recur_flag: flag to determine whether to resolve sub-Integrator particles for force calculations. notice this require the sub-Integrator to be integrated to current physical time. Thus is this a recursion call (tree-recusion-integration)
 //               upforce: void (const particle * p, const particle *pext, double3* force). function to calculate force based on p and pext, return to force
   template<class pertparticle_, class pertforce_, class extpar_>
   void Leapfrog_step_forward(const double s, 
                              const int n, 
-                             chainpars &pars,
+                             Parameters &pars,
                              extpar_ *int_pars = NULL,
                              pertparticle_* pert = NULL, 
                              pertforce_* pertf = NULL, 
@@ -2845,13 +2845,13 @@ public:
 #ifdef ARC_PROFILE
       profile.t_lf += get_wtime();
 #endif
-      // check sub-chain 
+      // check sub-Integrator 
       const int nct = p.getNchain();
       if (recur_flag&&nct>0) {
-        // get chainlist table
-        chain<particle,int_par> **clist = new chain<particle,int_par>*[nct];
+        // get ParticleList table
+        Integrator<particle,int_par> **clist = new Integrator<particle,int_par>*[nct];
 
-        // looping to link sub-chains
+        // looping to link sub-Integrators
         const int nt = p.getN();
 
         int k = 0;
@@ -2907,7 +2907,7 @@ public:
       // update slow-down
       updateSlowDownFpert();
 
-      // Update chain list order if necessary, update list, X, V (dependence: p.x, X, V)
+      // Update Integrator list order if necessary, update list, X, V (dependence: p.x, X, V)
       if (num>2&&check_flag==2) update_link();
 
       // Get time step dt(V) (dependence: Pot, W)
@@ -3003,7 +3003,7 @@ public:
 //    std::cerr<<std::setw(WIDTH)<<Ekin<<std::setw(WIDTH)<<Pot<<std::setw(WIDTH)<<Pt+Ekin-Pot<<std::setw(WIDTH)<<Pt<<std::setw(WIDTH)<<w<<std::endl;
 //#endif
       
-    // update chain list order and calculate potential
+    // update Integrator list order and calculate potential
     if(num>2&&check_flag==1)  update_link();
 
     // clear memory
@@ -3017,23 +3017,23 @@ public:
   /*! Use extrapolation method to get highly accurate integration based on Leapfrog_step_forward().
     The auto-determination of extrapolation orders based on the accuracy requirement is used. 
      @param [in] ds: integration step size
-     @param [in] pars: chainpars controller
+     @param [in] pars: Parameters controller
      @param [in] toff: ending physical time
                       - if value is negative, it means integration will be done with fixed step size \a ds
-                      - if value is positive and after step \a ds, the ending physical time is larger than \a toff, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, the data are kept as initial values. Instead, the returning value is the ds modification factor (negative value), which can be used to modified current \a ds and redo the integration by calling this function again with new ds to approach ending physical time of \a toff. Notice if the required time sychronization criterion (set in chainpars.setEXP()) is small (<phase and energy error criterion), several iteration may be needed to get the physical time below this criterion.
+                      - if value is positive and after step \a ds, the ending physical time is larger than \a toff, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, the data are kept as initial values. Instead, the returning value is the ds modification factor (negative value), which can be used to modified current \a ds and redo the integration by calling this function again with new ds to approach ending physical time of \a toff. Notice if the required time sychronization criterion (set in Parameters.setEXP()) is small (<phase and energy error criterion), several iteration may be needed to get the physical time below this criterion.
      @param [in] int_pars: extra parameters used in f or fpert.
-     @param [in] pert: perturber particle array. Notice the c.m. of chain also need to be updated during perturbation force calculation, thus it is convinient to set first perturber as chain c.m.
-     @param [in] pertf: perturrber force array for prediction. For the same purpose as above, the first force can be set as chain c.m. force
+     @param [in] pert: perturber particle array. Notice the c.m. of Integrator also need to be updated during perturbation force calculation, thus it is convinient to set first perturber as Integrator c.m.
+     @param [in] pertf: perturrber force array for prediction. For the same purpose as above, the first force can be set as Integrator c.m. force
      @param [in] npert: number of perturbers
      @param [in] err_ignore: if true, force integration and ignore error criterion (default false)
      \return factor
             - if factor is positive, it is optimized step size modification factor for next step (\a ds *= factor)
             - if factor is negative and \a toff>0; the -factor is used for calculate new ds' = -factor * \a ds. Thus this function should be called again with new step size ds' and the new result should have ending physical time close to \a toff.
-            - if factor is zero, maximum extrapolation sequence index (accuracy order/iteration times) is fixed (\ref ARC::chainpars) and err_ingore is false, it means the error criterion cannot be satisfied with current maximum sequence index. In this case no integration is done and the data are kept as initial values. User should reduce the integration step and re-call this function.
+            - if factor is zero, maximum extrapolation sequence index (accuracy order/iteration times) is fixed (\ref ARC::Parameters) and err_ingore is false, it means the error criterion cannot be satisfied with current maximum sequence index. In this case no integration is done and the data are kept as initial values. User should reduce the integration step and re-call this function.
    */
   template<class pertparticle_, class pertforce_, class extpar_>
   double extrapolation_integration(const double ds, 
-                                   chainpars &pars,
+                                   Parameters &pars,
                                    const double toff = -1, 
                                    extpar_ *int_pars = NULL,
                                    pertparticle_* pert = NULL, 
@@ -3188,7 +3188,7 @@ public:
         // Using Rational interpolation method
         else EP::rational_extrapolation(dn,dtemp,step,dsize,intcount);
 
-        // set final results back to chain array
+        // set final results back to Integrator array
         restore(dn[intcount]);
  
         // resolve particle
@@ -3255,7 +3255,7 @@ public:
             // in the case of serious energy error, quit the simulation and dump the data
             if (eerr*std::min(1.0,std::abs(Pt))>100.0*error) {
               reset_flag=true;
-              info=new chaininfo(num);
+              info=new ErrorInfo(num);
               info->status=1;
               info->intcount = intcount;
               info->ds = ds;
@@ -3273,7 +3273,7 @@ public:
       if (intcount == itermax) {
         if((cxerr < error && eerr < error) || err_ignore) break;
         reset_flag=true;
-        info=new chaininfo(num);
+        info=new ErrorInfo(num);
         info->status=2;
         info->intcount = intcount;
         info->ds = ds;
@@ -3485,7 +3485,7 @@ public:
           // safety check
           if (tpre > tsi[1]||tpre < tsi[0]) {
             reset_flag=true;
-            info = new chaininfo(num);
+            info = new ErrorInfo(num);
             info->status = 5;
             info->intcount = intcount;
             info->ds = ds;
@@ -3510,7 +3510,7 @@ public:
           find_root_count++;
           if (find_root_count>100) {
             reset_flag=true;
-            info = new chaininfo(num);
+            info = new ErrorInfo(num);
             info->status = 3;
             info->intcount = intcount;
             info->ds = ds;
@@ -3611,7 +3611,7 @@ public:
 #ifdef ARC_PROFILE
       profile.t_newdt += get_wtime();
 #endif
-      // update chain link order
+      // update Integrator link order
       if(num>2) update_link();
     }
 
@@ -3692,16 +3692,16 @@ public:
     return W;
   }
 
-  //! Get chain list
-  /*! Obtain the chain list index ordered by the nearest distances of particles.
-    @param[out] indexlist: integer array to store the chain list (size of num)
+  //! Get Integrator list
+  /*! Obtain the Integrator list index ordered by the nearest distances of particles.
+    @param[out] indexlist: integer array to store the Integrator list (size of num)
    */
   void getList(int* indexlist) {
     std::memcpy(indexlist,list,num*sizeof(int));
   }
   
-  //! print chain data
-  /*! Print chain data 
+  //! print Integrator data
+  /*! Print Integrator data 
       @param[in] fout: ofstream for printing
       @param[in] precision: printed precision for one variable
       @param[in] width: printing width for one variable
@@ -3766,11 +3766,11 @@ public:
 
 };
 
-//! Generalized list to store chain and particle members
+//! Generalized list to store Integrator and particle members
 /*! A list that storing particle memory addresses and their copy (based on template class particle_)
  */
 template <class particle_>
-class chainlist{
+class ParticleList{
   typedef particle_ particle;
   int num; //!< number of current particles in the list #p
   int nmax; //!< maximum number of particles allown to store
@@ -3786,12 +3786,12 @@ public:
   //! Constructor 
   /*! Set current particle number to zero, need to use allocate() to allocate memory for storing particle addresses, or load() to point to exited particle array, or read() to get particle data from a file
    */
-  chainlist(): num(0), nmax(0), p(NULL), data(NULL), alloc_flag(false) {};
+  ParticleList(): num(0), nmax(0), p(NULL), data(NULL), alloc_flag(false) {};
   
   //! Constructor with maximum number of particle \a n
   /*! Set maximum particle number to \a n and allocate memory for #p to storing the particle addresses (maximum \a n)
    */
-  chainlist(const int n) {
+  ParticleList(const int n) {
       alloc_flag = false;
       allocate(n); 
   }
@@ -3808,7 +3808,7 @@ public:
         delete[] p;
         delete[] data;
 #ifdef ARC_DEBUG
-        std::cerr<<"Warning!: chainlist re-init, all current particle data are lost!\n";
+        std::cerr<<"Warning!: ParticleList re-init, all current particle data are lost!\n";
 #endif
     }
     p=new particle*[n];
@@ -3858,7 +3858,7 @@ public:
   }
 
   //! Destructor
-  ~chainlist() {
+  ~ParticleList() {
     if (alloc_flag>0) {
       //if (alloc_flag) 
       //  for (int i=0;i<num;i++)
@@ -3910,11 +3910,11 @@ public:
   template <class Tp>
   void add(const Tp &a) {
     //if (alloc_flag) {
-    //  std::cerr<<"Error: chainlist already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
+    //  std::cerr<<"Error: ParticleList already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
     //  abort();
     //}
     //if(alloc_flag) {
-    //    std::cerr<<"Error: chainlist already read data from file, no new particle address can be appended!\n";
+    //    std::cerr<<"Error: ParticleList already read data from file, no new particle address can be appended!\n";
     //    abort();
     //}
     if (num<nmax) {
@@ -3924,7 +3924,7 @@ public:
       num++;
     }
     else {
-      std::cerr<<"Error: chainlist overflow! maximum number is "<<nmax<<std::endl;
+      std::cerr<<"Error: ParticleList overflow! maximum number is "<<nmax<<std::endl;
       abort();
     }
   }
@@ -3938,11 +3938,11 @@ public:
   template<class Tp>
   void add(const int n, Tp a[]) {
     //if(alloc_flag) {
-    //    std::cerr<<"Error: chainlist already read data from file, no new particle address can be appended!\n";
+    //    std::cerr<<"Error: ParticleList already read data from file, no new particle address can be appended!\n";
     //    abort();
     //}
     //if (alloc_flag) {
-    //  std::cerr<<"Error: chainlist already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
+    //  std::cerr<<"Error: ParticleList already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
     //  abort();
     //}
     if (num+n<=nmax) {
@@ -3954,7 +3954,7 @@ public:
       num +=n;
     }
     else {
-      std::cerr<<"Error: chainlist overflow! maximum number is "<<nmax<<", current number "<<num<<", try to add "<<n<<std::endl;
+      std::cerr<<"Error: ParticleList overflow! maximum number is "<<nmax<<", current number "<<num<<", try to add "<<n<<std::endl;
       abort();
     }
   }
@@ -3966,12 +3966,12 @@ public:
    */
   void load(const int n, particle a[]) {
       if(alloc_flag) {
-          std::cerr<<"Error: chainlist already allocate memory for particle data, please call clear() first before using load()!\n";
+          std::cerr<<"Error: ParticleList already allocate memory for particle data, please call clear() first before using load()!\n";
           abort();
       }
 #ifdef ARC_DEBUG
       if(data) {
-          std::cerr<<"Warning: chainlist already store one particle list address, (current particle number = "<<num<<"), now update to new list with number = "<<n<<"!\n";
+          std::cerr<<"Warning: ParticleList already store one particle list address, (current particle number = "<<num<<"), now update to new list with number = "<<n<<"!\n";
       }
 #endif
       nmax = num = n;
@@ -3984,11 +3984,11 @@ public:
   // */
   //void add(chain<particle> &a) {
   //  if(alloc_flag) {
-  //      std::cerr<<"Error: chainlist already read data from file, no new particle address can be appended!\n";
+  //      std::cerr<<"Error: ParticleList already read data from file, no new particle address can be appended!\n";
   //      abort();
   //  }
   //  //if (alloc_flag) {
-  //  //  std::cerr<<"Error: chainlist already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
+  //  //  std::cerr<<"Error: ParticleList already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
   //  //  abort();
   //  //}
   //  if (num<nmax) {
@@ -3999,7 +3999,7 @@ public:
   //    nchain++;
   //  }
   //  else {
-  //    std::cerr<<"Error: chainlist overflow! maximum number is "<<nmax<<std::endl;
+  //    std::cerr<<"Error: ParticleList overflow! maximum number is "<<nmax<<std::endl;
   //    abort();
   //  }
   //}
@@ -4045,7 +4045,7 @@ public:
   //! Return the i^th of memebr's reference in the particle #data
   /*! [] Operator overloading, return the i^th particle reference from the particle (copied) data list
     @param [in] i: the index of member in the list #p
-    \return particle reference in chainlist #data
+    \return particle reference in ParticleList #data
    */
   particle &operator [](const int i) const {
     //if (cflag[i]) {
@@ -4081,7 +4081,7 @@ public:
 
   //! Read function for particle data
   /*! Read particle data using fread (binary format). Number of particles should be first variable, then the data of particles (the data structure should be consistent with particle class).
-      Notice if read is used, the particle data memory is allocated inside chainlist, this is different from add() function.
+      Notice if read is used, the particle data memory is allocated inside ParticleList, this is different from add() function.
     @param [in] filename: file to read the data
    */
   void read(const char* filename) {
@@ -4146,7 +4146,7 @@ public:
     }
   }
 
-  //! show whether the chainlist allocated memory
+  //! show whether the ParticleList allocated memory
   /*!
     \return if allocated, ture; otherwise false
    */
