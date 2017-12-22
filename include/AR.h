@@ -1,3 +1,12 @@
+//Naming rules:
+// class: Upper case for first char: Name
+// class private member: name
+// class public member: name
+// template class: _Name
+// function argument: _name
+// function name: lower case for first char: name_**_**
+// local variables: name_
+
 #pragma once
 
 #include <iostream>
@@ -23,7 +32,7 @@
 /*!
   All major ARC classes and related acceleration functions (typedef) are defined
  */
-namespace ARC {
+//namespace ARC {
 
 typedef double double3[3];
     
@@ -944,13 +953,6 @@ public:
 template <class particle_>
 class Integrator: public particle_{
   typedef particle_ particle;
-  double3 *X;  ///< relative position 
-  double3 *V;  ///< relative velocity
-  double3 *acc; ///< acceleration   
-  double3 *pf;  ///< perturber force
-  double3 *dWdr; ///< \partial Omega/ \partial rk
-  int *list;   ///< Integrator index list
-  ///< acc, pf, dWdr keep the same particle order as particle list p.
 
   //integration parameters=======================================//
   double t;    ///< time
@@ -986,58 +988,14 @@ public:
 #endif
   
   //! Constructor
-  /*! Construct Integrator with allocated memory
-      @param [in] n: maximum number of particles (will be used to allocate memory)
+  /*! Construct Integrator
    */
-  Integrator(const int n):   num(0), info(NULL), slowdown(){
-    nmax=0;
-    allocate(n);
-  }
-
-  //! Constructor
-  /*! Construct Integrator without memory allocate, need to call allocate() later. 
-   */
-  Integrator(): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_read(false), info(NULL), slowdown() {}
-
-  //! Allocate memory
-  /*! Allocate memory for maximum particle number n
-     @param [in] n: maximum number of particles
-   */
-  void allocate(const int n) {
-    if (nmax) {
-      std::cerr<<"Error: Integrator memory allocation is already done\n";
-      abort();
-    }
-    nmax = n;
-    X=new double3[n-1];
-    V=new double3[n-1];
-    acc=new double3[n];
-    pf=new double3[n];
-    dWdr=new double3[n];
-    list=new int[n];
-    //p.allocate(n);
-    F_Pmod=false;
-    F_Porigin=1;
-    F_read=false;
-  }
+  Integrator(): F_Pmod(false), F_Porigin(1), F_read(false), info(NULL), slowdown() {}
 
   //! Clear function
-  /*! Clear allocated memory and set maximum number of particle to zero
+  /*! Reset all parameters to initial
    */
   void clear() {
-    if (nmax>0) {
-      delete[] X;
-      delete[] V;
-      delete[] acc;
-      delete[] pf;
-      delete[] dWdr;
-      delete[] list;
-      num = 0;
-      nmax = 0;
-    }
-    p.clear();
-//    pext.clear();
-
     if (info) {
       delete info;
       info=NULL;
@@ -1053,18 +1011,8 @@ public:
 
   //! destructor
   ~Integrator() {
-    if (nmax>0) {
-      delete[] X;
-      delete[] V;
-      delete[] list;
-      delete[] acc;
-      delete[] pf;
-      delete[] dWdr;
-    }
     if (info) delete info;
 
-//    p.clear();
-//    pext.clear();
   }
 
 private:
@@ -3766,18 +3714,137 @@ public:
 
 };
 
+template <class Particle>
+struct ParticleNdyn{
+    const int nmax; ///< Maximum particle number
+    Particle *p;    ///< particle data
+
+    //! Constructor
+    /*! @param [in] _n: number of particles to allowcate
+     */
+    ParticleNdyn(const int _n): nmax(_n) {
+        p=new Particle[_n];
+    }
+
+    //! Destructor
+    ~ParticleNdyn() {
+        delete[] p;
+    }
+};
+
+template <class Particle>
+struct ParticleN3{
+    const int nmax; ///< Maximum particle number (3)
+    Particle p[3];  ///< particle data
+
+    //! Constructor
+    /*! @param [in] _n: number of particles, check whether overflow happen
+     */
+    ParticleN3(const int _n): nmax(3) {
+        if(_n>3) {
+            std::cerr<<"Error! particle number "<<_n<<" larger than Particle nmax (3)!\n";
+            abort();
+        }
+    }
+};
+
+template <class Particle>
+struct ParticleN2{
+    const int nmax; ///< Maximum particle number (2)
+    Particle p[2];  ///< particle data           
+
+    //! Constructor
+    /*! @param [in] _n: number of particles, check whether overflow happen
+     */
+    ParticleN2(const int _n): nmax(2) {
+        if(_n>2) {
+            std::cerr<<"Error! particle number "<<_n<<" larger than Particle nmax (2)!\n";
+            abort();
+        }
+    }
+};
+
+struct ChainNdyn{
+    const int nmax; ///< Maximum particle number
+    double3 *X;     ///< relative position 
+    double3 *V;     ///< relative velocity
+    double3 *acc;   ///< acceleration   
+    double3 *pf;    ///< perturber force
+    double3 *dWdr;  ///< \partial Omega/ \partial rk
+    int *list;      ///< Chain index list
+
+    //! Constructor
+    /*! @param [in] _n: number of particles to allowcate
+     */
+    ChainNdyn(const int _n): nmax(_n) {
+        X=new double3[_n-1];
+        V=new double3[_n-1];
+        acc=new double3[_n];
+        pf=new double3[_n];
+        dWdr=new double3[_n];
+        list=new int[_n];
+    }
+
+    //! Destructor
+    ~ChainNdyn() {
+        delete[] X;
+        delete[] V;
+        delete[] acc;
+        delete[] pf;
+        delete[] dWdr;
+        delete[] list;
+    }
+};
+
+struct ChainN3{
+    const int nmax;  ///< Maximum particle number    
+    double3 X[2];    ///< relative position          
+    double3 V[2];    ///< relative velocity          
+    double3 acc[2];  ///< acceleration               
+    double3 pf[2];   ///< perturber force            
+    double3 dWdr[2]; ///< \partial Omega/ \partial rk
+    int list[3];     ///< Chain index list      
+
+    //! Constructor
+    /*! @param [in] _n: number of particles, check whether overflow happen
+     */
+    ChainN3(const int _n): nmax(3) {
+        if(_n>3) {
+            std::cerr<<"Error! particle number "<<_n<<" larger than Particle nmax (3)!\n";
+            abort();
+        }
+    }
+};
+
+struct ChainN2{
+    const int nmax;
+    double3 X[1];
+    double3 V[1];
+    double3 acc[1];
+    double3 pf[1];
+    double3 dWdr[1];
+    int list[2];
+    ChainN3(const int _n): nmax(2) {
+        if(_n>2) {
+            std::cerr<<"Error! particle number "<<_n<<" larger than Particle nmax (2)!\n";
+            abort();
+        }
+    }
+};
+
 //! Generalized list to store Integrator and particle members
 /*! A list that storing particle memory addresses and their copy (based on template class particle_)
  */
-template <class particle_>
-class ParticleList{
-  typedef particle_ particle;
+template <class _ParticleN, class _Particle>
+class ParticleList: private _ParticleN{
   int num; //!< number of current particles in the list #p
   int nmax; //!< maximum number of particles allown to store
   // int nchain;  //!< number of chain type members
   // bool* cflag; //!< flag array to indicate whether the corresponding particle in #p is chain (true: chain; false: Particle)
   particle** p; //!< particle list array (void pointer array)
   particle* data; //!< copy of particle data
+  ///< acc, pf, dWdr keep the same particle order as particle list p.
+
   bool alloc_flag ;//!< indicate whether the p stores the particle memory address (false) or allocates new memory (true)
   // bool read_flag; //!< indicate whether the data is read from file
 //  bool change_flag; //!< indicate whether the add/remove is used.
@@ -3888,12 +3955,6 @@ public:
     return nmax;
   }
   
-  ////! Get number of chain members
-  ///*! \return Number of chain members in particle address list #p
-  // */
-  //int getNchain() const {
-  //  return nchain;
-  //}
 
   //! Get particle masses and store into array
   /*! Obtain particle masses and store into the double array
@@ -4156,4 +4217,4 @@ public:
 
 };
 
-}
+//}
