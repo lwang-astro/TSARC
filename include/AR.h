@@ -26,6 +26,7 @@
 namespace ARC {
 
 typedef double double3[3];
+typedef double double2[2];
     
 #ifdef ARC_PROFILE
 #include <sys/time.h>
@@ -965,7 +966,7 @@ class chain: public particle_{
 
   //number =======================================================//
   int num;      ///< total number of chain particles
-  int nmax;     ///< maximum number 
+  const int nmax;     ///< maximum number 
 
   //monitor flags
   bool F_Pmod;     ///< indicate whether particle list is modified (true: modified)
@@ -988,28 +989,9 @@ public:
   
   //! Constructor
   /*! Construct chain with allocated memory
-      @param [in] n: maximum number of particles (will be used to allocate memory)
+      @param [in] n: maximum number of particles (will be used to allocate memory, when determined cannot be changed)
    */
-  chain(const int n):   num(0), info(NULL), slowdown(){
-    nmax=0;
-    allocate(n);
-  }
-
-  //! Constructor
-  /*! Construct chain without memory allocate, need to call allocate() later. 
-   */
-  chain(): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_read(false), info(NULL), slowdown() {}
-
-  //! Allocate memory
-  /*! Allocate memory for maximum particle number n
-     @param [in] n: maximum number of particles
-   */
-  void allocate(const int n) {
-    if (nmax) {
-      std::cerr<<"Error: chain memory allocation is already done\n";
-      abort();
-    }
-    nmax = n;
+  chain(const int n):   num(0), nmax(n), info(NULL), slowdown(){
     X=new double3[n-1];
     V=new double3[n-1];
     acc=new double3[n];
@@ -1022,22 +1004,16 @@ public:
     F_read=false;
   }
 
+  ////! Constructor
+  ///*! Construct chain without memory allocate, need to call allocate() later. 
+  // */
+  //chain(): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_read(false), info(NULL), slowdown() {}
+
   //! Clear function
-  /*! Clear allocated memory and set maximum number of particle to zero
+  /*! Clear particle list allocated memory 
    */
   void clear() {
-    if (nmax>0) {
-      delete[] X;
-      delete[] V;
-      delete[] acc;
-      delete[] pf;
-      delete[] dWdr;
-      delete[] list;
-      num = 0;
-      nmax = 0;
-    }
     p.clear();
-//    pext.clear();
 
     if (info) {
       delete info;
@@ -1063,9 +1039,6 @@ public:
       delete[] dWdr;
     }
     if (info) delete info;
-
-//    p.clear();
-//    pext.clear();
   }
 
 private:
@@ -1087,7 +1060,7 @@ private:
   /*! generate the chain list (#list) by N^2 searching the particle list (#p)
   */
   void generate_list() {
-    bool *is_checked=new bool[num];
+    bool is_checked[nmax];
     for (int i=0; i<num; i++) is_checked[i] = false;
     int inext=0;
     for (int i=0; i<num; i++) {
@@ -1122,7 +1095,6 @@ private:
       }
     }
 
-    delete[] is_checked;
   }
 
   //! Calculate relative position and velocity
@@ -1618,25 +1590,25 @@ private:
 #endif
     
     // create reverse index of link
-    int* rlink = new int[num];
-    int* roldlink = new int[num];
+    int rlink[nmax];
+    int roldlink[nmax];
     for (int i=0;i<num;i++) rlink[list[i]] = i;
     std::memcpy(roldlink,rlink,num*sizeof(int));
 
     // backup previous link
-    int* listbk = new int[num];
+    int listbk[nmax];
     std::memcpy(listbk,list,num*sizeof(int));
 
     // backup current X
-    double3* Xbk = new double3[num-1];
+    double3 Xbk[nmax];
     std::memcpy(Xbk[0],X[0],(num-1)*3*sizeof(double));
     
     // backup current V
-    double3* Vbk = new double3[num-1];
+    double3 Vbk[nmax];
     std::memcpy(Vbk[0],V[0],(num-1)*3*sizeof(double));
 
     // create mask to avoid dup. check;
-    bool* mask = new bool[num];
+    bool mask[nmax];
     for (int i=0;i<num;i++) mask[i] = false;
 
     const double NUMERIC_DOUBLE_MAX = std::numeric_limits<double>::max();
@@ -1749,14 +1721,6 @@ private:
       }
     }
 
-    // clear template array
-    delete[] mask;
-    delete[] rlink;
-    delete[] roldlink;
-    delete[] listbk;
-    delete[] Vbk;
-    delete[] Xbk;
-
 #ifdef DEBUG    
     if(modified) print(std::cerr);
 #endif
@@ -1867,7 +1831,7 @@ private:
     @param [in] ndiv: substep number
     @param [in] pars: chainpars controller
   */
-    void mid_diff_calc(double **dpoly, const int nmax, const int i, const int ndiv, chainpars &pars) {
+    void mid_diff_calc(double2 *dpoly, const int nmax, const int i, const int ndiv, chainpars &pars) {
     // safety check
     if (dpoly!=NULL) {
       // difference level should not exceed the point number
@@ -1938,7 +1902,7 @@ private:
       @param [in] ndiv: substep number
       @param [in] pars: chainpars controller
    */
-    void edge_diff_calc(double **dpoly, const int nmax, const int i, const int ndiv, const chainpars &pars) {
+    void edge_diff_calc(double2 *dpoly, const int nmax, const int i, const int ndiv, const chainpars &pars) {
     if (dpoly!=NULL) {
       // safety check
 //      if (!tflag) {
@@ -2022,7 +1986,7 @@ private:
     @param [in] nmax: maximum difference order
     @param [in] dsize: number of data in dataset
    */
-  void diff_dev_calc(double **dpoly, const double h, const int nmax, const int dsize) {
+  void diff_dev_calc(double2 *dpoly, const double h, const int nmax, const int dsize) {
     double hn = h;
     // loop difference order from 1 to nmax
     for (int i=0; i<nmax; i++) {
@@ -2330,10 +2294,11 @@ public:
         std::cerr<<"Error: cannot read number of particles!\n";
         abort();
       }
-      if(n>nmax||p.getN()>0) {
-        clear();
-        allocate(n);
+      if(n>nmax) {
+        std::cerr<<"Error: Reading particle number "<<n<<" larger than Chain maximum N "<<nmax<<std::endl;
+        abort();
       }
+      if(p.getN()>0) p.clear();
       num = n;
 
       // chain list
@@ -2758,7 +2723,7 @@ public:
                              pertforce_* pertf = NULL, 
                              const int npert = 0,
                              int check_flag = 1, 
-                             double** dpoly = NULL, 
+                             double dpoly[][2] = NULL, 
                              const int ndmax = 0) {
 #ifdef ARC_PROFILE
     profile.t_lf -= get_wtime();
@@ -2798,8 +2763,8 @@ public:
 #endif
 
     double ds = s/double(n);
-    double3* ave_v=new double3[num];  // average velocity
-//    bool fpf = false;                 // perturber force indicator
+    double3 ave_v[nmax];              // average velocity
+//    bool fpf = false;                // perturber force indicator
     //const int np = pext.getN();
     //if (np>0||pars->ext_A!=NULL) fpf = true;
 
@@ -3008,7 +2973,7 @@ public:
     if(num>2&&check_flag==1)  update_link();
 
     // clear memory
-    delete[] ave_v;
+    //delete[] ave_v;
 #ifdef ARC_PROFILE
     profile.t_lf += get_wtime();
 #endif
@@ -3071,18 +3036,20 @@ public:
     const int nrel = num-1;
     // data storage size (extra one is used to show the size of the array for safety check)
     const int dsize = 6*nrel+3;
+    const int darray = dsize+1;
     // edge difference array size;
     // const int psize=dsize*2;
     
     // for storage
     // for convenient, the data are storaged in one array with size (2*nrel+1)*3, which represents t, Pt, w, X[3][nrel], V[3][nrel]
-    double d0[dsize+1],dtemp[dsize+1];
-    double* dn[itermax];
+    double d0[darray],dtemp[darray];
+    double dn[itermax][darray];
+    double* dnptr[itermax];
     d0[dsize] = (double)dsize;    // label for safety check
     dtemp[dsize] = (double)dsize; // label for safety check
     for (int i=0; i<itermax; i++) {
-      dn[i] = new double[dsize+1];
       dn[i][dsize] = (double)dsize; // label for safety check
+      dnptr[i] = dn[i];
     }
     double Ekin0,Pot0;
 
@@ -3091,7 +3058,8 @@ public:
     profile.t_dense -= get_wtime();
 #endif
     bool ip_flag = true;  // interpolation coefficient calculation flag
-    double** pd[itermax]; // central difference, [*] indicate different accuracy level 
+    const int ndiffmax=pars.den_intpmax*2+5; // maximum number of difference and f(x) values
+    double2 pd[itermax][ndiffmax]; // central difference, first [] indicate different accuracy level , second [] for storage f(x) and difference, third[](double2) store individal (t), middle one value, edge two value
     int ndmax[itermax];   // maximum difference order
     int pnn;      // data size
     if(sq==3) pnn = 1;     // middle difference case
@@ -3144,11 +3112,11 @@ public:
         else ndmax[intcount] = std::min(intcount,pars.den_intpmax)+2;
         
         // pd[][*]: * storage f(x) and difference
-        pd[intcount] = new double*[ndmax[intcount]];
+        // pd[intcount] = new double*[ndmax[intcount]];
         // pd[][][*]: * storage data (t, Pt, w, X, V)
-        for (int j=0;j<ndmax[intcount];j++) pd[intcount][j] = new double[pnn];
+        // for (int j=0;j<ndmax[intcount];j++) pd[intcount][j] = new double[pnn];
       }
-      else pd[intcount] = NULL;
+      //else pd[intcount] = NULL;
 #ifdef ARC_PROFILE
       profile.t_dense += get_wtime();
 #endif
@@ -3185,9 +3153,9 @@ public:
         
         // iteration
         // Using Polynomial method
-        if (method==1) EP::polynomial_extrapolation(dn,dtemp,step,dsize,intcount);
+        if (method==1) EP::polynomial_extrapolation(dnptr,dtemp,step,dsize,intcount);
         // Using Rational interpolation method
-        else EP::rational_extrapolation(dn,dtemp,step,dsize,intcount);
+        else EP::rational_extrapolation(dnptr,dtemp,step,dsize,intcount);
 
         // set final results back to chain array
         restore(dn[intcount]);
@@ -3223,7 +3191,7 @@ public:
 
         if (pars.auto_step==1) {
           // get error estimation
-          double ermax=std::min(EP::extrapolation_error(dn,dsize,intcount),std::min(eerr,cxerr));
+          double ermax=std::min(EP::extrapolation_error(dnptr,dsize,intcount),std::min(eerr,cxerr));
           double dsfactor = EP::H_opt_factor(ermax,error,intcount+1);
           double werrn = ((double)itercount+num)/ dsfactor;
           if (ermax>0&&werrn<werrmax) {
@@ -3298,8 +3266,9 @@ public:
       // calculate derivates from differences
       for (int i=0; i<intcount; i++) {
         // first difference pointer
-        double **pdptr;
+         
         int dpsize;
+        double2* pdptr;
         double h;
         if(sq==3) {
           // middle difference case first element is f(x)
@@ -3319,8 +3288,11 @@ public:
       }        
       
       // extrapolation table
-      double* pn[intcount];
-      for (int i=0; i<intcount; i++) pn[i] = new double[pnn];
+      double2 pn[intcount];
+      double* pnptr[intcount];
+      for (int i=0; i<intcount; i++) pnptr[i] = pn[i];
+      
+      //for (int i=0; i<intcount; i++) pn[i] = new double[pnn];
 
       // starting accuracy index
       int istart=0;
@@ -3343,8 +3315,8 @@ public:
 #ifdef DEBUG
           std::cerr<<"Poly calc order="<<j<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
 #endif
-          if (method==1) EP::polynomial_extrapolation(pn,pd[j][i],&step[istart],pnn,j-istart);
-          if (method==2) EP::rational_extrapolation(pn,pd[j][i],&step[istart],pnn,j-istart);
+          if (method==1) EP::polynomial_extrapolation(pnptr,pd[j][i],&step[istart],pnn,j-istart);
+          if (method==2) EP::rational_extrapolation(pnptr,pd[j][i],&step[istart],pnn,j-istart);
 #ifdef DEBUG
           std::cerr<<"Poly extra order="<<j-istart<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
 #endif
@@ -3355,18 +3327,26 @@ public:
       }
 
       // number of points
-      int npoints;
+      const int npoints=2;
       // store position s
-      double* xpoint;
+
+      double xpoint[npoints];
       // maximum difference level
-      int* nlev;
+
+      int nlev[npoints];
       // polynomial
-      double* pcoff;
+
+      const int Ncoff=(sq==3? (ndmax[intcount-1]) : (2*ndmax[intcount-1]+2));
+      double pcoff[Ncoff];
+
       // data point
-      double** fpoint;
+      double* fpoint[npoints];
+
       // final derivate starting pointer
-      double*** dfptr;
-      int dfptr_size=0;
+      const int dfptr_size = (sq==3? ndmax[intcount-1]-3: ndmax[intcount-1]);
+      double* dfptr[dfptr_size][2];
+      double** dfpptr[dfptr_size];
+      for(int i=0; i<dfptr_size; i++) dfpptr[i]=dfptr[i];
       // checking flag
       bool no_intp_flag=false;
 
@@ -3376,15 +3356,9 @@ public:
       // for middle difference case (1 point)
       if(sq==3) {
 
-        npoints=2;
+        //pcoff = new double[ndmax[intcount-1]];
 
-        xpoint=new double[npoints];
-        nlev=new int[npoints];
-        fpoint=new double*[npoints];
-
-        pcoff = new double[ndmax[intcount-1]];
-
-        dfptr=new double**[ndmax[intcount-1]+1];
+        // dfptr=new double**[ndmax[intcount-1]+1];
         
         // first choose the half side for interpolation
         const double tmid = pd[intcount-1][0][0];  // middle time
@@ -3399,9 +3373,9 @@ public:
           fpoint[0] = pd[intcount-1][0];
           fpoint[1] = dn[intcount-1];
 
-          dfptr_size = nlev[0]-1;
+          //dfptr_size = nlev[0]-1;
           for (int i=0;i<dfptr_size;i++) {
-            dfptr[i]=new double*[2];
+            // dfptr[i]=new double*[2];
             dfptr[i][0]=pd[intcount-1][i+3];
             dfptr[i][1]=NULL;
           }
@@ -3421,9 +3395,9 @@ public:
           fpoint[0] = d0;
           fpoint[1] = pd[intcount-1][0];
 
-          dfptr_size = nlev[1]-1;
+          //dfptr_size = nlev[1]-1;
           for (int i=0;i<dfptr_size;i++) {
-            dfptr[i]=new double*[2];
+            //  dfptr[i]=new double*[2];
             dfptr[i][0]=NULL;
             dfptr[i][1]=pd[intcount-1][i+3];
           }
@@ -3432,28 +3406,25 @@ public:
       }
       // for edge difference case (2 points)
       else {
-        npoints=2;
+        //npoints=2;
 
-        xpoint=new double[npoints];
         xpoint[0]=0.0;
         xpoint[1]=ds;
 
-        nlev=new int[npoints];
         nlev[0] = ndmax[intcount-1]+1;
         nlev[1] = nlev[0];
         
         // store f(x)
-        fpoint=new double*[npoints];
         fpoint[0] = d0;
         fpoint[1] = dn[intcount-1];
 
         // \sum nlev = 2*intcount+2;
-        pcoff= new double[2*ndmax[intcount-1]+2];
+        //pcoff= new double[2*ndmax[intcount-1]+2];
 
-        dfptr_size = nlev[0]-1;
-        dfptr=new double**[dfptr_size];
+        //dfptr_size = nlev[0]-1;
+        //dfptr=new double**[dfptr_size];
         for (int i=0;i<nlev[0]-1;i++) {
-          dfptr[i] = new double*[2];
+          // dfptr[i] = new double*[2];
           dfptr[i][0] = pd[intcount-1][i];
           dfptr[i][1] = &pd[intcount-1][i][1];
         }
@@ -3462,7 +3433,9 @@ public:
       if (!no_intp_flag) {
     
         // Hermite interpolation
-        EP::Hermite_interpolation_coefficients(&pcoff,xpoint,fpoint,dfptr,1,npoints,nlev);
+        double* pcoffptr = pcoff;
+        
+        EP::Hermite_interpolation_coefficients(&pcoffptr,xpoint,fpoint,dfpptr,1,npoints,nlev);
 
 #ifdef DEBUG
         std::cerr<<"PCOFF: ";
@@ -3486,7 +3459,8 @@ public:
             dsm = (dsi[0]+dsi[1])*0.5;      // Use bisection method to get approximate region
           }
 
-          EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
+          double* pcoffptr = pcoff;
+          EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoffptr,xpoint,1,npoints,nlev);
           // safety check
           if (tpre > tsi[1]||tpre < tsi[0]) {
             reset_flag=true;
@@ -3582,14 +3556,14 @@ public:
 #endif
 
       // clear memory
-      for (int i=0; i<intcount; i++) delete[] pn[i];
-      if (dfptr_size>0) 
-          for (int i=0; i<dfptr_size; i++) delete dfptr[i];
-      delete[] dfptr;
-      delete[] pcoff;
-      delete[] xpoint;
-      delete[] nlev;
-      delete[] fpoint;
+      //for (int i=0; i<intcount; i++) delete[] pn[i];
+      //if (dfptr_size>0) 
+      //    for (int i=0; i<dfptr_size; i++) delete dfptr[i];
+      //delete[] dfptr;
+      //delete[] pcoff;
+      //delete[] xpoint;
+      //delete[] nlev;
+      //delete[] fpoint;
 
 #ifdef ARC_PROFILE
       profile.t_dense += get_wtime();
@@ -3633,16 +3607,16 @@ public:
     }
 
     // clear memory
-    for (int i=0; i<itermax; i++) delete[] dn[i];
-
-    if (ip_flag) {
-      for (int i=0; i<intcount; i++) {
-        if (pd[i]!=NULL) {
-          for (int j=0; j<ndmax[i]; j++) delete[] pd[i][j];
-          delete[] pd[i];
-        }
-      }
-    }
+    //for (int i=0; i<itermax; i++) delete[] dn[i];
+    // 
+    //if (ip_flag) {
+    //  for (int i=0; i<intcount; i++) {
+    //    if (pd[i]!=NULL) {
+    //      for (int j=0; j<ndmax[i]; j++) delete[] pd[i][j];
+    //      delete[] pd[i];
+    //    }
+    //  }
+    //}
 
 #ifdef ARC_PROFILE
     profile.t_ep += get_wtime();

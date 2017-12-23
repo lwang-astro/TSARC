@@ -118,7 +118,7 @@ namespace EP {
     @param [in] Tsize: data array size
     @param [in] n: the new iteration step index in \a step (count from 0)
    */
-  void polynomial_extrapolation (double** Tn, double* Tnew, const int step[], const std::size_t Tsize, const std::size_t n) {
+  void polynomial_extrapolation (double* Tn[], double* Tnew, const int step[], const std::size_t Tsize, const std::size_t n) {
     for (std::size_t j=0; j<n; j++) {
       //templately storage new results to ttemp
       /*
@@ -243,10 +243,10 @@ namespace EP {
     for (int i=0; i<npoints; i++) n += nlev[i];
 
     // template data for iteration
-    double* dtemp= new double[n];
+    double dtemp[n];
     // indicator of which point corresponding to in dtemp (-1: need to calculate, >=0; need to set data from points dk)
-    int* dk0 = new int[n];
-    int* dkn = new int[n];
+    int dk0[n];
+    int dkn[n];
     
     // loop different type of datt
     for (int i=0; i<ndata; i++) {
@@ -293,9 +293,6 @@ namespace EP {
       }
     }
 
-    delete[] dtemp;
-    delete[] dk0;
-    delete[] dkn;
   }
 
   //! Hermite interpolation polynomial
