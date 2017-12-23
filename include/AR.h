@@ -950,8 +950,8 @@ public:
   If 4k sequences are used, the dense output method for GBS is used and the accuracy of time intepolation is close to the accuracy of integration.
   Please check the document of Integrator.extrapolation_integration() for detail.
  */
-template <class particle_>
-class Integrator: public particle_{
+template <class _Particle_, class _ParticleN, class _ChainN>
+class Integrator: public _Particle, public _ParticleN, public _ChainN{
   typedef particle_ particle;
 
   //integration parameters=======================================//
@@ -963,10 +963,6 @@ class Integrator: public particle_{
   double W;     ///< time transformation function
   double Ekin;  ///< kinetic energy
   double Pot;   ///< potential
-
-  //number =======================================================//
-  int num;      ///< total number of particles
-  int nmax;     ///< maximum number 
 
   //monitor flags
   bool F_Pmod;     ///< indicate whether particle list is modified (true: modified)
@@ -1180,31 +1176,6 @@ private:
           info->i1 = lj;
           info->i2 = lk;
         }
-
-//        // resolve sub-chain
-//        if(resolve_flag && p.isChain(lk)) {
-//          Integrator<particle, int_par>*ck = p.getSub(lk);
-//          // center shift to current frame
-//          ck->center_shift_inverse_X();
-//          const int cn = ck->p.getN();
-//          Pt = 0;
-//          for (int i=0;i<3;i++) At[i]=0.0;
-//          for (int i=0;i<cn;i++) {
-//            double Ptemp;
-//            double3 Atemp;
-//            pars->pp_Ap(Atemp, Ptemp, xj, ck->p[i].getPos(), *pj, ck->p[i]);
-// 
-//            // Acceleration
-//            At[0] += Atemp[0];
-//            At[1] += Atemp[1];
-//            At[2] += Atemp[2];
-//            
-//            // Potential
-//            if (k>j) Pt += Ptemp;
-//          }
-//          // center shift back
-//          ck->center_shift_X();
-//        }
 
         // Acceleration
         acc[lj][0] += At[0];
@@ -1473,81 +1444,6 @@ private:
                   vi[2] - vc[2]);
     }
   }
-
-/*
-  //! Perturber force calculation
-  *! Get perturber force based on porturber list #pext
-    @param [in] t: physical time for prediction
-    @param [in] resolve_flag: whether resolve perturber member if it is a Integrator 
-    \return flag: true: pertubers exist. false: no perturbers
-  *
-  bool pert_force(const double t, const bool resolve_flag=false) {
-#ifdef ARC_PROFILE
-    profile.t_pext -= get_wtime();
-#endif
-    // safety check
-    if (pars->pp_Ap==NULL) {
-      std::cerr<<"Error: acceleration calculation function Parameters.pp_Ap is not set!\n";
-      abort();
-    }
-    const int np = pext.getN();
-    for (int i=0;i<num;i++) 
-        for (int j=0;j<3;j++) pf[i][j] = 0.0;
-
-    //predict
-    for (int i=0; i<np;i++) {
-        pert_predict(t, pext[j], 
-    }
-
-    for (int i=0;i<num;i++) {
-        for (int j=0;j<np;j++) {
-            double3 At={0};
-            double Pt;
-            const particle* pi=&p[i];
-            const double* xi=pi->getPos();
-//          const double  mi=pi->getMass();
-          
-            // check sub-Integrator system
-            if (resolve_flag && pext.isIntegrator(j)) {
-                Integrator<particle, int_par>*cj = pext.getSub(j);
-                // get center-of-mass position for shifting;
-                const double* xc=cj->particle::getPos();
-                const int cn = cj->pext.getN();
-                for (int k=0;k<cn;k++) {
-
-                    double3 xk;
-                    std::memcpy(xk,cj->p[k].getPos(),3*sizeof(double));
-                    // shift position to current frame; to keep thread safety, original data are not modified
-                    if (cj->isPorigin()==0) {
-                        xk[0] += xc[0];
-                        xk[1] += xc[1];
-                        xk[2] += xc[2];
-                    }
-                    double3 Atemp;
-                    pars->pp_Ap(Atemp, Pt, xi, xk, *pi, cj->p[k], Int_pars);
-
-                    // Acceleration
-                    At[0] += Atemp[0];
-                    At[1] += Atemp[1];
-                    At[2] += Atemp[2];
-                }
-            }
-            else {
-                // perturber force
-                pars->pp_Ap(At, Pt, xi, pext[j].getPos(), *pi, pext[j], Int_pars);
-            }
-          
-            pf[i][0] += At[0];
-            pf[i][1] += At[1];
-            pf[i][2] += At[2];
-        }
-    }
-#ifdef ARC_PROFILE
-    profile.t_pext += get_wtime();
-#endif
-    return true;
-  }
-*/   
 
   //! Update #list order based on the relative distances
   /*! Update Integrator #list order based on current relative distance #X
@@ -2139,63 +2035,6 @@ public:
     return pars.auto_step_eps*perim*std::abs(Pt);
   }
 
-  //! Add particle
-  /*! Add one particle (address pointer) into particle list #p and copy it (see ARC::ParticleList.add())
-     @param [in] a: new particle
-   */
-  template <class Tp>
-  void addP(Tp &a) {
-    if (!p.is_alloc()) p.allocate(nmax);
-    if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
-    p.add(a);
-    F_Pmod=true;
-  }
-  
-  ////! Add Integrator as a particle in #p
-  ///*! Add one Integrator (address pointer) into particle list #p (see ARC::ParticleList.add())
-  //  @param [in] a: new Integrator particle
-  // */
-  //void addP(Integrator<particle> &a) {
-  //  if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
-  //  p.add(a);
-  //  F_Pmod=true;
-  //}
-  
-  //! Add a list of particle
-  /*! Add a list of particles addresses and copy (see ARC::ParticleList.add())
-    @param [in] n: number of particles need to be added
-    @param [in] a: array of new particles
-   */
-  template<class Tp>
-  void addP(const int n, Tp a[]) {
-    if (!p.is_alloc()) p.allocate(nmax);
-    if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
-    p.add(n,a);
-    F_Pmod=true;
-  }
-
-  //! Link a list of particles without coping
-  /*! Link a list of particles without copy. The particles shoud have same data type of particle_ and saved in array.
-    @param [in] n: number of particles need to be added
-    @param [in] a: array of new particles
-   */
-  void linkP(const int n, particle a[]) {
-    if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
-    p.load(n,a);
-    F_Pmod=true;
-  }
-
-  //! remove one particle
-  /*! remove one particle from #p (see ARC::ParticleList.remove())
-     @param [in] i: particle index in #p needs to be removed
-     @param [in] option: position update option: 
-                 - true: shift last particle to current position (defaulted);
-                 - false: shift all right particle to left by one
-  */
-  void removeP(const int i, bool option=true) { 
-      p.remove(i,option); 
-      F_Pmod=true; 
-  }
 
   //! Data Dumping to file function
   /*! Dump Integrator data into file (binary format) using fwrite. 
@@ -2227,7 +2066,7 @@ public:
       fwrite(particle::getVel(),sizeof(double),3,pout);
       // mass of particles
       double *pmass=new double[num];
-      p.getMassAll(pmass);
+      getMassAll(pmass);
       fwrite(pmass,sizeof(double),num,pout);
       // interaction_parameters
       // if (Int_pars) fwrite(Int_pars,sizeof(int_par),1,pout);
@@ -2277,9 +2116,7 @@ public:
         std::cerr<<"Error: cannot read number of particles!\n";
         abort();
       }
-      if(n>nmax||p.getN()>0) {
-        clear();
-        allocate(n);
+      if(n>nmax||num>0) {
       }
       num = n;
 
@@ -3714,33 +3551,39 @@ public:
 
 };
 
-template <class Particle>
+template <class _Particle>
 struct ParticleNdyn{
-    const int nmax; ///< Maximum particle number
-    Particle *p;    ///< particle data
+    _Particle *p;    ///< particle data
+    _Particle **padr;   ///< original particle address
+    const int nmax;  ///< Maximum particle number
+    const int psize; ///< particle data type size
 
     //! Constructor
     /*! @param [in] _n: number of particles to allowcate
      */
-    ParticleNdyn(const int _n): nmax(_n) {
-        p=new Particle[_n];
+    ParticleNdyn(const int _n): nmax(_n), psize(sizeof(_Particle)) {
+        p=new _Particle[_n];
+        padr=new _Particle[_n]{NULL};
     }
 
     //! Destructor
     ~ParticleNdyn() {
-        delete[] p;
+        if(p!=NULL) delete[] p;
+        if(padr!=NULL) delete[] padr;
     }
 };
 
-template <class Particle>
+template <class _Particle>
 struct ParticleN3{
+    _Particle p[3];  ///< particle data
+    _Particle* padr[3];   ///< original particle address
     const int nmax; ///< Maximum particle number (3)
-    Particle p[3];  ///< particle data
+    const int psize; ///< particle data type size
 
     //! Constructor
     /*! @param [in] _n: number of particles, check whether overflow happen
      */
-    ParticleN3(const int _n): nmax(3) {
+    ParticleN3(const int _n): nmax(3), psize(sizeof(_Particle)), padr{NULL} {
         if(_n>3) {
             std::cerr<<"Error! particle number "<<_n<<" larger than Particle nmax (3)!\n";
             abort();
@@ -3748,15 +3591,17 @@ struct ParticleN3{
     }
 };
 
-template <class Particle>
+template <class _Particle>
 struct ParticleN2{
+    _Particle p[2];  ///< particle data           
+    _Particle* padr[2];   ///< original particle address
     const int nmax; ///< Maximum particle number (2)
-    Particle p[2];  ///< particle data           
+    const int psize; ///< particle data type size
 
     //! Constructor
     /*! @param [in] _n: number of particles, check whether overflow happen
      */
-    ParticleN2(const int _n): nmax(2) {
+    ParticleN2(const int _n): nmax(2), psize(sizeof(_Particle)), padr{NULL} {
         if(_n>2) {
             std::cerr<<"Error! particle number "<<_n<<" larger than Particle nmax (2)!\n";
             abort();
@@ -3765,18 +3610,18 @@ struct ParticleN2{
 };
 
 struct ChainNdyn{
-    const int nmax; ///< Maximum particle number
     double3 *X;     ///< relative position 
     double3 *V;     ///< relative velocity
     double3 *acc;   ///< acceleration   
     double3 *pf;    ///< perturber force
     double3 *dWdr;  ///< \partial Omega/ \partial rk
     int *list;      ///< Chain index list
+    ///< acc, pf, dWdr keep the same particle order as particle list p.
 
     //! Constructor
     /*! @param [in] _n: number of particles to allowcate
      */
-    ChainNdyn(const int _n): nmax(_n) {
+    ChainNdyn(const int _n) {
         X=new double3[_n-1];
         V=new double3[_n-1];
         acc=new double3[_n];
@@ -3797,7 +3642,6 @@ struct ChainNdyn{
 };
 
 struct ChainN3{
-    const int nmax;  ///< Maximum particle number    
     double3 X[2];    ///< relative position          
     double3 V[2];    ///< relative velocity          
     double3 acc[2];  ///< acceleration               
@@ -3806,9 +3650,9 @@ struct ChainN3{
     int list[3];     ///< Chain index list      
 
     //! Constructor
-    /*! @param [in] _n: number of particles, check whether overflow happen
+    /*! @param [in] _n: number of maximum particles, check whether overflow happen
      */
-    ChainN3(const int _n): nmax(3) {
+    ChainN3(const int _n) {
         if(_n>3) {
             std::cerr<<"Error! particle number "<<_n<<" larger than Particle nmax (3)!\n";
             abort();
@@ -3817,14 +3661,13 @@ struct ChainN3{
 };
 
 struct ChainN2{
-    const int nmax;
     double3 X[1];
     double3 V[1];
     double3 acc[1];
     double3 pf[1];
     double3 dWdr[1];
     int list[2];
-    ChainN3(const int _n): nmax(2) {
+    ChainN3(const int _n) {
         if(_n>2) {
             std::cerr<<"Error! particle number "<<_n<<" larger than Particle nmax (2)!\n";
             abort();
@@ -3835,384 +3678,188 @@ struct ChainN2{
 //! Generalized list to store Integrator and particle members
 /*! A list that storing particle memory addresses and their copy (based on template class particle_)
  */
-template <class _ParticleN, class _Particle>
+template <class _ParticleN>
 class ParticleList: private _ParticleN{
-  int num; //!< number of current particles in the list #p
-  int nmax; //!< maximum number of particles allown to store
-  // int nchain;  //!< number of chain type members
-  // bool* cflag; //!< flag array to indicate whether the corresponding particle in #p is chain (true: chain; false: Particle)
-  particle** p; //!< particle list array (void pointer array)
-  particle* data; //!< copy of particle data
-  ///< acc, pf, dWdr keep the same particle order as particle list p.
-
-  bool alloc_flag ;//!< indicate whether the p stores the particle memory address (false) or allocates new memory (true)
-  // bool read_flag; //!< indicate whether the data is read from file
-//  bool change_flag; //!< indicate whether the add/remove is used.
-
+private:
+    int num;         ///< number of used particles
+    int F_Porigin; ///< indicate whether particle is shifted back to original frame (1: original frame: 0: center-of-mass frame; 2: only position is original frame)
+    // bool is_mod;     ///< indicate whether particle list is modified (true: modified)
 public:
-  //! Constructor 
-  /*! Set current particle number to zero, need to use allocate() to allocate memory for storing particle addresses, or load() to point to exited particle array, or read() to get particle data from a file
-   */
-  ParticleList(): num(0), nmax(0), p(NULL), data(NULL), alloc_flag(false) {};
+    //! Constructor 
+    /*! @param [in] _n: Maximum number of particles, check whether overflow happen
+     */
+    ParticleList(const int _n): _ParticleN(_n), num(0), F_Porigin(false) {};
   
-  //! Constructor with maximum number of particle \a n
-  /*! Set maximum particle number to \a n and allocate memory for #p to storing the particle addresses (maximum \a n)
-   */
-  ParticleList(const int n) {
-      alloc_flag = false;
-      allocate(n); 
-  }
-
-  //! Memory allocation of particle and particle address array
-  /*! Set maximum particle number to \a n and allocate memory for #p to storing the particle addresses (maximum \a n) and #data to storing particle copies
-   */
-  void allocate(const int n) {
-    num = 0;
-    nmax = n;
-    // nchain = 0;
-    //cflag=new bool[n];
-    if(alloc_flag) {
-        delete[] p;
-        delete[] data;
-#ifdef ARC_DEBUG
-        std::cerr<<"Warning!: ParticleList re-init, all current particle data are lost!\n";
-#endif
+    //! Get current particle number
+    /*! \return Current particle number in particle address list #p
+     */
+    int getN() const {
+        return num;
     }
-    p=new particle*[n];
-    data=new particle[n];
-    alloc_flag = true;
-  }
 
-//  //! allocate memory of particles
-//  /*! allocate memory of n particle data with type of particle class
-//    @param [in] n: number of particles
-//   */
-//  void allocate(const int n) {
-//    if (num>0&&!alloc_flag) {
-//      std::cerr<<"Error: the particle list already stores particle addresses, the allocation of new particle memory is forbidden, please clear first!\n";
-//      abort();
-//    }
-//    if(n+num>nmax) {
-//      std::cerr<<"Error: particle number allocated ("<<n<<") + current particle number ("<<num<<") > maximum number allown ("<<nmax<<")!\n";
-//      abort();
-//    }
-//    for (int i=0; i<n; i++) {
-//      p[i+num] = new particle;
-//      cflag[i+num] = false;
-//    }
-//    num += n;
-//    alloc_flag = true;
-//  }
-  
-  //! Clear function
-  /*! Free dynamical memory space used in particle address list #p
-   */
-  void clear() {
-    if (alloc_flag) {
-      //if (alloc_flag) 
-      //  for (int i=0;i<num;i++)
-      //    if (p[i]!=NULL) delete (particle*)p[i];
-      // delete[] cflag;
-      delete[] p;
-      delete[] data;
-      p = NULL;
-      data = NULL;
-      alloc_flag =false;
-      //alloc_flag = false;
+    //! Get maximum particle number
+    /*! \return Current maximum particle number that can be stored in particle address list #p
+     */
+    int getNmax() const {
+        return nmax;
     }
-    nmax = 0;
-    num = 0;
-  }
 
-  //! Destructor
-  ~ParticleList() {
-    if (alloc_flag>0) {
-      //if (alloc_flag) 
-      //  for (int i=0;i<num;i++)
-      //    if (p[i]!=NULL) delete (particle*)p[i];
-      // delete[] cflag;
-      delete[] p;
-      delete[] data;
+    //! return particle list first pointer
+    particle* getParticle() const {
+        return &p[0];
     }
-  }
 
-  //! Get current particle number
-  /*! \return Current particle number in particle address list #p
-   */
-  int getN() const {
-    return num;
-  }
-
-  //! return particle data first pointer
-  particle* getData() const {
-    return data;
-  }
-
-  //! Get maximum particle number
-  /*! \return Current maximum particle number that can be stored in particle address list #p
-   */
-  int getNmax() const {
-    return nmax;
-  }
-  
-
-  //! Get particle masses and store into array
-  /*! Obtain particle masses and store into the double array
-    @param[in] mass: double array to store the particle masses
-   */
-  void getMassAll(double mass[]) {
-    for (int i=0;i<num;i++) mass[i] = (*this)[i].getMass();
-  }
-
-  //! Add new particle
-  /*! Add new particle address at the end of the particle address list #p (particle type should be derived class from particle_), and copy it to #data
-    @param [in] a: new particle
-   */
-  template <class Tp>
-  void add(const Tp &a) {
-    //if (alloc_flag) {
-    //  std::cerr<<"Error: ParticleList already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
-    //  abort();
-    //}
-    //if(alloc_flag) {
-    //    std::cerr<<"Error: ParticleList already read data from file, no new particle address can be appended!\n";
-    //    abort();
-    //}
-    if (num<nmax) {
-      //cflag[num] = false;
-      p[num] = (particle*)&a;
-      data[num] = a;
-      num++;
+    //! Get particle masses and store into array
+    /*! Obtain particle masses and store into the double array
+      @param[in] mass: double array to store the particle masses
+    */
+    void getMassAll(double mass[]) {
+        for (int i=0;i<num;i++) mass[i] = (*this)[i].getMass();
     }
-    else {
-      std::cerr<<"Error: ParticleList overflow! maximum number is "<<nmax<<std::endl;
-      abort();
-    }
-  }
 
-  //! Add a list of particles
-  /*! ADD a list of particles at the end of the particle address list #p and copy it to #data
-    (particle type should be derived class from particle_)
-    @param [in] n: number of new particles
-    @param [in] a: array of new particles
-   */
-  template<class Tp>
-  void add(const int n, Tp a[]) {
-    //if(alloc_flag) {
-    //    std::cerr<<"Error: ParticleList already read data from file, no new particle address can be appended!\n";
-    //    abort();
-    //}
-    //if (alloc_flag) {
-    //  std::cerr<<"Error: ParticleList already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
-    //  abort();
-    //}
-    if (num+n<=nmax) {
-      for (int i=0;i<n;i++) {
-          //cflag[num+i] = false;
-          p[num+i] = (particle*)&a[i];
-          data[num+i] = a[i];
-      }
-      num +=n;
+    //! Add new particle
+    /*! Add one particle into the particle list, copy the particle data. If nmax reached, abort() is called.
+      @param [in] _p: new particle
+    */
+    template <class _Particle>
+    void addP(_Particle &_p) {
+        if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
+        if (num<nmax) {
+            p[num] = _p;
+            padr[num] = &_p;
+            num++;
+        }
+        else {
+            std::cerr<<"Error: ParticleList overflow! maximum number is "<<nmax<<std::endl;
+            abort();
+        }
+        F_Pmod=true;
     }
-    else {
-      std::cerr<<"Error: ParticleList overflow! maximum number is "<<nmax<<", current number "<<num<<", try to add "<<n<<std::endl;
-      abort();
-    }
-  }
 
-  //! load a list of particles
-  /*! different from add(), this function will directly register the first particle address and the number of particles. Thus no copies of particles are made. This is used when all particles are continued distributed in memory. This function can not be used when allocate() is already called. 
-    @param [in] n: number of new particles
-    @param [in] a: array of new particles
-   */
-  void load(const int n, particle a[]) {
-      if(alloc_flag) {
-          std::cerr<<"Error: ParticleList already allocate memory for particle data, please call clear() first before using load()!\n";
-          abort();
-      }
-#ifdef ARC_DEBUG
-      if(data) {
-          std::cerr<<"Warning: ParticleList already store one particle list address, (current particle number = "<<num<<"), now update to new list with number = "<<n<<"!\n";
-      }
-#endif
-      nmax = num = n;
-      data = a;
-  }
+    //! Add a list of particles
+    /*! ADD a list of particles at the end of the particle address list #p and copy it to #data
+      (particle type should be derived class from particle_)
+      @param [in] n: number of new particles
+      @param [in] a: array of new particles
+    */
+    template<class _Particle>
+    void addP(const int _n, _Particle _p[]) {
+        if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
+        if (num+n<=nmax) {
+            for (int i=0;i<n;i++) {
+                p[num+i] = _p[i];
+                padr[num+i] = &_p[i];
+            }
+            num +=n;
+        }
+        else {
+            std::cerr<<"Error: ParticleList overflow! maximum number is "<<nmax<<", current number "<<num<<", try to add "<<n<<std::endl;
+            abort();
+        }
+    }
+
+    //! remove one particle
+    /*! remove one particle from #p
+      @param [in] i: particle index in #p needs to be removed
+      @param [in] option: position update option: 
+      - true: shift last particle to current position (defaulted);
+      - false: shift all right particle to left by one
+    */
+    void removeP(const int i, bool option=true) {
+        if (F_Porigin!=1) std::cerr<<"Warning!: particle list are (partically) in the center-of-mass frame, dangerous to add new particles!\n";
+        if (option) {
+            if (i<num-1) {
+                num--;
+                p[i] = p[num];
+                padr[i] =padr[num];
+            }
+            else {
+                std::cerr<<"Warning!: try to remove non-existing particle (index "<<i<<" > maximum number "<<num<<"std::endl";
+            }
+        }
+        else {
+            if (i<num-1) {
+                num--;
+                for (int j=i;j<num;j++) {
+                    p[j] = p[j+1];
+                    padr[j] = padr[j+1];
+                }
+            }
+            else {
+                std::cerr<<"Warning!: try to remove non-existing particle (index "<<i<<" > maximum number "<<num<<"std::endl";
+            }
+        }
+    }
     
-  ////! Add a chain in particle address list #p
-  ///*! Add one chain's address at the end of particle address list #p
-  //  @param [in] a: new chain particle
-  // */
-  //void add(chain<particle> &a) {
-  //  if(alloc_flag) {
-  //      std::cerr<<"Error: ParticleList already read data from file, no new particle address can be appended!\n";
-  //      abort();
-  //  }
-  //  //if (alloc_flag) {
-  //  //  std::cerr<<"Error: ParticleList already allocate memory for particle list, to avoid confusion, no new particle address can be appended!\n";
-  //  //  abort();
-  //  //}
-  //  if (num<nmax) {
-  //    cflag[num] = true;
-  //    p[num] = &a;
-  //    data[num] = a.cm;
-  //    num++;
-  //    nchain++;
-  //  }
-  //  else {
-  //    std::cerr<<"Error: ParticleList overflow! maximum number is "<<nmax<<std::endl;
-  //    abort();
-  //  }
-  //}
-
-  //! remove one particle
-  /*! remove one particle from #p
-     @param [in] i: particle index in #p needs to be removed
-     @param [in] option: position update option: 
-                 - true: shift last particle to current position (defaulted);
-                 - false: shift all right particle to left by one
-  */
-  void remove(const int i, bool option=true) {
-    if (option) {
-      if (i<num-1) {
-        // if (cflag[i]) nchain--;
-        num--;
-        //cflag[i] = cflag[num];
-        data[i] = data[num];
-        p[i] = p[num];
-        //if (alloc_flag) p[num]=NULL;
-      }
-      else {
-        std::cerr<<"Warning!: try to remove non-existing particle (index "<<i<<" > maximum number "<<num<<"std::endl";
-      }
-    }
-    else {
-      if (i<num-1) {
-        // if (cflag[i]) nchain--;
-        num--;
-        for (int j=i;j<num;j++) {
-          //cflag[j] = cflag[j+1];
-          data[j] = data[j+1];
-          p[j] = p[j+1];
-        }
-        //if (alloc_flag) p[num]=NULL;
-      }
-      else {
-        std::cerr<<"Warning!: try to remove non-existing particle (index "<<i<<" > maximum number "<<num<<"std::endl";
-      }
-    }
-  }
-
-  //! Return the i^th of memebr's reference in the particle #data
-  /*! [] Operator overloading, return the i^th particle reference from the particle (copied) data list
-    @param [in] i: the index of member in the list #p
-    \return particle reference in ParticleList #data
-   */
-  particle &operator [](const int i) const {
-    //if (cflag[i]) {
-    //  return ((chain<particle>*)p[i])->cm;
-    //}
-    //else {
-    //  return *((particle*)p[i]);
-    //}
+    //! Return the i^th of memebr's reference in the particle #data
+    /*! [] Operator overloading, return the i^th particle reference from the particle (copied) data list
+      @param [in] i: the index of member in the list #p
+      \return particle reference in ParticleList #p
+    */
+    particle &operator [](const int i) const {
 #ifdef ARC_DEBUG
-    if (i>=num) {
-        std::cerr<<"Error: the required index "<<i<<" exceed the current particle list boundary (total number = "<<num<<")!"<<std::endl;
-        abort();
-    }
-#endif
-    return data[i];
-  }
-
-  //! Dump function for particle data
-  /*! Dump particle data into file using fwrite (binary format). Number of particles is written first, then the data of particle class in the particle list #p.
-    @param [in] filename: file to store the data
-   */
-  void dump(const char* filename) {
-    std::FILE* pout = std::fopen(filename,"w");
-    if (pout==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
-    else {
-      fwrite(&num,sizeof(int),1,pout);
-      for (int i=0; i<num; i++) {
-        fwrite(&((*this)[i]),sizeof(particle),1,pout);
-      }
-      fclose(pout);
-    }
-  }
-
-  //! Read function for particle data
-  /*! Read particle data using fread (binary format). Number of particles should be first variable, then the data of particles (the data structure should be consistent with particle class).
-      Notice if read is used, the particle data memory is allocated inside ParticleList, this is different from add() function.
-    @param [in] filename: file to read the data
-   */
-  void read(const char* filename) {
-    std::FILE* pin = std::fopen(filename,"r");
-    if (pin==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
-    else {
-      int n;
-      int rn = fread(&n,sizeof(int),1,pin);
-      if(rn<1) {
-        std::cerr<<"Error: cannot read particle number!\n";
-        abort();
-      }
-
-      allocate(n);
-      for (int i=0; i<n; i++) {
-        rn = fread(&data[i+num],sizeof(particle),1,pin);
-        p[i+num]=NULL;
-        //cflag[i+num]=false;
-        if (rn<1) {
-          std::cerr<<"Error: cannot read particle "<<i<<", total particle number is "<<n<<"!\n";
-          abort();
+        if (i>=num) {
+            std::cerr<<"Error: the required index "<<i<<" exceed the current particle list boundary (total number = "<<num<<")!"<<std::endl;
+            abort();
         }
-      }
-      fclose(pin);
+#endif
+        return p[i];
     }
-  }
 
-  ////! Is i^th a chain?
-  ///*! Check whether the i^th member in the particle address list is chain
-  //   @param [in] i: member index in list #p
-  //   \return  true: chain; false: particle
-  // */
-  //bool isChain (const int i) const {
-  //  return cflag[i];
-  //}
-  
-  ////! Get particle list in a chain type member
-  ///*! Return the address of particle list of the i^th member in particle #p (ARC::chain.p)
-  //  @param [in] i: member index in list the particle address list #p
-  //  \return
-  //   - if i^th member in #p is chain, returen the address of particle list (ARC::chain.p).
-  //   - else return NULL
-  // */
-  //chain<particle> *getSub (const int i) const {
-  //  if (cflag[i]) return (chain<particle>*)p[i];
-  //  else return NULL;
-  //}
+    //! Dump function for particle data
+    /*! Dump particle data into file using fwrite (binary format). Number of particles is written first, then the data of particle class in the particle list #p.
+      @param [in] filename: file to store the data
+    */
+    void dumpP(const char* filename) {
+        std::FILE* pout = std::fopen(filename,"w");
+        if (pout==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
+        else {
+            fwrite(&num,sizeof(_Particle),1,pout);
+            for (int i=0; i<num; i++) {
+                fwrite(p[i],psize,1,pout);
+            }
+            fclose(pout);
+        }
+    }
+
+    //! Read function for particle data
+    /*! Read particle data using fread (binary format). Number of particles should be first variable, then the data of particles (the data structure should be consistent with particle class).
+      Notice if read is used, the particle data memory is allocated inside ParticleList, this is different from add() function.
+      @param [in] filename: file to read the data
+    */
+    void readP(const char* filename) {
+        std::FILE* pin = std::fopen(filename,"r");
+        if (pin==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
+        else {
+            int n;
+            int rn = fread(&n,sizeof(int),1,pin);
+            if(rn<1) {
+                std::cerr<<"Error: cannot read particle number!\n";
+                abort();
+            }
+            if(n+num>nmax) {
+                std::cerr<<"Error: particle number overflow, maximum "<<nmax<<", existed "<<num<<", read "<<n<<std::endl;
+                abort();
+            }
+            for (int i=0; i<n; i++) {
+                rn = fread(&p[i+num],psize,1,pin);
+                if (rn<1) {
+                    std::cerr<<"Error: cannot read particle "<<i<<", total particle number is "<<n<<"!\n";
+                    abort();
+                }
+            }
+            fclose(pin);
+            num +=n;
+        }
+    }
 
   //! copy data back to original address
-  /*! copy the data back to original address assuming data type as particle_
+  /*! copy the data back to original address, if address is NULL, do nothing
    */
   void copyback() {
-    //if(alloc_flag) {
-    //    std::cerr<<"Error: data is read from file, cannot copyback!\n";
-    //    abort();
-    //}
-    if(!alloc_flag) return;
     for(int i=0; i<num; i++) {
-        //if(cflag[i]) ((chain<particle>*)p[i])->cm=data[i];
-        //else *p[i] = data[i];
-        if(p[i]!=NULL) *p[i] = data[i];
+        if(padr[i]!=NULL) *padr[i] = p[i];
     }
-  }
-
-  //! show whether the ParticleList allocated memory
-  /*!
-    \return if allocated, ture; otherwise false
-   */
-  bool is_alloc() const {
-      return alloc_flag;
   }
 
 };
