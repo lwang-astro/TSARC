@@ -966,7 +966,7 @@ class chain: public particle_{
 
   //number =======================================================//
   int num;      ///< total number of chain particles
-  const int nmax;     ///< maximum number 
+  int nmax;     ///< maximum number 
 
   //monitor flags
   bool F_Pmod;     ///< indicate whether particle list is modified (true: modified)
@@ -987,11 +987,30 @@ public:
   chainprofile profile;
 #endif
   
-  //! Constructor
+    //! Constructor
   /*! Construct chain with allocated memory
-      @param [in] n: maximum number of particles (will be used to allocate memory, when determined cannot be changed)
+      @param [in] n: maximum number of particles (will be used to allocate memory)
    */
-  chain(const int n):   num(0), nmax(n), info(NULL), slowdown(){
+  chain(const int n):   num(0), info(NULL), slowdown(){
+    nmax=0;
+    allocate(n);
+  }
+
+  //! Constructor
+  /*! Construct chain without memory allocate, need to call allocate() later. 
+   */
+  chain(): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_read(false), info(NULL), slowdown() {}
+
+  //! Allocate memory
+  /*! Allocate memory for maximum particle number n
+     @param [in] n: maximum number of particles
+   */
+  void allocate(const int n) {
+    if (nmax) {
+      std::cerr<<"Error: chain memory allocation is already done\n";
+      abort();
+    }
+    nmax = n;
     X=new double3[n-1];
     V=new double3[n-1];
     acc=new double3[n];
@@ -1004,16 +1023,22 @@ public:
     F_read=false;
   }
 
-  ////! Constructor
-  ///*! Construct chain without memory allocate, need to call allocate() later. 
-  // */
-  //chain(): num(0), nmax(0), F_Pmod(false), F_Porigin(1), F_read(false), info(NULL), slowdown() {}
-
   //! Clear function
-  /*! Clear particle list allocated memory 
+  /*! Clear allocated memory and set maximum number of particle to zero
    */
   void clear() {
+    if (nmax>0) {
+      delete[] X;
+      delete[] V;
+      delete[] acc;
+      delete[] pf;
+      delete[] dWdr;
+      delete[] list;
+      num = 0;
+      nmax = 0;
+    }
     p.clear();
+//    pext.clear();
 
     if (info) {
       delete info;
@@ -1039,6 +1064,9 @@ public:
       delete[] dWdr;
     }
     if (info) delete info;
+
+//    p.clear();
+//    pext.clear();
   }
 
 private:
@@ -2294,11 +2322,10 @@ public:
         std::cerr<<"Error: cannot read number of particles!\n";
         abort();
       }
-      if(n>nmax) {
-        std::cerr<<"Error: Reading particle number "<<n<<" larger than Chain maximum N "<<nmax<<std::endl;
-        abort();
+      if(n>nmax||p.getN()>0) {
+        clear();
+        allocate(n);
       }
-      if(p.getN()>0) p.clear();
       num = n;
 
       // chain list
