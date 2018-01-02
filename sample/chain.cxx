@@ -47,6 +47,7 @@ int main(int argc, char **argv){
   char* sw=NULL;        // if not 'none', use extrapolation method, 'linear' for polynomial method; 'rational'  for rational interpolation method
   char* sq=NULL;        // extrapolation sequence, 'rom' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}; '4k' for {h/2, h/6, h/10, h/14 ...}; 'hm' for {h, h/2, h/3, h/4 ...}
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
+  int sym_k=4; // symplectic integrator order
   double err=1e-10; // phase error requirement
   double terr=1e-12; // time synchronization error
   double s=0.5;    // step size
@@ -91,7 +92,7 @@ int main(int argc, char **argv){
   };
   
   int option_index;
-  while ((copt = getopt_long(argc, argv, "N:n:t:s:a:r:m:q:i:e:d:p:lh", long_options, &option_index)) != -1)
+  while ((copt = getopt_long(argc, argv, "N:n:t:s:a:r:m:k:q:i:e:d:p:lh", long_options, &option_index)) != -1)
     switch (copt) {
     case 0:
 #ifdef DEBUG
@@ -153,8 +154,15 @@ int main(int argc, char **argv){
       break;
     case 'm':
       sw = optarg;
-      if (strcmp(sw,"linear")&&strcmp(sw,"rational")&&strcmp(sw,"none")) {
+      if (strcmp(sw,"linear")&&strcmp(sw,"rational")&&strcmp(sw,"symplectic")&&strcmp(sw,"none")) {
         std::cerr<<"Extrapolation method "<<sw<<" not found!\n";
+        abort();
+      }
+      break;
+    case 'k':
+      sym_k = atoi(optarg);
+      if(sym_k%2!=0||sym_k<=0) {
+        std::cerr<<"Symplectic order incorrect, should be even, provided: "<<sym_k<<std::endl;
         abort();
       }
       break;
@@ -207,11 +215,13 @@ int main(int argc, char **argv){
                <<"                  'logh': Logarithmic Hamitonian\n"
                <<"                  'ttl': Time-transformed Leapfrog\n"
                <<"          --AR-method (same as -r)\n"
-               <<"    -m [string]:  use extrapolation method to get high accuracy (rational)\n"
-               <<"                  'linear':   polynomial interpolation method;\n"
-               <<"                  'rational': rational interpolation method;\n"
-               <<"                  'none':     no extrapolation\n"
+               <<"    -m [string]:  use extrapolation method to get high accuracy (symplectic)\n"
+               <<"                  'linear':     polynomial interpolation method;\n"
+               <<"                  'rational':   rational interpolation method;\n"
+               <<"                  'symplectic': Use high-order symplectic method;\n"
+               <<"                  'none':       no extrapolation\n"
                <<"          --extra-method (same as -m)\n"
+               <<"    -k [int]:  Symplectic integrator order,should be even number ("<<sym_k<<")\n "
                <<"    -q [string]: extrapolation sequences (bs)\n"
                <<"                  'rom': Romberg sequence {h, h/2, h/4, h/8 ...};\n"
                <<"                  'bs':  Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}\n"
@@ -296,31 +306,37 @@ int main(int argc, char **argv){
   }
   pars.setErr(err,dtmin,terr);
   
-  // itermax & sequence selection
-  int msq=2;
-  if (parfile) {
-    if (!itermax_f) itermax=pars.getIter();
-    if (!intpmax_f) intpmax=pars.getDenIntpmax();
-    msq=pars.getSeq();
-  }
-  if (sq) {
-    if (strcmp(sq,"rom")==0) msq=1;
-    else if (strcmp(sq,"bs")==0) msq=2;
-    else if (strcmp(sq,"4k")==0) msq=3;
-    else msq=4;
-  }
-  pars.setIterSeq(itermax,msq,intpmax);
-  
 
   // interpolation method selection
-  int ms=2;
+  int ms=-1;
   if (parfile) ms=pars.getIntp();
-  if (sw) {
+  if (sw!=NULL) {
     if (strcmp(sw,"linear")==0) ms=1;
+    else if (strcmp(sw,"rational")==0) ms=2;
+    else if (strcmp(sw,"symplectic")==0) ms=-1;
     else if (strcmp(sw,"none")==0) ms=0;
   }
-  pars.setIntp(ms);
+  int msq=0;
+  if (parfile) {
+      if (!itermax_f) itermax=pars.getIter();
+      if (!intpmax_f) intpmax=pars.getDenIntpmax();
+      msq=pars.getSeq();
+  }
 
+  if(ms>=0) {
+      pars.setIntp(ms);
+      // itermax & sequence selection
+      if (sq) {
+          if (strcmp(sq,"rom")==0) msq=1;
+          else if (strcmp(sq,"bs")==0) msq=2;
+          else if (strcmp(sq,"4k")==0) msq=3;
+          else msq=4;
+      }
+  }
+  else pars.setSymOrder(sym_k);
+
+  pars.setIterSeq(itermax,msq,intpmax);
+  
   // fix iteration flag, switch on if auto-step adjustment is used
   if (parfile) iterfix=pars.exp_fix_iter;
   if (dsA) {
@@ -428,7 +444,7 @@ int main(int argc, char **argv){
     i++;
 
     // Extrapolation integration
-    if (ms) {
+    if (ms>0) {
         double dsf=c.extrapolation_integration<Particle,ARC::double3,NTA::Newtonian_pars>(ds,pars,tend,&Int_pars,&p[n],pf,npert);
       // indicator whether ending time is reached, if so, modify ds
       if (dsf<0) ds *= -dsf;
@@ -448,8 +464,12 @@ int main(int argc, char **argv){
       }
     }
     // Leapfrog integration
-    else {
-        c.Leapfrog_step_forward<Particle,ARC::double3,NTA::Newtonian_pars>(s,nsubstep,pars,&Int_pars,&p[n],pf,npert);
+    else if (ms==0){
+      c.Leapfrog_step_forward<Particle,ARC::double3,NTA::Newtonian_pars>(s,nsubstep,pars,&Int_pars,&p[n],pf,npert);
+      chain_print(c,s,w,pre);
+    }
+    else if (ms<0) {
+      c.Symplectic_integration<Particle,ARC::double3,NTA::Newtonian_pars>(s,pars,&Int_pars,&p[n],pf,npert);
       chain_print(c,s,w,pre);
     }
 #ifdef ARC_PROFILE
@@ -459,7 +479,7 @@ int main(int argc, char **argv){
   
 #ifdef ARC_PROFILE
   // if extrapolation method is used, counting the iteration (maximum sequence index) level
-  if (ms) {
+  if (ms>0) {
     int* step=new int[itermax+1];
     // Romberg (even) sequence {h, h/2, h/4, h/8 ...}
     if (msq==1) EP::seq_Romberg(step,itermax+1);

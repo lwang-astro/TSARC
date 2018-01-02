@@ -49,6 +49,7 @@ public:
   double t_init;   ///< initialization
   double t_newdt;  ///< new timestep
   double t_check;  ///< for debug
+  double t_sym;    ///< symplectic_integration
 
   int* stepcount;  ///< iteration step count in extrapolation
   int  itercount;  ///< total substep in extrapolation
@@ -73,6 +74,7 @@ public:
     t_init=0.0;
     t_newdt=0.0;
     t_check=0.0;
+    t_sym=0.0;
     stepcount=NULL;
     itercount=0;
   }
@@ -90,6 +92,7 @@ public:
           <<"  Update_link(s): "<<t_uplink
           <<"  Leap-frog(s): "<<t_lf
           <<"  Extrapolation(s): "<<t_ep
+          <<"  Symplectic(s): "<<t_sym
           <<"  Perturbation(s): "<<t_pext
           <<"  Dense_output(s): "<<t_dense
           <<"  New_ds_(s): "<<t_newdt
@@ -185,6 +188,10 @@ private:
   int* step; ///< substep sequence
   int** bin_index; ///< binomial coefficients
 
+  int sym_k; ///< symplectic cofficients array size
+  int sym_n; ///< symplectic integrator order
+  double2* sym_coff; ///< cofficients for symplectic integrator
+
   int auto_step;           ///< if 0: no auto step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step; if 3: use maximum sequence index to control next step; if 4: use mimimum kepler period of every two neigbor members to estimate the next step modification factor.
   double auto_step_fac_min; ///< minimum reduction factor
   double auto_step_fac_max; ///< maximum reduction factor
@@ -228,6 +235,7 @@ public:
     pp_AW_type = ext_A_type = pp_T_type = NULL;
     step = NULL;
     bin_index = NULL;
+    sym_coff = NULL;
     setabg();
     setErr();
     // For extrapolation integration
@@ -285,6 +293,7 @@ public:
     if (pp_T_type!=NULL) {
         delete pp_T_type;
     }
+    if (sym_coff!=NULL) delete[] sym_coff;
   }
 
   //! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ calculator
@@ -345,8 +354,13 @@ public:
     @param [in] n: symplectic integrator order, should be even, otherwise reduce to closest even number; if 0, not set
    */
   void setSymOrder(const int n) {
+      sym_n = n;
       if (n>0) {
-          
+          int k = n/2;
+          sym_k = std::pow(3,k-1)+1;
+          if (sym_coff!=NULL) delete[] sym_coff;
+          sym_coff = new double2[sym_k];
+          SYM::symplectic_cofficients(sym_coff, k, sym_k);
       }
   }
 
@@ -393,6 +407,7 @@ public:
     @param [in] intpmax: maximum derivate index for dense ouput interpolation (defaulted #itermax/2)
   */
   void setIterSeq(const int itermax=20, const int sequence=0, const int intpmax=0) {
+    exp_itermax = itermax;
     exp_sequence = sequence;
 
     // delete binomial array
@@ -431,7 +446,6 @@ public:
             if (i>0) EP::binomial_recursive_generator(bin_index[i],bin_index[i-1],i+1);
             else EP::binomial_recursive_generator(bin_index[i],NULL,i+1);
         }
-        exp_itermax = itermax;
     
         if (intpmax>itermax) {
             std::cerr<<"Error: dense output interpolation derivate index ("<<intpmax<<") cannot be larger than extrapolation maximum sequence index ("<<itermax<<")!\n";
@@ -702,37 +716,45 @@ public:
   void print(std::ostream & fout) {
     fout<<"======================Chain parameter table=========================\n"
         <<"Time step transformation parameters:\n"
-        <<"  alpha = "<<alpha<<"  beta = "<<beta<<"  gamma = "<<gamma<<std::endl
-        <<"Extrapolation parameters:\n"
-        <<"  Interpolation method:    "<<((exp_method==1)?"Polynomial":"Rational")<<std::endl
-        <<"  Sequence:                ";
-    if (exp_sequence==1) fout<<"Romberg sequence {h, h/2, h/4, h/8 ...}\n";
-    else if(exp_sequence==2) fout<<"Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}\n";
-    else if(exp_sequence==3) fout<<"4k sequence {h/2, h/6, h/10, h/14 ...}\n";
-    else fout<<"Harmonic sequence {h, h/2, h/3, h/4 ...}\n";
-    fout<<"  Maximum iteration times: "<<exp_itermax<<std::endl
-        <<"  Maximum dense output derivate index: "<<den_intpmax<<std::endl
-        <<"  Phase/energy error criterion:    "<<exp_error<<std::endl
-        <<"  Time sychronization error limit: "<<dterr<<std::endl
-        <<"  Minimum physical time:           "<<dtmin<<std::endl
-        <<"Auto-step parameters:\n"
-        <<"  Auto-step method: ";
-    if (auto_step==0) fout<<"None\n";
-    else if(auto_step==1) fout<<"Use extrapolation error\n"
-                              <<"  Minimum reduction factor: "<<auto_step_fac_min<<std::endl
-                              <<"  Maximum increasing factor: "<<auto_step_fac_max<<std::endl;
-    else if(auto_step==2) fout<<"Use min X/(g V) and V/(g A)\n"
-                              <<"  Minimum reduction factor: "<<auto_step_fac_min<<std::endl
-                              <<"  Maximum increasing factor: "<<auto_step_fac_max<<std::endl
-                              <<"  Multiplied coefficient:   "<<auto_step_eps<<std::endl;
-    else if(auto_step==3) fout<<"Use maximum sequence index to control next step\n"
-                              <<"  Reduction factor: "<<auto_step_fac_min<<std::endl
-                              <<"  Increasing factor: "<<auto_step_fac_max<<std::endl
-                              <<"  Mimimum iteraction level: "<<auto_step_iter_min<<std::endl
-                              <<"  Maximum iteraction level: "<<auto_step_iter_max<<std::endl;
-    else if(auto_step==4) fout<<"Use minimum user-defined two-body timescale of each neigbor pairs\n"
-                              <<"  Multiplied coefficient:   "<<auto_step_eps<<std::endl;
-    fout<<"Iteration times fixed?: "<<exp_fix_iter<<std::endl;
+        <<"  alpha = "<<alpha<<"  beta = "<<beta<<"  gamma = "<<gamma<<std::endl;
+    if (exp_sequence>0) {
+        fout<<"Extrapolation parameters:\n"
+            <<"  Interpolation method:    "<<((exp_method==1)?"Polynomial":"Rational")<<std::endl
+            <<"  Sequence:                ";
+        if (exp_sequence==1) fout<<"Romberg sequence {h, h/2, h/4, h/8 ...}\n";
+        else if(exp_sequence==2) fout<<"Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}\n";
+        else if(exp_sequence==3) fout<<"4k sequence {h/2, h/6, h/10, h/14 ...}\n";
+        else if(exp_sequence==4) fout<<"Harmonic sequence {h, h/2, h/3, h/4 ...}\n";
+        else fout<<"Not available\n";
+        fout<<"  Maximum iteration times: "<<exp_itermax<<std::endl
+            <<"  Maximum dense output derivate index: "<<den_intpmax<<std::endl
+            <<"  Phase/energy error criterion:    "<<exp_error<<std::endl
+            <<"  Time sychronization error limit: "<<dterr<<std::endl
+            <<"Auto-step parameters:\n"
+            <<"  Auto-step method: ";
+        if (auto_step==0) fout<<"None\n";
+        else if(auto_step==1) fout<<"Use extrapolation error\n"
+                                  <<"  Minimum reduction factor: "<<auto_step_fac_min<<std::endl
+                                  <<"  Maximum increasing factor: "<<auto_step_fac_max<<std::endl;
+        else if(auto_step==2) fout<<"Use min X/(g V) and V/(g A)\n"
+                                  <<"  Minimum reduction factor: "<<auto_step_fac_min<<std::endl
+                                  <<"  Maximum increasing factor: "<<auto_step_fac_max<<std::endl
+                                  <<"  Multiplied coefficient:   "<<auto_step_eps<<std::endl;
+        else if(auto_step==3) fout<<"Use maximum sequence index to control next step\n"
+                                  <<"  Reduction factor: "<<auto_step_fac_min<<std::endl
+                                  <<"  Increasing factor: "<<auto_step_fac_max<<std::endl
+                                  <<"  Mimimum iteraction level: "<<auto_step_iter_min<<std::endl
+                                  <<"  Maximum iteraction level: "<<auto_step_iter_max<<std::endl;
+        else if(auto_step==4) fout<<"Use minimum user-defined two-body timescale of each neigbor pairs\n"
+                                  <<"  Multiplied coefficient:   "<<auto_step_eps<<std::endl;
+        fout<<"Iteration times fixed?: "<<exp_fix_iter<<std::endl;
+    }
+    else {
+        fout<<"Symplectic integration paramters:\n"
+            <<"  Integrator order: "<<sym_n<<std::endl
+            <<"  Step pair (DK) number: "<<sym_k<<std::endl;
+    }
+    fout<<"  Minimum physical time:           "<<dtmin<<std::endl;
     fout<<"====================================================================\n";
   }
 };
@@ -3672,6 +3694,133 @@ public:
 
     return dsn;
   }
+
+
+  //! high order symplectic integrator
+  /*! Integration with high order symplectic integrator
+      The positions and velocities of particles in #p will be integrated in the center-of-mass frame
+      @param [in] s: Integration step size
+      @param [in] pars: chainpars controller
+      @param [in] int_pars: extra parameters used in f or fpert.
+      @param [in] pert: perturber particle array
+      @param [in] pertf: perturrber force array for prediction
+      @param [in] npert: number of perturbers
+      @param [in] check_flag: check link at end (default: true)
+  */
+  template<class pertparticle_, class pertforce_, class extpar_>
+  void Symplectic_integration(const double s, 
+                              chainpars &pars,
+                              extpar_ *int_pars = NULL,
+                              pertparticle_* pert = NULL, 
+                              pertforce_* pertf = NULL, 
+                              const int npert = 0,
+                              bool check_flag = true) {
+#ifdef ARC_PROFILE
+    profile.t_sym -= get_wtime();
+#endif
+
+    pair_AW<particle,extpar_> f = reinterpret_cast<pair_AW<particle_,extpar_>>(pars.pp_AW);
+    ext_Acc<particle,pertparticle_,pertforce_,extpar_> fpert = reinterpret_cast<ext_Acc<particle,pertparticle_,pertforce_,extpar_>>(pars.ext_A);
+
+#ifdef ARC_DEBUG
+    // Error check
+    /*    if (s<0) {
+      std::cerr<<"Error: step size should be positive, current value is "<<s<<std::endl;
+      abort();*/
+    if (s==0) {
+      std::cerr<<"Error: step size should not be zero!\n"<<std::endl;
+      abort();
+    }
+    if (F_Porigin) {
+      std::cerr<<"Error: particles are not in the center-of-mass frame, the integration can be dangerous!"<<std::endl;
+      abort();
+    }
+    if (F_Pmod) {
+      std::cerr<<"Error: particles are modified, initialization required!"<<std::endl;
+      abort();
+    }
+
+    if(fpert!=NULL) {
+        if(std::type_index(typeid(fpert))!=*pars.ext_A_type) {
+            std::cerr<<"Error: perturber function type not matched the data type\n";
+            abort();
+        }
+    }
+#endif
+    double3 ave_v[nmax];              // average velocity
+
+    // integration with cofficients table
+    for (int i=0;i<pars.sym_k;i++) {
+ 
+     // Drift t (dependence: Ekin, Pt, w)
+      double dt = calc_dt_X(pars.sym_coff[i][0]*s,pars);
+
+      if (info!=NULL) {
+        info->inti = i;
+        info->subds = s;
+        info->Ekin = Ekin;
+        info->Pot = Pot;
+        info->W = W;
+        break;
+      }
+
+      // step_forward time
+      t += dt;
+
+      // Drift X (dependence: V, dt)
+      step_forward_X(dt);
+
+      // resolve X to p.x (dependence: X, particle::getMass())
+      resolve_X();
+      
+      // perturber force
+      if (fpert!=NULL) {
+        // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
+        fpert(pf, slowdown.kappa*t, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+      }
+
+      // Update rjk, A, Pot, dWdr, W for half X (dependence: pf, force, p.m, p.x, X)
+      calc_rAPW(f, int_pars);
+      if (info!=NULL) {
+        info->inti = i;
+        break;
+      }
+
+      // Kick time step dt(V) (dependence: Pot, W)
+      double dvt = calc_dt_V(pars.sym_coff[i][1]*s,pars);
+
+      // Step forward V (dependence: dt(V), V, A)
+      step_forward_V(dvt);
+      
+      // Get averaged velocity, update p.x, p.v, ave_v (dependence: X, V)
+      resolve_XV(ave_v);
+
+      // forward Pt and w (dependence: dt(V), ave_v, p.m, p.v, dWdr, pf)
+      const bool dw_calc_flag = pars.beta>0;
+      step_forward_Ptw(dvt,ave_v,dw_calc_flag);
+
+      // Calcuale Kinetic energy (dependence: p.m, p.v)
+      calc_Ekin();
+
+    }
+
+    // resolve X at last, update p.x (dependence: X)
+    resolve_X();
+
+    // Update rjk, A, Pot, dWdr, W (notice A will be incorrect since pf is not updated)
+    calc_rAPW(f, int_pars);
+
+    // update slow-down
+    updateSlowDownFpert();
+
+    // update chain list order
+    if(num>2&&check_flag==1)  update_link();
+
+#ifdef ARC_PROFILE
+    profile.t_sym += get_wtime();
+#endif
+  }
+
 
   //! Get current physical time
   /*! \return current physical time
