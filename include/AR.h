@@ -18,6 +18,7 @@
 #endif
 
 #include "extrapolation.h"
+#include "symplectic.h"
 
 //! Algorithmic regularization chain (ARC) namespace
 /*!
@@ -177,7 +178,7 @@ private:
 
   // extrapolation control parameter
   int exp_method;         ///< 1: Polynomial method; others: Rational interpolation method
-  int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+  int exp_sequence;       ///< 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; 4: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
   int exp_itermax; ///< maximum times for iteration.
   int den_intpmax; ///< maximum derivates for dense output interpolation
 
@@ -218,9 +219,8 @@ public:
       - Phase/energy error limit #exp_error = 1e-10.
       - Minimum physical time step #dtmin = 5.4e-20.
       - Time synchronization (relative to time step) physical time error limit #dterr = 1e-6.
-      - Maximum extrapolation sequence index (accuracy order/iteration times) #exp_itermax = 20
+      - extrapolation sequence is not set
       - The maximum sequence index (iteration times) is adjusted by error criterion
-      - Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6...} is used
       - No auto-step
    */
   chainpars() {
@@ -230,40 +230,41 @@ public:
     bin_index = NULL;
     setabg();
     setErr();
+    // For extrapolation integration
     setIterSeq();
     setIntp();
     setIterConst();
     setAutoStep(0);
   }
 
-  //! constructor
-  /*!
-    All parameters can be set except anto-step method (defaulted is zero)
-    @param [in] a,b,g: ARC time transformation method coefficients (\f$ dt = ds/[a *(logH) + b * (TTL) + g])\f$. \n
-                - a: Logarithmic Hamiltonian (logH) method coefficient #alpha (0.0, 1.0)
-                - b: Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0)
-                - g: Constant coefficient (no time transformation) #gamma
-    @param [in] error: Phase/energy error limit (defaulted #exp_error = 1e-10)
-    @param [in] dtm: Minimum physical time step (defaulted #dtmin = 5.4e-20)
-    @param [in] dte: Relative time synchronization error limit (defaulted #dterr = 1e-6)
-    @param [in] itermax: Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20)
-    @param [in] ext_method: 1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational)
-    @param [in] ext_sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
-    @param [in] dense_intpmax: maximum derivate index for dense output interpolation (defaulted #itermax/2)
-    @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
-   */
-  chainpars(const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const int itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
-    pp_AW = ext_A = pp_T = NULL;
-    pp_AW_type = ext_A_type = pp_T_type = NULL;
-    step = NULL;
-    bin_index = NULL;
-    setabg(a,b,g);
-    setErr(error,dtm,dte);
-    setIterSeq(itermax,ext_sequence,dense_intpmax);
-    setIntp(ext_method);
-    setIterConst(ext_iteration_const);
-    setAutoStep(0);
-  }
+//  //! constructor
+//  /*!
+//    All parameters can be set except anto-step method (defaulted is zero)
+//    @param [in] a,b,g: ARC time transformation method coefficients (\f$ dt = ds/[a *(logH) + b * (TTL) + g])\f$. \n
+//                - a: Logarithmic Hamiltonian (logH) method coefficient #alpha (0.0, 1.0)
+//                - b: Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0)
+//                - g: Constant coefficient (no time transformation) #gamma
+//    @param [in] error: Phase/energy error limit (defaulted #exp_error = 1e-10)
+//    @param [in] dtm: Minimum physical time step (defaulted #dtmin = 5.4e-20)
+//    @param [in] dte: Relative time synchronization error limit (defaulted #dterr = 1e-6)
+//    @param [in] itermax: Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20)
+//    @param [in] ext_method: 1: Polynomial interpolation method; others: Rational interpolation method (defaulted: Rational)
+//    @param [in] ext_sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+//    @param [in] dense_intpmax: maximum derivate index for dense output interpolation (defaulted #itermax/2)
+//    @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
+//   */
+//  chainpars(const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const int itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
+//    pp_AW = ext_A = pp_T = NULL;
+//    pp_AW_type = ext_A_type = pp_T_type = NULL;
+//    step = NULL;
+//    bin_index = NULL;
+//    setabg(a,b,g);
+//    setErr(error,dtm,dte);
+//    setIterSeq(itermax,ext_sequence,dense_intpmax);
+//    setIntp(ext_method);
+//    setIterConst(ext_iteration_const);
+//    setAutoStep(0);
+//  }
 
   //! destructor
   ~chainpars() {
@@ -339,6 +340,16 @@ public:
     g = gamma;
   }
 
+  //! Set Symplectic integrator order for Symplectic_step_forwards
+  /*!
+    @param [in] n: symplectic integrator order, should be even, otherwise reduce to closest even number; if 0, not set
+   */
+  void setSymOrder(const int n) {
+      if (n>0) {
+          
+      }
+  }
+
   //! Set error paremeters
   /*!
     @param [in] error: phase/energy relative error requirement for extrapolation (defaulted #exp_error = 1e-10)
@@ -378,10 +389,10 @@ public:
   //! Set extrapolation maximum iteration number and sequences
   /*! 
     @param [in] itermax: Maximum extrapolation sequence index (accuracy order/iteration times) (defaulted #exp_itermax = 20)
-    @param [in] sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
+    @param [in] sequence: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 0. no sequence)
     @param [in] intpmax: maximum derivate index for dense ouput interpolation (defaulted #itermax/2)
   */
-  void setIterSeq(const int itermax=20, const int sequence=2, const int intpmax=0) {
+  void setIterSeq(const int itermax=20, const int sequence=0, const int intpmax=0) {
     exp_sequence = sequence;
 
     // delete binomial array
@@ -395,34 +406,41 @@ public:
     
     // reset step array
     if (step!=NULL) delete[] step;
-    step = new int[itermax+1];
 
-    // calculate sequences of steps
-    // Romberg (even) sequence {h, h/2, h/4, h/8 ...}
-    if (sequence==1) EP::seq_Romberg(step,itermax+1);
-    // Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
-    else if (sequence==2) EP::seq_BS(step,itermax+1);
-    // E. Hairer (4k) sequences {h, h/2, h/6, h/10, h/14 ...}
-    else if (sequence==3) EP::seq_Hairer(step,itermax+1);
-    // Harmonic sequences {h, h/2, h/3, h/4 ...}
-    else EP::seq_Harmonic(step,itermax+1);
+    if(exp_sequence>0) {
+        step = new int[itermax+1];
 
-    // calculate binomial coefficients
-    bin_index = new int*[step[itermax]];
-    for (int i=0; i<step[itermax]; i++) {
-      bin_index[i] = new int[i+1];
-      if (i>0) EP::binomial_recursive_generator(bin_index[i],bin_index[i-1],i+1);
-      else EP::binomial_recursive_generator(bin_index[i],NULL,i+1);
-    }
-    exp_itermax = itermax;
+        // calculate sequences of steps
+        // Romberg (even) sequence {h, h/2, h/4, h/8 ...}
+        if (sequence==1) EP::seq_Romberg(step,itermax+1);
+        // Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}
+        else if (sequence==2) EP::seq_BS(step,itermax+1);
+        // E. Hairer (4k) sequences {h, h/2, h/6, h/10, h/14 ...}
+        else if (sequence==3) EP::seq_Hairer(step,itermax+1);
+        // Harmonic sequences {h, h/2, h/3, h/4 ...}
+        else if (sequence==4) EP::seq_Harmonic(step,itermax+1);
+        else {
+            std::cerr<<"Error: Unknown sequence index "<<sequence<<std::endl;
+            abort();
+        }
+
+        // calculate binomial coefficients
+        bin_index = new int*[step[itermax]];
+        for (int i=0; i<step[itermax]; i++) {
+            bin_index[i] = new int[i+1];
+            if (i>0) EP::binomial_recursive_generator(bin_index[i],bin_index[i-1],i+1);
+            else EP::binomial_recursive_generator(bin_index[i],NULL,i+1);
+        }
+        exp_itermax = itermax;
     
-    if (intpmax>itermax) {
-      std::cerr<<"Error: dense output interpolation derivate index ("<<intpmax<<") cannot be larger than extrapolation maximum sequence index ("<<itermax<<")!\n";
-      abort();
-    }
-    else if(intpmax==0) den_intpmax=itermax/2;
-    else den_intpmax = intpmax;
-    
+        if (intpmax>itermax) {
+            std::cerr<<"Error: dense output interpolation derivate index ("<<intpmax<<") cannot be larger than extrapolation maximum sequence index ("<<itermax<<")!\n";
+            abort();
+        }
+        else if(intpmax==0) den_intpmax=itermax/2;
+        else den_intpmax = intpmax;
+
+    }    
   }
 
   //! set maximum derivate index for dense output interpolation

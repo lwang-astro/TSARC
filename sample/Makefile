@@ -1,5 +1,5 @@
 ## TARGET
-TARGET=chain hierarchy
+TARGET=chain hierarchy symtest
 
 VPATH=../include
 
@@ -19,7 +19,7 @@ CXXLIBS += -L$(GPERF_PATH) -lprofiler -ltcmalloc
 
 ## for debug------------------------------------------#
 CXXFLAGS += -O2 
-#CXXFLAGS += -g -fbounds-check
+CXXFLAGS += -g -fbounds-check
 #CXXFLAGS += -D DEBUG 
 #CXXFLAGS += -D ARC_DEBUG
 
