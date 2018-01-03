@@ -91,9 +91,12 @@ int main(int argc, char **argv){
 
   double s=0.5;    // step size
   int n=1000; // total step size
+  int m=0;    // method
+  int k=4;    // symplectic integrator order or extrapolation method
+  int itermax=20; // maximum iteration for extrapolation method
 
   int copt;
-  while ((copt = getopt(argc, argv, "n:s:h")) != -1)
+  while ((copt = getopt(argc, argv, "n:s:hm:k:")) != -1)
     switch (copt) {
     case 'n':
       n = atoi(optarg);
@@ -106,8 +109,16 @@ int main(int argc, char **argv){
                <<"Input data file format: hiarch_order branch_id mass1,mass2,semi,ecc,angle[3],ecc_anomaly\n"
                <<"Options: (*) show defaulted values\n"
                <<"    -n [int]:     number of integration steps ("<<n<<")\n"
-               <<"    -s [double]:  step size, not physical time step ("<<s<<")\n";
+               <<"    -s [double]:  step size, not physical time step ("<<s<<")\n"
+               <<"    -m [int]:     integration methods: 0: symplectic, 1: extrapolation ("<<m<<")\n"
+               <<"    -k [int]:     if symplectic, k is order, if extrapolation, k is interpolation method (1:linear, 2: rational) ("<<k<<")\n";
       return 0;
+    case 'm':
+      m = atoi(optarg);
+      break;
+    case 'k':
+      k = atoi(optarg);
+      break;
     default:
       std::cerr<<"Unknown argument. check '-h' for help.\n";
       abort();
@@ -134,11 +145,16 @@ int main(int argc, char **argv){
 
   pars.setA(NTA::Newtonian_AW,NTA::Newtonian_extAcc,NTA::Newtonian_kepler_period);
 
+  if(m==1) pars.setIterSeq(itermax,k,10);
+  else pars.setSymOrder(k);
   //pars.setErr(err,dtmin,terr);
   //pars.setIterSeq(itermax,msq,intpmax);
   //pars.setIntp(ms);
   //pars.setAutoStep(dsA,std::max(std::min(itermax-3,5),1),std::min(std::max(itermax-5,3),itermax));
   //pars.setIterConst(iterfix);
+
+  // print chain pars
+  pars.print(std::cerr);
 
   int N;
   fs>>N;
@@ -193,22 +209,50 @@ int main(int argc, char **argv){
   pw.pre=10; //precision
   
   chain_print(c,0,pw.w,pw.pre);
-  plist.pair_process(0,0,kepler_print,pw);
+  //plist.pair_process(0,0,kepler_print,pw);
   std::cout<<std::endl;
 
   // step size
-  double ds = s;
+  const double ds = s;
 
   for(int i=0;i<n;i++) {
-      double dsf=c.extrapolation_integration<Particle, ARC::double3, NTA::Newtonian_pars>(ds,pars,-1,&Int_pars);
-    if (dsf==0) {
-      c.info->ErrMessage(std::cerr);
-      abort();
-    }
+      if(m==1) {
+          double dsf=c.extrapolation_integration<Particle, ARC::double3, NTA::Newtonian_pars>(ds,pars,-1,&Int_pars);
+          if (dsf==0) {
+              c.info->ErrMessage(std::cerr);
+              abort();
+          }
+      }
+      else{
+          c.Symplectic_integration<Particle, ARC::double3, NTA::Newtonian_pars>(ds, pars, &Int_pars);
+      }
+
     chain_print(c,ds,pw.w,pw.pre);
-    plist.pair_process(0,0,kepler_print,pw);
+    //plist.pair_process(0,0,kepler_print,pw);
     std::cout<<std::endl;
+#ifdef ARC_PROFILE
+    c.profile.print(std::cerr,i);
+#endif
   }
+
+#ifdef ARC_PROFILE
+  if (m==1) {
+    int* step=new int[itermax+1];
+    EP::seq_BS(step,itermax+1);
+    int* stepcount = c.profile.stepcount;
+    std::cerr<<"Step histogram:\n I\tCount\tNstep\tStepsum\n";
+    int stepsum=0;
+    int itersum=0;
+    for (int i=1;i<=itermax;i++) {
+      stepsum += step[i-1];
+      std::cerr<<i<<"\t"<<stepcount[i]<<"\t"<<step[i-1]<<"\t"<<stepsum<<std::endl;
+      itersum += std::max(stepcount[i]*(i-1),0);
+    }
+    std::cerr<<"Sum-of-steps: "<<c.profile.itercount<<" Sum-of-iterations: "<<itersum<<std::endl;
+    delete [] step;
+
+  }
+#endif
   
   return 0;
 }

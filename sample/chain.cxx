@@ -324,6 +324,7 @@ int main(int argc, char **argv){
   }
 
   if(ms>=0) {
+      msq=2;
       pars.setIntp(ms);
       // itermax & sequence selection
       if (sq) {

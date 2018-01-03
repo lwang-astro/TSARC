@@ -351,13 +351,17 @@ public:
 
   //! Set Symplectic integrator order for Symplectic_step_forwards
   /*!
-    @param [in] n: symplectic integrator order, should be even, otherwise reduce to closest even number; if 0, not set
+    @param [in] n: symplectic integrator order, should be even, otherwise reduce to closest even number; if 0, not set; if negative, use second solution from Yoshida (1990), but only -6 and -8 works
    */
   void setSymOrder(const int n) {
-      sym_n = n;
-      if (n>0) {
-          int k = n/2;
-          sym_k = std::pow(3,k-1)+1;
+      sym_n = n<0?-n:n;
+      int k = n/2;
+      if (n>0) sym_k = std::pow(3,k-1)+1;
+      else if(n==-6) sym_k = 8;
+      else if(n==-8) sym_k = 16;
+      else sym_k = 0;
+
+      if(sym_k>0) {
           if (sym_coff!=NULL) delete[] sym_coff;
           sym_coff = new double2[sym_k];
           SYM::symplectic_cofficients(sym_coff, k, sym_k);
@@ -3803,18 +3807,12 @@ public:
       calc_Ekin();
 
     }
-
-    // resolve X at last, update p.x (dependence: X)
-    resolve_X();
-
-    // Update rjk, A, Pot, dWdr, W (notice A will be incorrect since pf is not updated)
-    calc_rAPW(f, int_pars);
-
+    
     // update slow-down
     updateSlowDownFpert();
 
     // update chain list order
-    if(num>2&&check_flag==1)  update_link();
+    if(num>2&&check_flag)  update_link();
 
 #ifdef ARC_PROFILE
     profile.t_sym += get_wtime();
