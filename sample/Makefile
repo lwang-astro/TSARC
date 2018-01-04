@@ -15,11 +15,11 @@ CXXFLAGS += -std=c++11
 
 ## profile---------------------------------------#
 CXXFLAGS += -D ARC_PROFILE
-CXXLIBS += -L$(GPERF_PATH) -lprofiler -ltcmalloc
+#CXXLIBS += -L$(GPERF_PATH) -lprofiler -ltcmalloc
 
 ## for debug------------------------------------------#
 CXXFLAGS += -O2 
-CXXFLAGS += -g -fbounds-check
+#CXXFLAGS += -g -fbounds-check
 #CXXFLAGS += -D DEBUG 
 #CXXFLAGS += -D ARC_DEBUG
 

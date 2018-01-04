@@ -94,9 +94,11 @@ int main(int argc, char **argv){
   int m=0;    // method
   int k=4;    // symplectic integrator order or extrapolation method
   int itermax=20; // maximum iteration for extrapolation method
+  int method=1; // regularization methods, 1: Logarithmic Hamitonian; 2: Time-transformed Leapfrog\n (logh)
+  int imethod=2; // interpolation method (1. linear; 2. rational)
 
   int copt;
-  while ((copt = getopt(argc, argv, "n:s:hm:k:")) != -1)
+  while ((copt = getopt(argc, argv, "n:s:hm:r:k:i:")) != -1)
     switch (copt) {
     case 'n':
       n = atoi(optarg);
@@ -111,13 +113,25 @@ int main(int argc, char **argv){
                <<"    -n [int]:     number of integration steps ("<<n<<")\n"
                <<"    -s [double]:  step size, not physical time step ("<<s<<")\n"
                <<"    -m [int]:     integration methods: 0: symplectic, 1: extrapolation ("<<m<<")\n"
-               <<"    -k [int]:     if symplectic, k is order, if extrapolation, k is interpolation method (1:linear, 2: rational) ("<<k<<")\n";
+               <<"    -r [int]:     regularization methods, 1: Logarithmic Hamitonian; 2: Time-transformed Leapfrog ("<<method<<")\n"
+               <<"    -k [int]:     if symplectic, k is order, if extrapolation, k is extrapolation sequence (1: Romberg sequence; 2. BS sequence; 3. 4k sequence; 4. Harmonic sequence) ("<<k<<")\n"
+               <<"    -i [int]:     interpolation method (1. linear; 2. rational) ("<<imethod<<")\n";
       return 0;
     case 'm':
       m = atoi(optarg);
       break;
+    case 'r':
+      method = atoi(optarg);
+      if(method!=1&&method!=2) {
+          std::cerr<<"Error: regularization method should be either 1 or 2, provided: "<<method<<"\n";
+          abort();
+      }
+      break;
     case 'k':
       k = atoi(optarg);
+      break;
+    case 'i':
+      imethod = atoi(optarg);
       break;
     default:
       std::cerr<<"Unknown argument. check '-h' for help.\n";
@@ -145,7 +159,13 @@ int main(int argc, char **argv){
 
   pars.setA(NTA::Newtonian_AW,NTA::Newtonian_extAcc,NTA::Newtonian_kepler_period);
 
-  if(m==1) pars.setIterSeq(itermax,k,10);
+  if(method==1) pars.setabg(1.0,0.0,0.0);
+  else if(method==2) pars.setabg(0.0,1.0,0.0);
+
+  if(m==1) {
+      pars.setIterSeq(itermax,k,10);
+      pars.setIntp(imethod);
+  }
   else pars.setSymOrder(k);
   //pars.setErr(err,dtmin,terr);
   //pars.setIterSeq(itermax,msq,intpmax);

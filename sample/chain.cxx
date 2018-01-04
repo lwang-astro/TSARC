@@ -161,10 +161,6 @@ int main(int argc, char **argv){
       break;
     case 'k':
       sym_k = atoi(optarg);
-      if(sym_k%2!=0||sym_k<=0) {
-        std::cerr<<"Symplectic order incorrect, should be even, provided: "<<sym_k<<std::endl;
-        abort();
-      }
       break;
     case 'q':
       sq = optarg;
@@ -219,18 +215,18 @@ int main(int argc, char **argv){
                <<"                  'linear':     polynomial interpolation method;\n"
                <<"                  'rational':   rational interpolation method;\n"
                <<"                  'symplectic': Use high-order symplectic method;\n"
-               <<"                  'none':       no extrapolation\n"
+               <<"                  'none':       no extrapolation;\n"
                <<"          --extra-method (same as -m)\n"
-               <<"    -k [int]:  Symplectic integrator order,should be even number ("<<sym_k<<")\n "
+               <<"    -k [int]:  Symplectic integrator order,should be even number ("<<sym_k<<")\n"
                <<"    -q [string]: extrapolation sequences (bs)\n"
                <<"                  'rom': Romberg sequence {h, h/2, h/4, h/8 ...};\n"
                <<"                  'bs':  Bulirsch & Stoer sequence {h, h/2, h/3, h/4, h/6, h/8 ...}\n"
                <<"                  '4k':  4k linear sequence {h/2, h/6, h/10, h/14 ...}\n"
-               <<"                  'hm':  Harmonic sequence {h, h/2, h/3, h/4 ...}"
+               <<"                  'hm':  Harmonic sequence {h, h/2, h/3, h/4 ...}\n"
                <<"          --extra-seq (same as -q)\n"
                <<"    -i [int]: maximum iteration steps for extrapolation method ("<<itermax<<")\n"
                <<"          --iter-max (same as -i)\n"
-               <<"          --intp-max maximum dense output interpolation derivate index ("<<intpmax<<")n"
+               <<"          --intp-max maximum dense output interpolation derivate index ("<<intpmax<<")\n"
                <<"    -e [double]:  phase and energy error limit ("<<err<<")\n"
                <<"          --error (same as -e)\n"
                <<"          --t-error [double]: time synchronization error limit ("<<terr<<")\n"

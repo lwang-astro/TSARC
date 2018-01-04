@@ -227,7 +227,7 @@ public:
       - Minimum physical time step #dtmin = 5.4e-20.
       - Time synchronization (relative to time step) physical time error limit #dterr = 1e-6.
       - extrapolation sequence is not set
-      - The maximum sequence index (iteration times) is adjusted by error criterion
+      - high-order Symplectic integrator is switched off
       - No auto-step
    */
   chainpars() {
@@ -242,6 +242,7 @@ public:
     setIterSeq();
     setIntp();
     setIterConst();
+    setSymOrder(0);
     setAutoStep(0);
   }
 
@@ -753,7 +754,7 @@ public:
                                   <<"  Multiplied coefficient:   "<<auto_step_eps<<std::endl;
         fout<<"Iteration times fixed?: "<<exp_fix_iter<<std::endl;
     }
-    else {
+    if (sym_n>0) {
         fout<<"Symplectic integration paramters:\n"
             <<"  Integrator order: "<<sym_n<<std::endl
             <<"  Step pair (DK) number: "<<sym_k<<std::endl;
@@ -1449,13 +1450,13 @@ private:
     }
 
     // calcualte center-of-mass position and velocity shift
-    const double mc = particle::getMass();
-    xc[0] /= mc;
-    xc[1] /= mc;
-    xc[2] /= mc;
-    vc[0] /= mc;
-    vc[1] /= mc;
-    vc[2] /= mc;
+    const double over_mc = 1.0/particle::getMass();
+    xc[0] *= over_mc;
+    xc[1] *= over_mc;
+    xc[2] *= over_mc;
+    vc[0] *= over_mc;
+    vc[1] *= over_mc;
+    vc[2] *= over_mc;
     
     for (int i=0;i<num;i++) {
       // center-of-mass correction
@@ -1510,10 +1511,10 @@ private:
     }
 
     // calcualte center-of-mass position and velocity shift
-    const double mc = particle::getMass();
-    xc[0] /= mc;
-    xc[1] /= mc;
-    xc[2] /= mc;
+    const double over_mc = 1.0/particle::getMass();
+    xc[0] *= over_mc;
+    xc[1] *= over_mc;
+    xc[2] *= over_mc;
     
     for (int i=0;i<num;i++) {
       // center-of-mass correction
@@ -1557,10 +1558,10 @@ private:
     }
 
     // calcualte center-of-mass position and velocity shift
-    const double mc = particle::getMass();
-    vc[0] /= mc;
-    vc[1] /= mc;
-    vc[2] /= mc;
+    const double over_mc = 1.0/particle::getMass();
+    vc[0] *= over_mc;
+    vc[1] *= over_mc;
+    vc[2] *= over_mc;
     
     for (int i=0;i<num;i++) {
       // center-of-mass correction
