@@ -132,6 +132,17 @@ public:
 
   /// add a particle pair to one of the leaf
   /*!
+    Add particle pair with depth #id and branch index #ib
+    Example:
+    -------------------------------------------------\\
+      depth id              branch id                \\
+          0                      0                   \\
+                                / \                  \\
+          1                    0   1                 \\
+                              / \ / \                \\
+          2                  0  1 2  3               \\
+    -------------------------------------------------\\
+
     @param[in] id: depth of the tree, top is 0
     @param[in] ib: leaf index, counting from 0 from left to right (maximum index \f$ 2^{id} \f$) 
     @param[in] a: particle one

@@ -96,9 +96,10 @@ int main(int argc, char **argv){
   int itermax=20; // maximum iteration for extrapolation method
   int method=1; // regularization methods, 1: Logarithmic Hamitonian; 2: Time-transformed Leapfrog\n (logh)
   int imethod=2; // interpolation method (1. linear; 2. rational)
+  bool pkepler=false; // whether print kepler parameters
 
   int copt;
-  while ((copt = getopt(argc, argv, "n:s:hm:r:k:i:")) != -1)
+  while ((copt = getopt(argc, argv, "n:s:hm:r:k:i:p")) != -1)
     switch (copt) {
     case 'n':
       n = atoi(optarg);
@@ -109,13 +110,24 @@ int main(int argc, char **argv){
     case 'h':
       std::cout<<"chain [option] data_filename\n"
                <<"Input data file format: hiarch_order branch_id mass1,mass2,semi,ecc,angle[3],ecc_anomaly\n"
+               <<"Example for hiarch_order & branch_id:\n"
+               <<"     -------------------------------------------------\n"
+               <<"       hiarch order          branch id                \n"
+               <<"           0                      0                   \n"
+               <<"                                 / \\                  \n"
+               <<"           1                    0   1                 \n"
+               <<"                               / \\ / \\                \n"
+               <<"           2                  0  1 2  3               \n"
+               <<"     -------------------------------------------------\n"
+               <<"     PS: if 1-0 has no children, 1-1 still have 2, 3 as children's branch_id\n"
                <<"Options: (*) show defaulted values\n"
                <<"    -n [int]:     number of integration steps ("<<n<<")\n"
                <<"    -s [double]:  step size, not physical time step ("<<s<<")\n"
                <<"    -m [int]:     integration methods: 0: symplectic, 1: extrapolation ("<<m<<")\n"
                <<"    -r [int]:     regularization methods, 1: Logarithmic Hamitonian; 2: Time-transformed Leapfrog ("<<method<<")\n"
                <<"    -k [int]:     if symplectic, k is order, if extrapolation, k is extrapolation sequence (1: Romberg sequence; 2. BS sequence; 3. 4k sequence; 4. Harmonic sequence) ("<<k<<")\n"
-               <<"    -i [int]:     interpolation method (1. linear; 2. rational) ("<<imethod<<")\n";
+               <<"    -i [int]:     interpolation method (1. linear; 2. rational) ("<<imethod<<")\n"
+               <<"    -p      :     print Kepler orbital parameters\n";
       return 0;
     case 'm':
       m = atoi(optarg);
@@ -132,6 +144,9 @@ int main(int argc, char **argv){
       break;
     case 'i':
       imethod = atoi(optarg);
+      break;
+    case 'p':
+      pkepler = true;
       break;
     default:
       std::cerr<<"Unknown argument. check '-h' for help.\n";
@@ -229,7 +244,7 @@ int main(int argc, char **argv){
   pw.pre=10; //precision
   
   chain_print(c,0,pw.w,pw.pre);
-  //plist.pair_process(0,0,kepler_print,pw);
+  if (pkepler) plist.pair_process(0,0,kepler_print,pw);
   std::cout<<std::endl;
 
   // step size
@@ -248,7 +263,7 @@ int main(int argc, char **argv){
       }
 
     chain_print(c,ds,pw.w,pw.pre);
-    //plist.pair_process(0,0,kepler_print,pw);
+    if (pkepler) plist.pair_process(0,0,kepler_print,pw);
     std::cout<<std::endl;
 #ifdef ARC_PROFILE
     c.profile.print(std::cerr,i);
