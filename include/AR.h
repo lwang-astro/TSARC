@@ -12,8 +12,12 @@
 #ifdef USE_OMP
 #include <omp.h>
 #endif
+#ifdef ARC_DEBUG
+#include <cassert>
+#endif
 
-#ifdef DEBUG
+
+#ifdef ARC_DEEP_DEBUG
 #define WIDTH 10
 #endif
 
@@ -167,6 +171,7 @@ using pair_AW = int (*) (double* Aij, double &Pij, double *dWij, double &Wij, co
 template<class particle_, class extpar_>
 using pair_T = double (*) (const double m1, const double m2, const double* x, const double* v, extpar_* pars);
 
+
 //! The chain parameter controller class
 /*!
   This class control acceleration function, integration methods and error parameters for \ref chain
@@ -190,7 +195,8 @@ private:
 
   int sym_k; ///< symplectic cofficients array size
   int sym_n; ///< symplectic integrator order
-  double2* sym_coff; ///< cofficients for symplectic integrator
+  double2* sym_coff; ///< cofficients for symplectic integrator (c_k, d_k)
+  SYM::symcumck* sym_order;   ///< index for increasing order of cumsum c_k (index, cumsum(c_k))
 
   int auto_step;           ///< if 0: no auto step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step; if 3: use maximum sequence index to control next step; if 4: use mimimum kepler period of every two neigbor members to estimate the next step modification factor.
   double auto_step_fac_min; ///< minimum reduction factor
@@ -236,6 +242,7 @@ public:
     step = NULL;
     bin_index = NULL;
     sym_coff = NULL;
+    sym_order= NULL;
     setabg();
     setErr();
     // For extrapolation integration
@@ -295,6 +302,7 @@ public:
         delete pp_T_type;
     }
     if (sym_coff!=NULL) delete[] sym_coff;
+    if (sym_order!=NULL) delete[] sym_order;
   }
 
   //! Set acceleration, potential, time transformation function \f$\partial W/\partial r\f$ and \f$W\f$ calculator
@@ -365,7 +373,9 @@ public:
       if(sym_k>0) {
           if (sym_coff!=NULL) delete[] sym_coff;
           sym_coff = new double2[sym_k];
-          SYM::symplectic_cofficients(sym_coff, k, sym_k);
+          if (sym_order!=NULL) delete[] sym_order;
+          sym_order = new SYM::symcumck[sym_k];
+          SYM::symplectic_cofficients(sym_coff, sym_order, k, sym_k);
       }
   }
 
@@ -771,14 +781,19 @@ public:
 class chaininfo{
 public:
   int  status;    ///< current status of integration
+  // extrapolation case
   int  intcount;  ///< current extrapolation sequence index when an accident happen
   int  inti;      ///< current number of substeps
-  int  i1, i2;    ///< index of particles causing the accident
-  int  num;       ///< number of particles
   double ds,subds,subdt;      ///< step size, substep size, substep corresponding time step
-  double toff;    ///< physical ending time
   double perr,perr0;  ///< phase error (current and previous)
   double eerr,eerr0;  ///< energy error (current and previous)
+  // symplectic case
+  double ds1,ds2;   ///< step buffer
+  int stepcount;    ///< stepcount
+  
+  int  i1, i2;    ///< index of particles causing the accident
+  int  num;       ///< number of particles
+  double toff;    ///< physical ending time
   double Ekin,Pot,W;  ///< kinetic energy, potential energy and time transformation function
   double terr;    ///< time error
   double* data;   ///< chain data for backuping
@@ -1656,7 +1671,7 @@ private:
     profile.t_uplink -= get_wtime();
 #endif
     bool modified=false; // indicator
-#ifdef DEBUG        
+#ifdef ARC_DEEP_DEBUG        
     std::cerr<<"current:";
     for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
     std::cerr<<"\n";
@@ -1707,7 +1722,7 @@ private:
         }
       }
       if (lku!=lkn) {
-#ifdef DEBUG        
+#ifdef ARC_DEEP_DEBUG        
         std::cerr<<"Switch: "<<k<<" new: "<<lku<<" old: "<<lkn<<std::endl;
         for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
         std::cerr<<"\n Rlink";
@@ -1721,7 +1736,7 @@ private:
         list[k+1] = lku;
         rlink[lku] = k+1;
         mask[lku] = true;
-#ifdef DEBUG        
+#ifdef ARC_DEEP_DEBUG        
         for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<list[i];
         std::cerr<<"\n Rlink";
         for (int i=0;i<num;i++) std::cerr<<std::setw(4)<<rlink[i];
@@ -1735,7 +1750,7 @@ private:
         int rlk = roldlink[lk];
         if (rlk<k) {
           for (int j=rlk;j<k;j++) {
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
             std::cerr<<"Add V["<<j<<"] to V["<<k<<"]\n";
 #endif
             X[k][0] += Xbk[j][0];
@@ -1749,7 +1764,7 @@ private:
         }
         else if (rlk>k) {
           for (int j=k;j<rlk;j++) {
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
             std::cerr<<"Minus V["<<j<<"] from V["<<k<<"]\n";
 #endif
             X[k][0] -= Xbk[j][0];
@@ -1765,7 +1780,7 @@ private:
         rlk = roldlink[lku];
         if (rlk<k+1) {
           for (int j=rlk;j<k+1;j++) {
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
             std::cerr<<"Minus V["<<j<<"] from V["<<k<<"]\n";
 #endif
             X[k][0] -= Xbk[j][0];
@@ -1779,7 +1794,7 @@ private:
         }
         else if (rlk>k+1) {
           for (int j=k+1;j<rlk;j++) {
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
             std::cerr<<"Add V["<<j<<"] to V["<<k<<"]\n";
 #endif
             X[k][0] += Xbk[j][0];
@@ -1794,7 +1809,7 @@ private:
       }
     }
 
-#ifdef DEBUG    
+#ifdef ARC_DEEP_DEBUG    
     if(modified) print(std::cerr);
 #endif
     
@@ -1942,7 +1957,7 @@ private:
             if (ik>=0&&ik<=2*n) {
               int nk= n-ik/2;  // n-ik
               double coff = ((nk%2)?-1:1)*binI[n][nk];
-//#ifdef DEBUG
+//#ifdef ARC_DEEP_DEBUG
 //              std::cerr<<"Poly_coff: n= "<<n<<"; i="<<i<<"; ik="<<ik<<"; coff="<<coff<<std::endl;
 //#endif
               dpoly[j][0] += coff * dts;
@@ -2018,7 +2033,7 @@ private:
 //                }
 //              }
 //            }
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
             std::cerr<<"Poly left: n="<<n<<" ik="<<ileft<<" i="<<i<<" coff="<<coff<<" t="<<t<<std::endl;
 #endif
           }
@@ -2041,7 +2056,7 @@ private:
 //              }
 //            } else
             dpoly[j][1] += coff * dts;
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
             std::cerr<<"                 Poly right: n="<<n<<" ik="<<iright<<" i="<<i<<" coff="<<coff<<std::endl;
 #endif
           }
@@ -2063,7 +2078,7 @@ private:
     double hn = h;
     // loop difference order from 1 to nmax
     for (int i=0; i<nmax; i++) {
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
       std::cerr<<"Diff order "<<i<<"; h="<<hn<<"; nmax="<<nmax<<std::endl;
 #endif
       for (int j=0; j<dsize; j++) dpoly[i][j] /= hn;
@@ -2735,10 +2750,12 @@ public:
    */
   void backup(double* db) {
     const int dsize=6*num-3;
+#ifdef ARC_DEBUG
     if ((int)db[dsize]!=dsize) {
       std::cerr<<"Error: data array size ("<<(int)db[dsize]<<") for backup is not matched, should be ("<<dsize<<")!\n";
       abort();
     }
+#endif
     const int ndata=3*(num-1);
     db[0] = t;
     db[1] = Pt;
@@ -2758,10 +2775,12 @@ public:
    */
   void restore(double* db) {
     const int dsize=6*num-3;
+#ifdef ARC_DEBUG
     if ((int)db[dsize]!=dsize) {
       std::cerr<<"Error: data array size ("<<(int)db[dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
       abort();
     }
+#endif
     const int ndata=3*(num-1);
     t = db[0];
     Pt = db[1];
@@ -2993,7 +3012,7 @@ public:
           if (i==n/2-1) {
             dpoly[0][0]=t; // y
             dpoly[3][0]=2.0*dt/ds; // f(x)
-//#ifdef DEBUG
+//#ifdef ARC_DEEP_DEBUG
 //            std::cerr<<"Mid time = "<<t<<", n="<<n<<"; i="<<i+1<<std::endl;
 //#endif
           }
@@ -3027,10 +3046,10 @@ public:
     profile.t_dense += get_wtime();
 #endif
 
-//#ifdef DEBUG
+//#ifdef ARC_DEEP_DEBUG
 //    std::cerr<<"Ending time = "<<t<<", n="<<n<<std::endl;
 //#endif
-//#ifdef DEBUG
+//#ifdef ARC_DEEP_DEBUG
 //    std::cerr<<std::setw(WIDTH)<<t;
 //    //      for (int i=0;i<num;i++) 
 //    //        for (int k=0;k<3;k++) std::cerr<<p[i].pos[k]<<" ";
@@ -3269,7 +3288,7 @@ public:
           if (ermax>0&&werrn<werrmax) {
             werrmax = werrn;
             dsn = dsfactor;
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
             std::cerr<<"ERR factor update: sequence="<<step[intcount]<<"; modify factor="<<dsfactor<<"; ermax="<<ermax<<"; eerr="<<eerr<<"; cxerr="<<cxerr<<"; ds="<<ds<<std::endl;
 #endif
           }
@@ -3278,7 +3297,7 @@ public:
       
       intcount++;
 
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
       std::cerr<<std::setprecision(6)<<"Iter.= "<<intcount<<" Dep.= "<<step[intcount]<<" P-err.= "<<cxerr;
       std::cerr<<" E-err.="<<Ekin+Pot+Pt-Ekin0-Pot0-d0[1]<<" Pt ="<<std::setprecision(12)<<Pt<<std::endl;
 #endif 
@@ -3332,7 +3351,7 @@ public:
       profile.t_dense -= get_wtime();
 #endif
 
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
       std::cerr<<"ds="<<ds<<" step[0]="<<step[0]<<" terr="<<toff_sd-t<<" t="<<t<<" toff_sd="<<toff_sd<<std::endl;
 #endif
       // calculate derivates from differences
@@ -3379,21 +3398,21 @@ public:
         
         // storage result of first order accuracy
         std::memcpy(pn[0],pd[istart][i],pnn*sizeof(double));
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
         std::cerr<<"Poly calc order="<<istart<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<istart<<"="<<pd[istart][i][0]<<"\t"<<pd[istart][i][3]<<std::endl;
 #endif
         // extrapolation to higher order accuracy
         for (int j=istart+1; j<intcount; j++) {
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
           std::cerr<<"Poly calc order="<<j<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
 #endif
           if (method==1) EP::polynomial_extrapolation(pnptr,pd[j][i],&step[istart],pnn,j-istart);
           if (method==2) EP::rational_extrapolation(pnptr,pd[j][i],&step[istart],pnn,j-istart);
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
           std::cerr<<"Poly extra order="<<j-istart<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<j<<"="<<pd[j][i][0]<<"\t"<<pd[j][i][3]<<std::endl;
 #endif
         }
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
           std::cerr<<"Final result t X11^("<<i+1<<")="<<pd[intcount-1][i][0]<<"\t"<<pd[intcount-1][i][3]<<std::endl;
 #endif
       }
@@ -3509,7 +3528,7 @@ public:
         
         EP::Hermite_interpolation_coefficients(&pcoffptr,xpoint,fpoint,dfpptr,1,npoints,nlev);
 
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
         std::cerr<<"PCOFF: ";
         for (int i=0;i<ndmax[intcount-1]+2;i++) std::cerr<<" "<<pcoff[i];
         std::cerr<<std::endl;
@@ -3554,7 +3573,7 @@ public:
             dsi[0] = dsm;
             tsi[0] = tpre;
           }
-#ifdef DEBUG
+#ifdef ARC_DEEP_DEBUG
           std::cerr<<std::setprecision(15)<<"Find root: dsm="<<dsm<<"; t="<<tpre<<"; error="<<tpre-toff_sd<<"; ds="<<ds<<std::endl;
 #endif
           if(std::abs(tpre-toff_sd)<dterr3) rf_method=true;
@@ -3590,42 +3609,42 @@ public:
       // reset velocity to get correct w
       resolve_V();
 
-#ifdef DEBUG
-      /*std::cerr<<"Getting: ds= "<<dsm;
-      for (int i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
-      std::cerr<<std::endl;
-      
-      EP::Hermite_interpolation_polynomial(0,dtemp,&pcoff,xpoint,dsize,2,nlev);
-      std::cerr<<"Starting:";
-      for (int i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
-      std::cerr<<std::endl;
-
-      std::cerr<<"Ending:";
-      EP::Hermite_interpolation_polynomial(ds,dtemp,&pcoff,xpoint,dsize,2,nlev);
-      for (int i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
-      std::cerr<<std::endl;
-      */
-      for (int i=0; i<=1000; i++) {
-        dsm = ds/1000*i;
-        EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
-//        EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,npoints,nlev);
-//        // update the results
-//        restore(dtemp);
-//        // resolve particle
-//        resolve_XV();
-//        // recalculate the energy
-//        calc_Ekin();
-//        // force, potential and W
-//        calc_rAPW(force);
+//#ifdef ARC_DEEP_DEBUG
+//      /*std::cerr<<"Getting: ds= "<<dsm;
+//      for (int i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
+//      std::cerr<<std::endl;
 //      
-        std::cerr<<"Loop: "<<dsm;
-        std::cerr<<" "<<std::setprecision(15)<<tpre;
-//        std::cerr<<" "<<(Ekin-Pot+Pt)/Pt;
-//        for (int i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
-        std::cerr<<std::endl;
-      }
-      
-#endif
+//      EP::Hermite_interpolation_polynomial(0,dtemp,&pcoff,xpoint,dsize,2,nlev);
+//      std::cerr<<"Starting:";
+//      for (int i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
+//      std::cerr<<std::endl;
+// 
+//      std::cerr<<"Ending:";
+//      EP::Hermite_interpolation_polynomial(ds,dtemp,&pcoff,xpoint,dsize,2,nlev);
+//      for (int i=0;i<dsize;i++) std::cerr<<" "<<dtemp[i];
+//      std::cerr<<std::endl;
+//      */
+//      for (int i=0; i<=1000; i++) {
+//        dsm = ds/1000*i;
+//        EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoff,xpoint,1,npoints,nlev);
+////        EP::Hermite_interpolation_polynomial(dsm,dtemp,pcoff,xpoint,dsize,npoints,nlev);
+////        // update the results
+////        restore(dtemp);
+////        // resolve particle
+////        resolve_XV();
+////        // recalculate the energy
+////        calc_Ekin();
+////        // force, potential and W
+////        calc_rAPW(force);
+////      
+//        std::cerr<<"Loop: "<<dsm;
+//        std::cerr<<" "<<std::setprecision(15)<<tpre;
+////        std::cerr<<" "<<(Ekin-Pot+Pt)/Pt;
+////        for (int i=0;i<dsize;i++) std::cerr<<std::setprecision(10)<<" "<<dtemp[i];
+//        std::cerr<<std::endl;
+//      }
+//      
+//#endif
 
       // clear memory
       //for (int i=0; i<intcount; i++) delete[] pn[i];
@@ -3706,6 +3725,7 @@ public:
       The positions and velocities of particles in #p will be integrated in the center-of-mass frame
       @param [in] s: Integration step size
       @param [in] pars: chainpars controller
+      @param [out] timetable: an array that store the time after each drift
       @param [in] int_pars: extra parameters used in f or fpert.
       @param [in] pert: perturber particle array
       @param [in] pertf: perturrber force array for prediction
@@ -3715,6 +3735,7 @@ public:
   template<class pertparticle_, class pertforce_, class extpar_>
   void Symplectic_integration(const double s, 
                               chainpars &pars,
+                              double* timetable,
                               extpar_ *int_pars = NULL,
                               pertparticle_* pert = NULL, 
                               pertforce_* pertf = NULL, 
@@ -3772,6 +3793,9 @@ public:
       // step_forward time
       t += dt;
 
+      // store current time
+      if(timetable!=NULL) timetable[i] = t;
+
       // Drift X (dependence: V, dt)
       step_forward_X(dt);
 
@@ -3819,6 +3843,149 @@ public:
     profile.t_sym += get_wtime();
 #endif
   }
+
+  //! high order symplectic integrator with time synchronization
+  /*! Integration with high order symplectic integrator
+      The positions and velocities of particles in #p will be integrated in the center-of-mass frame
+      @param [in] s: Integration step size
+      @param [in] pars: chainpars controller
+      @param [in] tend: time to finish the integration
+      @param [in] int_pars: extra parameters used in f or fpert.
+      @param [in] pert: perturber particle array
+      @param [in] pertf: perturrber force array for prediction
+      @param [in] npert: number of perturbers
+      \return step counter
+  */
+  template<class pertparticle_, class pertforce_, class extpar_>
+  int Symplectic_integration_tsyn(const double s, 
+                                  chainpars &pars,
+                                  const double tend,
+                                  extpar_ *int_pars = NULL,
+                                  pertparticle_* pert = NULL, 
+                                  pertforce_* pertf = NULL, 
+                                  const int npert = 0) {
+
+      const int dsize  = 6*(num-1)+3;
+      const int darray = dsize+1; // backup data array size;
+      double bk[darray]; // for backup
+      bk[dsize] = (double)dsize;    // label for safety check
+      const int symk = pars.sym_k;
+      double timetable[symk]; // for storing time information
+      
+      const double t0 = t; // backup initial time
+      double ds[2] = {s,s}; // step with a buffer
+      int dsk=0;
+      int stepcount = 0;
+      bool bk_flag=true; // flag for backup or restore
+      double Ekin_bk = Ekin;
+      double Pot_bk = Pot;
+
+      while(true) {
+          // backup /restore data
+          if(bk_flag) {
+              backup(bk);
+              Ekin_bk = Ekin;
+              Pot_bk  = Pot;
+          }
+          else {
+              restore(bk);
+              Ekin = Ekin_bk;
+              Pot = Pot_bk;
+          }
+          
+          // integrate one step
+          Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false);
+
+          stepcount++;
+
+#ifdef ARC_DEEP_DEBUG
+          std::cerr<<"Symplectic count: "<<stepcount<<" time: "<<t<<" tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
+                   <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<std::endl;
+#endif
+
+          // accident information
+          if(info!=NULL) {
+              info->stepcount = stepcount;
+              info->ds1 = ds[dsk];
+              info->ds2 = ds[1-dsk];
+              break;
+
+              restore(bk);
+              Ekin = Ekin_bk;
+              Pot = Pot_bk;
+          }
+
+          // update ds
+          ds[dsk] = ds[1-dsk]; // when used once, update to the new step
+          dsk = 1-dsk;
+
+          double terr = (t-t0)*pars.dterr;
+        
+          if(t<tend-terr){
+              bk_flag = true;
+              if(num>2) update_link();
+          }
+          else if(t>tend+terr) {
+              bk_flag = false;
+              // check timetable
+              int i=-1;
+              for(i=0; i<symk; i++) {
+                  if(tend<timetable[pars.sym_order[i].index]) break;
+              }
+              if (i==0) {
+                  ds[dsk] *= pars.sym_order[i].cck;
+                  ds[1-dsk] = ds[dsk];
+              }
+              else {
+                  ds[dsk] *= pars.sym_order[i-1].cck;  // first set step to nearest k for t<tend 
+                  ds[1-dsk] *= pars.sym_order[i].cck-pars.sym_order[i-1].cck; //then set next step to c_k+1 -c_k
+              }
+          }
+          else {
+              if(num>2) update_link();
+              break;
+          }
+      } 
+      return stepcount;
+  }
+
+#ifdef ARC_DEBUG
+  //! test for whether the integration can be correctly restored to original data
+  template<class pertparticle_, class pertforce_, class extpar_>
+  void Symplectic_integration_repeat_test( const double s, 
+                                           chainpars &pars,
+                                           extpar_ *int_pars = NULL,
+                                           pertparticle_* pert = NULL, 
+                                           pertforce_* pertf = NULL, 
+                                           const int npert = 0) {
+      const int dsize  = 6*(num-1)+3;
+      const int darray = dsize+1; // backup data array size;
+      double bk[darray]; // for backup
+      bk[dsize] = (double)dsize;    // label for safety check
+      const int symk = pars.sym_k;
+      double timetable[symk]; // for storing time information
+
+      backup(bk);
+      double Ekin_bk = Ekin;
+      double Pot_bk  = Pot;
+
+      Symplectic_integration(s, pars, timetable, int_pars, pert, pertf, npert, false);
+      double tbk =t;
+
+      restore(bk);
+      Ekin= Ekin_bk;
+      Pot= Pot_bk;
+
+      Symplectic_integration(s, pars, timetable, int_pars, pert, pertf, npert, false);
+      if(t!=tbk) {
+          std::cerr<<"Error, data is not correctly restored, integratin time twice give different results: "<<t<<" "<<tbk<<" diff="<<t-tbk<<std::endl;
+          abort();
+      }
+      else {
+          std::cerr<<"Data can be successfully restored, step = "<<s<<std::endl;
+      }
+    }
+#endif
 
 
   //! Get current physical time

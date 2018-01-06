@@ -49,7 +49,7 @@ int main(int argc, char **argv){
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
   int sym_k=4; // symplectic integrator order
   double err=1e-10; // phase error requirement
-  double terr=1e-12; // time synchronization error
+  double terr=1e-6; // time synchronization error
   double s=0.5;    // step size
   double dtmin=5.4e-20; // mimimum physical time step
   double t=0.0;    // initial physical time
@@ -425,6 +425,12 @@ int main(int argc, char **argv){
       std::cerr<<"Initial step size ds = "<<ds<<std::endl;
   }
 
+#ifdef ARC_DEBUG
+  if (ms<0) c.Symplectic_integration_repeat_test<Particle,ARC::double3,NTA::Newtonian_pars>(s,pars,&Int_pars,&p[n],pf,npert);
+#endif
+
+  int stepsum=0;
+
   // integration loop
   while (true) {
 #ifdef DEBUG
@@ -466,7 +472,11 @@ int main(int argc, char **argv){
       chain_print(c,s,w,pre);
     }
     else if (ms<0) {
-      c.Symplectic_integration<Particle,ARC::double3,NTA::Newtonian_pars>(s,pars,&Int_pars,&p[n],pf,npert);
+      if(tend<0) {
+          stepsum++;
+          c.Symplectic_integration<Particle,ARC::double3,NTA::Newtonian_pars>(s,pars,NULL,&Int_pars,&p[n],pf,npert);
+      }
+      else stepsum +=c.Symplectic_integration_tsyn<Particle,ARC::double3,NTA::Newtonian_pars>(s,pars,tend,&Int_pars,&p[n],pf,npert);
       chain_print(c,s,w,pre);
     }
 #ifdef ARC_PROFILE
@@ -489,7 +499,7 @@ int main(int argc, char **argv){
     
     int* stepcount = c.profile.stepcount;
     std::cerr<<"Step histogram:\n I\tCount\tNstep\tStepsum\n";
-    int stepsum=0;
+    stepsum=0;
     int itersum=0;
     for (int i=1;i<=itermax;i++) {
       stepsum += step[i-1];
@@ -498,6 +508,9 @@ int main(int argc, char **argv){
     }
     std::cerr<<"Sum-of-steps: "<<c.profile.itercount<<" Sum-of-iterations: "<<itersum<<std::endl;
     delete [] step;
+  }
+  else if(ms<0) {
+    std::cerr<<"Total steps: "<<stepsum<<std::endl;
   }
 #endif
 
