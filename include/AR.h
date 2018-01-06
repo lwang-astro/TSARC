@@ -2749,8 +2749,8 @@ public:
      @param [out] db: backup array (size should be 6*#num-3) where #num is the total number of particles in #p
    */
   void backup(double* db) {
-    const int dsize=6*num-3;
 #ifdef ARC_DEBUG
+    const int dsize=6*num-3;
     if ((int)db[dsize]!=dsize) {
       std::cerr<<"Error: data array size ("<<(int)db[dsize]<<") for backup is not matched, should be ("<<dsize<<")!\n";
       abort();
@@ -2774,8 +2774,8 @@ public:
      @param [in] db: one dimensional array that storing chain data (array size should be 6*#num-3) where #num is the total number of particles in #p
    */
   void restore(double* db) {
-    const int dsize=6*num-3;
 #ifdef ARC_DEBUG
+    const int dsize=6*num-3;
     if ((int)db[dsize]!=dsize) {
       std::cerr<<"Error: data array size ("<<(int)db[dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
       abort();
@@ -3901,6 +3901,9 @@ public:
 #ifdef ARC_DEEP_DEBUG
           std::cerr<<"Symplectic count: "<<stepcount<<" time: "<<t<<" tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
                    <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<std::endl;
+          std::cerr<<"Timetable: ";
+          for (int i=0; i<symk; i++) std::cerr<<" "<<timetable[pars.sym_order[i].index];
+          std::cerr<<std::endl;
 #endif
 
           // accident information
@@ -3928,17 +3931,26 @@ public:
           else if(t>tend+terr) {
               bk_flag = false;
               // check timetable
-              int i=-1;
+              int i=-1,k=0;
               for(i=0; i<symk; i++) {
-                  if(tend<timetable[pars.sym_order[i].index]) break;
+                  k = pars.sym_order[i].index;
+                  if(tend<timetable[k]) break;
               }
               if (i==0) {
-                  ds[dsk] *= pars.sym_order[i].cck;
+                  ds[dsk] *= pars.sym_order[i].cck*tend/timetable[k];
                   ds[1-dsk] = ds[dsk];
+#ifdef ARC_DEEP_DEBUG
+                  std::cerr<<"t1 = "<<timetable[k]<<" t = "<<t<<" tend/t1="<<tend/timetable[k]<<" ck1="<<pars.sym_order[i].cck<<" \n";
+#endif
               }
               else {
+                  double tp = timetable[pars.sym_order[i-1].index];
+                  double dt = timetable[k] - tp;
                   ds[dsk] *= pars.sym_order[i-1].cck;  // first set step to nearest k for t<tend 
-                  ds[1-dsk] *= pars.sym_order[i].cck-pars.sym_order[i-1].cck; //then set next step to c_k+1 -c_k
+                  ds[1-dsk] *= (pars.sym_order[i].cck-pars.sym_order[i-1].cck)*(tend-tp)/dt; //then set next step to c_k+1 -c_k
+#ifdef ARC_DEEP_DEBUG
+                  std::cerr<<"t0 = "<<tp<<" t1 = "<<timetable[k]<<" t = "<<t<<" (tend-tp)/dt="<<(tend-tp)/dt<<" ck1="<<pars.sym_order[i].cck<<" ck0="<<pars.sym_order[i-1].cck<<" \n";
+#endif
               }
           }
           else {
