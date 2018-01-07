@@ -195,6 +195,8 @@ private:
 
   int sym_k; ///< symplectic cofficients array size
   int sym_n; ///< symplectic integrator order
+  double sym_inv_n; ///< inverse order
+  double sym_An; ///< 0.5^order
   double2* sym_coff; ///< cofficients for symplectic integrator (c_k, d_k)
   SYM::symcumck* sym_order;   ///< index for increasing order of cumsum c_k (index, cumsum(c_k))
 
@@ -364,6 +366,8 @@ public:
    */
   void setSymOrder(const int n) {
       sym_n = n<0?-n:n;
+      if(n>0) sym_inv_n = 1.0/(double)sym_n;
+      sym_An = std::pow(0.5,sym_n);
       int k = n/2;
       if (n>0) sym_k = std::pow(3,k-1)+1;
       else if(n==-6) sym_k = 8;
@@ -743,8 +747,6 @@ public:
         else fout<<"Not available\n";
         fout<<"  Maximum iteration times: "<<exp_itermax<<std::endl
             <<"  Maximum dense output derivate index: "<<den_intpmax<<std::endl
-            <<"  Phase/energy error criterion:    "<<exp_error<<std::endl
-            <<"  Time sychronization error limit: "<<dterr<<std::endl
             <<"Auto-step parameters:\n"
             <<"  Auto-step method: ";
         if (auto_step==0) fout<<"None\n";
@@ -769,6 +771,9 @@ public:
             <<"  Integrator order: "<<sym_n<<std::endl
             <<"  Step pair (DK) number: "<<sym_k<<std::endl;
     }
+    fout<<"  Phase/energy error criterion:    "<<exp_error<<std::endl
+        <<"  Time sychronization error limit: "<<dterr<<std::endl;
+
     fout<<"  Minimum physical time:           "<<dtmin<<std::endl;
     fout<<"====================================================================\n";
   }
@@ -3874,7 +3879,10 @@ public:
       
       const double t0 = t; // backup initial time
       double ds[2] = {s,s}; // step with a buffer
+      double dsbk = s;  //backup step size
       int dsk=0;
+      int nsub=-1, nsubbk=-1; // substep number
+      int nsubcount=0; // count how many times step is reduced
       int stepcount = 0;
       bool bk_flag=true; // flag for backup or restore
       double Ekin_bk = Ekin;
@@ -3900,22 +3908,75 @@ public:
 
 #ifdef ARC_DEEP_DEBUG
           std::cerr<<"Symplectic count: "<<stepcount<<" time: "<<t<<" tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
-                   <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<std::endl;
+                   <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<std::abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
           std::cerr<<"Timetable: ";
           for (int i=0; i<symk; i++) std::cerr<<" "<<timetable[pars.sym_order[i].index];
           std::cerr<<std::endl;
 #endif
+
 
           // accident information
           if(info!=NULL) {
               info->stepcount = stepcount;
               info->ds1 = ds[dsk];
               info->ds2 = ds[1-dsk];
-              break;
 
               restore(bk);
               Ekin = Ekin_bk;
               Pot = Pot_bk;
+              break;
+          }
+
+          // energy check
+          double eerr = std::abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt);
+          if(eerr>pars.exp_error) {
+              unsigned long Af=std::pow(eerr/pars.exp_error,pars.sym_inv_n);
+              unsigned long c=1;
+              while(Af>0) {
+                  Af = (Af>>1);
+                  c = (c<<1);
+              }
+              if(c==1) c=2;
+              double dsn = ds[dsk]/double(c);
+
+              // if same reduction appear twice, increase counter
+              if (nsubbk==(int)c) nsubcount++;  
+              else {
+                  nsubcount=0;
+                  nsubbk = (int)c;
+              }
+
+              // if nsub not yet reach 0, reset counter
+              if(nsub>0) nsubcount = 0;
+              
+              // check whether next step is already smaller than modified step
+              if(dsn > ds[1-dsk]) {
+                  nsub = -1;
+                  ds[dsk] = ds[1-dsk];
+              }
+              else {
+                  // backup original step
+                  dsbk = ds[1-dsk];
+                  ds[1-dsk] = dsn;
+                  ds[dsk] = dsn;
+                  nsub = (c<<nsubcount);
+              }
+
+              bk_flag = false;
+#ifdef ARC_DEEP_DEBUG
+              std::cerr<<"Detected energy erro too large eerr/err_max ="<<eerr/pars.exp_error<<" eerr="<<eerr<<" Af="<<std::pow(eerr/pars.exp_error,pars.sym_inv_n)<<" step reduction factor="<<c<<" substep number="<<nsub<<" nsubcount="<<nsubcount<<std::endl;
+#endif
+              continue;
+          }
+          
+          if(nsub==0&&ds[dsk]==ds[1-dsk]) ds[1-dsk] = dsbk;
+          nsub--;
+
+          if(eerr<=pars.sym_An*0.5*pars.exp_error&&ds[1-dsk]==ds[dsk]) {
+#ifdef ARC_DEEP_DEBUG
+              std::cerr<<"Energy error is small enought for increase step, error="<<eerr<<" limit="<<pars.exp_error<<" factor="<<pars.exp_error/eerr<<" sym_An="<<pars.sym_An<<std::endl;
+#endif
+              ds[1-dsk] *=2.0;
           }
 
           // update ds
