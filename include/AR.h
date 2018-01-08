@@ -366,7 +366,7 @@ public:
    */
   void setSymOrder(const int n) {
       sym_n = n<0?-n:n;
-      if(n>0) sym_inv_n = 1.0/(double)sym_n;
+      if(n!=0) sym_inv_n = 1.0/(double)sym_n;
       sym_An = std::pow(0.5,sym_n);
       int k = n/2;
       if (n>0) sym_k = std::pow(3,k-1)+1;
@@ -3887,6 +3887,8 @@ public:
       bool bk_flag=true; // flag for backup or restore
       double Ekin_bk = Ekin;
       double Pot_bk = Pot;
+      const double eerr_min = pars.sym_An*0.5*pars.exp_error;
+      bool tend_flag=false; // go to ending step
 
       while(true) {
           // backup /restore data
@@ -3962,6 +3964,12 @@ public:
                   nsub = (c<<nsubcount);
               }
 
+              // if first step, reduce permanently
+              if(stepcount<3) {
+                  nsub=-1;
+                  nsubbk = -1;
+              }
+              
               bk_flag = false;
 #ifdef ARC_DEEP_DEBUG
               std::cerr<<"Detected energy erro too large eerr/err_max ="<<eerr/pars.exp_error<<" eerr="<<eerr<<" Af="<<std::pow(eerr/pars.exp_error,pars.sym_inv_n)<<" step reduction factor="<<c<<" substep number="<<nsub<<" nsubcount="<<nsubcount<<std::endl;
@@ -3969,19 +3977,20 @@ public:
               continue;
           }
           
-          if(nsub==0&&ds[dsk]==ds[1-dsk]) ds[1-dsk] = dsbk;
-          nsub--;
-
-          if(eerr<=pars.sym_An*0.5*pars.exp_error&&ds[1-dsk]==ds[dsk]) {
+          // step increase depend on nsub or error
+          if(nsub==0&&!tend_flag) ds[1-dsk] = dsbk;
+          else if(eerr<=eerr_min&&!tend_flag) {
 #ifdef ARC_DEEP_DEBUG
               std::cerr<<"Energy error is small enought for increase step, error="<<eerr<<" limit="<<pars.exp_error<<" factor="<<pars.exp_error/eerr<<" sym_An="<<pars.sym_An<<std::endl;
 #endif
-              ds[1-dsk] *=2.0;
+              ds[1-dsk] *= std::pow(2.0,eerr_min/eerr);
           }
+          nsub--;
 
           // update ds
           ds[dsk] = ds[1-dsk]; // when used once, update to the new step
           dsk = 1-dsk;
+
 
           double terr = (t-t0)*pars.dterr;
         
@@ -3990,6 +3999,7 @@ public:
               if(num>2) update_link();
           }
           else if(t>tend+terr) {
+              tend_flag = true;
               bk_flag = false;
               // check timetable
               int i=-1,k=0;
@@ -4007,8 +4017,9 @@ public:
               else {
                   double tp = timetable[pars.sym_order[i-1].index];
                   double dt = timetable[k] - tp;
+                  double dtmp = ds[dsk];
                   ds[dsk] *= pars.sym_order[i-1].cck;  // first set step to nearest k for t<tend 
-                  ds[1-dsk] *= (pars.sym_order[i].cck-pars.sym_order[i-1].cck)*(tend-tp)/dt; //then set next step to c_k+1 -c_k
+                  ds[1-dsk] = dtmp*(pars.sym_order[i].cck-pars.sym_order[i-1].cck)*(tend-tp)/dt; //then set next step to c_k+1 -c_k
 #ifdef ARC_DEEP_DEBUG
                   std::cerr<<"t0 = "<<tp<<" t1 = "<<timetable[k]<<" t = "<<t<<" (tend-tp)/dt="<<(tend-tp)/dt<<" ck1="<<pars.sym_order[i].cck<<" ck0="<<pars.sym_order[i-1].cck<<" \n";
 #endif
