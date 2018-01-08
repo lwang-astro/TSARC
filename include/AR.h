@@ -3758,6 +3758,10 @@ public:
     /*    if (s<0) {
       std::cerr<<"Error: step size should be positive, current value is "<<s<<std::endl;
       abort();*/
+    if (pars.sym_n==0) {
+      std::cerr<<"Error: symplectic integrator order is not initialized!\n";
+      abort();
+    }
     if (s==0) {
       std::cerr<<"Error: step size should not be zero!\n"<<std::endl;
       abort();
@@ -3981,9 +3985,9 @@ public:
           if(nsub==0&&!tend_flag) ds[1-dsk] = dsbk;
           else if(eerr<=eerr_min&&!tend_flag) {
 #ifdef ARC_DEEP_DEBUG
-              std::cerr<<"Energy error is small enought for increase step, error="<<eerr<<" limit="<<pars.exp_error<<" factor="<<pars.exp_error/eerr<<" sym_An="<<pars.sym_An<<std::endl;
+              std::cerr<<"Energy error is small enought for increase step, error="<<eerr<<" limit="<<pars.exp_error<<" factor="<<std::pow(pars.exp_error/std::max(eerr,1e-15),0.16666666666)<<" sym_An="<<pars.sym_An<<std::endl;
 #endif
-              ds[1-dsk] *= std::pow(2.0,eerr_min/eerr);
+              ds[1-dsk] *= std::pow(eerr_min/std::max(eerr,1e-15),0.16666666666);
           }
           nsub--;
 
