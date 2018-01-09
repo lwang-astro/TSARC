@@ -3905,6 +3905,7 @@ public:
               restore(bk);
               Ekin = Ekin_bk;
               Pot = Pot_bk;
+              resolve_V();
           }
           
           // integrate one step
@@ -4063,6 +4064,7 @@ public:
       restore(bk);
       Ekin= Ekin_bk;
       Pot= Pot_bk;
+      resolve_V();
 
       Symplectic_integration(s, pars, timetable, int_pars, pert, pertf, npert, false);
       if(t!=tbk) {
