@@ -477,8 +477,10 @@ int main(int argc, char **argv){
           c.Symplectic_integration<Particle,ARC::double3,NTA::Newtonian_pars>(s,pars,NULL,&Int_pars,&p[n],pf,npert);
       }
       else stepsum +=c.Symplectic_integration_tsyn<Particle,ARC::double3,NTA::Newtonian_pars>(s,pars,tend,&Int_pars,&p[n],pf,npert);
+      if(c.info!=NULL) c.info->ErrMessage(std::cerr);
       chain_print(c,s,w,pre);
     }
+
 #ifdef ARC_PROFILE
     c.profile.print(std::cerr,i);
 #endif

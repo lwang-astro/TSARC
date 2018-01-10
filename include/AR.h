@@ -3982,24 +3982,32 @@ public:
               continue;
           }
           
-          // step increase depend on nsub or error
-          if(nsub==0&&!tend_flag) ds[1-dsk] = dsbk;
-          else if(eerr<=eerr_min&&!tend_flag) {
-#ifdef ARC_DEEP_DEBUG
-              std::cerr<<"Energy error is small enought for increase step, error="<<eerr<<" limit="<<pars.exp_error<<" factor="<<std::pow(pars.exp_error/std::max(eerr,1e-15),0.16666666666)<<" sym_An="<<pars.sym_An<<std::endl;
-#endif
-              ds[1-dsk] *= std::pow(eerr_min/std::max(eerr,1e-15),0.16666666666);
-          }
-          nsub--;
 
-          // update ds
-          ds[dsk] = ds[1-dsk]; // when used once, update to the new step
-          dsk = 1-dsk;
-
-
+          // time synchronization
           double terr = (t-t0)*pars.dterr;
         
           if(t<tend-terr){
+              // step increase depend on nsub or error
+              if(!tend_flag) {
+                  if(nsub==0) {
+#ifdef ARC_DEEP_DEBUG
+                      std::cerr<<"Recover to backup step ds_current="<<ds[dsk]<<" ds_next="<<ds[1-dsk]<<" ds_backup="<<dsbk<<std::endl;
+#endif
+                      ds[1-dsk] = dsbk;
+                  }
+                  else if(eerr<=eerr_min) {
+                      ds[1-dsk] *= std::pow(eerr_min/std::max(eerr,1e-15),0.16666666666);
+#ifdef ARC_DEEP_DEBUG
+                      std::cerr<<"Energy error is small enought for increase step, error="<<eerr<<" limit="<<pars.exp_error<<" factor="<<std::pow(pars.exp_error/std::max(eerr,1e-15),0.16666666666)<<" sym_An="<<pars.sym_An<<" new ds="<<ds[1-dsk]<<std::endl;
+#endif
+                  }
+                  nsub--;
+              }
+
+              // update ds
+              ds[dsk] = ds[1-dsk]; // when used once, update to the new step
+              dsk = 1-dsk;
+
               bk_flag = true;
               if(num>2) update_link();
           }
@@ -4016,7 +4024,7 @@ public:
                   ds[dsk] *= pars.sym_order[i].cck*tend/timetable[k];
                   ds[1-dsk] = ds[dsk];
 #ifdef ARC_DEEP_DEBUG
-                  std::cerr<<"t1 = "<<timetable[k]<<" t = "<<t<<" tend/t1="<<tend/timetable[k]<<" ck1="<<pars.sym_order[i].cck<<" \n";
+                  std::cerr<<"T-end reach, t1 = "<<timetable[k]<<" t = "<<t<<" tend/t1="<<tend/timetable[k]<<" ck1="<<pars.sym_order[i].cck<<" ds1 = "<<ds[dsk]<<" ds2 = "<<ds[1-dsk]<<"\n";
 #endif
               }
               else {
@@ -4026,14 +4034,18 @@ public:
                   ds[dsk] *= pars.sym_order[i-1].cck;  // first set step to nearest k for t<tend 
                   ds[1-dsk] = dtmp*(pars.sym_order[i].cck-pars.sym_order[i-1].cck)*(tend-tp)/dt; //then set next step to c_k+1 -c_k
 #ifdef ARC_DEEP_DEBUG
-                  std::cerr<<"t0 = "<<tp<<" t1 = "<<timetable[k]<<" t = "<<t<<" (tend-tp)/dt="<<(tend-tp)/dt<<" ck1="<<pars.sym_order[i].cck<<" ck0="<<pars.sym_order[i-1].cck<<" \n";
+                  std::cerr<<"T-end reach, t0 = "<<tp<<" t1 = "<<timetable[k]<<" t = "<<t<<" (tend-tp)/dt="<<(tend-tp)/dt<<" ck1="<<pars.sym_order[i].cck<<" ck0="<<pars.sym_order[i-1].cck<<" ds1 = "<<ds[dsk]<<" ds2 = "<<ds[1-dsk]<<" \n";
 #endif
               }
           }
           else {
               if(num>2) update_link();
+#ifdef ARC_DEEP_DEBUG
+              std::cerr<<"Finish, terr = "<<(t-tend)/(t-t0)<<" eerr = "<<std::abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+#endif
               break;
           }
+
       } 
       return stepcount;
   }
