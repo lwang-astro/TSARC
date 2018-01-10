@@ -3868,11 +3868,14 @@ public:
   template<class pertparticle_, class pertforce_, class extpar_>
   int Symplectic_integration_tsyn(const double s, 
                                   chainpars &pars,
-                                  const double tend,
+                                  const double tend_in,
                                   extpar_ *int_pars = NULL,
                                   pertparticle_* pert = NULL, 
                                   pertforce_* pertf = NULL, 
                                   const int npert = 0) {
+
+      // slowdown time
+      const double tend = tend_in/slowdown.kappa;
 
       const int dsize  = 6*(num-1)+3;
       const int darray = dsize+1; // backup data array size;
