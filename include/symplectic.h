@@ -105,7 +105,7 @@ namespace SYM {
             coff_order[k-1].cck = coff_order[k-2].cck + coff_cd[k-1][0];
             coff_order[k-1].index = k-1;
 
-            std::sort(coff_order, coff_order+k, [](symcumck &a, symcumck &b){ return a.cck<b.cck;} );
+            std::sort(coff_order, coff_order+k, [](const symcumck &a, const symcumck &b){ return a.cck<b.cck;} );
             
         }
         else if (n==-3) {
