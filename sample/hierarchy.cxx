@@ -259,7 +259,7 @@ int main(int argc, char **argv){
           }
       }
       else{
-          c.Symplectic_integration<Particle, ARC::double3, NTA::Newtonian_pars>(ds, pars, &Int_pars);
+          c.Symplectic_integration<Particle, ARC::double3, NTA::Newtonian_pars>(ds, pars, NULL, &Int_pars);
       }
 
     chain_print(c,ds,pw.w,pw.pre);
