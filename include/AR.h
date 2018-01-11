@@ -4049,7 +4049,11 @@ public:
               break;
           }
 
-      } 
+      }
+#ifdef ARC_PROFILE
+      if(!profile.stepcount) profile.initstep(1);
+      profile.stepcount[0] +=stepcount;
+#endif
       return stepcount;
   }
 
