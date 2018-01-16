@@ -417,8 +417,6 @@ int main(int argc, char **argv){
   // print chain pars
   pars.print(std::cerr);
 
-  // printing data
-  chain_print(c,0,w,pre);
 
   if (dsA==4) {
       ds = c.calc_next_step_custom(pars, &Int_pars);
@@ -430,6 +428,9 @@ int main(int argc, char **argv){
 #endif
 
   int stepsum=0;
+
+  // printing data
+  chain_print(c,ds,w,pre);
 
   // integration loop
   while (true) {

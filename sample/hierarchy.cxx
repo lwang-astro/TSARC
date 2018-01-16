@@ -243,7 +243,7 @@ int main(int argc, char **argv){
   pw.w=18; //width
   pw.pre=10; //precision
   
-  chain_print(c,0,pw.w,pw.pre);
+  chain_print(c,s,pw.w,pw.pre);
   if (pkepler) plist.pair_process(0,0,kepler_print,pw);
   std::cout<<std::endl;
 
