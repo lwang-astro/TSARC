@@ -195,6 +195,8 @@ int main(int argc, char **argv){
   fs>>N;
   Particle p[N];
   
+  double p2min=-1.0;
+  int idmin=0,ibmin=0;
   ptree<Particle, print_pars> plist;
   for(int i=0;i<N-1;i++) {
     int id,ib;
@@ -207,15 +209,28 @@ int main(int argc, char **argv){
     
     double3 x1,x2,v1,v2;
     NTA::kepler_orbit_generator(x1,x2,v1,v2,m1,m2,ax,ecc,angle,ecc_anomaly);
+    double p2 = ax*ax*ax/(m1+m2);
+    if (p2min<0||p2min>p2) {
+        p2min = p2;
+        idmin = id;
+        ibmin = ib;
+    }
     
     Particle a(m1,x1,v1);
     Particle b(m2,x2,v2);
+    a.setCoff(0);
+    b.setCoff(0);
     bool flag=plist.link(id,ib,a,b,pshift);
     if (!flag) {
       std::cerr<<"Error: particle id "<<id<<", ib "<<ib<<" are inconsistent with global particle tree structure, cannot created pairs!\n";
       abort();
     }
   }
+
+  Particle* pa=plist.getP(idmin,ibmin,0);
+  Particle* pb=plist.getP(idmin,ibmin,1);
+  pa->setCoff(pa->getMass());
+  pb->setCoff(pb->getMass());
 
   int count=plist.collect_and_store(p,N);
   if (count<0) {
@@ -225,7 +240,7 @@ int main(int argc, char **argv){
 
 //// for debugging
 //  for (int i=0; i<N; i++) {
-//    std::cout<<"m "<<p[i].getMass()<<" x "<<p[i].getPos()[0]<<std::endl;
+//    std::cout<<"m "<<p[i].getMass()<<" c "<<p[i].getCoff()<<" x "<<p[i].getPos()[0]<<std::endl;
 //  }
 
   NTA::Newtonian_pars Int_pars;

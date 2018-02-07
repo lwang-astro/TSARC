@@ -5,10 +5,10 @@ source ~/.uftools.sh
 
 #p2.test
 tt=p2
-sbase=2.8099258924162904
+sbase=0.49672941329
 #p3.test
 tt=p3
-sbase=0.140496294621
+sbase=0.0175620368276
 
 exec="./hierarchy $tt.test -r 2"
 #kepc='../../P3TARC/test/keplersolvertest 2'

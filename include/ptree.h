@@ -225,6 +225,20 @@ public:
     return nc;
   }
 
+  /// find particle
+  /*! Get particle due to the index
+    @param[in] id: current tree depth (root is 0)
+    @param[in] ib: current leaf index (count from left to right, total size is \f$ 2^{id} \f$
+    @param[in] im: leaf index 0: left, 1: right
+   */
+    particle *getP(const std::size_t id, const std::size_t ib, const std::size_t im) {
+        if(id>0) {
+            if(lp[ib/id]) return ((ptree<particle, proc_params>*)(this->p[ib/id]))->getP(id-1,ib%id,im);
+            else return NULL;
+        }
+        else return (particle*)(this->p[im]);
+    }
+
 };
 
 

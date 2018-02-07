@@ -11,7 +11,7 @@
  */
 class Particle{
   double pos[3], vel[3];
-  double mass;
+  double mass, coff;
 
 public:
   //!Constructor without initialization
@@ -26,6 +26,7 @@ public:
    */
   Particle(const double m, const double r[3], const double v[3]) {
     set(m,r,v);
+    coff = m;
   }
 
   //!Constructor with initialization of mass, position and velocity
@@ -39,6 +40,7 @@ public:
    */
   Particle(const double m, const double rx, const double ry, const double rz, const double vx, const double vy, const double vz) {
     set(m,rx,ry,rz,vx,vy,vz);
+    coff = m;
   }
 
   //!Constructor with initialization based on another Particle type data
@@ -68,6 +70,13 @@ public:
   const double* getVel() const{
     return vel;
   }
+
+  //! Get cofficients for TTL method
+  /*! \return cofficient
+   */
+  const double getCoff() const{
+    return coff;
+  }
   
   //!Set particle data with mass, position and velocity
   /*! Set particle mass, position and velocity, NAN check will be done
@@ -89,6 +98,7 @@ public:
     NAN_CHECK(vz);
 
     mass=m;
+    coff=m;
     pos[0]=rx;
     pos[1]=ry;
     pos[2]=rz;
@@ -113,15 +123,17 @@ public:
     NAN_CHECK(v[2]);
 
     mass=m;
+    coff=m;
     std::memcpy(pos,r,3*sizeof(double));
     std::memcpy(vel,v,3*sizeof(double));
-  }
+}
     
   //!Set particle data with Particle
   /*! @param [in] a: Particle type of data used to obtain mass, position and velocity
    */
   void set(const Particle &a){
     mass = a.getMass();
+    coff = a.getCoff();
     std::memcpy(pos,a.getPos(),3*sizeof(double));
     std::memcpy(vel,a.getVel(),3*sizeof(double));
   }
@@ -190,6 +202,16 @@ public:
     NAN_CHECK(m);
 
     mass = m;
+  }
+
+  //!Set coff (required for \ref ARC::chain)
+  /*! NAN check will be done
+      @param [in] c: cofficient
+   */
+  void setCoff(const double c) {
+    NAN_CHECK(c);
+
+    coff = c;
   }
 
   //! Clear function

@@ -88,7 +88,7 @@ namespace NTA {
       else mmij = 0;
     }
     else {
-      mmij = mimj;    // Wij = m_i*m_j
+      mmij = pi.getCoff()*pj.getCoff();    // Wij = coff_i*coff_j
     }
   
     Pij = - mimj / rij;  // Potential energy
