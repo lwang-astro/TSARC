@@ -2,6 +2,7 @@
 
 #include <cstdlib>
 #include <cmath>
+#include "Float.h"
 #include "particle.h"
 
 //! Namespace for Newtonian Interaction related functions
@@ -12,7 +13,7 @@
 */
 namespace NTA {
 
-  typedef double double3[3];
+  typedef Float Float3[3];
 
   //! Newtonian Interaction and time transformation function parameter class
   /*!
@@ -20,8 +21,8 @@ namespace NTA {
    */
   class Newtonian_pars{
   public:
-    double mm2; /// smooth particle coefficient
-    double epi; /// adjustment parameter
+    Float mm2; /// smooth particle coefficient
+    Float epi; /// adjustment parameter
 
     //! constructor
     /*! #mm2 is set to zero and #epi is set to -1
@@ -34,9 +35,9 @@ namespace NTA {
       @param[in] n: number of particle
       \return smooth particle coefficient
     */
-    void calc_mm2(const double mass[], const std::size_t n) {
+    void calc_mm2(const Float mass[], const std::size_t n) {
       // calcualte m'^2
-      mm2 = 0;
+      mm2 = Float(0.0);
       for (std::size_t i=0;i<n;i++) {
         for (std::size_t j=i+1;j<n;j++) {
           mm2 += mass[i]* mass[j];
@@ -62,7 +63,7 @@ namespace NTA {
     2) If epi<0: \f$mm_{ij} = m_i m_j\f$.\n
     \return status: 0 for normal cases; 1 for the case when two particles have same positions
   */
-  int Newtonian_AW (double Aij[3], double &Pij, double pWij[3], double &Wij, const double xij[3], const Particle &pi, const Particle &pj, Newtonian_pars* pars) {
+  int Newtonian_AW (Float Aij[3], Float &Pij, Float pWij[3], Float &Wij, const Float xij[3], const Particle &pi, const Particle &pj, Newtonian_pars* pars) {
 
     // safetey check
     if (pars==NULL) {
@@ -71,21 +72,21 @@ namespace NTA {
     }
     
     // distance
-    double rij = std::sqrt(xij[0]*xij[0]+xij[1]*xij[1]+xij[2]*xij[2]);
+    Float rij = sqrt(xij[0]*xij[0]+xij[1]*xij[1]+xij[2]*xij[2]);
 
     if (rij==0) return 1;
 
     // smooth coefficients
-    double mm2=pars->mm2;
-    double epi=pars->epi;
+    Float mm2=pars->mm2;
+    Float epi=pars->epi;
 
     // mass parameters
-    double mimj = pi.getMass()*pj.getMass(); // m_i*m_j
-    double mmij;
+    Float mimj = pi.getMass()*pj.getMass(); // m_i*m_j
+    Float mmij;
     if (mm2>0 && epi>0) {
       // Wij = mm2 if m_i*m_j < epi*m'^2; 0 otherwise;
       if (mimj<epi*mm2) mmij = mm2;
-      else mmij = 0;
+      else mmij = Float(0.0);
     }
     else {
       mmij = pi.getCoff()*pj.getCoff();    // Wij = coff_i*coff_j
@@ -95,8 +96,8 @@ namespace NTA {
     Wij = mmij / rij;   // Transformation coefficient
         
     // Acceleration
-    double rij3 = rij*rij*rij;
-    double mor3 = pj.getMass() / rij3;
+    Float rij3 = rij*rij*rij;
+    Float mor3 = pj.getMass() / rij3;
     Aij[0] = mor3 * xij[0];
     Aij[1] = mor3 * xij[1];
     Aij[2] = mor3 * xij[2];
@@ -121,30 +122,30 @@ namespace NTA {
     @param[in] npert: number of perturbers
     @param[in] pars: extra parameters (not used)
   */
-  void Newtonian_extAcc(double3 *acc, const double t, Particle *p, const int np, Particle *pert, double3 *pertf, const int npert, Newtonian_pars *pars) {
-      double3 xp[npert];
+  void Newtonian_extAcc(Float3 *acc, const Float t, Particle *p, const int np, Particle *pert, Float3 *pertf, const int npert, Newtonian_pars *pars) {
+      Float3 xp[npert];
       for (int i=0; i<npert; i++) {
-          const double* r = pert[i].getPos();
-          const double* v = pert[i].getVel();
-          double dt2 = t*t;
+          const Float* r = pert[i].getPos();
+          const Float* v = pert[i].getVel();
+          Float dt2 = t*t;
           for(int j=0; j<3; j++) {
               xp[i][j] = r[j]+v[j]*t + 0.5*pertf[i][j]*dt2;
           }
       }
       
       for (int i=0; i<np; i++) {
-          const double* xi = p[i].getPos();
+          const Float* xi = p[i].getPos();
           acc[i][0] = acc[i][1] = acc[i][2] = 0.0;
           for (int j=0; j<npert; j++) {
       
-              double mp = pert[j].getMass();
-              double dx = xp[j][0] - xi[0];
-              double dy = xp[j][1] - xi[1];
-              double dz = xp[j][2] - xi[2];
+              Float mp = pert[j].getMass();
+              Float dx = xp[j][0] - xi[0];
+              Float dy = xp[j][1] - xi[1];
+              Float dz = xp[j][2] - xi[2];
 
-              double dr2 = dx*dx + dy*dy + dz*dz;
-              double dr  = std::sqrt(dr2);
-              double dr3 = dr*dr2;
+              Float dr2 = dx*dx + dy*dy + dz*dz;
+              Float dr  = sqrt(dr2);
+              Float dr3 = dr*dr2;
 
               acc[i][0] += mp * dx / dr3;
               acc[i][1] += mp * dy / dr3;
@@ -164,30 +165,30 @@ namespace NTA {
     @param[in] pars: Newtonian_pars type data (not used)
     \return If the orbit is close, return the period, otherwise return the approximately 10% of free-fall time.
   */
-  double Newtonian_kepler_period (const double m1, const double m2, const double dx[3], const double dv[3], Newtonian_pars* pars) {
-    double semi;
-    const double dr2  = dx[0]*dx[0] + dx[1]*dx[1] + dx[2]*dx[2];
-    const double dv2  = dv[0]*dv[0] + dv[1]*dv[1] + dv[2]*dv[2];
-    const double dr   = std::sqrt(dr2);
-    const double m    = m1+m2;
+  Float Newtonian_kepler_period (const Float m1, const Float m2, const Float dx[3], const Float dv[3], Newtonian_pars* pars) {
+    Float semi;
+    const Float dr2  = dx[0]*dx[0] + dx[1]*dx[1] + dx[2]*dx[2];
+    const Float dv2  = dv[0]*dv[0] + dv[1]*dv[1] + dv[2]*dv[2];
+    const Float dr   = sqrt(dr2);
+    const Float m    = m1+m2;
 
     semi = 1.0/(2.0/dr - dv2/m);
 
     if (semi<0) {
-      const double peri = 0.1*std::sqrt(dr2*dr/(2.0*m));
+      const Float peri = 0.1*sqrt(dr2*dr/(2.0*m));
       //      std::cout<<"dr="<<dr<<" semi="<<semi<<" peri="<<peri<<std::endl;
       return peri;
     }
     else {
-      const double rvdot = dx[0]*dv[0] + dx[1]*dv[1] + dx[2]*dv[2];
-      const double dr_semi = 1.0 - dr/semi;
-      const double ecc  = std::sqrt(dr_semi*dr_semi + rvdot*rvdot/(m*semi));
+      const Float rvdot = dx[0]*dv[0] + dx[1]*dv[1] + dx[2]*dv[2];
+      const Float dr_semi = 1.0 - dr/semi;
+      const Float ecc  = sqrt(dr_semi*dr_semi + rvdot*rvdot/(m*semi));
 
-      const double twopi= 6.28;
-      const double peri = twopi*std::abs(semi)*std::sqrt(std::abs(semi)/m);
+      const Float twopi= 6.28;
+      const Float peri = twopi*abs(semi)*sqrt(abs(semi)/m);
 
       //      std::cout<<"dr="<<dr<<" semi="<<semi<<" ecc="<<ecc<<" peri="<<peri<<std::endl;
-      return std::max(std::sqrt(std::abs(1.0-ecc)),0.01)*peri;
+      return std::max(sqrt(abs(1.0-ecc)),Float(0.01))*peri;
     }
   }
 
@@ -205,90 +206,90 @@ namespace NTA {
     @param[in] dx: relative position [3]
     @param[in] dv: relative velocity [3]
    */
-  void calc_kepler_orbit_par(double &semi, double &peri, double &ecc, double angle[3], double &true_anomaly, double &ecc_anomaly, double &mean_anomaly, const double m, const double dx[3], const double dv[3]) {
-    const double dr2  = dx[0]*dx[0] + dx[1]*dx[1] + dx[2]*dx[2];
-    const double dv2  = dv[0]*dv[0] + dv[1]*dv[1] + dv[2]*dv[2];
-    const double rvdot = dx[0]*dv[0] + dx[1]*dv[1] + dx[2]*dv[2];
-    const double dr   = std::sqrt(dr2);
+  void calc_kepler_orbit_par(Float &semi, Float &peri, Float &ecc, Float angle[3], Float &true_anomaly, Float &ecc_anomaly, Float &mean_anomaly, const Float m, const Float dx[3], const Float dv[3]) {
+    const Float dr2  = dx[0]*dx[0] + dx[1]*dx[1] + dx[2]*dx[2];
+    const Float dv2  = dv[0]*dv[0] + dv[1]*dv[1] + dv[2]*dv[2];
+    const Float rvdot = dx[0]*dv[0] + dx[1]*dv[1] + dx[2]*dv[2];
+    const Float dr   = sqrt(dr2);
 
     semi = 1.0/(2.0/dr - dv2/m);
 
-    const double dr_semi = 1.0 - dr/semi;
-    ecc  = std::sqrt(dr_semi*dr_semi + rvdot*rvdot/(m*semi));
+    const Float dr_semi = 1.0 - dr/semi;
+    ecc  = sqrt(dr_semi*dr_semi + rvdot*rvdot/(m*semi));
 
-    const double twopi = 8.0*std::atan(1.0);
-    peri = twopi*std::abs(semi)*std::sqrt(std::abs(semi)/m);
+    const Float twopi = 8.0*std::atan(1.0);
+    peri = twopi*abs(semi)*sqrt(abs(semi)/m);
 
-    const double rvcross[3]={dx[1]*dv[2]-dx[2]*dv[1],
+    const Float rvcross[3]={dx[1]*dv[2]-dx[2]*dv[1],
                              dx[2]*dv[0]-dx[0]*dv[2],
                              dx[0]*dv[1]-dx[1]*dv[0]};
 
     // inclination to x-y plane
-    const double rvcxy = std::sqrt(rvcross[0]*rvcross[0]+rvcross[1]*rvcross[1]);
-    angle[0] = std::atan2(rvcxy, rvcross[2]);
+    const Float rvcxy = sqrt(rvcross[0]*rvcross[0]+rvcross[1]*rvcross[1]);
+    angle[0] = atan2(rvcxy, rvcross[2]);
     // z-axis rotation (counter-clock)
-    angle[1] = std::atan2(rvcross[0], -rvcross[1]);
+    angle[1] = atan2(rvcross[0], -rvcross[1]);
     if (angle[0]==0.0) angle[1]=0.0;
 
-    const double cosinc = std::cos(angle[0]);
-    const double sininc = std::sin(angle[0]);
+    const Float cosinc = cos(angle[0]);
+    const Float sininc = sin(angle[0]);
 
-    const double costhe = std::cos(angle[1]);
-    const double sinthe = std::sin(angle[1]);
+    const Float costhe = cos(angle[1]);
+    const Float sinthe = sin(angle[1]);
     
     // orbital-plane projection
-    const double dr_op[3]={dx[0]*costhe + dx[1]*sinthe,
+    const Float dr_op[3]={dx[0]*costhe + dx[1]*sinthe,
                            (-dx[0]*sinthe + dx[1]*costhe)*cosinc + dx[2]*sininc,
                            0};
-    const double dv_op[3]={dv[0]*costhe + dv[1]*sinthe,
+    const Float dv_op[3]={dv[0]*costhe + dv[1]*sinthe,
                            (-dv[0]*sinthe + dv[1]*costhe)*cosinc + dv[2]*sininc,
                            0};
-//    const double drv_op[3]={rvcross[0]*costhe + rvcross[1]*sinthe,
+//    const Float drv_op[3]={rvcross[0]*costhe + rvcross[1]*sinthe,
 //                          -(rvcross[0]*sinthe + rvcross[1]*costhe)*cosinc + rvcross[2]*sininc,
 //                           0};
-    const double h = std::sqrt(rvcxy*rvcxy + rvcross[2]*rvcross[2]);
-    const double ecc_cos =  h/m*dv_op[1] - dr_op[0]/dr;
-    const double ecc_sin = -h/m*dv_op[0] - dr_op[1]/dr;
+    const Float h = sqrt(rvcxy*rvcxy + rvcross[2]*rvcross[2]);
+    const Float ecc_cos =  h/m*dv_op[1] - dr_op[0]/dr;
+    const Float ecc_sin = -h/m*dv_op[0] - dr_op[1]/dr;
     //    std::cout<<std::setprecision(15)<<"\ncos "<<ecc_cos<<" sin "<<ecc_sin<<" h "<<h<<" m "<<m<<"\n dv_op "<<dv_op[0]<<" "<<dv_op[1]<<" "<<dv_op[0]*dv_op[0]+dv_op[1]*dv_op[1]<<" dr_op "<<dr_op[0]<<" "<<dr_op[1]<<" "<<dr_op[0]*dr_op[0]+dr_op[1]*dr_op[1]<<"\n dr2 "<<dr2<<" dv2 "<<dv2<<" costhe "<<costhe<<" sinthe "<<sinthe<<" dx[0] "<<dx[0]<<" dx[1] "<<dx[1]<<" "<<dx[0]*dx[0]+dx[1]*dx[1]<<" "<<costhe*costhe+sinthe*sinthe<<std::endl;
     //    abort();
 
     // orbital-plane rotation
-    angle[2] = std::atan2(ecc_sin, ecc_cos);
+    angle[2] = atan2(ecc_sin, ecc_cos);
     if (ecc==0.0) angle[2]=0.0;
 
     // true anomaly
-    true_anomaly = std::atan2(dr_op[1], dr_op[0]) - angle[2];
+    true_anomaly = atan2(dr_op[1], dr_op[0]) - angle[2];
 
     // ecc anomaly
-    const double cos_ecca = dr*std::cos(true_anomaly)/ semi + ecc;
-    const double sin_ecca = dr*std::sin(true_anomaly)/(semi*sqrt(1.0 - ecc*ecc));
-    ecc_anomaly = std::atan2(sin_ecca,cos_ecca);
+    const Float cos_ecca = dr*cos(true_anomaly)/ semi + ecc;
+    const Float sin_ecca = dr*sin(true_anomaly)/(semi*sqrt(1.0 - ecc*ecc));
+    ecc_anomaly = atan2(sin_ecca,cos_ecca);
 
     // mean anomaly
     mean_anomaly = ecc_anomaly - ecc*sin_ecca;
     
   }
 
-  void kepler_orbit_generator(double x1[3], double x2[3], double v1[3], double v2[3], const double m1, const double m2, const double semi, const double ecc, const double angle[3], const double ecc_anomaly) {
-    double m = m1+m2;
-    double sine = std::sin(ecc_anomaly);
-    double cose = std::cos(ecc_anomaly);
+  void kepler_orbit_generator(Float x1[3], Float x2[3], Float v1[3], Float v2[3], const Float m1, const Float m2, const Float semi, const Float ecc, const Float angle[3], const Float ecc_anomaly) {
+    Float m = m1+m2;
+    Float sine = sin(ecc_anomaly);
+    Float cose = cos(ecc_anomaly);
 
-    double eoff=std::sqrt(1.0-ecc*ecc);
-    double coff=std::sqrt(m/(semi*semi*semi));
+    Float eoff=sqrt(1.0-ecc*ecc);
+    Float coff=sqrt(m/(semi*semi*semi));
 
-    double dr[3]={ semi*(cose-ecc),               semi*eoff*sine,                     0.0};
-    double dv[3]={-semi*coff*sine/(1.0-ecc*cose), semi*coff*eoff*cose/(1.0-ecc*cose), 0.0};
+    Float dr[3]={ semi*(cose-ecc),               semi*eoff*sine,                     0.0};
+    Float dv[3]={-semi*coff*sine/(1.0-ecc*cose), semi*coff*eoff*cose/(1.0-ecc*cose), 0.0};
 
     //rotation
-    const double sininc = std::sin(angle[0]);
-    const double cosinc = std::cos(angle[0]);
-    const double sinthe = std::sin(angle[1]);
-    const double costhe = std::cos(angle[1]);
-    const double sinorb = std::sin(angle[2]);
-    const double cosorb = std::cos(angle[2]);
+    const Float sininc = sin(angle[0]);
+    const Float cosinc = cos(angle[0]);
+    const Float sinthe = sin(angle[1]);
+    const Float costhe = cos(angle[1]);
+    const Float sinorb = sin(angle[2]);
+    const Float cosorb = cos(angle[2]);
 
-    double rm[3][3]={
+    Float rm[3][3]={
       { cosorb*costhe - sinorb*sinthe*cosinc,
        -sinorb*costhe - cosorb*sinthe*cosinc,
         sinthe*sininc },
@@ -300,10 +301,10 @@ namespace NTA {
         cosinc}
     };
 
-    double ndr[3]={rm[0][0]*dr[0] + rm[0][1]*dr[1] + rm[0][2]*dr[2],
+    Float ndr[3]={rm[0][0]*dr[0] + rm[0][1]*dr[1] + rm[0][2]*dr[2],
                    rm[1][0]*dr[0] + rm[1][1]*dr[1] + rm[1][2]*dr[2],
                    rm[2][0]*dr[0] + rm[2][1]*dr[1] + rm[2][2]*dr[2]};
-    double ndv[3]={rm[0][0]*dv[0] + rm[0][1]*dv[1] + rm[0][2]*dv[2],
+    Float ndv[3]={rm[0][0]*dv[0] + rm[0][1]*dv[1] + rm[0][2]*dv[2],
                    rm[1][0]*dv[0] + rm[1][1]*dv[1] + rm[1][2]*dv[2],
                    rm[2][0]*dv[0] + rm[2][1]*dv[1] + rm[2][2]*dv[2]};
 

@@ -10,7 +10,7 @@
 #include <iomanip>
 #include <cmath>
 
-void chain_print(const ARC::chain<Particle> &c, const double ds, const double w, const double pre) {
+void chain_print(const ARC::chain<Particle> &c, const Float ds, const int w, const int pre) {
   // printing digital precision
   std::cout<<std::setprecision(pre);
 
@@ -36,7 +36,7 @@ void chain_print(const ARC::chain<Particle> &c, const double ds, const double w,
 }  
 
 int main(int argc, char **argv){
-//  typedef double double3[3];
+//  typedef Float Float3[3];
   int n=3; //particle number
   int w=18; //print width
   int pre=10; //print digital precision
@@ -48,15 +48,15 @@ int main(int argc, char **argv){
   char* sq=NULL;        // extrapolation sequence, 'rom' for {h,h/2,h/4,h/8...}; 'bs' for {h,h/2,h/3,h/4,h/6,h/8...}; '4k' for {h/2, h/6, h/10, h/14 ...}; 'hm' for {h, h/2, h/3, h/4 ...}
   char* method=NULL;   // regularization methods, 'logh': Logarithmic Hamitonian; 'ttl': Time-transformed Leapfrog\n (logh)
   int sym_k=4; // symplectic integrator order
-  double err=1e-10; // phase error requirement
-  double terr=1e-6; // time synchronization error
-  double s=0.5;    // step size
-  double dtmin=5.4e-20; // mimimum physical time step
-  double t=0.0;    // initial physical time
-  double tend=-1; // ending physical time
+  Float err=1e-10; // phase error requirement
+  Float terr=1e-6; // time synchronization error
+  Float s=0.5;    // step size
+  Float dtmin=5.4e-20; // mimimum physical time step
+  Float t=0.0;    // initial physical time
+  Float tend=-1; // ending physical time
   int npert=0;    // external perturber number
 //  bool fflag=false; //external force flag
-//  double3* f=NULL;  // external force vectors
+//  Float3* f=NULL;  // external force vectors
   int dsA=0;   //adjust step size switcher
   bool iterfix=false; //if true, iteration times is fixed to itermax
   int lpflag=0; //if 1, load chain data, 2, load particle data (binary format)
@@ -196,10 +196,10 @@ int main(int argc, char **argv){
                <<"Options: (*) show defaulted values\n"
                <<"    -N [int]:     total number of particles ("<<n<<")\n"
                <<"    -n [int]:     number of integration steps ("<<nstep<<")\n"
-               <<"          --t-start [double]:  initial physical time ("<<t<<")\n"
-               <<"    -t [double]:  ending physical time; if set, -n will be invalid (unset)\n"
+               <<"          --t-start [Float]:  initial physical time ("<<t<<")\n"
+               <<"    -t [Float]:  ending physical time; if set, -n will be invalid (unset)\n"
                <<"          --t-end (same as -t)\n"
-               <<"    -s [double]:  step size, not physical time step ("<<s<<")\n"
+               <<"    -s [Float]:  step size, not physical time step ("<<s<<")\n"
                <<"          --nsub [int]:       sub-step number if no extrapolation method is used ("<<nsubstep<<")\n"
                <<"    -a [int]:     using auto-step adjustment for extrapolation integration (defaulted not switched on)\n"
                <<"                  0: no auto-step\n"
@@ -227,10 +227,10 @@ int main(int argc, char **argv){
                <<"    -i [int]: maximum iteration steps for extrapolation method ("<<itermax<<")\n"
                <<"          --iter-max (same as -i)\n"
                <<"          --intp-max maximum dense output interpolation derivate index ("<<intpmax<<")\n"
-               <<"    -e [double]:  phase and energy error limit ("<<err<<")\n"
+               <<"    -e [Float]:  phase and energy error limit ("<<err<<")\n"
                <<"          --error (same as -e)\n"
-               <<"          --t-error [double]: time synchronization error limit ("<<terr<<")\n"
-               <<"    -d [double]: [double]:  minimum physical time step ("<<dtmin<<")\n"
+               <<"          --t-error [Float]: time synchronization error limit ("<<terr<<")\n"
+               <<"    -d [Float]: [Float]:  minimum physical time step ("<<dtmin<<")\n"
                <<"          --dtmin (same as -d)\n"
                <<"    -p [int]:     number of perturbers, will read after N particles\n"
 //               <<"    -f :          use constant external force for each particles (read fx, fy, fz after reading each particle data in data file)\n"
@@ -340,7 +340,7 @@ int main(int argc, char **argv){
     pars.setAutoStep(dsA,0.7,1.3,0.125,std::max(std::min(itermax-3,5),1),std::min(std::max(itermax-5,3),itermax));
   }
   else {
-    double dsA1,dsA2,dsAe;
+    Float dsA1,dsA2,dsAe;
     int dsAi1,dsAi2;
     pars.getAutoStep(dsA,dsA1,dsA2,dsAe,dsAi1,dsAi2);
   }
@@ -351,18 +351,18 @@ int main(int argc, char **argv){
   ARC::chain<Particle> c(n);
 
   Particle *p=NULL;
-  ARC::double3 *pf=NULL;
+  ARC::Float3 *pf=NULL;
 
   if (lpflag==0) {
     // reading particle data
     p=new Particle[n+npert];
-    pf=new ARC::double3[npert];
+    pf=new ARC::Float3[npert];
     for (int i=0;i<npert;i++) {
         for(int j=0; j<3;j++) pf[i][j] = 0.0;
     }
-    //  if (fflag) f=new double3[n];
+    //  if (fflag) f=new Float3[n];
     for (int i=0;i<n+npert;i++) {
-      double x,y,z,vx,vy,vz,m;
+      Float x,y,z,vx,vy,vz,m;
       fs>>m>>x>>y>>z>>vx>>vy>>vz;
 //      if (fflag) fs>>f[i][0]>>f[i][1]>>f[i][2];
       if (fs.eof()) {
@@ -391,7 +391,7 @@ int main(int argc, char **argv){
   }
 
   // calculate smooth mass coefficient
-  // double* pmass=new double[n];
+  // Float* pmass=new Float[n];
   // c.p.getMassAll(pmass);
   // Int_pars.calc_mm2(pmass,n); //mm2
 
@@ -412,7 +412,7 @@ int main(int argc, char **argv){
   int i=0;
 
   // step size
-  double ds = s;
+  Float ds = s;
 
   // print chain pars
   pars.print(std::cerr);
@@ -424,7 +424,7 @@ int main(int argc, char **argv){
   }
 
 #ifdef ARC_DEBUG
-  if (ms<0) c.Symplectic_integration_repeat_test<Particle,ARC::double3,NTA::Newtonian_pars>(s,pars,&Int_pars,&p[n],pf,npert);
+  if (ms<0) c.Symplectic_integration_repeat_test<Particle,ARC::Float3,NTA::Newtonian_pars>(s,pars,&Int_pars,&p[n],pf,npert);
 #endif
 
   int stepsum=0;
@@ -438,7 +438,7 @@ int main(int argc, char **argv){
     std::cerr<<"Time error: "<<c.getTime()-tend<<std::endl;
 #endif
     // if reaching ending time or maximum integration step number, stop
-    if ((tend<0&&i==nstep)||(tend>0&&std::abs(c.getTime()-tend)<terr)) {
+    if ((tend<0&&i==nstep)||(tend>0&&abs(c.getTime()-tend)<terr)) {
       c.dump("chain_snapshot_dump");
       pars.dump("chain_pars_dump");
       break;
@@ -449,13 +449,13 @@ int main(int argc, char **argv){
 
     // Extrapolation integration
     if (ms>0) {
-        double dsf=c.extrapolation_integration<Particle,ARC::double3,NTA::Newtonian_pars>(ds,pars,tend,&Int_pars,&p[n],pf,npert);
+        Float dsf=c.extrapolation_integration<Particle,ARC::Float3,NTA::Newtonian_pars>(ds,pars,tend,&Int_pars,&p[n],pf,npert);
       // indicator whether ending time is reached, if so, modify ds
       if (dsf<0) ds *= -dsf;
       // auto-adjust step size
       else if (dsf==0) {
         c.info->ErrMessage(std::cerr);
-        double dsf=c.extrapolation_integration<Particle,ARC::double3,NTA::Newtonian_pars>(0.01*ds,pars,tend,&Int_pars,&p[n],pf,npert);
+        Float dsf=c.extrapolation_integration<Particle,ARC::Float3,NTA::Newtonian_pars>(0.01*ds,pars,tend,&Int_pars,&p[n],pf,npert);
         chain_print(c,0.01*ds,w,pre);
         if (dsf<0) ds*= -dsf;
       }
@@ -469,15 +469,15 @@ int main(int argc, char **argv){
     }
     // Leapfrog integration
     else if (ms==0){
-      c.Leapfrog_step_forward<Particle,ARC::double3,NTA::Newtonian_pars>(s,nsubstep,pars,&Int_pars,&p[n],pf,npert);
+      c.Leapfrog_step_forward<Particle,ARC::Float3,NTA::Newtonian_pars>(s,nsubstep,pars,&Int_pars,&p[n],pf,npert);
       chain_print(c,s,w,pre);
     }
     else if (ms<0) {
       if(tend<0) {
           stepsum++;
-          c.Symplectic_integration<Particle,ARC::double3,NTA::Newtonian_pars>(s,pars,NULL,&Int_pars,&p[n],pf,npert);
+          c.Symplectic_integration<Particle,ARC::Float3,NTA::Newtonian_pars>(s,pars,NULL,&Int_pars,&p[n],pf,npert);
       }
-      else stepsum +=c.Symplectic_integration_tsyn<Particle,ARC::double3,NTA::Newtonian_pars>(s,pars,tend,&Int_pars,&p[n],pf,npert);
+      else stepsum +=c.Symplectic_integration_tsyn<Particle,ARC::Float3,NTA::Newtonian_pars>(s,pars,tend,&Int_pars,&p[n],pf,npert);
       if(c.info!=NULL) c.info->ErrMessage(std::cerr);
       chain_print(c,s,w,pre);
     }

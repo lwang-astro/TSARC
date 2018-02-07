@@ -10,7 +10,7 @@
 
 struct print_pars{
 public:
-  double w,pre;
+  int w,pre;
 };
 
 Particle pshift(const Particle &a, const Particle &ref) {
@@ -24,19 +24,19 @@ Particle pshift(const Particle &a, const Particle &ref) {
 }
 
 Particle kepler_print(const std::size_t id, const std::size_t ib, Particle* c[2], print_pars& ppars){
-    const double* x[2];
-    const double* v[2];
-    double m[2];
+    const Float* x[2];
+    const Float* v[2];
+    Float m[2];
     for (std::size_t i=0; i<2; i++) {
       x[i]=c[i]->getPos();
       v[i]=c[i]->getVel();
       m[i]=c[i]->getMass();
     }
         
-    double ax,per,ecc,angle[3],true_anomaly,ecc_anomaly,mean_anomaly; 
-    double dx[3] = {x[1][0]-x[0][0], x[1][1]-x[0][1], x[1][2]-x[0][2]};
-    double dv[3] = {v[1][0]-v[0][0], v[1][1]-v[0][1], v[1][2]-v[0][2]};
-    double mt = m[0]+m[1];
+    Float ax,per,ecc,angle[3],true_anomaly,ecc_anomaly,mean_anomaly; 
+    Float dx[3] = {x[1][0]-x[0][0], x[1][1]-x[0][1], x[1][2]-x[0][2]};
+    Float dv[3] = {v[1][0]-v[0][0], v[1][1]-v[0][1], v[1][2]-v[0][2]};
+    Float mt = m[0]+m[1];
     
     NTA::calc_kepler_orbit_par(ax,per,ecc,angle,true_anomaly,ecc_anomaly,mean_anomaly,mt,dx,dv);
     std::cout<<std::setw(ppars.w)<<id
@@ -51,17 +51,17 @@ Particle kepler_print(const std::size_t id, const std::size_t ib, Particle* c[2]
              <<std::setw(ppars.w)<<true_anomaly
              <<std::setw(ppars.w)<<mean_anomaly;
 
-    double xcm[3]={(x[0][0]*m[0]+x[1][0]*m[1])/mt, 
+    Float xcm[3]={(x[0][0]*m[0]+x[1][0]*m[1])/mt, 
                   (x[0][1]*m[0]+x[1][1]*m[1])/mt, 
                   (x[0][2]*m[0]+x[1][2]*m[1])/mt};
-    double vcm[3]={(v[0][0]*m[0]+v[1][0]*m[1])/mt, 
+    Float vcm[3]={(v[0][0]*m[0]+v[1][0]*m[1])/mt, 
                    (v[0][1]*m[0]+v[1][1]*m[1])/mt, 
                    (v[0][2]*m[0]+v[1][2]*m[1])/mt};
 
     return Particle(mt,xcm,vcm);
 }
 
-void chain_print(const ARC::chain<Particle> &c, const double ds, const double w, const double pre) {
+void chain_print(const ARC::chain<Particle> &c, const Float ds, const int w, const int pre) {
   // printing digital precision
   std::cout<<std::setprecision(pre);
 
@@ -87,9 +87,9 @@ void chain_print(const ARC::chain<Particle> &c, const double ds, const double w,
 
 
 int main(int argc, char **argv){
-  typedef double double3[3];
+  typedef Float Float3[3];
 
-  double s=0.5;    // step size
+  Float s=0.5;    // step size
   int n=1000; // total step size
   int m=0;    // method
   int k=4;    // symplectic integrator order or extrapolation method
@@ -122,7 +122,7 @@ int main(int argc, char **argv){
                <<"     PS: if 1-0 has no children, 1-1 still have 2, 3 as children's branch_id\n"
                <<"Options: (*) show defaulted values\n"
                <<"    -n [int]:     number of integration steps ("<<n<<")\n"
-               <<"    -s [double]:  step size, not physical time step ("<<s<<")\n"
+               <<"    -s [Float]:  step size, not physical time step ("<<s<<")\n"
                <<"    -m [int]:     integration methods: 0: symplectic, 1: extrapolation ("<<m<<")\n"
                <<"    -r [int]:     regularization methods, 1: Logarithmic Hamitonian; 2: Time-transformed Leapfrog ("<<method<<")\n"
                <<"    -k [int]:     if symplectic, k is order, if extrapolation, k is extrapolation sequence (1: Romberg sequence; 2. BS sequence; 3. 4k sequence; 4. Harmonic sequence) ("<<k<<")\n"
@@ -195,21 +195,21 @@ int main(int argc, char **argv){
   fs>>N;
   Particle p[N];
   
-  double p2min=-1.0;
+  Float p2min=-1.0;
   int idmin=0,ibmin=0;
   ptree<Particle, print_pars> plist;
   for(int i=0;i<N-1;i++) {
     int id,ib;
-    double m1,m2,ax,ecc,angle[3],ecc_anomaly;
+    Float m1,m2,ax,ecc,angle[3],ecc_anomaly;
     fs>>id>>ib>>m1>>m2>>ax>>ecc>>angle[0]>>angle[1]>>angle[2]>>ecc_anomaly;
     if (fs.eof()) {
       std::cerr<<"Error: data file reach end when reading pairs (current loaded pair number is "<<i<<"; required pair number "<<N-1<<std::endl;
       abort();
     }
     
-    double3 x1,x2,v1,v2;
+    Float3 x1,x2,v1,v2;
     NTA::kepler_orbit_generator(x1,x2,v1,v2,m1,m2,ax,ecc,angle,ecc_anomaly);
-    double p2 = ax*ax*ax/(m1+m2);
+    Float p2 = ax*ax*ax/(m1+m2);
     if (p2min<0||p2min>p2) {
         p2min = p2;
         idmin = id;
@@ -263,18 +263,18 @@ int main(int argc, char **argv){
   std::cout<<std::endl;
 
   // step size
-  const double ds = s;
+  const Float ds = s;
 
   for(int i=0;i<n;i++) {
       if(m==1) {
-          double dsf=c.extrapolation_integration<Particle, ARC::double3, NTA::Newtonian_pars>(ds,pars,-1,&Int_pars);
+          Float dsf=c.extrapolation_integration<Particle, ARC::Float3, NTA::Newtonian_pars>(ds,pars,-1,&Int_pars);
           if (dsf==0) {
               c.info->ErrMessage(std::cerr);
               abort();
           }
       }
       else{
-          c.Symplectic_integration<Particle, ARC::double3, NTA::Newtonian_pars>(ds, pars, NULL, &Int_pars);
+          c.Symplectic_integration<Particle, ARC::Float3, NTA::Newtonian_pars>(ds, pars, NULL, &Int_pars);
       }
 
     chain_print(c,ds,pw.w,pw.pre);

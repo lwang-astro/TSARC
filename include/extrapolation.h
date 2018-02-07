@@ -6,6 +6,7 @@
 #ifdef DEBUG
 #include <iomanip>
 #endif
+#include "Float.h"
 
 //! For extrapolation related functions
 namespace EP {
@@ -80,7 +81,7 @@ namespace EP {
      @param [in] hr: \f$ h_{i-k/h_i} \f$
      \return  \f$ T_{i,k} \f$
   */
-  double polynomial_recursive_formula(const double ti1k1, const double tik1, const double hr) {
+  Float polynomial_recursive_formula(const Float ti1k1, const Float tik1, const Float hr) {
     if (hr==1.0) {
       std::cerr<<"Error!: h_i-k/h_i should not be 1.0! (Romberg_recursion_formula)";
       abort();
@@ -96,15 +97,15 @@ namespace EP {
      @param [in] hr:    \f$ h_{i-k/h_i} \f$ 
      \return  \f$ T_{i,k} \f$
    */
-  double rational_recursive_formula(const double ti1k2, const double ti1k1, const double tik1, const double hr) {
-    double dt2 = tik1 - ti1k2;
-    double dt1 = tik1 - ti1k1;
+  Float rational_recursive_formula(const Float ti1k2, const Float ti1k1, const Float tik1, const Float hr) {
+    Float dt2 = tik1 - ti1k2;
+    Float dt1 = tik1 - ti1k1;
     if (dt2==0) {
       if (dt1-dt2==0) return ti1k1;
       else return tik1;
     }
-    double dt = dt1/(hr*hr * (1 - dt1/dt2) - 1);
-    if (std::isinf(dt)) return tik1;
+    Float dt = dt1/(hr*hr * (1 - dt1/dt2) - 1);
+    if (isinf(dt)) return tik1;
     else return tik1 + dt;
   }
 
@@ -118,7 +119,7 @@ namespace EP {
     @param [in] Tsize: data array size
     @param [in] n: the new iteration step index in \a step (count from 0)
    */
-  void polynomial_extrapolation (double* Tn[], double* Tnew, const int step[], const std::size_t Tsize, const std::size_t n) {
+  void polynomial_extrapolation (Float* Tn[], Float* Tnew, const int step[], const std::size_t Tsize, const std::size_t n) {
     for (std::size_t j=0; j<n; j++) {
       //templately storage new results to ttemp
       /*
@@ -126,20 +127,20 @@ namespace EP {
                        -> T_n,j+1 [n]
               T_n,j [Tnew]
       */
-      double hr = (double)step[n]/(double)step[n-j-1];
+      Float hr = (Float)step[n]/(Float)step[n-j-1];
       for (std::size_t k=0; k<Tsize; k++) Tn[n][k] = polynomial_recursive_formula(Tn[j][k],Tnew[k],hr);
    
       //update j order
       /*
               [j] << T_n,j [Tnew]
       */
-      std::memcpy(Tn[j],Tnew,Tsize*sizeof(double));
+      std::memcpy(Tn[j],Tnew,Tsize*sizeof(Float));
    
       //shift temp data to index = n.
       /*
               [Tnew] << T_n,j+1 []
       */
-      std::memcpy(Tnew,Tn[n],Tsize*sizeof(double));
+      std::memcpy(Tnew,Tn[n],Tsize*sizeof(Float));
     }
   }
 
@@ -152,9 +153,9 @@ namespace EP {
     @param [in] Tsize: data array size
     @param [in] n: the new iteration step index in \a step (count from 0)
    */
-  void rational_extrapolation (double** Tn, double* Tnew, const int step[], const std::size_t Tsize, const std::size_t n) {
+  void rational_extrapolation (Float** Tn, Float* Tnew, const int step[], const std::size_t Tsize, const std::size_t n) {
     // additional template storage
-    double T1[Tsize];
+    Float T1[Tsize];
         
     for (std::size_t j=0; j<n; j++) {
       //templately storage new results to ttemp
@@ -163,20 +164,20 @@ namespace EP {
              T_n-1,j-1 [j-1]          -> T_n,j+1 [n]
                            T_n,j [Tnew]
       */
-      double hr = (double)step[n]/(double)step[n-j-1];
+      Float hr = (Float)step[n]/(Float)step[n-j-1];
       if (j==0) for (std::size_t k=0; k<Tsize; k++) Tn[n][k] = rational_recursive_formula(0,Tn[j][k],Tnew[k],hr);
       else for (std::size_t k=0; k<Tsize; k++) Tn[n][k] = rational_recursive_formula(Tn[j-1][k],Tn[j][k],Tnew[k],hr);
 
       // update j-1 order
-      if (j>0) std::memcpy(Tn[j-1],T1,Tsize*sizeof(double));
+      if (j>0) std::memcpy(Tn[j-1],T1,Tsize*sizeof(Float));
 
       //storage previous extrapolated data in template position t1
       // [t1] << T_n,j [Tnew]
-      std::memcpy(T1,Tnew,Tsize*sizeof(double));
+      std::memcpy(T1,Tnew,Tsize*sizeof(Float));
             
       //shift Tn data to Tnew
       // [Tnew] << T_n,j+1 [n]
-      std::memcpy(Tnew,Tn[n],Tsize*sizeof(double));
+      std::memcpy(Tnew,Tn[n],Tsize*sizeof(Float));
     }
   }
 
@@ -188,12 +189,12 @@ namespace EP {
      @param [in] n: iteration step index (count from 0)
      \return   maximum error
   */
-  double extrapolation_error (double** Tn, const std::size_t Tsize, const std::size_t n) {
-    double ermax=0;
+  Float extrapolation_error (Float** Tn, const std::size_t Tsize, const std::size_t n) {
+    Float ermax=0;
     for (std::size_t k=0; k<Tsize; k++) {
-      double dik = Tn[n][k];
-      double di1k= Tn[n-1][k];
-      ermax = std::max(ermax, 2*(dik-di1k)/std::sqrt(dik*dik+di1k*di1k));
+      Float dik = Tn[n][k];
+      Float di1k= Tn[n-1][k];
+      ermax = std::max(ermax, 2*(dik-di1k)/sqrt(dik*dik+di1k*di1k));
     }
     return ermax;
   }
@@ -206,8 +207,8 @@ namespace EP {
      @param [in] n: current sequence index (iteration number)
      return:   optimized factor (H = H*factor)
   */
-  double H_opt_factor (const double err, const double exp, const int n) {
-    if (err>0) return std::pow(exp/err, 1.0/double(2*n-1));
+  Float H_opt_factor (const Float err, const Float exp, const int n) {
+    if (err>0) return pow(exp/err, 1.0/Float(2*n-1));
     else return 1.0;
   }
 
@@ -237,13 +238,13 @@ namespace EP {
      @param [in] npoints: number of position points.
      @param [in] nlev:  one dimensional array that store the maximum difference level for each position (f^(0)(x) count as 1)
   */
-  void Hermite_interpolation_coefficients (double **coff, const double* x, double** f, double ***df, const int ndata, const int npoints, const int* nlev) {
+  void Hermite_interpolation_coefficients (Float **coff, const Float* x, Float** f, Float ***df, const int ndata, const int npoints, const int* nlev) {
     // get total coefficient number
     int n = 0;
     for (int i=0; i<npoints; i++) n += nlev[i];
 
     // template data for iteration
-    double dtemp[n];
+    Float dtemp[n];
     // indicator of which point corresponding to in dtemp (-1: need to calculate, >=0; need to set data from points dk)
     int dk0[n];
     int dkn[n];
@@ -276,7 +277,7 @@ namespace EP {
         // iteration to get cofficients 
         for (int k=0; k<n-j; k++) {
           // set known derivate value 
-          if (dk0[k]==dkn[k+1]) dtemp[k] = df[j-1][dk0[k]][i]/(double)nk;
+          if (dk0[k]==dkn[k+1]) dtemp[k] = df[j-1][dk0[k]][i]/(Float)nk;
           // calculate new
           else {
             dtemp[k] = (dtemp[k+1] - dtemp[k])/(x[dkn[k+1]] - x[dk0[k]]);
@@ -305,7 +306,7 @@ namespace EP {
      @param [in] npoints: number of position points.
      @param [in] nlev:  one dimensional array that store the maximum difference level for each position (f^(0)(x) count as 1)
   */
-  void Hermite_interpolation_polynomial(double xn, double *fxn, double** coff, const double *x, const int ndata, const int npoints, const int* nlev) {
+  void Hermite_interpolation_polynomial(Float xn, Float *fxn, Float** coff, const Float *x, const int ndata, const int npoints, const int* nlev) {
     // offset for shifting dx calculation
     int noff[npoints];
     for (int i=0; i<npoints-1; i++) noff[i] = nlev[i];
@@ -316,11 +317,11 @@ namespace EP {
       // first cofficient is constant
       fxn[i] = coff[i][0];
       // initial dx
-      double dx=1;
+      Float dx=1;
       // coff index
       std::size_t ik=1;
       for (int k=0; k<npoints; k++) {
-        double dk = xn - x[k];
+        Float dk = xn - x[k];
         for (int j=0; j<noff[k]; j++) {
           dx *= dk;
           fxn[i] += coff[i][ik]*dx;

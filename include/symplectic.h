@@ -3,12 +3,13 @@
 #include <iostream>
 #include <algorithm>
 #include <cmath>
+#include "Float.h"
 
 //! For High order Symplectic integrator constructor (Yoshida 1990)
 namespace SYM {
     //! Structure to store cumsum of c_k and the index of step k
     struct symcumck{
-        double cck;  ///> cumsum of c_k
+        Float cck;  ///> cumsum of c_k
         int index;   ///> index of step k
     };
 
@@ -22,7 +23,7 @@ namespace SYM {
       @param[in] coff_array: array to store cofficients \f$ c_k \f$ for steps 
       @param[in] n: half of the order of integrator (order is 2n)
     */
-    void recursive_symplectic_cofficients_split(double* coff_array, const int n) {
+    void recursive_symplectic_cofficients_split(Float* coff_array, const int n) {
         if (n==1) {
             coff_array[0] = 0.5;
             coff_array[1] = 1.0;
@@ -36,13 +37,13 @@ namespace SYM {
             const int n_size=std::pow(3, n-1);
 
             // backup last order cofficients
-            double coff_backup[n_size];
+            Float coff_backup[n_size];
             for (int i=0; i<n_size; i++) coff_backup[i] = coff_array[i];
 
             // 2^(1/(2n-1))
-            double ap = std::pow(2.0, 1.0/(2*n-1));
+            Float ap = pow(2.0, 1.0/(2*n-1));
 
-            double w[3];
+            Float w[3];
             w[0] = 1.0/(2.0-ap);
             w[1] = - ap*w[0];
             w[2] = w[0];
@@ -72,10 +73,10 @@ namespace SYM {
       @params[in] n: half of the order of integrator, if positive, provide solution one of Yoshida (1990), if negative, provide solution two (only first groups in Table 1/2 of Yoshida 1990), notice only -3 (6th order) and -4 (8th order) works
       @params[in] n_size: coff_cd array size (for safety check), should be >=k
      */
-    void symplectic_cofficients(double coff_cd[][2], symcumck coff_order[], const int n, const int c_size) {
+    void symplectic_cofficients(Float coff_cd[][2], symcumck coff_order[], const int n, const int c_size) {
         if (n>0) {
             const int n_size = std::pow(3,n);
-            double coff_array[n_size];
+            Float coff_array[n_size];
 
             recursive_symplectic_cofficients_split(coff_array, n);
 
@@ -101,7 +102,7 @@ namespace SYM {
             }
             coff_cd[k-2][1] = coff_array[n_size-2];
             coff_cd[k-1][0] = coff_array[n_size-1];
-            coff_cd[k-1][1] = 0;
+            coff_cd[k-1][1] = Float(0.0);
             coff_order[k-1].cck = coff_order[k-2].cck + coff_cd[k-1][0];
             coff_order[k-1].index = k-1;
 

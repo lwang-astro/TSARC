@@ -21,6 +21,7 @@
 #define WIDTH 10
 #endif
 
+#include "Float.h"
 #include "extrapolation.h"
 #include "symplectic.h"
 
@@ -30,12 +31,12 @@
  */
 namespace ARC {
 
-typedef double double3[3];
-typedef double double2[2];
+typedef Float Float3[3];
+typedef Float Float2[2];
     
 #ifdef ARC_PROFILE
 #include <sys/time.h>
-static double get_wtime(){
+static Float get_wtime(){
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec + 1.e-6 * tv.tv_usec;
@@ -44,16 +45,16 @@ static double get_wtime(){
 //! A structure storing time profile 
 class chainprofile{
 public:
-  double t_apw;    ///< APW calculation
-  double t_uplink; ///< update link
-  double t_lf;     ///< leap-frog
-  double t_ep;     ///< extrapolation
-  double t_pext;   ///< perturber force
-  double t_dense;  ///< dense output
-  double t_init;   ///< initialization
-  double t_newdt;  ///< new timestep
-  double t_check;  ///< for debug
-  double t_sym;    ///< symplectic_integration
+  Float t_apw;    ///< APW calculation
+  Float t_uplink; ///< update link
+  Float t_lf;     ///< leap-frog
+  Float t_ep;     ///< extrapolation
+  Float t_pext;   ///< perturber force
+  Float t_dense;  ///< dense output
+  Float t_init;   ///< initialization
+  Float t_newdt;  ///< new timestep
+  Float t_check;  ///< for debug
+  Float t_sym;    ///< symplectic_integration
 
   int* stepcount;  ///< iteration step count in extrapolation
   int  itercount;  ///< total substep in extrapolation
@@ -128,7 +129,7 @@ class chainslowdown;
   @param[in] pars: extra parameters 
  */
 template<class particle_, class pertparticle_, class force_, class extpar_>
-using ext_Acc = void(*)(double3 *acc, const double t, particle_ *p, const int np, pertparticle_ *pert, force_ *fpert, const int npert, extpar_ *pars);
+using ext_Acc = void(*)(Float3 *acc, const Float t, particle_ *p, const int np, pertparticle_ *pert, force_ *fpert, const int npert, extpar_ *pars);
 
 //! Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ and \f$W_{ij}\f$ (from particle j to particle i).
 /*!     
@@ -144,7 +145,7 @@ using ext_Acc = void(*)(double3 *acc, const double t, particle_ *p, const int np
   \return user-defined status (defaulted should be zero)
 */
 template<class particle_, class extpar_>
-using pair_AW = int (*) (double* Aij, double &Pij, double *dWij, double &Wij, const double* Xij, const particle_ &pi, const particle_ &pj, extpar_* pars);
+using pair_AW = int (*) (Float* Aij, Float &Pij, Float *dWij, Float &Wij, const Float* Xij, const particle_ &pi, const particle_ &pj, extpar_* pars);
 
 ////! Function pointer type to function for calculation of acceleration (potential) from particle j to particle i.
 ///*!
@@ -158,7 +159,7 @@ using pair_AW = int (*) (double* Aij, double &Pij, double *dWij, double &Wij, co
 //  @param[in]  pars: User-defined interaction parameter class type data
 //*/
 //template<class particle_, class extpar_>
-//using pair_Ap = void (*) (double * Aij, double &Pij, const double* xi, const double* xj, const particle_ &pi, const particle_ &pj, extpar_* pars);
+//using pair_Ap = void (*) (Float * Aij, Float &Pij, const Float* xi, const Float* xj, const particle_ &pi, const particle_ &pj, extpar_* pars);
 
 //! Function pointer type to function for calculation the timescale of two-body motion
 /*!
@@ -169,7 +170,7 @@ using pair_AW = int (*) (double* Aij, double &Pij, double *dWij, double &Wij, co
   @param[in] pars: User-defined interaction parameter class type data
 */
 template<class particle_, class extpar_>
-using pair_T = double (*) (const double m1, const double m2, const double* x, const double* v, extpar_* pars);
+using pair_T = Float (*) (const Float m1, const Float m2, const Float* x, const Float* v, extpar_* pars);
 
 
 //! The chain parameter controller class
@@ -180,9 +181,9 @@ class chainpars{
 template <class T> friend class chain;
 private:
   // time step integration parameter
-  double alpha; ///< logH cofficient
-  double beta;  ///< TTL cofficient
-  double gamma; ///< constant
+  Float alpha; ///< logH cofficient
+  Float beta;  ///< TTL cofficient
+  Float gamma; ///< constant
 
   // extrapolation control parameter
   int exp_method;         ///< 1: Polynomial method; others: Rational interpolation method
@@ -195,15 +196,15 @@ private:
 
   int sym_k; ///< symplectic cofficients array size
   int sym_n; ///< symplectic integrator order
-  double sym_inv_n; ///< inverse order
-  double sym_An; ///< 0.5^order
-  double2* sym_coff; ///< cofficients for symplectic integrator (c_k, d_k)
+  Float sym_inv_n; ///< inverse order
+  Float sym_An; ///< 0.5^order
+  Float2* sym_coff; ///< cofficients for symplectic integrator (c_k, d_k)
   SYM::symcumck* sym_order;   ///< index for increasing order of cumsum c_k (index, cumsum(c_k))
 
   int auto_step;           ///< if 0: no auto step; if 1: use extrapolation error to estimate next step modification factor; if 2: use min X/(g V) and V/(g A) to obtain next step; if 3: use maximum sequence index to control next step; if 4: use mimimum kepler period of every two neigbor members to estimate the next step modification factor.
-  double auto_step_fac_min; ///< minimum reduction factor
-  double auto_step_fac_max; ///< maximum reduction factor
-  double auto_step_eps;     ///< coefficient
+  Float auto_step_fac_min; ///< minimum reduction factor
+  Float auto_step_fac_max; ///< maximum reduction factor
+  Float auto_step_eps;     ///< coefficient
   int auto_step_iter_min;   ///< mimimum iteration level
   int auto_step_iter_max;   ///< maximum iteration level
 
@@ -222,11 +223,11 @@ private:
 public:
   
   // time step
-  double dtmin; ///< minimum physical time step
-  double dterr; ///< physical time error criterion
+  Float dtmin; ///< minimum physical time step
+  Float dterr; ///< physical time error criterion
 
   // extrapolation control parameter
-  double exp_error;        ///< relative error requirement for extrapolation
+  Float exp_error;        ///< relative error requirement for extrapolation
   bool exp_fix_iter;       ///< flag showing whether the times of iteration is fixed or not
 
   //! constructor with defaulted parameters
@@ -271,7 +272,7 @@ public:
 //    @param [in] dense_intpmax: maximum derivate index for dense output interpolation (defaulted #itermax/2)
 //    @param [in] ext_iteration_const: true: the maximum sequence index (iteration times) is fixed to itermax; false: adjust the maximum sequence index by error criterion (false)
 //   */
-//  chainpars(const double a, const double b, const double g, const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6, const int itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
+//  chainpars(const Float a, const Float b, const Float g, const Float error=1E-10, const Float dtm=5.4e-20, const Float dte=1e-6, const int itermax=20, const int ext_method=2, const int ext_sequence=2, const int dense_intpmax=10, const bool ext_iteration_const=false) {
 //    pp_AW = ext_A = pp_T = NULL;
 //    pp_AW_type = ext_A_type = pp_T_type = NULL;
 //    step = NULL;
@@ -336,7 +337,7 @@ public:
       @param [in] b: Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0)
       @param [in] g: Constant coefficient (no time transformation) #gamma
   */
-  void setabg(const double a=1.0, const double b=0.0, const double g=0.0) {
+  void setabg(const Float a=1.0, const Float b=0.0, const Float g=0.0) {
     alpha = a;
     beta = b;
     gamma = g;
@@ -354,7 +355,7 @@ public:
       @param [in] b: Time-Transformed Leapfrog (TTL) method coefficient #beta (0.0, 1.0)
       @param [in] g: Constant coefficient (no time transformation) #gamma
   */
-  void getabg(double &a, double &b, double &g) const {
+  void getabg(Float &a, Float &b, Float &g) const {
     a = alpha;
     b = beta;
     g = gamma;
@@ -366,8 +367,8 @@ public:
    */
   void setSymOrder(const int n) {
       sym_n = n<0?-n:n;
-      if(n!=0) sym_inv_n = 1.0/(double)sym_n;
-      sym_An = std::pow(0.5,sym_n);
+      if(n!=0) sym_inv_n = 1.0/(Float)sym_n;
+      sym_An = pow(Float(0.5),sym_n);
       int k = n/2;
       if (n>0) sym_k = std::pow(3,k-1)+1;
       else if(n==-6) sym_k = 8;
@@ -376,7 +377,7 @@ public:
 
       if(sym_k>0) {
           if (sym_coff!=NULL) delete[] sym_coff;
-          sym_coff = new double2[sym_k];
+          sym_coff = new Float2[sym_k];
           if (sym_order!=NULL) delete[] sym_order;
           sym_order = new SYM::symcumck[sym_k];
           SYM::symplectic_cofficients(sym_coff, sym_order, k, sym_k);
@@ -389,7 +390,7 @@ public:
     @param [in] dtm: minimum physical time step allown (defaulted #dtmin = 5.4e-20)
     @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
    */
-  void setErr(const double error=1E-10, const double dtm=5.4e-20, const double dte=1e-6) {
+  void setErr(const Float error=1E-10, const Float dtm=5.4e-20, const Float dte=1e-6) {
     dterr = dte;
     dtmin = dtm;
     exp_error = error;
@@ -525,7 +526,7 @@ public:
       @param[in] iter_min: if \a option = 3, it is the minimum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 5)
       @param[in] iter_max: if \a option = 3, it is the maximum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 17)
   */
-  void setAutoStep(const int option, const double factor_min=0.7, const double factor_max=1.3, const double eps=0.5, const int iter_min=5, const int iter_max=17) {
+  void setAutoStep(const int option, const Float factor_min=0.7, const Float factor_max=1.3, const Float eps=0.5, const int iter_min=5, const int iter_max=17) {
     if (option<0||option>4) {
       std::cerr<<"Error: autostep options should be set from 0 to 4, current value: "<<option<<"!\n";
       abort();
@@ -571,7 +572,7 @@ public:
       @param[in] iter_min: if \a option = 3, it is the minimum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 5)
       @param[in] iter_max: if \a option = 3, it is the maximum sequence index (iteration times) criterion during extrapolation intergration (defaulted: 17)
    */
-  void getAutoStep(int &option, double &factor_min, double &factor_max, double &eps, int &iter_min, int &iter_max) const {
+  void getAutoStep(int &option, Float &factor_min, Float &factor_max, Float &eps, int &iter_min, int &iter_max) const {
     option = auto_step;
     factor_min = auto_step_fac_min;
     factor_max = auto_step_fac_max;
@@ -589,21 +590,21 @@ public:
     std::FILE* pout = std::fopen(filename,"w");
     if (pout==NULL) std::cerr<<"Error: filename "<<filename<<" cannot be open!\n";
     else {
-      fwrite(&alpha, sizeof(double),1,pout);
-      fwrite(&beta,  sizeof(double),1,pout);
-      fwrite(&gamma, sizeof(double),1,pout);
+      fwrite(&alpha, sizeof(Float),1,pout);
+      fwrite(&beta,  sizeof(Float),1,pout);
+      fwrite(&gamma, sizeof(Float),1,pout);
       fwrite(&exp_method,  sizeof(int),1,pout);
       fwrite(&exp_sequence,sizeof(int),1,pout);
       fwrite(&exp_itermax, sizeof(int),1,pout);
       fwrite(&den_intpmax, sizeof(int),1,pout);
-      fwrite(&exp_error,   sizeof(double),1,pout);
+      fwrite(&exp_error,   sizeof(Float),1,pout);
       fwrite(&exp_fix_iter,sizeof(bool),1,pout);
-      fwrite(&dtmin, sizeof(double),1,pout);
-      fwrite(&dterr, sizeof(double),1,pout);
+      fwrite(&dtmin, sizeof(Float),1,pout);
+      fwrite(&dterr, sizeof(Float),1,pout);
       fwrite(&auto_step, sizeof(int),1,pout);
-      fwrite(&auto_step_fac_min, sizeof(double),1,pout);
-      fwrite(&auto_step_fac_max, sizeof(double),1,pout);
-      fwrite(&auto_step_eps,     sizeof(double),1,pout);
+      fwrite(&auto_step_fac_min, sizeof(Float),1,pout);
+      fwrite(&auto_step_fac_max, sizeof(Float),1,pout);
+      fwrite(&auto_step_eps,     sizeof(Float),1,pout);
       fwrite(&auto_step_iter_min,sizeof(int),1,pout);
       fwrite(&auto_step_iter_max,sizeof(int),1,pout);
     }
@@ -623,25 +624,25 @@ public:
       step = NULL;
       bin_index = NULL;
       int rn;
-      double a,b,g;
-      rn = fread(&a, sizeof(double), 1 ,pin);
+      Float a,b,g;
+      rn = fread(&a, sizeof(Float), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read alpha!\n";
         abort();
       }
-      rn = fread(&b, sizeof(double), 1 ,pin);
+      rn = fread(&b, sizeof(Float), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read beta!\n";
         abort();
       }
-      rn = fread(&g, sizeof(double), 1 ,pin);
+      rn = fread(&g, sizeof(Float), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read gamma!\n";
         abort();
       }
       setabg(a,b,g);
 
-      double error,dtm,dte;
+      Float error,dtm,dte;
       int itermax,intpmax;
       int ext_method, ext_sequence;
       bool ext_iteration_const;
@@ -666,7 +667,7 @@ public:
         std::cerr<<"Error: cannot read den_intpmax!\n";
         abort();
       }
-      rn = fread(&error, sizeof(double), 1 ,pin);
+      rn = fread(&error, sizeof(Float), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read exp_error!\n";
         abort();
@@ -676,12 +677,12 @@ public:
         std::cerr<<"Error: cannot read exp_fix_iter!\n";
         abort();
       }
-      rn = fread(&dtm, sizeof(double), 1 ,pin);
+      rn = fread(&dtm, sizeof(Float), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read dtmin!\n";
         abort();
       }
-      rn = fread(&dte, sizeof(double), 1 ,pin);
+      rn = fread(&dte, sizeof(Float), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read dterr!\n";
         abort();
@@ -692,24 +693,24 @@ public:
       setIterConst(ext_iteration_const);
 
       int as;
-      double asmin, asmax, aseps;
+      Float asmin, asmax, aseps;
       int asitmin, asitmax;
       rn = fread(&as, sizeof(int), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read auto_step!\n";
         abort();
       }
-      rn = fread(&asmin, sizeof(double), 1 ,pin);
+      rn = fread(&asmin, sizeof(Float), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read auto_step_fac_min!\n";
         abort();
       }
-      rn = fread(&asmax, sizeof(double), 1 ,pin);
+      rn = fread(&asmax, sizeof(Float), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read auto_step_fac_max!\n";
         abort();
       }
-      rn = fread(&aseps, sizeof(double), 1 ,pin);
+      rn = fread(&aseps, sizeof(Float), 1 ,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read auto_step_eps!\n";
         abort();
@@ -789,19 +790,19 @@ public:
   // extrapolation case
   int  intcount;  ///< current extrapolation sequence index when an accident happen
   int  inti;      ///< current number of substeps
-  double ds,subds,subdt;      ///< step size, substep size, substep corresponding time step
-  double perr,perr0;  ///< phase error (current and previous)
-  double eerr,eerr0;  ///< energy error (current and previous)
+  Float ds,subds,subdt;      ///< step size, substep size, substep corresponding time step
+  Float perr,perr0;  ///< phase error (current and previous)
+  Float eerr,eerr0;  ///< energy error (current and previous)
   // symplectic case
-  double ds1,ds2;   ///< step buffer
+  Float ds1,ds2;   ///< step buffer
   int stepcount;    ///< stepcount
   
   int  i1, i2;    ///< index of particles causing the accident
   int  num;       ///< number of particles
-  double toff;    ///< physical ending time
-  double Ekin,Pot,W;  ///< kinetic energy, potential energy and time transformation function
-  double terr;    ///< time error
-  double* data;   ///< chain data for backuping
+  Float toff;    ///< physical ending time
+  Float Ekin,Pot,W;  ///< kinetic energy, potential energy and time transformation function
+  Float terr;    ///< time error
+  Float* data;   ///< chain data for backuping
 
   //! constructor
   /*!
@@ -810,12 +811,12 @@ public:
    */
   chaininfo(const int n) {
     status = 0;
-    const double infd = std::numeric_limits<double>::infinity();
+    const Float infd = std::numeric_limits<Float>::infinity();
     intcount = inti = i1 = i2 = -1;
     ds = subds = subdt = toff = perr = perr0 = eerr = eerr0 = terr = Ekin = Pot = W = infd;
     const int dsize=6*n-3;
     num = n;
-    data=new double[dsize+1];
+    data=new Float[dsize+1];
     data[dsize]=dsize;
   }
 
@@ -825,7 +826,7 @@ public:
    */
   void clear() {
     status = 0;
-    const double infd = std::numeric_limits<double>::infinity();
+    const Float infd = std::numeric_limits<Float>::infinity();
     intcount = inti = i1 = i2 = -1;
     ds = subds = subdt = toff = perr = perr0 = eerr = eerr0 = terr = Ekin = Pot = W = infd;
   }
@@ -841,7 +842,7 @@ public:
       @param[in] precision: printed precision for one variable
   */
   void print(std::ostream & fout, const int precision=10) {
-    double inf=std::numeric_limits<double>::infinity();
+    Float inf=std::numeric_limits<Float>::infinity();
     fout<<"=======================Chain information============================\n";
     fout<<std::setprecision(precision);
     if (ds    <inf) fout<<"step size: "<<ds<<std::endl;
@@ -899,13 +900,13 @@ public:
 class chainslowdown{
 template <class T> friend class chain;
 private:
-    double kappa;          // slow-down factor
-    double fpertsqmax;     // maximum perturbation force square recorded
-    double fpertsqlast;    // last perturbation force square record
-    double Trecord;      // current time
-    double kref;    ///< reference kappa factor; slow-down factor kappa = max(1,kref/(perturbation/internal force))
-    double Tperi;        ///< period for checking
-    double finnersq;     ///< inner force square reference for slow-down determination
+    Float kappa;          // slow-down factor
+    Float fpertsqmax;     // maximum perturbation force square recorded
+    Float fpertsqlast;    // last perturbation force square record
+    Float Trecord;      // current time
+    Float kref;    ///< reference kappa factor; slow-down factor kappa = max(1,kref/(perturbation/internal force))
+    Float Tperi;        ///< period for checking
+    Float finnersq;     ///< inner force square reference for slow-down determination
     bool is_used;         ///< if false, slow-down is switched off
 
 public:
@@ -916,7 +917,7 @@ public:
     /*! Update maximum perturbation force and record this input (only last one is recorded)
       @param[in] fpertsq: new perturbation force square
      */
-    void updatefpertsq(const double fpertsq) {
+    void updatefpertsq(const Float fpertsq) {
         fpertsqmax = fpertsq>fpertsqmax? fpertsq: fpertsqmax;
         fpertsqlast = fpertsq;
     }
@@ -927,7 +928,7 @@ public:
       @param [in] t_peri: Period of system 
       @param [in] k_ref: Fpert/Finner criterion (default 1.0e-5)
     */
-    void setSlowDownPars(const double f_inner_sq, const double t_peri, const double k_ref=1.0e-5) {
+    void setSlowDownPars(const Float f_inner_sq, const Float t_peri, const Float k_ref=1.0e-5) {
         finnersq = f_inner_sq;
         Tperi    = t_peri;
         Trecord  = -Tperi;
@@ -940,7 +941,7 @@ public:
         @param[in] time: current time for checking. if #time> record time + #Tperi, the kappa is updated (if time = 0. it is initialization)
         @param[in] tend: ending physical time for integration, if tend-time<#Tperi, \f$kappa = 1.0\f$
      */
-    void updatekappa(const double time, const double tend) {
+    void updatekappa(const Float time, const Float tend) {
 #ifdef ARC_DEBUG
         assert(finnersq>0);
         assert(Tperi>0);
@@ -953,7 +954,7 @@ public:
                 assert(fpertsqmax<finnersq);
             }
 #endif
-            if (fpertsqmax>0) kappa = std::max(1.0,kref/(std::sqrt(fpertsqmax/finnersq)));
+            if (fpertsqmax>0) kappa = std::max(Float(1.0),kref/(sqrt(fpertsqmax/finnersq)));
             else kappa = (tend-time)/Tperi;
             fpertsqmax = fpertsqlast;
         }
@@ -964,10 +965,10 @@ public:
     /*! Obtain current slow-down factor
       @param [in] dt: physical time step (assume dt is constant before next update of kappa) without slow-down factor
      */
-    void adjustkappa(const double dt) {
+    void adjustkappa(const Float dt) {
         if(is_used) {
-            int kp = (kappa-1.0)/kappa*dt/Tperi;
-            kappa = std::max(1.0,dt/(dt-kp*Tperi));
+            int kp = to_int((kappa-1.0)/kappa*dt/Tperi);
+            kappa = std::max(Float(1.0),dt/(dt-kp*Tperi));
         }
         else kappa = 1.0;
     }
@@ -976,7 +977,7 @@ public:
     /*!
       \return get adjusted kappa by keeping phase corrected
     */
-    double getkappa() const {
+    Float getkappa() const {
         return kappa;
     }
 
@@ -1011,23 +1012,23 @@ public:
 template <class particle_>
 class chain: public particle_{
   typedef particle_ particle;
-  double3 *X;  ///< relative position 
-  double3 *V;  ///< relative velocity
-  double3 *acc; ///< acceleration   
-  double3 *pf;  ///< perturber force
-  double3 *dWdr; ///< \partial Omega/ \partial rk
+  Float3 *X;  ///< relative position 
+  Float3 *V;  ///< relative velocity
+  Float3 *acc; ///< acceleration   
+  Float3 *pf;  ///< perturber force
+  Float3 *dWdr; ///< \partial Omega/ \partial rk
   int *list;   ///< chain index list
   ///< acc, pf, dWdr keep the same particle order as particle list p.
 
   //integration parameters=======================================//
-  double t;    ///< time
-  double Pt;    ///< Binding energy (time momentum)
-  double w;    ///< integrated time transformation function
+  Float t;    ///< time
+  Float Pt;    ///< Binding energy (time momentum)
+  Float w;    ///< integrated time transformation function
 
   //template parameters==========================================//
-  double W;     ///< time transformation function
-  double Ekin;  ///< kinetic energy
-  double Pot;   ///< potential
+  Float W;     ///< time transformation function
+  Float Ekin;  ///< kinetic energy
+  Float Pot;   ///< potential
 
   //number =======================================================//
   int num;      ///< total number of chain particles
@@ -1076,11 +1077,11 @@ public:
       abort();
     }
     nmax = n;
-    X=new double3[n-1];
-    V=new double3[n-1];
-    acc=new double3[n];
-    pf=new double3[n];
-    dWdr=new double3[n];
+    X=new Float3[n-1];
+    V=new Float3[n-1];
+    acc=new Float3[n];
+    pf=new Float3[n];
+    dWdr=new Float3[n];
     list=new int[n];
     //p.allocate(n);
     F_Pmod=false;
@@ -1165,16 +1166,16 @@ private:
       int inow=inext;
     
       // make chain
-      double rmin=HUGE;
+      Float rmin=HUGE;
 //      bool first=true;
       for (int j=1; j<num; j++) {
         if(is_checked[j]) continue;
-        const double* rj = p[j].getPos();
-        const double* ri = p[inow].getPos();
-        double dx = rj[0] - ri[0];
-        double dy = rj[1] - ri[1];
-        double dz = rj[2] - ri[2];
-        double dr2= dx*dx + dy*dy + dz*dz;
+        const Float* rj = p[j].getPos();
+        const Float* ri = p[inow].getPos();
+        Float dx = rj[0] - ri[0];
+        Float dy = rj[1] - ri[1];
+        Float dz = rj[2] - ri[2];
+        Float dr2= dx*dx + dy*dy + dz*dz;
 //        if(first) {
 //          rmin = dr2;
 //          first=false;
@@ -1195,14 +1196,14 @@ private:
   */
   void calc_XV() {
     for (int i=0;i<num-1;i++) {
-      const double *ri1 = p[list[i+1]].getPos();
-      const double *ri = p[list[i]].getPos();
+      const Float *ri1 = p[list[i+1]].getPos();
+      const Float *ri = p[list[i]].getPos();
       X[i][0] = ri1[0] - ri[0];
       X[i][1] = ri1[1] - ri[1];
       X[i][2] = ri1[2] - ri[2];
 
-      const double *vi1 = p[list[i+1]].getVel();
-      const double *vi = p[list[i]].getVel();
+      const Float *vi1 = p[list[i+1]].getVel();
+      const Float *vi = p[list[i]].getVel();
       V[i][0] = vi1[0] - vi[0];
       V[i][1] = vi1[1] - vi[1];
       V[i][2] = vi1[2] - vi[2];
@@ -1240,8 +1241,8 @@ private:
 #endif
 
     // reset potential and transformation parameter
-    double Pot_c  = 0.0;
-    double W_c  = 0.0;
+    Float Pot_c  = 0.0;
+    Float W_c  = 0.0;
     // Loop all particles in list
 #ifdef USE_OMP
 #pragma omp parallel for reduction(+:Pot_c), reduction(+:W_c)
@@ -1259,10 +1260,10 @@ private:
         if(k==j) continue;
         int lk = list[k];
         const particle *pk= &p[lk];
-        const double* xj = pj->getPos();
-        double3 xjk;
+        const Float* xj = pj->getPos();
+        Float3 xjk;
 
-        if(k==j+1) std::memcpy(xjk,X[j],3*sizeof(double));
+        if(k==j+1) std::memcpy(xjk,X[j],3*sizeof(Float));
         if(k==j-1) {
           xjk[0] = -X[k][0];
           xjk[1] = -X[k][1];
@@ -1279,16 +1280,16 @@ private:
           xjk[2] = -X[k][2] - X[k+1][2];
         }
         else {
-          const double* xk = pk->getPos();
+          const Float* xk = pk->getPos();
           xjk[0] = xk[0] - xj[0];
           xjk[1] = xk[1] - xj[1];
           xjk[2] = xk[2] - xj[2];
         }
 
-        double3 At,dWt;
-        double Pt,Wt;
-//        const double mj=pj->getMass();
-//        const double mk=pk->getMass();
+        Float3 At,dWt;
+        Float Pt,Wt;
+//        const Float mj=pj->getMass();
+//        const Float mk=pk->getMass();
 
         // force calculation function from k to j
         int stat = fforce(At, Pt, dWt, Wt, xjk, *pj, *pk, pars);
@@ -1308,8 +1309,8 @@ private:
 //          Pt = 0;
 //          for (int i=0;i<3;i++) At[i]=0.0;
 //          for (int i=0;i<cn;i++) {
-//            double Ptemp;
-//            double3 Atemp;
+//            Float Ptemp;
+//            Float3 Atemp;
 //            pars->pp_Ap(Atemp, Ptemp, xj, ck->p[i].getPos(), *pj, ck->p[i]);
 // 
 //            // Acceleration
@@ -1357,7 +1358,7 @@ private:
   void calc_Ekin(){
     Ekin = 0.0;
     for (int i=0; i<num; i++) {
-      const double *vi=p[i].getVel();
+      const Float *vi=p[i].getVel();
       Ekin += 0.5 * p[i].getMass() * (vi[0]*vi[0]+vi[1]*vi[1]+vi[2]*vi[2]);
     }
   }
@@ -1366,7 +1367,7 @@ private:
   /*! One step integration of #X 
      @param [in] dt: physical time step dt for #X
    */
-  void step_forward_X(const double dt) {
+  void step_forward_X(const Float dt) {
     // step forward relative X
     for (int i=0;i<num-1;i++) {
       X[i][0] += dt * V[i][0];
@@ -1379,7 +1380,7 @@ private:
   /*! one step integration of V
      @param [in] dt: physical time step dt for #V
    */
-  void step_forward_V(const double dt) {
+  void step_forward_V(const Float dt) {
     // step forward V
     for (int i=0;i<num-1;i++) {
       int k = list[i];
@@ -1397,9 +1398,9 @@ private:
      @param [in] dt: time step for V
      @param [in] ave_v: averaged velocity
    */
-  void step_forward_Ptw(const double dt, const double3* ave_v, const bool calc_w_flag) {
-    double dPt = 0.0;
-    double dw  = 0.0;
+  void step_forward_Ptw(const Float dt, const Float3* ave_v, const bool calc_w_flag) {
+    Float dPt = 0.0;
+    Float dw  = 0.0;
     for (int i=0;i<num;i++) {
         dPt -= p[i].getMass() * (ave_v[i][0] * slowdown.kappa*pf[i][0] +
                                  ave_v[i][1] * slowdown.kappa*pf[i][1] +
@@ -1419,11 +1420,11 @@ private:
       The total mass of particles should be consistent with particle::getMass(). Otherwise update Chain.cm first.
       @param [out] ave_v: averaged velocity array (return values)
    */
-  void resolve_XV(double3* ave_v=NULL) {
+  void resolve_XV(Float3* ave_v=NULL) {
     // backup old v
     if (ave_v!=NULL) {
       for (int i=0;i<num;i++) {
-        const double *vi = p[i].getVel();
+        const Float *vi = p[i].getVel();
         ave_v[i][0] = vi[0];
         ave_v[i][1] = vi[1];
         ave_v[i][2] = vi[2];
@@ -1431,12 +1432,12 @@ private:
     }
     // resolve current X,V
     // first member
-    double3 vc;
-    double3 xc;
+    Float3 vc;
+    Float3 xc;
     const int lk1=list[0];
-    const double  mk1 = p[lk1].getMass();
-    const double *rk1 = p[lk1].getPos();
-    const double *vk1 = p[lk1].getVel();
+    const Float  mk1 = p[lk1].getMass();
+    const Float *rk1 = p[lk1].getPos();
+    const Float *vk1 = p[lk1].getVel();
     xc[0] = mk1 * rk1[0];
     xc[1] = mk1 * rk1[1];
     xc[2] = mk1 * rk1[2];
@@ -1447,20 +1448,20 @@ private:
     for (int i=0;i<num-1;i++) {
       const int lk = list[i];
       const int lkn = list[i+1];
-      const double *rk = p[lk].getPos();
+      const Float *rk = p[lk].getPos();
       p[lkn].setPos(rk[0] + X[i][0],
                     rk[1] + X[i][1],
                     rk[2] + X[i][2]);
 
-      const double *vk = p[lk].getVel();
+      const Float *vk = p[lk].getVel();
       p[lkn].setVel(vk[0] + V[i][0],
                     vk[1] + V[i][1],
                     vk[2] + V[i][2]);
 
       //! center-of-mass position and velocity
-      const double mkn = p[lkn].getMass();
-      const double *rkn = p[lkn].getPos();
-      const double *vkn = p[lkn].getVel();
+      const Float mkn = p[lkn].getMass();
+      const Float *rkn = p[lkn].getPos();
+      const Float *vkn = p[lkn].getVel();
       xc[0] += mkn * rkn[0];
       xc[1] += mkn * rkn[1];
       xc[2] += mkn * rkn[2];
@@ -1470,7 +1471,7 @@ private:
     }
 
     // calcualte center-of-mass position and velocity shift
-    const double over_mc = 1.0/particle::getMass();
+    const Float over_mc = 1.0/particle::getMass();
     xc[0] *= over_mc;
     xc[1] *= over_mc;
     xc[2] *= over_mc;
@@ -1480,11 +1481,11 @@ private:
     
     for (int i=0;i<num;i++) {
       // center-of-mass correction
-      const double *ri = p[i].getPos();
+      const Float *ri = p[i].getPos();
       p[i].setPos(ri[0] - xc[0],
                   ri[1] - xc[1],
                   ri[2] - xc[2]);
-      const double *vi = p[i].getVel();
+      const Float *vi = p[i].getVel();
       p[i].setVel(vi[0] - vc[0],
                   vi[1] - vc[1],
                   vi[2] - vc[2]);
@@ -1505,11 +1506,11 @@ private:
    */
   void resolve_X() {
     // resolve current X
-    double3 xc;
+    Float3 xc;
     // first member
     const int lk1=list[0];
-    const double  mk1 = p[lk1].getMass();
-    const double *rk1 = p[lk1].getPos();
+    const Float  mk1 = p[lk1].getMass();
+    const Float *rk1 = p[lk1].getPos();
     xc[0] = mk1 * rk1[0];
     xc[1] = mk1 * rk1[1];
     xc[2] = mk1 * rk1[2];
@@ -1517,28 +1518,28 @@ private:
     for (int i=0;i<num-1;i++) {
       const int lk = list[i];
       const int lkn = list[i+1];
-      const double *rk = p[lk].getPos();
+      const Float *rk = p[lk].getPos();
       p[lkn].setPos(rk[0] + X[i][0],
                     rk[1] + X[i][1],
                     rk[2] + X[i][2]);
 
       // center-of-mass position and velocity
-      const double mkn = p[lkn].getMass();
-      const double *rkn = p[lkn].getPos();
+      const Float mkn = p[lkn].getMass();
+      const Float *rkn = p[lkn].getPos();
       xc[0] += mkn * rkn[0];
       xc[1] += mkn * rkn[1];
       xc[2] += mkn * rkn[2];
     }
 
     // calcualte center-of-mass position and velocity shift
-    const double over_mc = 1.0/particle::getMass();
+    const Float over_mc = 1.0/particle::getMass();
     xc[0] *= over_mc;
     xc[1] *= over_mc;
     xc[2] *= over_mc;
     
     for (int i=0;i<num;i++) {
       // center-of-mass correction
-      const double *ri = p[i].getPos();
+      const Float *ri = p[i].getPos();
       p[i].setPos(ri[0] - xc[0],
                   ri[1] - xc[1],
                   ri[2] - xc[2]);
@@ -1553,10 +1554,10 @@ private:
   void resolve_V() {
     // resolve current V
     // first member
-    double3 vc;
+    Float3 vc;
     const int lk1=list[0];
-    const double  mk1 = p[lk1].getMass();
-    const double *vk1 = p[lk1].getVel();
+    const Float  mk1 = p[lk1].getMass();
+    const Float *vk1 = p[lk1].getVel();
     vc[0] = mk1 * vk1[0];
     vc[1] = mk1 * vk1[1];
     vc[2] = mk1 * vk1[2];
@@ -1564,28 +1565,28 @@ private:
     for (int i=0;i<num-1;i++) {
       const int lk = list[i];
       const int lkn = list[i+1];
-      const double *vk = p[lk].getVel();
+      const Float *vk = p[lk].getVel();
       p[lkn].setVel(vk[0] + V[i][0],
                     vk[1] + V[i][1],
                     vk[2] + V[i][2]);
 
       // center-of-mass position and velocity
-      const double mkn = p[lkn].getMass();
-      const double *vkn = p[lkn].getVel();
+      const Float mkn = p[lkn].getMass();
+      const Float *vkn = p[lkn].getVel();
       vc[0] += mkn * vkn[0];
       vc[1] += mkn * vkn[1];
       vc[2] += mkn * vkn[2];
     }
 
     // calcualte center-of-mass position and velocity shift
-    const double over_mc = 1.0/particle::getMass();
+    const Float over_mc = 1.0/particle::getMass();
     vc[0] *= over_mc;
     vc[1] *= over_mc;
     vc[2] *= over_mc;
     
     for (int i=0;i<num;i++) {
       // center-of-mass correction
-      const double *vi = p[i].getVel();
+      const Float *vi = p[i].getVel();
       p[i].setVel(vi[0] - vc[0],
                   vi[1] - vc[1],
                   vi[2] - vc[2]);
@@ -1599,7 +1600,7 @@ private:
     @param [in] resolve_flag: whether resolve perturber member if it is a chain 
     \return flag: true: pertubers exist. false: no perturbers
   *
-  bool pert_force(const double t, const bool resolve_flag=false) {
+  bool pert_force(const Float t, const bool resolve_flag=false) {
 #ifdef ARC_PROFILE
     profile.t_pext -= get_wtime();
 #endif
@@ -1619,29 +1620,29 @@ private:
 
     for (int i=0;i<num;i++) {
         for (int j=0;j<np;j++) {
-            double3 At={0};
-            double Pt;
+            Float3 At={0};
+            Float Pt;
             const particle* pi=&p[i];
-            const double* xi=pi->getPos();
-//          const double  mi=pi->getMass();
+            const Float* xi=pi->getPos();
+//          const Float  mi=pi->getMass();
           
             // check sub-chain system
             if (resolve_flag && pext.isChain(j)) {
                 chain<particle, int_par>*cj = pext.getSub(j);
                 // get center-of-mass position for shifting;
-                const double* xc=cj->particle::getPos();
+                const Float* xc=cj->particle::getPos();
                 const int cn = cj->pext.getN();
                 for (int k=0;k<cn;k++) {
 
-                    double3 xk;
-                    std::memcpy(xk,cj->p[k].getPos(),3*sizeof(double));
+                    Float3 xk;
+                    std::memcpy(xk,cj->p[k].getPos(),3*sizeof(Float));
                     // shift position to current frame; to keep thread safety, original data are not modified
                     if (cj->isPorigin()==0) {
                         xk[0] += xc[0];
                         xk[1] += xc[1];
                         xk[2] += xc[2];
                     }
-                    double3 Atemp;
+                    Float3 Atemp;
                     pars->pp_Ap(Atemp, Pt, xi, xk, *pi, cj->p[k], Int_pars);
 
                     // Acceleration
@@ -1693,18 +1694,18 @@ private:
     std::memcpy(listbk,list,num*sizeof(int));
 
     // backup current X
-    double3 Xbk[nmax];
-    std::memcpy(Xbk[0],X[0],(num-1)*3*sizeof(double));
+    Float3 Xbk[nmax];
+    std::memcpy(Xbk[0],X[0],(num-1)*3*sizeof(Float));
     
     // backup current V
-    double3 Vbk[nmax];
-    std::memcpy(Vbk[0],V[0],(num-1)*3*sizeof(double));
+    Float3 Vbk[nmax];
+    std::memcpy(Vbk[0],V[0],(num-1)*3*sizeof(Float));
 
     // create mask to avoid dup. check;
     bool mask[nmax];
     for (int i=0;i<num;i++) mask[i] = false;
 
-    const double NUMERIC_DOUBLE_MAX = std::numeric_limits<double>::max();
+    const Float NUMERIC_FLOAT_MAX = std::numeric_limits<Float>::max();
     for (int k=0;k<num-1;k++) {
       int lk  = list[k];
        mask[lk] = true;
@@ -1712,15 +1713,15 @@ private:
       // possible new index
       int lku = lkn;
       // calculate distance
-      double rmin = NUMERIC_DOUBLE_MAX;
+      Float rmin = NUMERIC_FLOAT_MAX;
       for (int j=0;j<num;j++) {
         if (mask[j]||j==k) continue;
-        const double* xk = p[lk].getPos();
-        const double* xj = p[j].getPos();
-        double xjk = xk[0] - xj[0];
-        double yjk = xk[1] - xj[1];
-        double zjk = xk[2] - xj[2];
-        double rjk2 = xjk*xjk + yjk*yjk + zjk*zjk;
+        const Float* xk = p[lk].getPos();
+        const Float* xj = p[j].getPos();
+        Float xjk = xk[0] - xj[0];
+        Float yjk = xk[1] - xj[1];
+        Float zjk = xk[2] - xj[2];
+        Float rjk2 = xjk*xjk + yjk*yjk + zjk*zjk;
         if (rjk2<rmin) {
           lku=j;
           rmin = rjk2;
@@ -1829,13 +1830,13 @@ private:
   */
   void center_shift_init() {
     // center mass
-    double3 cmr={};
-    double3 cmv={};
-    double  cmm=0;
+    Float3 cmr={};
+    Float3 cmv={};
+    Float  cmm=0;
     for (int i=0;i<num;i++) {
-      const double *ri = p[i].getPos();
-      const double *vi = p[i].getVel();
-      const double mi = p[i].getMass();
+      const Float *ri = p[i].getPos();
+      const Float *vi = p[i].getVel();
+      const Float mi = p[i].getMass();
       cmr[0] += ri[0] * mi;
       cmr[1] += ri[1] * mi;
       cmr[2] += ri[2] * mi;
@@ -1860,8 +1861,8 @@ private:
 
     // shifting
     for (int i=0;i<num;i++) {
-      const double *ri = p[i].getPos();
-      const double *vi = p[i].getVel();
+      const Float *ri = p[i].getPos();
+      const Float *vi = p[i].getVel();
       p[i].setPos(ri[0] - cmr[0],
                   ri[1] - cmr[1],
                   ri[2] - cmr[2]);
@@ -1879,9 +1880,9 @@ private:
       std::cerr<<"Warning: particles are already in original frame!\n";
     }
     else {
-      const double *rc = particle::getPos();
+      const Float *rc = particle::getPos();
       for (int i=0;i<num;i++) {
-        const double *ri = p[i].getPos();
+        const Float *ri = p[i].getPos();
         p[i].setPos(ri[0] + rc[0],
                     ri[1] + rc[1],
                     ri[2] + rc[2]);
@@ -1902,9 +1903,9 @@ private:
       abort();
     }
     else {
-      const double *rc = particle::getPos();
+      const Float *rc = particle::getPos();
       for (int i=0;i<num;i++) {
-        const double *ri = p[i].getPos();
+        const Float *ri = p[i].getPos();
         p[i].setPos(ri[0] - rc[0],
                     ri[1] - rc[1],
                     ri[2] - rc[2]);
@@ -1924,7 +1925,7 @@ private:
     @param [in] ndiv: substep number
     @param [in] pars: chainpars controller
   */
-    void mid_diff_calc(double2 *dpoly, const int nmax, const int i, const int ndiv, chainpars &pars) {
+    void mid_diff_calc(Float2 *dpoly, const int nmax, const int i, const int ndiv, chainpars &pars) {
     // safety check
     if (dpoly!=NULL) {
       // difference level should not exceed the point number
@@ -1941,13 +1942,13 @@ private:
 //        if (!tflag) {
 //          const int dsize=6*num-3;
 //          //initial dpoly to zero
-//          for (int j=0; j<nmax; j++) if(i==0) std::memset(dpoly[j],0,dsize*sizeof(double));
+//          for (int j=0; j<nmax; j++) if(i==0) std::memset(dpoly[j],0,dsize*sizeof(Float));
 //        }
 //        else
         if(i==0) for (int j=0; j<nmax; j++) dpoly[j][0] = 0.0;
 
         // dt/ds
-        double dts=calc_dt_X(1.0,pars);
+        Float dts=calc_dt_X(1.0,pars);
         
         int** binI = pars.bin_index;
         // formula delta^n f(x) = sum_ik=0,n (-1)^(n-ik) (n n-ik) f(x+2*ik*h)
@@ -1956,12 +1957,12 @@ private:
             // n=j+1 indicate the difference degree (first difference is j=0)
             const int n=j+1;
             // for even and odd difference level n, different i points are used
-            // ndiv/2: middle point; n/2: left edge point shift, (should be double since only odd points are used);
+            // ndiv/2: middle point; n/2: left edge point shift, (should be Float since only odd points are used);
             int ik= i-(ndiv/2-n);
             // ik should be limited for diferent level of difference
             if (ik>=0&&ik<=2*n) {
               int nk= n-ik/2;  // n-ik
-              double coff = ((nk%2)?-1:1)*binI[n][nk];
+              Float coff = ((nk%2)?-1:1)*binI[n][nk];
 //#ifdef ARC_DEEP_DEBUG
 //              std::cerr<<"Poly_coff: n= "<<n<<"; i="<<i<<"; ik="<<ik<<"; coff="<<coff<<std::endl;
 //#endif
@@ -1995,13 +1996,13 @@ private:
       @param [in] ndiv: substep number
       @param [in] pars: chainpars controller
    */
-    void edge_diff_calc(double2 *dpoly, const int nmax, const int i, const int ndiv, const chainpars &pars) {
+    void edge_diff_calc(Float2 *dpoly, const int nmax, const int i, const int ndiv, const chainpars &pars) {
     if (dpoly!=NULL) {
       // safety check
 //      if (!tflag) {
 //        const int dsize=12*num-6;
 //        // i indicate the position, i=0 means x0
-//        if(i==0) for (int j=0; j<nmax; j++) std::memset(dpoly[j],0,dsize*sizeof(double)); // reset data array at i=0
+//        if(i==0) for (int j=0; j<nmax; j++) std::memset(dpoly[j],0,dsize*sizeof(Float)); // reset data array at i=0
 //      }
 //      else
       if(i==0) for (int j=0; j<nmax; j++) {
@@ -2016,7 +2017,7 @@ private:
 
       if (i<=nmax||i>=ndiv-nmax) {
         // dt/ds
-        double dts=calc_dt_X(1.0,pars);
+        Float dts=calc_dt_X(1.0,pars);
 
         int** binI = pars.bin_index;
         for (int j=0; j<nmax; j++) {
@@ -2026,7 +2027,7 @@ private:
           // left edge, forward difference: (-1)^(n-i) (n n-i) f(x0+i*h) (i from 0 to n)
           int ileft = (int)(n-i);   // n-i
           if (ileft>=0) {
-            double coff = ((ileft%2)?-1:1)*binI[n][ileft];
+            Float coff = ((ileft%2)?-1:1)*binI[n][ileft];
             dpoly[j][0] += coff * dts;
 //            if (!tflag) {
 //              dpoly[j][1] += coff * Pt;
@@ -2047,7 +2048,7 @@ private:
           int ishift = ndiv-n;
           int iright= ileft+ishift;     // n-i
           if (i>=ishift) {
-            double coff = ((iright%2)?-1:1)*binI[n][iright];
+            Float coff = ((iright%2)?-1:1)*binI[n][iright];
 //            if (!tflag) {
 //              const int ir = 6*num-3;
 //              dpoly[j][0+ir] += coff * t;
@@ -2079,8 +2080,8 @@ private:
     @param [in] nmax: maximum difference order
     @param [in] dsize: number of data in dataset
    */
-  void diff_dev_calc(double2 *dpoly, const double h, const int nmax, const int dsize) {
-    double hn = h;
+  void diff_dev_calc(Float2 *dpoly, const Float h, const int nmax, const int dsize) {
+    Float hn = h;
     // loop difference order from 1 to nmax
     for (int i=0; i<nmax; i++) {
 #ifdef ARC_DEEP_DEBUG
@@ -2098,16 +2099,16 @@ private:
       for (int i=0; i<num-1; i++) {
           int k = list[i];
           int k1 = list[i+1];
-          double fp[3] = {pf[k1][0]-pf[k][0],
+          Float fp[3] = {pf[k1][0]-pf[k][0],
                           pf[k1][1]-pf[k][1],
                           pf[k1][2]-pf[k][2]};
-          double fp2 = fp[0]*fp[0] + fp[1]*fp[1] + fp[2]*fp[2];
+          Float fp2 = fp[0]*fp[0] + fp[1]*fp[1] + fp[2]*fp[2];
           slowdown.updatefpertsq(fp2);
       }
   }
 
 //  // collect accident information
-//  void info_collection(const int status, const int intcount=-1, const double perr=-1.0, const double perr0=-1.0, const double eerr=-1.0, const double eerr0=-1.0, const double terr=-1.0, const int i1=-1, const int i2=-1, const int inti=-1) {
+//  void info_collection(const int status, const int intcount=-1, const Float perr=-1.0, const Float perr0=-1.0, const Float eerr=-1.0, const Float eerr0=-1.0, const Float terr=-1.0, const int i1=-1, const int i2=-1, const int inti=-1) {
 //    info = new chaininfo(num);
 //    info->status = 1;
 //    info->intcount = intcount+1;
@@ -2129,14 +2130,14 @@ public:
     @param [in] pindex: two element array used for storing pair index.
     \return the acceleraction difference of this pair
    */
-  double find_strong_pair(int pindex[2]) {
+  Float find_strong_pair(int pindex[2]) {
     int k=0;
-    double accm = 0;
+    Float accm = 0;
     for (int i=0; i<num-1; i++) {
-      const double accx = acc[i+1][0]-acc[i][0];
-      const double accy = acc[i+1][1]-acc[i][1];
-      const double accz = acc[i+1][2]-acc[i][2];
-      double acci = accx*accx + accy*accy* + accz*accz;
+      const Float accx = acc[i+1][0]-acc[i][0];
+      const Float accy = acc[i+1][1]-acc[i][1];
+      const Float accz = acc[i+1][2]-acc[i][2];
+      Float acci = accx*accx + accy*accy + accz*accz;
       if (accm<acci) {
         accm = acci;
         k = i;
@@ -2145,7 +2146,7 @@ public:
     pindex[0] = list[k];
     pindex[1] = list[k+1];
 
-    return std::sqrt(accm);
+    return sqrt(accm);
   }
 
   //! Find the closest pair
@@ -2153,11 +2154,11 @@ public:
     @param [in] pindex: two element array used for storing pair index.
     \return the relative distance of this pair
    */
-  double find_closest_pair(int pindex[2]) {
+  Float find_closest_pair(int pindex[2]) {
     int k=0;
-    double Xm = std::numeric_limits<double>::max();
+    Float Xm = std::numeric_limits<Float>::max();
     for (int i=0; i<num-1; i++) {
-      double Xi2 = X[i][0]*X[i][0] + X[i][1]*X[i][1] + X[i][2]*X[i][2];
+      Float Xi2 = X[i][0]*X[i][0] + X[i][1]*X[i][1] + X[i][2]*X[i][2];
       if (Xm > Xi2) {
         Xm = Xi2;
         k = i;
@@ -2166,7 +2167,7 @@ public:
     pindex[0] = list[k];
     pindex[1] = list[k+1];
 
-    return std::sqrt(Xm);
+    return sqrt(Xm);
   }
   
   
@@ -2176,10 +2177,10 @@ public:
      @param [in] pars: chainpars controller
      \return     dt:  physical integration time step for #X
   */
-  double calc_dt_X(const double ds, const chainpars &pars) {
+  Float calc_dt_X(const Float ds, const chainpars &pars) {
     // determine the physical time step
-    double dt = ds / (pars.alpha * (Ekin + Pt) + pars.beta * w + pars.gamma);
-    if (std::abs(dt) < pars.dtmin && info==NULL) {
+    Float dt = ds / (pars.alpha * (Ekin + Pt) + pars.beta * w + pars.gamma);
+    if (abs(dt) < pars.dtmin && info==NULL) {
       info=new chaininfo(num);
       info->status = 4;
       info->subdt = dt;
@@ -2193,7 +2194,7 @@ public:
      @param [in] pars: chainpars controllers
      \return     dt:  physical integration time step for #V
   */
-    double calc_dt_V(const double ds, const chainpars &pars) {
+    Float calc_dt_V(const Float ds, const chainpars &pars) {
     // determine velocity integration time step
     return ds / (pars.gamma - pars.alpha * Pot + pars.beta * W);
   }
@@ -2204,17 +2205,17 @@ public:
     @param[in] pars: chainpars controllers
     \return: approximation of step size ds
   */
-  double calc_next_step_XVA(const chainpars &pars) {
-    double dsXV=std::numeric_limits<double>::max();
-    double dsVA=std::numeric_limits<double>::max();
+  Float calc_next_step_XVA(const chainpars &pars) {
+    Float dsXV=std::numeric_limits<Float>::max();
+    Float dsVA=std::numeric_limits<Float>::max();
     for (int i=0; i<num-1; i++) {
-      double r = X[i][0]*X[i][0]+X[i][1]*X[i][1]+X[i][2]*X[i][2];
-      double v = V[i][0]*V[i][0]+V[i][1]*V[i][1]+V[i][2]*V[i][2];
-      double a = acc[i][0]*acc[i][0]+acc[i][1]*acc[i][1]+acc[i][2]*acc[i][2];
+      Float r = X[i][0]*X[i][0]+X[i][1]*X[i][1]+X[i][2]*X[i][2];
+      Float v = V[i][0]*V[i][0]+V[i][1]*V[i][1]+V[i][2]*V[i][2];
+      Float a = acc[i][0]*acc[i][0]+acc[i][1]*acc[i][1]+acc[i][2]*acc[i][2];
       dsXV = std::min(r/v,dsXV);
       dsVA = std::min(v/a,dsVA);
     }
-    return pars.auto_step_eps*std::min(std::sqrt(dsXV)/calc_dt_X(1.0,pars),std::sqrt(dsVA)/calc_dt_V(1.0,pars));
+    return pars.auto_step_eps*std::min(sqrt(dsXV)/calc_dt_X(1.0,pars),sqrt(dsVA)/calc_dt_V(1.0,pars));
   }
 
   //! Calculate next step approximation based on custom defined timescale for two-body system
@@ -2226,7 +2227,7 @@ public:
     \return approximation of step size ds
    */
   template<class chainpars_, class extpar_>
-  double calc_next_step_custom(const chainpars_& pars, extpar_* extpars) {
+  Float calc_next_step_custom(const chainpars_& pars, extpar_* extpars) {
       pair_T<particle,extpar_> pp_T = reinterpret_cast<pair_T<particle,extpar_>>(pars.pp_T);
 #ifdef ARC_DEBUG
       if(std::type_index(typeid(pp_T))!=*pars.pp_T_type) {
@@ -2240,13 +2241,13 @@ public:
       }
 #endif
 
-    double perim = std::numeric_limits<double>::max();
+    Float perim = std::numeric_limits<Float>::max();
     for (int i=0; i<num-1; i++) {
-      const double peri=pp_T(p[list[i]].getMass(),p[list[i+1]].getMass(),X[i],V[i],extpars);
+      const Float peri=pp_T(p[list[i]].getMass(),p[list[i+1]].getMass(),X[i],V[i],extpars);
       if (perim>peri) perim = peri;
     }
 //    std::cerr<<"perim = "<<perim<<" auto_step_eps"<<pars.auto_step_eps<<" Pt "<<Pt<<std::endl;
-    return pars.auto_step_eps*perim*std::abs(Pt);
+    return pars.auto_step_eps*perim*abs(Pt);
   }
 
   //! Add particle
@@ -2326,19 +2327,19 @@ public:
       fwrite(list,sizeof(int),num,pout);
       // data
       const int dsize=6*num-3;
-      double *dtemp=new double[dsize+1];
+      Float *dtemp=new Float[dsize+1];
       dtemp[dsize]=dsize;
       backup(dtemp);
-      fwrite(dtemp,sizeof(double),dsize+1,pout);
+      fwrite(dtemp,sizeof(Float),dsize+1,pout);
       // center-of-mass
-      double cmass=particle::getMass();
-      fwrite(&cmass,sizeof(double),1,pout);
-      fwrite(particle::getPos(),sizeof(double),3,pout);
-      fwrite(particle::getVel(),sizeof(double),3,pout);
+      Float cmass=particle::getMass();
+      fwrite(&cmass,sizeof(Float),1,pout);
+      fwrite(particle::getPos(),sizeof(Float),3,pout);
+      fwrite(particle::getVel(),sizeof(Float),3,pout);
       // mass of particles
-      double *pmass=new double[num];
+      Float *pmass=new Float[num];
       p.getMassAll(pmass);
-      fwrite(pmass,sizeof(double),num,pout);
+      fwrite(pmass,sizeof(Float),num,pout);
       // interaction_parameters
       // if (Int_pars) fwrite(Int_pars,sizeof(int_par),1,pout);
 
@@ -2402,8 +2403,8 @@ public:
       
       // data
       const int dsize=6*n-3;
-      double *dtemp=new double[dsize+1];
-      rn = fread(dtemp,sizeof(double),dsize+1,pin);
+      Float *dtemp=new Float[dsize+1];
+      rn = fread(dtemp,sizeof(Float),dsize+1,pin);
       if(rn<=dsize) {
         std::cerr<<"Error: reading chain data fails, required data size is "<<dsize+1<<", only got "<<rn<<"!\n";
         abort();
@@ -2412,18 +2413,18 @@ public:
       restore(dtemp);
 
       // center-of-mass
-      double cmass,cx[3],cv[3];
-      rn = fread(&cmass,sizeof(double),1,pin);
+      Float cmass,cx[3],cv[3];
+      rn = fread(&cmass,sizeof(Float),1,pin);
       if(rn<1) {
         std::cerr<<"Error: cannot read center-of-mass!\n";
         abort();
       }
-      rn = fread(cx,sizeof(double),3,pin);
+      rn = fread(cx,sizeof(Float),3,pin);
       if(rn<3) {
         std::cerr<<"Error: reading position of center-of-mass particle fails, required reading 3 values, only got "<<rn<<"!\n";
         abort();
       }
-      rn = fread(cv,sizeof(double),3,pin);
+      rn = fread(cv,sizeof(Float),3,pin);
       if(rn<3) {
         std::cerr<<"Error: reading velocity of center-of-mass particle fails, required reading 3 values, only got "<<rn<<"!\n";
         abort();
@@ -2433,8 +2434,8 @@ public:
       particle::setPos(cx[0],cx[1],cx[2]);
       particle::setVel(cv[0],cv[1],cv[2]);
       
-      double *pmass=new double[n];
-      rn = fread(pmass,sizeof(double),n,pin);
+      Float *pmass=new Float[n];
+      rn = fread(pmass,sizeof(Float),n,pin);
       if(rn<n) {
         std::cerr<<"Error: reading particle masses fails, required number of data is "<<n<<", only got "<<rn<<"!\n";
         abort();
@@ -2582,7 +2583,7 @@ public:
     @param [in] int_pars: extra parameters used in f
   */
   template<class extpar_>
-  void init(const double time, const chainpars &pars, extpar_* int_pars) {
+  void init(const Float time, const chainpars &pars, extpar_* int_pars) {
     pair_AW<particle,extpar_> f = reinterpret_cast<pair_AW<particle,extpar_>>(pars.pp_AW);
     if(std::type_index(typeid(f))!=*pars.pp_AW_type) {
         std::cerr<<"Error: acceleration function type not matched the data type\n";
@@ -2699,16 +2700,16 @@ public:
       std::cerr<<"Warning: particles are already in original frame!\n";
     }
     else {
-      const double *rc = particle::getPos();
-      const double *vc = particle::getVel();
+      const Float *rc = particle::getPos();
+      const Float *vc = particle::getVel();
       for (int i=0;i<num;i++) {
         if (F_Porigin==0) {
-          const double *ri = p[i].getPos();
+          const Float *ri = p[i].getPos();
           p[i].setPos(ri[0] + rc[0],
                       ri[1] + rc[1],
                       ri[2] + rc[2]);
         }
-        const double *vi = p[i].getVel();
+        const Float *vi = p[i].getVel();
         p[i].setVel(vi[0] + vc[0],
                     vi[1] + vc[1],
                     vi[2] + vc[2]);
@@ -2723,15 +2724,15 @@ public:
   */
   void center_shift() {
     if (F_Porigin>0) {
-      const double *rc = particle::getPos();
-      const double *vc = particle::getVel();
+      const Float *rc = particle::getPos();
+      const Float *vc = particle::getVel();
       for (int i=0;i<num;i++) {
-        const double *ri = p[i].getPos();
+        const Float *ri = p[i].getPos();
         p[i].setPos(ri[0] - rc[0],
                     ri[1] - rc[1],
                     ri[2] - rc[2]);
         if (F_Porigin==1) {
-          const double *vi = p[i].getVel();
+          const Float *vi = p[i].getVel();
           p[i].setVel(vi[0] - vc[0],
                       vi[1] - vc[1],
                       vi[2] - vc[2]);
@@ -2753,7 +2754,7 @@ public:
       - #V : current relative velocite array
      @param [out] db: backup array (size should be 6*#num-3) where #num is the total number of particles in #p
    */
-  void backup(double* db) {
+  void backup(Float* db) {
 #ifdef ARC_DEBUG
     const int dsize=6*num-3;
     if ((int)db[dsize]!=dsize) {
@@ -2765,8 +2766,8 @@ public:
     db[0] = t;
     db[1] = Pt;
     db[2] = w;
-    std::memcpy(&db[3], X[0], ndata*sizeof(double));
-    std::memcpy(&db[3+ndata], V[0], ndata*sizeof(double));
+    std::memcpy(&db[3], X[0], ndata*sizeof(Float));
+    std::memcpy(&db[3+ndata], V[0], ndata*sizeof(Float));
   }
      
   //! Restore chain data (#t, #Pt, #w, #X, #V)
@@ -2778,7 +2779,7 @@ public:
       - #V : current relative velocite array
      @param [in] db: one dimensional array that storing chain data (array size should be 6*#num-3) where #num is the total number of particles in #p
    */
-  void restore(double* db) {
+  void restore(Float* db) {
 #ifdef ARC_DEBUG
     const int dsize=6*num-3;
     if ((int)db[dsize]!=dsize) {
@@ -2790,8 +2791,8 @@ public:
     t = db[0];
     Pt = db[1];
     w = db[2];
-    std::memcpy(X[0], &db[3], ndata*sizeof(double));
-    std::memcpy(V[0], &db[3+ndata], ndata*sizeof(double));
+    std::memcpy(X[0], &db[3], ndata*sizeof(Float));
+    std::memcpy(V[0], &db[3+ndata], ndata*sizeof(Float));
   }
 
   //! Leapfrog integrator
@@ -2809,9 +2810,9 @@ public:
       @param [in] ndmax: dpoly array size and the maximum difference is ndmax-*
   */             
 //               recur_flag: flag to determine whether to resolve sub-chain particles for force calculations. notice this require the sub-chain to be integrated to current physical time. Thus is this a recursion call (tree-recusion-integration)
-//               upforce: void (const particle * p, const particle *pext, double3* force). function to calculate force based on p and pext, return to force
+//               upforce: void (const particle * p, const particle *pext, Float3* force). function to calculate force based on p and pext, return to force
   template<class pertparticle_, class pertforce_, class extpar_>
-  void Leapfrog_step_forward(const double s, 
+  void Leapfrog_step_forward(const Float s, 
                              const int n, 
                              chainpars &pars,
                              extpar_ *int_pars = NULL,
@@ -2819,7 +2820,7 @@ public:
                              pertforce_* pertf = NULL, 
                              const int npert = 0,
                              int check_flag = 1, 
-                             double dpoly[][2] = NULL, 
+                             Float dpoly[][2] = NULL, 
                              const int ndmax = 0) {
 #ifdef ARC_PROFILE
     profile.t_lf -= get_wtime();
@@ -2858,8 +2859,8 @@ public:
     }
 #endif
 
-    double ds = s/double(n);
-    double3 ave_v[nmax];              // average velocity
+    Float ds = s/Float(n);
+    Float3 ave_v[nmax];              // average velocity
 //    bool fpf = false;                // perturber force indicator
     //const int np = pext.getN();
     //if (np>0||pars->ext_A!=NULL) fpf = true;
@@ -2887,7 +2888,7 @@ public:
     // integration loop
     for (int i=0;i<n;i++) {
       // half step forward for t (dependence: Ekin, Pt, w)
-      double dt = calc_dt_X(ds*0.5,pars);
+      Float dt = calc_dt_X(ds*0.5,pars);
 
       if (info!=NULL) {
         info->inti = i;
@@ -2973,7 +2974,7 @@ public:
       if (num>2&&check_flag==2) update_link();
 
       // Get time step dt(V) (dependence: Pot, W)
-      double dvt = calc_dt_V(ds,pars);
+      Float dvt = calc_dt_V(ds,pars);
 
       // Step forward V (dependence: dt(V), V, A)
       step_forward_V(dvt);
@@ -3094,9 +3095,9 @@ public:
             - if factor is zero, maximum extrapolation sequence index (accuracy order/iteration times) is fixed (\ref ARC::chainpars) and err_ingore is false, it means the error criterion cannot be satisfied with current maximum sequence index. In this case no integration is done and the data are kept as initial values. User should reduce the integration step and re-call this function.
    */
   template<class pertparticle_, class pertforce_, class extpar_>
-  double extrapolation_integration(const double ds, 
+  Float extrapolation_integration(const Float ds, 
                                    chainpars &pars,
-                                   const double toff = -1, 
+                                   const Float toff = -1, 
                                    extpar_ *int_pars = NULL,
                                    pertparticle_* pert = NULL, 
                                    pertforce_* pertf = NULL, 
@@ -3119,10 +3120,10 @@ public:
     }
     
     // slowdown time
-    const double toff_sd = toff/slowdown.kappa;
+    const Float toff_sd = toff/slowdown.kappa;
 
     // get parameters
-    const double error = pars.exp_error;
+    const Float error = pars.exp_error;
     const int itermax = pars.exp_itermax;
     const int method = pars.exp_method;
     const int sq = pars.exp_sequence;
@@ -3138,16 +3139,16 @@ public:
     
     // for storage
     // for convenient, the data are storaged in one array with size (2*nrel+1)*3, which represents t, Pt, w, X[3][nrel], V[3][nrel]
-    double d0[darray],dtemp[darray];
-    double dn[itermax][darray];
-    double* dnptr[itermax];
-    d0[dsize] = (double)dsize;    // label for safety check
-    dtemp[dsize] = (double)dsize; // label for safety check
+    Float d0[darray],dtemp[darray];
+    Float dn[itermax][darray];
+    Float* dnptr[itermax];
+    d0[dsize] = (Float)dsize;    // label for safety check
+    dtemp[dsize] = (Float)dsize; // label for safety check
     for (int i=0; i<itermax; i++) {
-      dn[i][dsize] = (double)dsize; // label for safety check
+      dn[i][dsize] = (Float)dsize; // label for safety check
       dnptr[i] = dn[i];
     }
-    double Ekin0,Pot0;
+    Float Ekin0,Pot0;
 
     // for dense output polynomial
 #ifdef ARC_PROFILE
@@ -3155,7 +3156,7 @@ public:
 #endif
     bool ip_flag = true;  // interpolation coefficient calculation flag
     const int ndiffmax=pars.den_intpmax*2+5; // maximum number of difference and f(x) values
-    double2 pd[itermax][ndiffmax]; // central difference, first [] indicate different accuracy level , second [] for storage f(x) and difference, third[](double2) store individal (t), middle one value, edge two value
+    Float2 pd[itermax][ndiffmax]; // central difference, first [] indicate different accuracy level , second [] for storage f(x) and difference, third[](Float2) store individal (t), middle one value, edge two value
     int ndmax[itermax];   // maximum difference order
     int pnn;      // data size
     if(sq==3) pnn = 1;     // middle difference case
@@ -3165,14 +3166,14 @@ public:
 #endif
 
     // for error check
-    double3 CX={};
-    double3 CXN;
-    double cxerr=error+1.0;
-    double eerr=error+1.0;
-    double cxerr0=cxerr+1.0;
-    double eerr0=eerr+1.0;
+    Float3 CX={};
+    Float3 CXN;
+    Float cxerr=error+1.0;
+    Float eerr=error+1.0;
+    Float cxerr0=cxerr+1.0;
+    Float eerr0=eerr+1.0;
     // error for step estimation
-    double werrmax=std::numeric_limits<double>::max();
+    Float werrmax=std::numeric_limits<Float>::max();
 
     // backup initial values (t, Pt, w, X, V, Ekin)
     backup(d0);
@@ -3180,7 +3181,7 @@ public:
     Pot0 = Pot;
 
     // new step
-    double dsn = 1.0;
+    Float dsn = 1.0;
     
     int intcount = 0;  // iteration counter
     int itercount = 0; // iteration efforts count
@@ -3208,9 +3209,9 @@ public:
         else ndmax[intcount] = std::min(intcount,pars.den_intpmax)+2;
         
         // pd[][*]: * storage f(x) and difference
-        // pd[intcount] = new double*[ndmax[intcount]];
+        // pd[intcount] = new Float*[ndmax[intcount]];
         // pd[][][*]: * storage data (t, Pt, w, X, V)
-        // for (int j=0;j<ndmax[intcount];j++) pd[intcount][j] = new double[pnn];
+        // for (int j=0;j<ndmax[intcount];j++) pd[intcount][j] = new Float[pnn];
       }
       //else pd[intcount] = NULL;
 #ifdef ARC_PROFILE
@@ -3273,23 +3274,23 @@ public:
           CXN[1] += X[i][1];
           CXN[2] += X[i][2];
         }
-        double RCXN2 = CXN[0]*CXN[0] + CXN[1]*CXN[1] + CXN[2]*CXN[2];
+        Float RCXN2 = CXN[0]*CXN[0] + CXN[1]*CXN[1] + CXN[2]*CXN[2];
       
-        double dcx1 = CXN[0] - CX[0];
-        double dcx2 = CXN[1] - CX[1];
-        double dcx3 = CXN[2] - CX[2];
+        Float dcx1 = CXN[0] - CX[0];
+        Float dcx2 = CXN[1] - CX[1];
+        Float dcx3 = CXN[2] - CX[2];
         cxerr0 = cxerr;
-        cxerr = std::sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
+        cxerr = sqrt((dcx1*dcx1 + dcx2*dcx2 + dcx3*dcx3)/RCXN2);
         eerr0 = eerr;
-        eerr = std::abs((Ekin+Pot+Pt-Ekin0-Pot0-d0[1])/Pt);
+        eerr = abs((Ekin+Pot+Pt-Ekin0-Pot0-d0[1])/Pt);
         //        std::cerr<<"Ekin="<<Ekin<<" Pot="<<Pot<<" Pt="<<Pt<<" Ekin0="<<Ekin0<<" Pot0="<<Pot0<<" Pt0="<<d0[1]<<" eerr="<<eerr<<std::endl;
-        std::memcpy(CX,CXN,3*sizeof(double));
+        std::memcpy(CX,CXN,3*sizeof(Float));
 
         if (pars.auto_step==1) {
           // get error estimation
-          double ermax=std::min(EP::extrapolation_error(dnptr,dsize,intcount),std::min(eerr,cxerr));
-          double dsfactor = EP::H_opt_factor(ermax,error,intcount+1);
-          double werrn = ((double)itercount+num)/ dsfactor;
+          Float ermax=std::min(EP::extrapolation_error(dnptr,dsize,intcount),std::min(eerr,cxerr));
+          Float dsfactor = EP::H_opt_factor(ermax,error,intcount+1);
+          Float werrn = ((Float)itercount+num)/ dsfactor;
           if (ermax>0&&werrn<werrmax) {
             werrmax = werrn;
             dsn = dsfactor;
@@ -3318,7 +3319,7 @@ public:
 //            std::cerr<<"Warning: extrapolation cannot converge anymore, energy error - current: "<<eerr<<"  previous: "<<eerr0<<"   , phase error - current: "<<cxerr<<"  previous: "<<cxerr0<<", try to change the error criterion (notice energy error is cumulative value)\n";
 //#endif
             // in the case of serious energy error, quit the simulation and dump the data
-            if (eerr*std::min(1.0,std::abs(Pt))>100.0*error) {
+           if (eerr*std::min(Float(1.0),abs(Pt))>100.0*error) {
               reset_flag=true;
               info=new chaininfo(num);
               info->status=1;
@@ -3351,7 +3352,7 @@ public:
     }
 
     // for dense output
-    if (!reset_flag&&ip_flag&&toff_sd>0&&toff_sd<t&&std::abs((toff_sd-t)/(t-d0[0]))>pars.dterr) {
+    if (!reset_flag&&ip_flag&&toff_sd>0&&toff_sd<t&&abs((toff_sd-t)/(t-d0[0]))>pars.dterr) {
 #ifdef ARC_PROFILE
       profile.t_dense -= get_wtime();
 #endif
@@ -3364,31 +3365,31 @@ public:
         // first difference pointer
          
         int dpsize;
-        double2* pdptr;
-        double h;
+        Float2* pdptr;
+        Float h;
         if(sq==3) {
           // middle difference case first element is f(x)
           pdptr=&pd[i][4];
           // differece order number should be reduced by one
           dpsize = ndmax[i]-4;
           // step size
-          h = 2*ds/(double)step[i];
+          h = 2*ds/(Float)step[i];
         }
         else {
           pdptr=&pd[i][1];
           dpsize = ndmax[i]-1;
-          h = ds/(double)step[i];
+          h = ds/(Float)step[i];
         }
 
         diff_dev_calc(pdptr,h,dpsize,pnn); 
       }        
       
       // extrapolation table
-      double2 pn[intcount];
-      double* pnptr[intcount];
+      Float2 pn[intcount];
+      Float* pnptr[intcount];
       for (int i=0; i<intcount; i++) pnptr[i] = pn[i];
       
-      //for (int i=0; i<intcount; i++) pn[i] = new double[pnn];
+      //for (int i=0; i<intcount; i++) pn[i] = new Float[pnn];
 
       // starting accuracy index
       int istart=0;
@@ -3402,7 +3403,7 @@ public:
         if (istart>=intcount) break;
         
         // storage result of first order accuracy
-        std::memcpy(pn[0],pd[istart][i],pnn*sizeof(double));
+        std::memcpy(pn[0],pd[istart][i],pnn*sizeof(Float));
 #ifdef ARC_DEEP_DEBUG
         std::cerr<<"Poly calc order="<<istart<<" step("<<istart<<")="<<step[istart]<<" t X11^("<<i+1<<")_"<<istart<<"="<<pd[istart][i][0]<<"\t"<<pd[istart][i][3]<<std::endl;
 #endif
@@ -3426,38 +3427,38 @@ public:
       const int npoints=2;
       // store position s
 
-      double xpoint[npoints];
+      Float xpoint[npoints];
       // maximum difference level
 
       int nlev[npoints];
       // polynomial
 
       const int Ncoff=(sq==3? (ndmax[intcount-1]) : (2*ndmax[intcount-1]+2));
-      double pcoff[Ncoff];
+      Float pcoff[Ncoff];
 
       // data point
-      double* fpoint[npoints];
+      Float* fpoint[npoints];
 
       // final derivate starting pointer
       const int dfptr_size = (sq==3? ndmax[intcount-1]-3: ndmax[intcount-1]);
-      double* dfptr[dfptr_size][2];
-      double** dfpptr[dfptr_size];
+      Float* dfptr[dfptr_size][2];
+      Float** dfpptr[dfptr_size];
       for(int i=0; i<dfptr_size; i++) dfpptr[i]=dfptr[i];
       // checking flag
       bool no_intp_flag=false;
 
       // expected ds, t      
-      double dsm,tpre;             
+      Float dsm,tpre;             
 
       // for middle difference case (1 point)
       if(sq==3) {
 
-        //pcoff = new double[ndmax[intcount-1]];
+        //pcoff = new Float[ndmax[intcount-1]];
 
-        // dfptr=new double**[ndmax[intcount-1]+1];
+        // dfptr=new Float**[ndmax[intcount-1]+1];
         
         // first choose the half side for interpolation
-        const double tmid = pd[intcount-1][0][0];  // middle time
+        const Float tmid = pd[intcount-1][0][0];  // middle time
         if (toff_sd>tmid) {
         
           xpoint[0]=0.5*ds;
@@ -3471,7 +3472,7 @@ public:
 
           //dfptr_size = nlev[0]-1;
           for (int i=0;i<dfptr_size;i++) {
-            // dfptr[i]=new double*[2];
+            // dfptr[i]=new Float*[2];
             dfptr[i][0]=pd[intcount-1][i+3];
             dfptr[i][1]=NULL;
           }
@@ -3493,7 +3494,7 @@ public:
 
           //dfptr_size = nlev[1]-1;
           for (int i=0;i<dfptr_size;i++) {
-            //  dfptr[i]=new double*[2];
+            //  dfptr[i]=new Float*[2];
             dfptr[i][0]=NULL;
             dfptr[i][1]=pd[intcount-1][i+3];
           }
@@ -3515,12 +3516,12 @@ public:
         fpoint[1] = dn[intcount-1];
 
         // \sum nlev = 2*intcount+2;
-        //pcoff= new double[2*ndmax[intcount-1]+2];
+        //pcoff= new Float[2*ndmax[intcount-1]+2];
 
         //dfptr_size = nlev[0]-1;
-        //dfptr=new double**[dfptr_size];
+        //dfptr=new Float**[dfptr_size];
         for (int i=0;i<nlev[0]-1;i++) {
-          // dfptr[i] = new double*[2];
+          // dfptr[i] = new Float*[2];
           dfptr[i][0] = pd[intcount-1][i];
           dfptr[i][1] = &pd[intcount-1][i][1];
         }
@@ -3529,7 +3530,7 @@ public:
       if (!no_intp_flag) {
     
         // Hermite interpolation
-        double* pcoffptr = pcoff;
+        Float* pcoffptr = pcoff;
         
         EP::Hermite_interpolation_coefficients(&pcoffptr,xpoint,fpoint,dfpptr,1,npoints,nlev);
 
@@ -3540,10 +3541,10 @@ public:
 #endif
 
         // Iteration to get correct physical time position
-        double dsi[2]   = {xpoint[0],xpoint[1]};    // edges for iteration
-        double tsi[2]   = {fpoint[0][0],fpoint[1][0]}; // edges values
-        const double dterr = pars.dterr*(t-d0[0]);
-        const double dterr3 = 1000*dterr;  // 1000 * time error criterion
+        Float dsi[2]   = {xpoint[0],xpoint[1]};    // edges for iteration
+        Float tsi[2]   = {fpoint[0][0],fpoint[1][0]}; // edges values
+        const Float dterr = pars.dterr*(t-d0[0]);
+        const Float dterr3 = 1000*dterr;  // 1000 * time error criterion
 
         bool rf_method=false;
         int find_root_count=0;
@@ -3555,7 +3556,7 @@ public:
             dsm = (dsi[0]+dsi[1])*0.5;      // Use bisection method to get approximate region
           }
 
-          double* pcoffptr = pcoff;
+          Float* pcoffptr = pcoff;
           EP::Hermite_interpolation_polynomial(dsm,&tpre,&pcoffptr,xpoint,1,npoints,nlev);
           // safety check
           if (tpre > tsi[1]||tpre < tsi[0]) {
@@ -3581,7 +3582,7 @@ public:
 #ifdef ARC_DEEP_DEBUG
           std::cerr<<std::setprecision(15)<<"Find root: dsm="<<dsm<<"; t="<<tpre<<"; error="<<tpre-toff_sd<<"; ds="<<ds<<std::endl;
 #endif
-          if(std::abs(tpre-toff_sd)<dterr3) rf_method=true;
+          if(abs(tpre-toff_sd)<dterr3) rf_method=true;
           find_root_count++;
           if (find_root_count>100) {
             reset_flag=true;
@@ -3592,7 +3593,7 @@ public:
             info->terr = tpre-toff_sd;
             break;
           }
-        } while (std::abs(tpre-toff_sd)>0.1*dterr);
+        } while (abs(tpre-toff_sd)>0.1*dterr);
 
         // Get the interpolation result
         //EP::Hermite_interpolation_polynomial(dsm,dtemp,&pcoff,xpoint,1,npoints,nlev);
@@ -3738,9 +3739,9 @@ public:
       @param [in] check_flag: check link at end (default: true)
   */
   template<class pertparticle_, class pertforce_, class extpar_>
-  void Symplectic_integration(const double s, 
+  void Symplectic_integration(const Float s, 
                               chainpars &pars,
-                              double* timetable,
+                              Float* timetable,
                               extpar_ *int_pars = NULL,
                               pertparticle_* pert = NULL, 
                               pertforce_* pertf = NULL, 
@@ -3782,13 +3783,13 @@ public:
         }
     }
 #endif
-    double3 ave_v[nmax];              // average velocity
+    Float3 ave_v[nmax];              // average velocity
 
     // integration with cofficients table
     for (int i=0;i<pars.sym_k;i++) {
  
      // Drift t (dependence: Ekin, Pt, w)
-      double dt = calc_dt_X(pars.sym_coff[i][0]*s,pars);
+      Float dt = calc_dt_X(pars.sym_coff[i][0]*s,pars);
 
       if (info!=NULL) {
         info->inti = i;
@@ -3825,7 +3826,7 @@ public:
       }
 
       // Kick time step dt(V) (dependence: Pot, W)
-      double dvt = calc_dt_V(pars.sym_coff[i][1]*s,pars);
+      Float dvt = calc_dt_V(pars.sym_coff[i][1]*s,pars);
 
       // Step forward V (dependence: dt(V), V, A)
       step_forward_V(dvt);
@@ -3866,35 +3867,35 @@ public:
       \return step counter
   */
   template<class pertparticle_, class pertforce_, class extpar_>
-  int Symplectic_integration_tsyn(const double s, 
+  int Symplectic_integration_tsyn(const Float s, 
                                   chainpars &pars,
-                                  const double tend_in,
+                                  const Float tend_in,
                                   extpar_ *int_pars = NULL,
                                   pertparticle_* pert = NULL, 
                                   pertforce_* pertf = NULL, 
                                   const int npert = 0) {
 
       // slowdown time
-      const double tend = tend_in/slowdown.kappa;
+      const Float tend = tend_in/slowdown.kappa;
 
       const int dsize  = 6*(num-1)+3;
       const int darray = dsize+1; // backup data array size;
-      double bk[darray]; // for backup
-      bk[dsize] = (double)dsize;    // label for safety check
+      Float bk[darray]; // for backup
+      bk[dsize] = (Float)dsize;    // label for safety check
       const int symk = pars.sym_k;
-      double timetable[symk]; // for storing time information
+      Float timetable[symk]; // for storing time information
       
-      const double t0 = t; // backup initial time
-      double ds[2] = {s,s}; // step with a buffer
-      double dsbk = s;  //backup step size
+      const Float t0 = t; // backup initial time
+      Float ds[2] = {s,s}; // step with a buffer
+      Float dsbk = s;  //backup step size
       int dsk=0;
       int nsub=-1, nsubbk=-1; // substep number
       int nsubcount=0; // count how many times step is reduced
       int stepcount = 0;
       bool bk_flag=true; // flag for backup or restore
-      double Ekin_bk = Ekin;
-      double Pot_bk = Pot;
-      const double eerr_min = pars.sym_An*0.5*pars.exp_error;
+      Float Ekin_bk = Ekin;
+      Float Pot_bk = Pot;
+      const Float eerr_min = pars.sym_An*0.5*pars.exp_error;
       bool tend_flag=false; // go to ending step
 
       while(true) {
@@ -3918,7 +3919,7 @@ public:
 
 #ifdef ARC_DEEP_DEBUG
           std::cerr<<"Symplectic count: "<<stepcount<<" time: "<<t<<" tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
-                   <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<std::abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+                   <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
           std::cerr<<"Timetable: ";
           for (int i=0; i<symk; i++) std::cerr<<" "<<timetable[pars.sym_order[i].index];
           std::cerr<<std::endl;
@@ -3938,16 +3939,16 @@ public:
           }
 
           // energy check
-          double eerr = std::abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt);
+          Float eerr = abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt);
           if(eerr>pars.exp_error) {
-              unsigned long Af=std::pow(eerr/pars.exp_error,pars.sym_inv_n);
+              unsigned long Af=to_double(pow(eerr/pars.exp_error,pars.sym_inv_n));
               unsigned long c=1;
               while(Af>0) {
                   Af = (Af>>1);
                   c = (c<<1);
               }
               if(c==1) c=2;
-              double dsn = ds[dsk]/double(c);
+              Float dsn = ds[dsk]/Float(double(c));
 
               // if same reduction appear twice, increase counter
               if (nsubbk==(int)c) nsubcount++;  
@@ -3980,14 +3981,14 @@ public:
               
               bk_flag = false;
 #ifdef ARC_DEEP_DEBUG
-              std::cerr<<"Detected energy erro too large eerr/err_max ="<<eerr/pars.exp_error<<" eerr="<<eerr<<" Af="<<std::pow(eerr/pars.exp_error,pars.sym_inv_n)<<" step reduction factor="<<c<<" substep number="<<nsub<<" nsubcount="<<nsubcount<<std::endl;
+              std::cerr<<"Detected energy erro too large eerr/err_max ="<<eerr/pars.exp_error<<" eerr="<<eerr<<" Af="<<pow(eerr/pars.exp_error,pars.sym_inv_n)<<" step reduction factor="<<c<<" substep number="<<nsub<<" nsubcount="<<nsubcount<<std::endl;
 #endif
               continue;
           }
           
 
           // time synchronization
-          double terr = (t-t0)*pars.dterr;
+          Float terr = (t-t0)*pars.dterr;
         
           if(t<tend-terr){
               // step increase depend on nsub or error
@@ -3999,9 +4000,9 @@ public:
                       ds[1-dsk] = dsbk;
                   }
                   else if(eerr<=eerr_min) {
-                      ds[1-dsk] *= std::pow(eerr_min/std::max(eerr,1e-15),0.16666666666);
+                      ds[1-dsk] *= pow(eerr_min/std::max(eerr,Float(1e-15)),Float(0.16666666666));
 #ifdef ARC_DEEP_DEBUG
-                      std::cerr<<"Energy error is small enought for increase step, error="<<eerr<<" limit="<<pars.exp_error<<" factor="<<std::pow(pars.exp_error/std::max(eerr,1e-15),0.16666666666)<<" sym_An="<<pars.sym_An<<" new ds="<<ds[1-dsk]<<std::endl;
+                      std::cerr<<"Energy error is small enought for increase step, error="<<eerr<<" limit="<<pars.exp_error<<" factor="<<pow(pars.exp_error/std::max(eerr,1e-15),0.16666666666)<<" sym_An="<<pars.sym_An<<" new ds="<<ds[1-dsk]<<std::endl;
 #endif
                   }
                   nsub--;
@@ -4031,9 +4032,9 @@ public:
 #endif
               }
               else {
-                  double tp = timetable[pars.sym_order[i-1].index];
-                  double dt = timetable[k] - tp;
-                  double dtmp = ds[dsk];
+                  Float tp = timetable[pars.sym_order[i-1].index];
+                  Float dt = timetable[k] - tp;
+                  Float dtmp = ds[dsk];
                   ds[dsk] *= pars.sym_order[i-1].cck;  // first set step to nearest k for t<tend 
                   ds[1-dsk] = dtmp*(pars.sym_order[i].cck-pars.sym_order[i-1].cck)*(tend-tp)/dt; //then set next step to c_k+1 -c_k
 #ifdef ARC_DEEP_DEBUG
@@ -4044,7 +4045,7 @@ public:
           else {
               if(num>2) update_link();
 #ifdef ARC_DEEP_DEBUG
-              std::cerr<<"Finish, terr = "<<(t-tend)/(t-t0)<<" eerr = "<<std::abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+              std::cerr<<"Finish, terr = "<<(t-tend)/(t-t0)<<" eerr = "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
 #endif
               break;
           }
@@ -4060,7 +4061,7 @@ public:
 #ifdef ARC_DEBUG
   //! test for whether the integration can be correctly restored to original data
   template<class pertparticle_, class pertforce_, class extpar_>
-  void Symplectic_integration_repeat_test( const double s, 
+  void Symplectic_integration_repeat_test( const Float s, 
                                            chainpars &pars,
                                            extpar_ *int_pars = NULL,
                                            pertparticle_* pert = NULL, 
@@ -4068,17 +4069,17 @@ public:
                                            const int npert = 0) {
       const int dsize  = 6*(num-1)+3;
       const int darray = dsize+1; // backup data array size;
-      double bk[darray]; // for backup
-      bk[dsize] = (double)dsize;    // label for safety check
+      Float bk[darray]; // for backup
+      bk[dsize] = (Float)dsize;    // label for safety check
       const int symk = pars.sym_k;
-      double timetable[symk]; // for storing time information
+      Float timetable[symk]; // for storing time information
 
       backup(bk);
-      double Ekin_bk = Ekin;
-      double Pot_bk  = Pot;
+      Float Ekin_bk = Ekin;
+      Float Pot_bk  = Pot;
 
       Symplectic_integration(s, pars, timetable, int_pars, pert, pertf, npert, false);
-      double tbk =t;
+      Float tbk =t;
 
       restore(bk);
       Ekin= Ekin_bk;
@@ -4100,27 +4101,27 @@ public:
   //! Get current physical time
   /*! \return current physical time
    */
-  double getTime() const {
+  Float getTime() const {
     return slowdown.kappa*t;
   }
   //! Get current kinetic energy
   /*! \return current kinetic energy
   */
-  double getEkin() const {
+  Float getEkin() const {
     return Ekin;
   }
 
   //! Get current potential energy
   /*! \return current potetnial energy (negative value for bounded systems)
   */
-  double getPot() const {
+  Float getPot() const {
     return Pot;
   }
 
   //! Get current time momemtum \f$Pt\f$ (current system binding energy)
   /*! \return time momemtum \f$Pt\f$ (current system binding energy \f$(-H(t))\f$)
   */
-  double getPt() const {
+  Float getPt() const {
     return Pt;
   }
   
@@ -4129,7 +4130,7 @@ public:
       (see W in getW();)
       \return \f$w\f$
   */
-  double getw() const {
+  Float getw() const {
     return w;
   }
 
@@ -4137,7 +4138,7 @@ public:
   /*! The \f$W\f$ is defined in ::ARC::pair_AW().
       \return \f$W\f$
   */
-  double getW() const {
+  Float getW() const {
     return W;
   }
 
@@ -4345,10 +4346,10 @@ public:
   //}
 
   //! Get particle masses and store into array
-  /*! Obtain particle masses and store into the double array
-    @param[in] mass: double array to store the particle masses
+  /*! Obtain particle masses and store into the Float array
+    @param[in] mass: Float array to store the particle masses
    */
-  void getMassAll(double mass[]) {
+  void getMassAll(Float mass[]) {
     for (int i=0;i<num;i++) mass[i] = (*this)[i].getMass();
   }
 

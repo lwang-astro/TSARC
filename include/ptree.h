@@ -1,4 +1,5 @@
 #pragma once
+#include "Float.h"
 
 //template<class particle>
 //particle pshift(const particle &a, const particle &ref) {
@@ -12,13 +13,13 @@
 //}
 
 //Particle center_of_mass(const Particle &a, const Particle &b) {
-//  double m1 = a.getMass();
-//  double m2 = b.getMass();
-//  double m = m1+m2;
-//  double* x1 = a.getPos();
-//  double* x2 = b.getPos();
-//  double* v1 = a.getVel();
-//  double* v2 = b.getVel();
+//  Float m1 = a.getMass();
+//  Float m2 = b.getMass();
+//  Float m = m1+m2;
+//  Float* x1 = a.getPos();
+//  Float* x2 = b.getPos();
+//  Float* v1 = a.getVel();
+//  Float* v2 = b.getVel();
 //  return Particle(m,
 //                  (x1[0]*m1+x2[0]*m2)/m,
 //                  (x1[1]*m1+x2[1]*m2)/m,

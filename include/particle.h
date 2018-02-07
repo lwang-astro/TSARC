@@ -1,6 +1,7 @@
 #pragma once
 #include <cassert>
 #include <cstring>
+#include "Float.h"
 
 #ifndef NAN_CHECK
 #define NAN_CHECK(val) assert((val) == (val));
@@ -10,8 +11,8 @@
 /*! Notice for the template class of \ref ARC::chain, the supported particle class should contain the public member functions: setPos(), setVel(), setMass(), getPos(), getVel(), getMass() as described in the document
  */
 class Particle{
-  double pos[3], vel[3];
-  double mass, coff;
+  Float pos[3], vel[3];
+  Float mass, coff;
 
 public:
   //!Constructor without initialization
@@ -24,7 +25,7 @@ public:
       @param [in] r: particle position vector
       @param [in] v: particle velocity vector
    */
-  Particle(const double m, const double r[3], const double v[3]) {
+  Particle(const Float m, const Float r[3], const Float v[3]) {
     set(m,r,v);
     coff = m;
   }
@@ -38,7 +39,7 @@ public:
       @param [in] vy: particle velocity in y axis 
       @param [in] vz: particle velocity in z axis 
    */
-  Particle(const double m, const double rx, const double ry, const double rz, const double vx, const double vy, const double vz) {
+  Particle(const Float m, const Float rx, const Float ry, const Float rz, const Float vx, const Float vy, const Float vz) {
     set(m,rx,ry,rz,vx,vy,vz);
     coff = m;
   }
@@ -53,28 +54,28 @@ public:
   //! Get mass (required for \ref ARC::chain)
   /*! \return mass
    */
-  const double getMass() const{
+  const Float getMass() const{
     return mass;
   }
   
   //! Get position (required for \ref ARC::chain)
-  /*! \return position vector (double[3])
+  /*! \return position vector (Float[3])
    */
-  const double* getPos() const{
+  const Float* getPos() const{
     return pos;
   }
 
   //! Get velocity (required for \ref ARC::chain)
-  /*! \return velocity vector (double[3])
+  /*! \return velocity vector (Float[3])
    */
-  const double* getVel() const{
+  const Float* getVel() const{
     return vel;
   }
 
   //! Get cofficients for TTL method
   /*! \return cofficient
    */
-  const double getCoff() const{
+  const Float getCoff() const{
     return coff;
   }
   
@@ -88,7 +89,7 @@ public:
       @param [in] vy: particle velocity in y axis 
       @param [in] vz: particle velocity in z axis 
    */
-  void set(const double m, const double rx, const double ry, const double rz, const double vx, const double vy, const double vz){
+  void set(const Float m, const Float rx, const Float ry, const Float rz, const Float vx, const Float vy, const Float vz){
     NAN_CHECK(m);
     NAN_CHECK(rx);
     NAN_CHECK(ry);
@@ -113,7 +114,7 @@ public:
       @param [in] r: particle position vector
       @param [in] v: particle velocity vector
    */
-  void set(const double m, const double r[3], const double v[3]) {
+  void set(const Float m, const Float r[3], const Float v[3]) {
     NAN_CHECK(m);
     NAN_CHECK(r[0]);
     NAN_CHECK(r[1]);
@@ -124,8 +125,8 @@ public:
 
     mass=m;
     coff=m;
-    std::memcpy(pos,r,3*sizeof(double));
-    std::memcpy(vel,v,3*sizeof(double));
+    std::memcpy(pos,r,3*sizeof(Float));
+    std::memcpy(vel,v,3*sizeof(Float));
 }
     
   //!Set particle data with Particle
@@ -134,8 +135,8 @@ public:
   void set(const Particle &a){
     mass = a.getMass();
     coff = a.getCoff();
-    std::memcpy(pos,a.getPos(),3*sizeof(double));
-    std::memcpy(vel,a.getVel(),3*sizeof(double));
+    std::memcpy(pos,a.getPos(),3*sizeof(Float));
+    std::memcpy(vel,a.getVel(),3*sizeof(Float));
   }
 
   //!Set position (required for \ref ARC::chain)
@@ -144,7 +145,7 @@ public:
       @param [in] y: particle position in y axis
       @param [in] z: particle position in z axis
    */
-  void setPos(const double x, const double y, const double z) {
+  void setPos(const Float x, const Float y, const Float z) {
     NAN_CHECK(x);
     NAN_CHECK(y);
     NAN_CHECK(z);
@@ -158,12 +159,12 @@ public:
   /*! NAN check will be done
       @param [in] r: particle position vector
    */
-  void setPos(const double r[3]) {
+  void setPos(const Float r[3]) {
     NAN_CHECK(r[0]);
     NAN_CHECK(r[1]);
     NAN_CHECK(r[2]);
 
-    std::memcpy(pos,r,3*sizeof(double));
+    std::memcpy(pos,r,3*sizeof(Float));
   }
 
   //!Set velocity (required for \ref ARC::chain)
@@ -172,7 +173,7 @@ public:
       @param [in] vy: particle velocity in y axis 
       @param [in] vz: particle velocity in z axis 
   */
-  void setVel(const double vx, const double vy, const double vz) {
+  void setVel(const Float vx, const Float vy, const Float vz) {
     NAN_CHECK(vx);
     NAN_CHECK(vy);
     NAN_CHECK(vz);
@@ -186,19 +187,19 @@ public:
   /*! NAN check will be done
       @param [in] v: particle velocity vector
    */
-  void setVel(const double v[3]) {
+  void setVel(const Float v[3]) {
     NAN_CHECK(v[0]);
     NAN_CHECK(v[1]);
     NAN_CHECK(v[2]);
 
-    std::memcpy(vel,v,3*sizeof(double));
+    std::memcpy(vel,v,3*sizeof(Float));
   }
 
   //!Set mass (required for \ref ARC::chain)
   /*! NAN check will be done
       @param [in] m: particle mass
    */
-  void setMass(const double m) {
+  void setMass(const Float m) {
     NAN_CHECK(m);
 
     mass = m;
@@ -208,7 +209,7 @@ public:
   /*! NAN check will be done
       @param [in] c: cofficient
    */
-  void setCoff(const double c) {
+  void setCoff(const Float c) {
     NAN_CHECK(c);
 
     coff = c;
@@ -218,7 +219,7 @@ public:
   /*! Reset mass, position and velocity to zero.
    */
   void clear(){
-    std::memset(this,0,7*sizeof(double));
+    std::memset(this,0,7*sizeof(Float));
   }
   
 };

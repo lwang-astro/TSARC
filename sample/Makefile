@@ -15,7 +15,14 @@ CXXFLAGS += -std=c++11
 
 ## profile---------------------------------------#
 CXXFLAGS += -D ARC_PROFILE
+## gperf
+#GPERF_PATH=
 #CXXLIBS += -L$(GPERF_PATH) -lprofiler -ltcmalloc
+
+## qd-lib---------------------------------------------#
+QD_PATH=/opt/qd-2.3.18
+CXXFLAGS += -D USE_QD ${shell ${QD_PATH}/bin/qd-config --cxxflags}
+CXXLIBS += ${shell ${QD_PATH}/bin/qd-config --libs}
 
 ## for debug------------------------------------------#
 CXXFLAGS += -O2 
@@ -26,7 +33,7 @@ CXXFLAGS += -O2
 
 ## Target --------------------------------------------#
 
-$(TARGET): %: %.cxx AR.h extrapolation.h
+$(TARGET): %: %.cxx AR.h extrapolation.h Float.h
 	$(CXX) $(CXXFLAGS) $< -o $@ $(CXXLIBS)
 
 clean:
