@@ -9,13 +9,13 @@ typedef dd_real Float;
 typedef double Float;
 #define to_int(x)     int(x)
 #define to_double(x)  double(x)
-using namespace std;
-//using std::sqrt;
-//using std::abs;
-//using std::pow;
-//using std::isinf;
-//using std::atan2;
-//using std::sin;
-//using std::cos;
+//using namespace std;
+using std::sqrt;
+using std::abs;
+using std::pow;
+using std::isinf;
+using std::atan2;
+using std::sin;
+using std::cos;
 #endif
 

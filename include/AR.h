@@ -4,8 +4,8 @@
 #include <iomanip>
 #include <cstring>
 #include <cmath>
-#include <cstdlib>
-#include <cstdio>
+//#include <cstdlib>
+//#include <cstdio>
 #include <limits>
 #include <typeinfo>
 #include <typeindex>
