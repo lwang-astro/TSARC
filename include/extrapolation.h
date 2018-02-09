@@ -105,7 +105,11 @@ namespace EP {
       else return tik1;
     }
     Float dt = dt1/(hr*hr * (1 - dt1/dt2) - 1);
+#ifdef USE_QD
     if (isinf(dt)) return tik1;
+#else
+    if (std::isinf(dt)) return tik1;
+#endif
     else return tik1 + dt;
   }
 

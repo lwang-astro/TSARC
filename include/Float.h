@@ -13,9 +13,6 @@ typedef double Float;
 using std::sqrt;
 using std::abs;
 using std::pow;
-#ifndef __GXX_EXPERIMENTAL_CXX0X__
-using std::isinf;
-#endif
 using std::atan2;
 using std::sin;
 using std::cos;
