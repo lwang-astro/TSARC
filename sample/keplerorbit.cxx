@@ -13,13 +13,19 @@ int main(int argc, char **argv){
    int PRECISION=15;
 
    int copt;
-   while ((copt = getopt(argc, argv, "n:s:hm:r:k:i:p")) != -1)
+   while ((copt = getopt(argc, argv, "in:w:p:h")) != -1)
        switch (copt) {
        case 'i':
            iflag=true;
            break;
        case 'n':
            num=atoi(optarg);
+           break;
+       case 'w':
+           WIDTH=atoi(optarg);
+           break;
+       case 'p':
+           PRECISION=atoi(optarg);
            break;
        case 'h':
            std::cout<<"keplerorbit [option] datafilename\n"
