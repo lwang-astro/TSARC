@@ -87,8 +87,8 @@ int main(int argc, char **argv){
            }
            Float3 dx,dv;
            for (int j=0; j<3; j++) {
-               dx[j] = x1[j]-x2[j];
-               dv[j] = v1[j]-v2[j];
+               dx[j] = x2[j]-x1[j];
+               dv[j] = v2[j]-v1[j];
            }
            NTA::calc_kepler_orbit_par(ax,period,ecc,angle,true_anomaly,ecc_anomaly,mean_anomaly,mc,dx,dv);
            std::cout<<std::setw(WIDTH)<<m1
