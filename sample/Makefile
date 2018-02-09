@@ -1,5 +1,5 @@
 ## TARGET
-TARGET=chain hierarchy symtest
+TARGET=chain hierarchy symtest keplerorbit
 
 VPATH=../include
 
@@ -20,9 +20,9 @@ CXXFLAGS += -D ARC_PROFILE
 #CXXLIBS += -L$(GPERF_PATH) -lprofiler -ltcmalloc
 
 ## qd-lib---------------------------------------------#
-QD_PATH=/opt/qd-2.3.18
-CXXFLAGS += -D USE_QD ${shell ${QD_PATH}/bin/qd-config --cxxflags}
-CXXLIBS += ${shell ${QD_PATH}/bin/qd-config --libs}
+#QD_PATH=/opt/qd-2.3.18
+#CXXFLAGS += -D USE_QD ${shell ${QD_PATH}/bin/qd-config --cxxflags}
+#CXXLIBS += ${shell ${QD_PATH}/bin/qd-config --libs}
 
 ## for debug------------------------------------------#
 CXXFLAGS += -O2 
