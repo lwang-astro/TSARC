@@ -97,9 +97,10 @@ int main(int argc, char **argv){
   int method=1; // regularization methods, 1: Logarithmic Hamitonian; 2: Time-transformed Leapfrog\n (logh)
   int imethod=2; // interpolation method (1. linear; 2. rational)
   bool pkepler=false; // whether print kepler parameters
+  bool coffin=false; // whether only include inner binary potential for transformation function
 
   int copt;
-  while ((copt = getopt(argc, argv, "n:s:hm:r:k:i:p")) != -1)
+  while ((copt = getopt(argc, argv, "n:s:hm:r:k:i:c:p")) != -1)
     switch (copt) {
     case 'n':
       n = atoi(optarg);
@@ -122,11 +123,12 @@ int main(int argc, char **argv){
                <<"     PS: if 1-0 has no children, 1-1 still have 2, 3 as children's branch_id\n"
                <<"Options: (*) show defaulted values\n"
                <<"    -n [int]:     number of integration steps ("<<n<<")\n"
-               <<"    -s [Float]:  step size, not physical time step ("<<s<<")\n"
+               <<"    -s [Float]:   step size, not physical time step ("<<s<<")\n"
                <<"    -m [int]:     integration methods: 0: symplectic, 1: extrapolation ("<<m<<")\n"
                <<"    -r [int]:     regularization methods, 1: Logarithmic Hamitonian; 2: Time-transformed Leapfrog ("<<method<<")\n"
                <<"    -k [int]:     if symplectic, k is order, if extrapolation, k is extrapolation sequence (1: Romberg sequence; 2. BS sequence; 3. 4k sequence; 4. Harmonic sequence) ("<<k<<")\n"
                <<"    -i [int]:     interpolation method (1. linear; 2. rational) ("<<imethod<<")\n"
+               <<"    -c      :     set transformation function cofficient to only include inner most binary potential \n"
                <<"    -p      :     print Kepler orbital parameters\n";
       return 0;
     case 'm':
@@ -144,6 +146,9 @@ int main(int argc, char **argv){
       break;
     case 'i':
       imethod = atoi(optarg);
+      break;
+    case 'c':
+      coffin = true;
       break;
     case 'p':
       pkepler = true;
@@ -218,8 +223,10 @@ int main(int argc, char **argv){
     
     Particle a(m1,x1,v1);
     Particle b(m2,x2,v2);
-    a.setCoff(0);
-    b.setCoff(0);
+    if (coffin) {
+        a.setCoff(0);
+        b.setCoff(0);
+    }
     bool flag=plist.link(id,ib,a,b,pshift);
     if (!flag) {
       std::cerr<<"Error: particle id "<<id<<", ib "<<ib<<" are inconsistent with global particle tree structure, cannot created pairs!\n";
