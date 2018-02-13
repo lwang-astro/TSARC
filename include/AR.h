@@ -408,7 +408,7 @@ public:
   /*! 
     \return method index: 1: Polynomial method; others: Rational interpolation method (defaulted Rational)
   */
-  const int getIntp() const {
+  int getIntp() const {
     return exp_method;
   }
 
@@ -493,7 +493,7 @@ public:
   /*!
     \return  maximum derivate index for dense ouput interpolation (defaulted #itermax/2)
    */
-  const int getDenIntpmax() const {
+  int getDenIntpmax() const {
     return den_intpmax;
   }
 
@@ -501,7 +501,7 @@ public:
   /*  
     \return sequence method index: 1: Romberg sequence {h, h/2, h/4, h/8 ...}; 2: Bulirsch & Stoer (BS) sequence {h, h/2, h/3, h/4, h/6, h/8 ...}; 3: 4k sequence {h, h/2, h/6, h/10, h/14 ...}; others: Harmonic sequence {h, h/2, h/3, h/4 ...} (defaulted 2. BS sequence)
   */  
-  const int getSeq() const {
+  int getSeq() const {
     return exp_sequence;
   }
 
@@ -509,7 +509,7 @@ public:
   /*  
     \return maximum iteration times
   */  
-  const int getIter() const {
+  int getIter() const {
     return exp_itermax;
   }
 
@@ -2570,7 +2570,7 @@ public:
     If AddP(), removeP() are used, init() should be called first to get consistent number.
     \return: number of chain members
   */
-  const int getN() const{
+  int getN() const{
     return num;
   }
 

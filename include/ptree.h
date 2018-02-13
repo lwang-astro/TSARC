@@ -110,7 +110,7 @@ public:
     @param[in] pshift: particle shifting function applied to the two particles referring to the origin particle before storing
     \return If the branch are successfully created and filled return true, otherwise return false
    */
-    bool split(const std::size_t i, const particle &a, const particle &b, particle_shift pshift) {
+    bool split(const int i, const particle &a, const particle &b, particle_shift pshift) {
     if(i<0||i>1) return false;
     if(!lp[i]) {
       if(p[i]!=NULL) {

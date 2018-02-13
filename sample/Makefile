@@ -3,11 +3,34 @@ TARGET=chain hierarchy symtest keplerorbit
 
 VPATH=../include
 
+use_x86=no
+use_k_computer=yes
+QD_PATH=none
+#QD_PATH=/opt/qd-2.3.18
+
 ## compiler-------------------------------------------#
+ifeq ($(use_x86),yes)
 CXX= g++
+CXXFLAGS += -O2 -Wall
+#CXXFLAGS += -g -fbounds-check
+endif
+
+ifeq ($(use_k_computer),yes)
+CXX = time mpiFCCpx
+CXXFLAGS += -Kfast
+CXXFLAGS += -x32
+CXXFLAGS += -Xg
+CXXFLAGS += -Nfjcex
+CXXFLAGS += -Krestp=all
+endif
+
+## for debug------------------------------------------#
+#CXXFLAGS += -D DEBUG 
+#CXXFLAGS += -D ARC_DEBUG
+#CXXFLAGS += -D ARC_DEEP_DEBUG
 
 ## Flag ----------------------------------------------#
-CXXFLAGS = -I../include -Wall
+CXXFLAGS += -I../include
 CXXFLAGS += -std=c++11
 
 ## OpenMP flag----------------------------------------#
@@ -20,16 +43,11 @@ CXXFLAGS += -D ARC_PROFILE
 #CXXLIBS += -L$(GPERF_PATH) -lprofiler -ltcmalloc
 
 ## qd-lib---------------------------------------------#
-#QD_PATH=/opt/qd-2.3.18
-#CXXFLAGS += -D USE_QD ${shell ${QD_PATH}/bin/qd-config --cxxflags}
-#CXXLIBS += ${shell ${QD_PATH}/bin/qd-config --libs}
+ifneq ($(QD_PATH),none)
+CXXFLAGS += -D USE_QD ${shell ${QD_PATH}/bin/qd-config --cxxflags}
+CXXLIBS += ${shell ${QD_PATH}/bin/qd-config --libs}
+endif
 
-## for debug------------------------------------------#
-CXXFLAGS += -O2 
-#CXXFLAGS += -g -fbounds-check
-#CXXFLAGS += -D DEBUG 
-#CXXFLAGS += -D ARC_DEBUG
-#CXXFLAGS += -D ARC_DEEP_DEBUG
 
 ## Target --------------------------------------------#
 

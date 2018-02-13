@@ -54,7 +54,7 @@ public:
   //! Get mass (required for \ref ARC::chain)
   /*! \return mass
    */
-  const Float getMass() const{
+  Float getMass() const{
     return mass;
   }
   
@@ -75,7 +75,7 @@ public:
   //! Get cofficients for TTL method
   /*! \return cofficient
    */
-  const Float getCoff() const{
+  Float getCoff() const{
     return coff;
   }
   
