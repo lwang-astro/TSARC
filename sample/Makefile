@@ -3,10 +3,13 @@ TARGET=chain hierarchy symtest keplerorbit
 
 VPATH=../include
 
-use_x86=no
-use_k_computer=yes
+use_x86=yes
+#use_k_computer=yes
 QD_PATH=none
 #QD_PATH=/opt/qd-2.3.18
+#GPERF_PATH=none
+GPERF_PATH = /opt/gperftools-2.6.1
+
 
 ## compiler-------------------------------------------#
 ifeq ($(use_x86),yes)
@@ -37,10 +40,12 @@ CXXFLAGS += -std=c++11
 #CXXFLAGS += -fopenmp -D USE_OMP
 
 ## profile---------------------------------------#
-CXXFLAGS += -D ARC_PROFILE
-## gperf
-#GPERF_PATH=
-#CXXLIBS += -L$(GPERF_PATH) -lprofiler -ltcmalloc
+#CXXFLAGS += -D ARC_PROFILE
+
+## gperf----------------------------------------------#
+ifneq ($(GPERT_PATH),none)
+CXXLIBS += -L$(GPERF_PATH)/lib -lprofiler -ltcmalloc
+endif
 
 ## qd-lib---------------------------------------------#
 ifneq ($(QD_PATH),none)
