@@ -7,8 +7,8 @@ use_x86=yes
 #use_k_computer=yes
 QD_PATH=none
 #QD_PATH=/opt/qd-2.3.18
-#GPERF_PATH=none
-GPERF_PATH = /opt/gperftools-2.6.1
+GPERF_PATH=none
+#GPERF_PATH = /opt/gperftools-2.6.1
 
 
 ## compiler-------------------------------------------#
@@ -35,15 +35,16 @@ endif
 ## Flag ----------------------------------------------#
 CXXFLAGS += -I../include
 CXXFLAGS += -std=c++11
+CXXFLAGS += -DARC_OPT_SYM2
 
 ## OpenMP flag----------------------------------------#
 #CXXFLAGS += -fopenmp -D USE_OMP
 
 ## profile---------------------------------------#
-#CXXFLAGS += -D ARC_PROFILE
+CXXFLAGS += -D ARC_PROFILE
 
 ## gperf----------------------------------------------#
-ifneq ($(GPERT_PATH),none)
+ifneq ($(GPERF_PATH),none)
 CXXLIBS += -L$(GPERF_PATH)/lib -lprofiler -ltcmalloc
 endif
 

@@ -3785,6 +3785,8 @@ public:
 #endif
     Float3 ave_v[nmax];              // average velocity
 
+    const bool dw_calc_flag = pars.beta>0;
+
     // integration with cofficients table
     for (int i=0;i<pars.sym_k;i++) {
  
@@ -3835,7 +3837,6 @@ public:
       resolve_XV(ave_v);
 
       // forward Pt and w (dependence: dt(V), ave_v, p.m, p.v, dWdr, pf)
-      const bool dw_calc_flag = pars.beta>0;
       step_forward_Ptw(dvt,ave_v,dw_calc_flag);
 
       // Calcuale Kinetic energy (dependence: p.m, p.v)
@@ -3853,6 +3854,176 @@ public:
     profile.t_sym += get_wtime();
 #endif
   }
+
+#ifdef ARC_OPT_SYM2
+  //! high order symplectic integrator for two-body
+  /*! Integration with high order symplectic integrator
+      The positions and velocities of particles in #p will be integrated in the center-of-mass frame
+      @param [in] s: Integration step size
+      @param [in] pars: chainpars controller
+      @param [out] timetable: an array that store the time after each drift
+      @param [in] m2_mt: m2/(m1+m2)
+      @param [in] m1_m2: m1/m2
+      @param [in] int_pars: extra parameters used in f or fpert.
+      @param [in] pert: perturber particle array
+      @param [in] pertf: perturrber force array for prediction
+      @param [in] npert: number of perturbers
+      @param [in] check_flag: check link at end (default: true)
+  */
+  template<class pertparticle_, class pertforce_, class extpar_>
+  void Symplectic_integration_two(const Float s, 
+                                  chainpars &pars,
+                                  Float* timetable,
+                                  const Float m2_mt,
+                                  const Float m1_m2,
+                                  extpar_ *int_pars = NULL,
+                                  pertparticle_* pert = NULL, 
+                                  pertforce_* pertf = NULL, 
+                                  const int npert = 0) {
+#ifdef ARC_PROFILE
+    profile.t_sym -= get_wtime();
+#endif
+    pair_AW<particle,extpar_> f = reinterpret_cast<pair_AW<particle_,extpar_>>(pars.pp_AW);
+    ext_Acc<particle,pertparticle_,pertforce_,extpar_> fpert = reinterpret_cast<ext_Acc<particle,pertparticle_,pertforce_,extpar_>>(pars.ext_A);
+
+#ifdef ARC_DEBUG
+    // Error check
+    /*    if (s<0) {
+      std::cerr<<"Error: step size should be positive, current value is "<<s<<std::endl;
+      abort();*/
+    if (pars.sym_n==0) {
+      std::cerr<<"Error: symplectic integrator order is not initialized!\n";
+      abort();
+    }
+    if (s==0) {
+      std::cerr<<"Error: step size should not be zero!\n"<<std::endl;
+      abort();
+    }
+    if (F_Porigin) {
+      std::cerr<<"Error: particles are not in the center-of-mass frame, the integration can be dangerous!"<<std::endl;
+      abort();
+    }
+    if (F_Pmod) {
+      std::cerr<<"Error: particles are modified, initialization required!"<<std::endl;
+      abort();
+    }
+
+    if(fpert!=NULL) {
+        if(std::type_index(typeid(fpert))!=*pars.ext_A_type) {
+            std::cerr<<"Error: perturber function type not matched the data type\n";
+            abort();
+        }
+    }
+#endif
+    const bool dw_calc_flag = pars.beta>0;
+    const bool fpert_flag = fpert!=NULL;
+    const Float m1_m2_1 = -m1_m2 - 1.0;
+    Float fp2 = 0.0;
+
+    // integration with cofficients table
+    for (int i=0;i<pars.sym_k;i++) {
+
+        // Drift t (dependence: Ekin, Pt, w)
+        Float dt = pars.sym_coff[i][0]*s / (pars.alpha * (Ekin + Pt) + pars.beta * w + pars.gamma);
+        
+        // step_forward time
+        t += dt;
+
+        // store current time
+        timetable[i] = t;
+        
+        // step forward relative X
+        X[0][0] += dt * V[0][0];
+        X[0][1] += dt * V[0][1];
+        X[0][2] += dt * V[0][2];
+        
+        Float3 x1,x2;
+        x1[0] = - m2_mt*X[0][0];
+        x1[1] = - m2_mt*X[0][1];
+        x1[2] = - m2_mt*X[0][2];
+        
+        x2[0] = x1[0] + X[0][0];
+        x2[1] = x1[1] + X[0][1];
+        x2[2] = x1[2] + X[0][2];
+
+        p[0].setPos(x1[0],x1[1],x1[2]);
+        p[1].setPos(x2[0],x2[1],x2[2]);
+
+        if(fpert_flag) fpert(pf, slowdown.kappa*t, p.getData(), 2, pert, pertf, npert, int_pars);
+        
+        Float3 At,dWt;
+        Float Pt,Wt;
+
+        f(At, Pt, dWt, Wt, X[0], p[0], p[1], int_pars);
+
+        Pot = Pt;
+        W = Wt;
+
+        // Kick time step dt(V) (dependence: Pot, W)
+        Float dvt = pars.sym_coff[i][1]*s / (pars.gamma - pars.alpha * Pot + pars.beta * W);
+
+        // Acceleration and kick
+        Float3 dpf;
+        dpf[0] = pf[1][0]-pf[0][0]; 
+        dpf[1] = pf[1][1]-pf[0][1];
+        dpf[2] = pf[1][2]-pf[0][2];
+        fp2 = dpf[0]*dpf[0] + dpf[1]*dpf[1] + dpf[2]*dpf[2];
+
+        V[0][0] += dvt * (At[0]*m1_m2_1 + slowdown.kappa*dpf[0]); 
+        V[0][1] += dvt * (At[1]*m1_m2_1 + slowdown.kappa*dpf[1]); 
+        V[0][2] += dvt * (At[2]*m1_m2_1 + slowdown.kappa*dpf[2]); 
+
+        Float3 v1,v2,ave_v[2];
+        v1[0] = - m2_mt*V[0][0];
+        v1[1] = - m2_mt*V[0][1];
+        v1[2] = - m2_mt*V[0][2];
+        
+        v2[0] = v1[0] + V[0][0];
+        v2[1] = v1[1] + V[0][1];
+        v2[2] = v1[2] + V[0][2];
+
+        const Float* pv1=p[0].getVel();
+        const Float* pv2=p[1].getVel();
+        
+        ave_v[0][0] = 0.5* (v1[0] + pv1[0]);
+        ave_v[0][1] = 0.5* (v1[1] + pv1[1]);
+        ave_v[0][2] = 0.5* (v1[2] + pv1[2]);
+
+        ave_v[1][0] = 0.5* (v2[0] + pv2[0]);
+        ave_v[1][1] = 0.5* (v2[1] + pv2[1]);
+        ave_v[1][2] = 0.5* (v2[2] + pv2[2]);
+
+        p[0].setVel(v1[0],v1[1],v1[2]);
+        p[1].setVel(v2[0],v2[1],v2[2]);
+
+        Pt -= dvt * (p[0].getMass() * (ave_v[0][0] * slowdown.kappa*pf[0][0] +
+                                       ave_v[0][1] * slowdown.kappa*pf[0][1] +
+                                       ave_v[0][2] * slowdown.kappa*pf[0][2])
+                   + p[1].getMass() * (ave_v[1][0] * slowdown.kappa*pf[1][0] +
+                                       ave_v[1][1] * slowdown.kappa*pf[1][1] +
+                                       ave_v[1][2] * slowdown.kappa*pf[1][2]));
+        
+        if(dw_calc_flag) w += dvt*(ave_v[0][0] * dWt[0] +
+                                  ave_v[0][1] * dWt[1] +
+                                  ave_v[0][2] * dWt[2] -
+                                  ave_v[1][0] * dWt[0]*m1_m2 - 
+                                  ave_v[1][1] * dWt[1]*m1_m2 - 
+                                  ave_v[1][2] * dWt[2]*m1_m2);
+        
+        Ekin = 0.5 * (p[0].getMass() * (v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2])
+                     +p[1].getMass() * (v2[0]*v2[0]+v2[1]*v2[1]+v2[2]*v2[2]));
+        
+    }
+
+    slowdown.updatefpertsq(fp2);
+
+#ifdef ARC_PROFILE
+    profile.t_sym += get_wtime();
+#endif
+
+  }  
+    
+#endif
 
   //! high order symplectic integrator with time synchronization
   /*! Integration with high order symplectic integrator
@@ -3898,6 +4069,12 @@ public:
       const Float eerr_min = pars.sym_An*0.5*pars.exp_error;
       bool tend_flag=false; // go to ending step
 
+#ifdef ARC_OPT_SYM2
+      const Float pm1 = p[0].getMass();
+      const Float pm2 = p[1].getMass();
+      const Float m2_mt = pm2/(pm1+pm2);
+      const Float m1_m2 = pm1/pm2;
+#endif
       while(true) {
           // backup /restore data
           if(bk_flag) {
@@ -3913,7 +4090,12 @@ public:
           }
           
           // integrate one step
+#ifdef ARC_OPT_SYM2
+          if(num==2) Symplectic_integration_two(ds[dsk], pars, timetable, m2_mt, m1_m2, int_pars, pert, pertf, npert);
+          else Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false);
+#else 
           Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false);
+#endif
 
           stepcount++;
 
@@ -4078,7 +4260,18 @@ public:
       Float Ekin_bk = Ekin;
       Float Pot_bk  = Pot;
 
+#ifdef ARC_OPT_SYM2
+      const Float pm1 = p[0].getMass();
+      const Float pm2 = p[1].getMass();
+      const Float m2_mt = pm2/(pm1+pm2);
+      const Float m1_m2 = pm1/pm2;
+
+      if(num==2) Symplectic_integration_two(s, pars, timetable, m2_mt, m1_m2, int_pars, pert, pertf, npert);
+      else Symplectic_integration(s, pars, timetable, int_pars, pert, pertf, npert, false);
+#else 
       Symplectic_integration(s, pars, timetable, int_pars, pert, pertf, npert, false);
+#endif
+
       Float tbk =t;
 
       restore(bk);
@@ -4086,7 +4279,13 @@ public:
       Pot= Pot_bk;
       resolve_V();
 
+#ifdef ARC_OPT_SYM2
+      if(num==2) Symplectic_integration_two(s, pars, timetable, m2_mt, m1_m2, int_pars, pert, pertf, npert);
+      else Symplectic_integration(s, pars, timetable, int_pars, pert, pertf, npert, false);
+#else 
       Symplectic_integration(s, pars, timetable, int_pars, pert, pertf, npert, false);
+#endif
+
       if(t!=tbk) {
           std::cerr<<"Error, data is not correctly restored, integratin time twice give different results: "<<t<<" "<<tbk<<" diff="<<t-tbk<<std::endl;
           abort();
