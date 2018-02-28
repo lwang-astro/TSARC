@@ -438,6 +438,7 @@ int main(int argc, char **argv){
   const Float m2_mt = pm2/(pm1+pm2);
   const Float m1_m2 = pm1/pm2;
   Float timetable[abs(sym_k)];
+  if(n==2&&ms<0) std::cerr<<"Use opt sym2\n";
 #endif
 
   // integration loop

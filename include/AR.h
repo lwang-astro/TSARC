@@ -1286,19 +1286,23 @@ private:
           xjk[2] = xk[2] - xj[2];
         }
 
-        Float3 At,dWt;
-        Float Pt,Wt;
+        Float3 At,dWt_jk;
+        Float Pot_jk,Wt_jk;
 //        const Float mj=pj->getMass();
 //        const Float mk=pk->getMass();
 
         // force calculation function from k to j
-        int stat = fforce(At, Pt, dWt, Wt, xjk, *pj, *pk, pars);
+#ifdef ARC_WARN
+        int stat = fforce(At, Pot_jk, dWt_jk, Wt_jk, xjk, *pj, *pk, pars);
         if (stat!=0&&info==NULL) {
           info = new chaininfo(num);
           info->status = stat;
           info->i1 = lj;
           info->i2 = lk;
         }
+#else 
+        fforce(At, Pot_jk, dWt_jk, Wt_jk, xjk, *pj, *pk, pars);
+#endif
 
 //        // resolve sub-chain
 //        if(resolve_flag && p.isChain(lk)) {
@@ -1306,7 +1310,7 @@ private:
 //          // center shift to current frame
 //          ck->center_shift_inverse_X();
 //          const int cn = ck->p.getN();
-//          Pt = 0;
+//          Pot_jk = 0;
 //          for (int i=0;i<3;i++) At[i]=0.0;
 //          for (int i=0;i<cn;i++) {
 //            Float Ptemp;
@@ -1319,7 +1323,7 @@ private:
 //            At[2] += Atemp[2];
 //            
 //            // Potential
-//            if (k>j) Pt += Ptemp;
+//            if (k>j) Pot_jk += Ptemp;
 //          }
 //          // center shift back
 //          ck->center_shift_X();
@@ -1331,13 +1335,13 @@ private:
         acc[lj][2] += At[2];
 
         // dW/dr
-        dWdr[lj][0] += dWt[0];
-        dWdr[lj][1] += dWt[1];
-        dWdr[lj][2] += dWt[2];
+        dWdr[lj][0] += dWt_jk[0];
+        dWdr[lj][1] += dWt_jk[1];
+        dWdr[lj][2] += dWt_jk[2];
 
         if (k>j) {
-          Pot_c += Pt; // Potential energy
-          W_c += Wt;   // Transformation coefficient
+          Pot_c += Pot_jk; // Potential energy
+          W_c += Wt_jk;   // Transformation coefficient
         }
       }
       // add perturber force
@@ -1523,7 +1527,7 @@ private:
                     rk[1] + X[i][1],
                     rk[2] + X[i][2]);
 
-      // center-of-mass position and velocity
+      // center-of-mass position 
       const Float mkn = p[lkn].getMass();
       const Float *rkn = p[lkn].getPos();
       xc[0] += mkn * rkn[0];
@@ -1531,7 +1535,7 @@ private:
       xc[2] += mkn * rkn[2];
     }
 
-    // calcualte center-of-mass position and velocity shift
+    // calcualte center-of-mass position shift
     const Float over_mc = 1.0/particle::getMass();
     xc[0] *= over_mc;
     xc[1] *= over_mc;
@@ -2180,11 +2184,13 @@ public:
   Float calc_dt_X(const Float ds, const chainpars &pars) {
     // determine the physical time step
     Float dt = ds / (pars.alpha * (Ekin + Pt) + pars.beta * w + pars.gamma);
+#ifdef ARC_WARN
     if (abs(dt) < pars.dtmin && info==NULL) {
       info=new chaininfo(num);
       info->status = 4;
       info->subdt = dt;
     }
+#endif
     return dt;
   }
   
@@ -2889,7 +2895,7 @@ public:
     for (int i=0;i<n;i++) {
       // half step forward for t (dependence: Ekin, Pt, w)
       Float dt = calc_dt_X(ds*0.5,pars);
-
+#ifdef ARC_WARN
       if (info!=NULL) {
         info->inti = i;
         info->subds = ds;
@@ -2899,7 +2905,7 @@ public:
         check_flag=0;
         break;
       }
-
+#endif
       // step_forward time
       t += dt;
       
@@ -2960,13 +2966,14 @@ public:
 
       // Update rjk, A, Pot, dWdr, W for half X (dependence: pf, force, p.m, p.x, X)
       calc_rAPW(f, int_pars);
+#ifdef ARC_WARN
       if (info!=NULL) {
         info->inti = i;
         info->subds = ds;
         check_flag=0;
         break;
       }
-
+#endif
       // update slow-down
       updateSlowDownFpert();
 
@@ -2992,6 +2999,7 @@ public:
       // step forward for t (dependence: Ekin, Pt, w)
       dt = calc_dt_X(ds*0.5,pars);
 
+#ifdef ARC_WARN
       // accident check
       if (info!=NULL) {
         info->inti = i;
@@ -3002,6 +3010,7 @@ public:
         check_flag=0;
         break;
       }
+#endif
 
       t += dt;
 
@@ -3221,6 +3230,7 @@ public:
       // intergration
       Leapfrog_step_forward<pertparticle_,pertforce_,extpar_>(ds,step[intcount],pars,int_pars,pert,pertf,npert,0,pd[intcount],ndmax[intcount]);
 
+#ifdef ARC_WARN
       // accident detection
       if (info!=NULL) {
         reset_flag = true;
@@ -3228,6 +3238,7 @@ public:
         info->ds = ds;
         break;
       }
+#endif
 
       // increase iteration counter
       itercount += step[intcount];
@@ -3793,6 +3804,7 @@ public:
      // Drift t (dependence: Ekin, Pt, w)
       Float dt = calc_dt_X(pars.sym_coff[i][0]*s,pars);
 
+#ifdef ARC_WARN
       if (info!=NULL) {
         info->inti = i;
         info->subds = s;
@@ -3801,7 +3813,7 @@ public:
         info->W = W;
         break;
       }
-
+#endif
       // step_forward time
       t += dt;
 
@@ -3914,6 +3926,11 @@ public:
             abort();
         }
     }
+
+    if(timetable==NULL) {
+        std::cerr<<"Error: timetable point is NULL!"<<std::endl;
+        abort();
+    }
 #endif
     const bool dw_calc_flag = pars.beta>0;
     const bool fpert_flag = fpert!=NULL;
@@ -3925,7 +3942,21 @@ public:
 
         // Drift t (dependence: Ekin, Pt, w)
         Float dt = pars.sym_coff[i][0]*s / (pars.alpha * (Ekin + Pt) + pars.beta * w + pars.gamma);
-        
+
+#ifdef ARC_WARN        
+        if (abs(dt) < pars.dtmin && info==NULL) {
+            info=new chaininfo(num);
+            info->status = 4;
+            info->subdt = dt;
+            info->inti = i;
+            info->subds = s;
+            info->Ekin = Ekin;
+            info->Pot = Pot;
+            info->W = W;
+            break;
+        }
+#endif
+
         // step_forward time
         t += dt;
 
@@ -3949,14 +3980,26 @@ public:
         p[0].setPos(x1[0],x1[1],x1[2]);
         p[1].setPos(x2[0],x2[1],x2[2]);
 
-        if(fpert_flag) fpert(pf, slowdown.kappa*t, p.getData(), 2, pert, pertf, npert, int_pars);
+        if(fpert_flag) fpert(pf, slowdown.kappa*t, p.getData(), p.getN(), pert, pertf, npert, int_pars);
         
         Float3 At,dWt;
-        Float Pt,Wt;
+        Float Pott,Wt;
 
-        f(At, Pt, dWt, Wt, X[0], p[0], p[1], int_pars);
+#ifdef ARC_WARN
+        int stat=f(At, Pott, dWt, Wt, X[0], p[0], p[1], int_pars);
+        if (stat!=0&&info==NULL) {
+          info = new chaininfo(num);
+          info->status = stat;
+          info->i1 = 0;
+          info->i2 = 1;
+          info->inti = i;
+          break;
+        }
+#else
+        f(At, Pott, dWt, Wt, X[0], p[0], p[1], int_pars);
+#endif
 
-        Pot = Pt;
+        Pot = Pott;
         W = Wt;
 
         // Kick time step dt(V) (dependence: Pot, W)
@@ -4004,17 +4047,31 @@ public:
                                        ave_v[1][2] * slowdown.kappa*pf[1][2]));
         
         if(dw_calc_flag) w += dvt*(ave_v[0][0] * dWt[0] +
-                                  ave_v[0][1] * dWt[1] +
-                                  ave_v[0][2] * dWt[2] -
-                                  ave_v[1][0] * dWt[0]*m1_m2 - 
-                                  ave_v[1][1] * dWt[1]*m1_m2 - 
-                                  ave_v[1][2] * dWt[2]*m1_m2);
+                                   ave_v[0][1] * dWt[1] +
+                                   ave_v[0][2] * dWt[2] -
+                                   ave_v[1][0] * dWt[0]*m1_m2 - 
+                                   ave_v[1][1] * dWt[1]*m1_m2 - 
+                                   ave_v[1][2] * dWt[2]*m1_m2);
         
         Ekin = 0.5 * (p[0].getMass() * (v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2])
                      +p[1].getMass() * (v2[0]*v2[0]+v2[1]*v2[1]+v2[2]*v2[2]));
         
     }
 
+    // resolve X
+    Float3 x1,x2;
+    x1[0] = - m2_mt*X[0][0];
+    x1[1] = - m2_mt*X[0][1];
+    x1[2] = - m2_mt*X[0][2];
+        
+    x2[0] = x1[0] + X[0][0];
+    x2[1] = x1[1] + X[0][1];
+    x2[2] = x1[2] + X[0][2];
+
+    p[0].setPos(x1[0],x1[1],x1[2]);
+    p[1].setPos(x2[0],x2[1],x2[2]);
+
+    // update slowdown factor
     slowdown.updatefpertsq(fp2);
 
 #ifdef ARC_PROFILE
