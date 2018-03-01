@@ -3887,7 +3887,7 @@ public:
                                   chainpars &pars,
                                   Float* timetable,
                                   const Float m2_mt,
-                                  const Float m1_m2,
+                                  const Float m1_m2_1,
                                   extpar_ *int_pars = NULL,
                                   pertparticle_* pert = NULL, 
                                   pertforce_* pertf = NULL, 
@@ -3934,7 +3934,7 @@ public:
 #endif
     const bool dw_calc_flag = pars.beta>0;
     const bool fpert_flag = fpert!=NULL;
-    const Float m1_m2_1 = -m1_m2 - 1.0;
+//    const Float m1_m2_1 = -m1_m2 - 1.0;
     Float fp2 = 0.0;
 
     // integration with cofficients table
@@ -4049,9 +4049,9 @@ public:
         if(dw_calc_flag) w += dvt*(ave_v[0][0] * dWt[0] +
                                    ave_v[0][1] * dWt[1] +
                                    ave_v[0][2] * dWt[2] -
-                                   ave_v[1][0] * dWt[0]*m1_m2 - 
-                                   ave_v[1][1] * dWt[1]*m1_m2 - 
-                                   ave_v[1][2] * dWt[2]*m1_m2);
+                                   ave_v[1][0] * dWt[0] - 
+                                   ave_v[1][1] * dWt[1] - 
+                                   ave_v[1][2] * dWt[2]);
         
         Ekin = 0.5 * (p[0].getMass() * (v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2])
                      +p[1].getMass() * (v2[0]*v2[0]+v2[1]*v2[1]+v2[2]*v2[2]));
@@ -4130,7 +4130,7 @@ public:
       const Float pm1 = p[0].getMass();
       const Float pm2 = p[1].getMass();
       const Float m2_mt = pm2/(pm1+pm2);
-      const Float m1_m2 = pm1/pm2;
+      const Float m1_m2_1 = -pm1/pm2-1.0;
 #endif
       while(true) {
           // backup /restore data
@@ -4148,7 +4148,7 @@ public:
           
           // integrate one step
 #ifdef ARC_OPT_SYM2
-          if(num==2) Symplectic_integration_two(ds[dsk], pars, timetable, m2_mt, m1_m2, int_pars, pert, pertf, npert);
+          if(num==2) Symplectic_integration_two(ds[dsk], pars, timetable, m2_mt, m1_m2_1, int_pars, pert, pertf, npert);
           else Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false);
 #else 
           Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false);

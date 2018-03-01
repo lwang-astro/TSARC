@@ -436,7 +436,7 @@ int main(int argc, char **argv){
   const Float pm1=c.getP(0).getMass();
   const Float pm2=c.getP(1).getMass();
   const Float m2_mt = pm2/(pm1+pm2);
-  const Float m1_m2 = pm1/pm2;
+  const Float m1_m2_1 = -pm1/pm2-1.0;
   Float timetable[abs(sym_k)];
   if(n==2&&ms<0) std::cerr<<"Use opt sym2\n";
 #endif
@@ -485,7 +485,7 @@ int main(int argc, char **argv){
       if(tend<0) {
           stepsum++;
 #ifdef ARC_OPT_SYM2
-          if(n==2) c.Symplectic_integration_two<Particle,ARC::Float3,NTA::Newtonian_pars>(s,pars,timetable,m2_mt,m1_m2,&Int_pars,&p[n],pf,npert);
+          if(n==2) c.Symplectic_integration_two<Particle,ARC::Float3,NTA::Newtonian_pars>(s,pars,timetable,m2_mt,m1_m2_1,&Int_pars,&p[n],pf,npert);
           else c.Symplectic_integration<Particle,ARC::Float3,NTA::Newtonian_pars>(s,pars,NULL,&Int_pars,&p[n],pf,npert);
 #else
           c.Symplectic_integration<Particle,ARC::Float3,NTA::Newtonian_pars>(s,pars,NULL,&Int_pars,&p[n],pf,npert);
