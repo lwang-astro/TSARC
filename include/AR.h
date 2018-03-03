@@ -973,6 +973,28 @@ public:
         else kappa = 1.0;
     }
 
+    //! adjust slow-down factor to integer times of periods for given dt
+    /*! Obtain current slow-down factor
+      @param [in] dt: physical time step (assume dt is constant before next update of kappa) without slow-down factor
+      \return the corresponding orbital number for kappa
+     */
+    int adjustkappaPeriod(const Float dt) {
+        if(is_used) {
+            int kp = to_int(dt/(kappa*Tperi))+1;
+            kappa = dt/(kp*Tperi);
+            if(kappa<1.0) {
+                kappa=1.0;
+                return 0;
+            }
+            else return kp;
+        }
+        else {
+            kappa = 1.0;
+            return 0;
+        }
+    }
+
+
     // Get slow-down factor
     /*!
       \return get adjusted kappa by keeping phase corrected
