@@ -11,9 +11,10 @@ int main(int argc, char **argv){
    int num=1;
    int WIDTH=22;
    int PRECISION=15;
+   int unit=0;
 
    int copt;
-   while ((copt = getopt(argc, argv, "in:w:p:h")) != -1)
+   while ((copt = getopt(argc, argv, "in:w:p:u:h")) != -1)
        switch (copt) {
        case 'i':
            iflag=true;
@@ -27,6 +28,9 @@ int main(int argc, char **argv){
        case 'p':
            PRECISION=atoi(optarg);
            break;
+       case 'u':
+           unit=atoi(optarg);
+           break;
        case 'h':
            std::cout<<"keplerorbit [option] datafilename\n"
                     <<"    pariticle data (two lines): m, x(1:3), v(1:3)\n"
@@ -36,6 +40,7 @@ int main(int argc, char **argv){
                     <<"   -n [int]:  number of pairs(1)\n"
                     <<"   -w [int]:  print width(22)\n"
                     <<"   -p [int]:  print precision(15)\n"
+                    <<"   -u [int]:  0: unscale; 1: x[PC], v[km/s], semi[AU], period[days]; 2: x[AU], v[km/s], semi[AU], period[days]\n"
                     <<std::endl;
            return 0;
        default:
@@ -90,7 +95,7 @@ int main(int argc, char **argv){
                dx[j] = x2[j]-x1[j];
                dv[j] = v2[j]-v1[j];
            }
-           NTA::calc_kepler_orbit_par(ax,period,ecc,angle,true_anomaly,ecc_anomaly,mean_anomaly,mc,dx,dv);
+           NTA::calc_kepler_orbit_par(ax,period,ecc,angle,true_anomaly,ecc_anomaly,mean_anomaly,mc,dx,dv,unit);
            std::cout<<std::setw(WIDTH)<<m1
                     <<std::setw(WIDTH)<<m2
                     <<std::setw(WIDTH)<<xc[0]
@@ -118,7 +123,7 @@ int main(int argc, char **argv){
                std::cerr<<"Error: data file reach end when reading pairs (current loaded pair number is "<<i+1<<"; required pair number "<<num<<std::endl;
                abort();
            }
-           NTA::kepler_orbit_generator(x1,x2,v1,v2,m1,m2,ax,ecc,angle,ecc_anomaly);
+           NTA::kepler_orbit_generator(x1,x2,v1,v2,m1,m2,ax,ecc,angle,ecc_anomaly,unit);
            for (int j=0; j<3; j++) {
                x1[j] += xc[j];
                x2[j] += xc[j];

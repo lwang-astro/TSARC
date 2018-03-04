@@ -205,24 +205,34 @@ namespace NTA {
     @param[in] m: total mass of two particles
     @param[in] dx: relative position [3]
     @param[in] dv: relative velocity [3]
+    @param[in] AU_flag: 0: no unit scaling; 1: dx [PC], dv[km/s], m[Msun], 2: dx[AU], dv[km/s], m[Msun]. Output for (1,2): semi[AU], peri[days]
    */
-  void calc_kepler_orbit_par(Float &semi, Float &peri, Float &ecc, Float angle[3], Float &true_anomaly, Float &ecc_anomaly, Float &mean_anomaly, const Float m, const Float dx[3], const Float dv[3]) {
-    const Float dr2  = dx[0]*dx[0] + dx[1]*dx[1] + dx[2]*dx[2];
-    const Float dv2  = dv[0]*dv[0] + dv[1]*dv[1] + dv[2]*dv[2];
-    const Float rvdot = dx[0]*dv[0] + dx[1]*dv[1] + dx[2]*dv[2];
+  void calc_kepler_orbit_par(Float &semi, Float &peri, Float &ecc, Float angle[3], Float &true_anomaly, Float &ecc_anomaly, Float &mean_anomaly, const Float m, const Float dx[3], const Float dv[3], const int AU_flag=0) {
+    const Float twopi = 8.0*std::atan(1.0);
+    Float Gm = m;
+    Float Rscale = 1.0;
+    Float Tscale=twopi;
+    if(AU_flag) {
+        Gm *= 887.351195412; // AU Msun^-1 (km/s)^2
+        Tscale=365.25; // days
+    }
+    if(AU_flag==1) Rscale = 206264.806; // pc->au
+
+    const Float dr2  = (dx[0]*dx[0] + dx[1]*dx[1] + dx[2]*dx[2])*Rscale*Rscale;
+    const Float dv2  = (dv[0]*dv[0] + dv[1]*dv[1] + dv[2]*dv[2]);
+    const Float rvdot = (dx[0]*dv[0] + dx[1]*dv[1] + dx[2]*dv[2])*Rscale;
     const Float dr   = sqrt(dr2);
 
-    semi = 1.0/(2.0/dr - dv2/m);
+    semi = 1.0/(2.0/dr - dv2/Gm); // AU
 
     const Float dr_semi = 1.0 - dr/semi;
-    ecc  = sqrt(dr_semi*dr_semi + rvdot*rvdot/(m*semi));
+    ecc  = sqrt(dr_semi*dr_semi + rvdot*rvdot/(Gm*semi));
 
-    const Float twopi = 8.0*std::atan(1.0);
-    peri = twopi*abs(semi)*sqrt(abs(semi)/m);
+    peri = Tscale*abs(semi)*sqrt(abs(semi)/m);
 
     const Float rvcross[3]={dx[1]*dv[2]-dx[2]*dv[1],
-                             dx[2]*dv[0]-dx[0]*dv[2],
-                             dx[0]*dv[1]-dx[1]*dv[0]};
+                            dx[2]*dv[0]-dx[0]*dv[2],
+                            dx[0]*dv[1]-dx[1]*dv[0]};
 
     // inclination to x-y plane
     const Float rvcxy = sqrt(rvcross[0]*rvcross[0]+rvcross[1]*rvcross[1]);
@@ -248,8 +258,8 @@ namespace NTA {
 //                          -(rvcross[0]*sinthe + rvcross[1]*costhe)*cosinc + rvcross[2]*sininc,
 //                           0};
     const Float h = sqrt(rvcxy*rvcxy + rvcross[2]*rvcross[2]);
-    const Float ecc_cos =  h/m*dv_op[1] - dr_op[0]/dr;
-    const Float ecc_sin = -h/m*dv_op[0] - dr_op[1]/dr;
+    const Float ecc_cos =  h/Gm*dv_op[1] - dr_op[0]/dr;
+    const Float ecc_sin = -h/Gm*dv_op[0] - dr_op[1]/dr;
     //    std::cout<<std::setprecision(15)<<"\ncos "<<ecc_cos<<" sin "<<ecc_sin<<" h "<<h<<" m "<<m<<"\n dv_op "<<dv_op[0]<<" "<<dv_op[1]<<" "<<dv_op[0]*dv_op[0]+dv_op[1]*dv_op[1]<<" dr_op "<<dr_op[0]<<" "<<dr_op[1]<<" "<<dr_op[0]*dr_op[0]+dr_op[1]*dr_op[1]<<"\n dr2 "<<dr2<<" dv2 "<<dv2<<" costhe "<<costhe<<" sinthe "<<sinthe<<" dx[0] "<<dx[0]<<" dx[1] "<<dx[1]<<" "<<dx[0]*dx[0]+dx[1]*dx[1]<<" "<<costhe*costhe+sinthe*sinthe<<std::endl;
     //    abort();
 
@@ -270,16 +280,23 @@ namespace NTA {
     
   }
 
-  void kepler_orbit_generator(Float x1[3], Float x2[3], Float v1[3], Float v2[3], const Float m1, const Float m2, const Float semi, const Float ecc, const Float angle[3], const Float ecc_anomaly) {
+  void kepler_orbit_generator(Float x1[3], Float x2[3], Float v1[3], Float v2[3], const Float m1, const Float m2, const Float semi, const Float ecc, const Float angle[3], const Float ecc_anomaly, const int AU_flag=0) {
     Float m = m1+m2;
     Float sine = sin(ecc_anomaly);
     Float cose = cos(ecc_anomaly);
 
     Float eoff=sqrt(1.0-ecc*ecc);
-    Float coff=sqrt(m/(semi*semi*semi));
+    Float coff=sqrt(m/(semi*semi*semi));  //2pi/T
 
-    Float dr[3]={ semi*(cose-ecc),               semi*eoff*sine,                     0.0};
-    Float dv[3]={-semi*coff*sine/(1.0-ecc*cose), semi*coff*eoff*cose/(1.0-ecc*cose), 0.0};
+    Float semisc=semi;
+    Float semicoff=semi*coff;
+    if(AU_flag==1) {
+        semisc /=206264.806; // AU to PC
+    }
+    if(AU_flag) semicoff *=29.7858905; // semi[AU]/T[yr] -> semi*2pi/T [km/s]
+    
+    Float dr[3]={ semisc*(cose-ecc),              semisc*eoff*sine,                     0.0};
+    Float dv[3]={-semicoff*sine/(1.0-ecc*cose),   semicoff*eoff*cose/(1.0-ecc*cose), 0.0};
 
     //rotation
     const Float sininc = sin(angle[0]);
