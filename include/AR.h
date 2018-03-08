@@ -4372,6 +4372,12 @@ public:
       else {
           std::cerr<<"Data can be successfully restored, step = "<<s<<std::endl;
       }
+
+      restore(bk);
+      Ekin= Ekin_bk;
+      Pot= Pot_bk;
+      resolve_V();
+
     }
 #endif
 

@@ -442,16 +442,18 @@ int main(int argc, char **argv){
 #endif
 
   // integration loop
+  Float t0 = 0.0;
   while (true) {
 #ifdef DEBUG
     std::cerr<<"Time error: "<<c.getTime()-tend<<std::endl;
 #endif
     // if reaching ending time or maximum integration step number, stop
-    if ((tend<0&&i==nstep)||(tend>0&&abs(c.getTime()-tend)<terr)) {
+    if ((tend<0&&i==nstep)||(tend>0&&abs(c.getTime()-tend)<(c.getTime()-t0)*terr)) {
       c.dump("chain_snapshot_dump");
       pars.dump("chain_pars_dump");
       break;
     }
+    t0 = c.getTime();
 
     // increasing integration counter
     i++;
