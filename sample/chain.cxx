@@ -292,7 +292,15 @@ int main(int argc, char **argv){
 
   pars.setA(NTA::Newtonian_AW,NTA::Newtonian_extAcc,NTA::Newtonian_kepler_period);
 
-  if (parfile) pars.read(parfile);
+  if (parfile) {
+      std::FILE* fp = std::fopen(parfile,"r");
+      if (fp==NULL) {
+           std::cerr<<"Error: filename ARC_dump.dat cannot be open!\n";
+           abort();
+      }
+      pars.read(fp);
+      fclose(fp);
+  }
   
   // set error parameter
   if (parfile) {
@@ -374,7 +382,15 @@ int main(int argc, char **argv){
     c.linkP(n,p);
   }
   else {
-    if (lpflag==1) c.read(filename);
+    if (lpflag==1) {
+      std::FILE* fp = std::fopen(filename,"r");
+      if (fp==NULL) {
+           std::cerr<<"Error: filename ARC_dump.dat cannot be open!\n";
+           abort();
+      }
+      c.read(fp);
+      fclose(fp);
+    }
     else if (lpflag==2) c.readP(filename);
   }
 
@@ -449,8 +465,13 @@ int main(int argc, char **argv){
 #endif
     // if reaching ending time or maximum integration step number, stop
     if ((tend<0&&i==nstep)||(tend>0&&abs(c.getTime()-tend)<(c.getTime()-t0)*terr)) {
-      c.dump("chain_snapshot_dump");
-      pars.dump("chain_pars_dump");
+      std::FILE* fp = std::fopen("ARC_dump.dat","w");
+      if (fp==NULL) {
+           std::cerr<<"Error: filename ARC_dump.dat cannot be open!\n";
+           abort();
+      }
+      c.dump(fp);
+      pars.dump(fp);
       break;
     }
     t0 = c.getTime();
