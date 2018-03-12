@@ -903,6 +903,7 @@ class chainslowdown{
 template <class T> friend class chain;
 private:
     Float kappa;          // slow-down factor
+    Float kappa_org;      // original slow-down factor
     Float fpertsqmax;     // maximum perturbation force square recorded
     Float fpertsqlast;    // last perturbation force square record
     Float Trecord;      // current time
@@ -956,8 +957,14 @@ public:
                 assert(fpertsqmax<finnersq);
             }
 #endif
-            if (fpertsqmax>0) kappa = std::max(Float(1.0),kref/(sqrt(fpertsqmax/finnersq)));
-            else kappa = (tend-time)/Tperi;
+            if (fpertsqmax>0) {
+                kappa_org = kref/sqrt(fpertsqmax/finnersq);
+                kappa = std::max(Float(1.0),kappa_org);
+            }
+            else {
+                kappa_org = 1.0;
+                kappa = (tend-time)/Tperi;
+            }
             fpertsqmax = fpertsqlast;
         }
         if(tend - time < Tperi) kappa = 1.0;
@@ -1003,6 +1010,14 @@ public:
     */
     Float getkappa() const {
         return kappa;
+    }
+
+    // Get original slow-down factor
+    /*!
+      \return kappa_origin
+    */
+    Float getkappaorg() const {
+        return kappa_org;
     }
 
     //! Switcher of slow-down
@@ -4298,6 +4313,10 @@ public:
                   }
                   nsub--;
               }
+              if(tend_flag&&ds[dsk]==ds[1-dsk]) {
+                  if(nsubcount>3&&(tend-t)>10*terr) ds[1-dsk] = dsbk;
+                  else nsubcount++;
+              }
 
               // update ds
               ds[dsk] = ds[1-dsk]; // when used once, update to the new step
@@ -4309,6 +4328,7 @@ public:
           else if(t>tend+terr) {
               tend_flag = true;
               bk_flag = false;
+              nsubcount=0;
               // check timetable
               int i=-1,k=0;
               for(i=0; i<symk; i++) {
@@ -4326,7 +4346,8 @@ public:
                   Float tp = timetable[pars.sym_order[i-1].index];
                   Float dt = timetable[k] - tp;
                   Float dtmp = ds[dsk];
-                  ds[dsk] *= pars.sym_order[i-1].cck;  // first set step to nearest k for t<tend 
+                  ds[dsk] *= pars.sym_order[i-1].cck;  // first set step to nearest k for t<tend
+                  dsbk = ds[dsk];
                   ds[1-dsk] = dtmp*(pars.sym_order[i].cck-pars.sym_order[i-1].cck)*(tend-tp)/dt; //then set next step to c_k+1 -c_k
 #ifdef ARC_DEEP_DEBUG
                   std::cerr<<"T-end reach, t0 = "<<tp<<" t1 = "<<timetable[k]<<" t = "<<t<<" (tend-tp)/dt="<<(tend-tp)/dt<<" ck1="<<pars.sym_order[i].cck<<" ck0="<<pars.sym_order[i-1].cck<<" ds1 = "<<ds[dsk]<<" ds2 = "<<ds[1-dsk]<<" \n";
