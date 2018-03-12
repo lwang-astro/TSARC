@@ -4138,7 +4138,8 @@ public:
                                   pertparticle_* pert = NULL, 
                                   pertforce_* pertf = NULL, 
                                   const int npert = 0,
-                                  const bool fix_step_flag = false) {
+                                  const bool fix_step_flag = false,
+                                  const int max_nstep=100000) {
 
       // slowdown time
       const Float tend = tend_in/slowdown.kappa;
@@ -4192,6 +4193,13 @@ public:
 #endif
 
           stepcount++;
+          
+          if(stepcount>max_nstep) {
+              std::cerr<<"Error! stepcount >"<<max_nstep<<std::endl;
+              std::cerr<<"Time: "<<t<<" Tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
+                       <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+              abort();
+          }
 
 #ifdef ARC_DEEP_DEBUG
           std::cerr<<"Symplectic count: "<<stepcount<<" time: "<<t<<" tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
