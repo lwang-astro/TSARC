@@ -16,6 +16,9 @@
 #include <cassert>
 #endif
 
+#ifdef FAPP_PROFILE
+#include <fj_tool/fapp.h>
+#endif
 
 #ifdef ARC_DEEP_DEBUG
 #define WIDTH 10
@@ -3812,6 +3815,10 @@ public:
     profile.t_sym -= get_wtime();
 #endif
 
+#ifdef FAPP_PROFILE
+    fapp_start("sym",1,1);
+#endif
+
     pair_AW<particle,extpar_> f = reinterpret_cast<pair_AW<particle_,extpar_>>(pars.pp_AW);
     ext_Acc<particle,pertparticle_,pertforce_,extpar_> fpert = reinterpret_cast<ext_Acc<particle,pertparticle_,pertforce_,extpar_>>(pars.ext_A);
 
@@ -3911,6 +3918,10 @@ public:
 
     // update chain list order
     if(num>2&&check_flag)  update_link();
+
+#ifdef FAPP_PROFILE
+    fapp_stop("sym",1,1);
+#endif
 
 #ifdef ARC_PROFILE
     profile.t_sym += get_wtime();
