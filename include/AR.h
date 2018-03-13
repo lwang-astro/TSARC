@@ -4157,7 +4157,9 @@ public:
                                   const int max_nstep=100000) {
 
       // slowdown time
+      const Float invk = 1.0/slowdown.kappa;
       const Float tend = tend_in/slowdown.kappa;
+      Float dt;
 
       const int dsize  = 6*(num-1)+3;
       const int darray = dsize+1; // backup data array size;
@@ -4200,13 +4202,21 @@ public:
           }
           
           // integrate one step
+          dt = t;
 #ifdef ARC_OPT_SYM2
           if(num==2) Symplectic_integration_two(ds[dsk], pars, timetable, m2_mt, m1_m2_1, int_pars, pert, pertf, npert);
           else Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false);
 #else 
           Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false);
 #endif
+          dt = (t -dt)*invk;
 
+          if(!tend_flag&&dt<pars.dtmin) {
+              std::cerr<<"Error! symplectic integrated time step ("<<dt<<") < minimum step ("<<pars.dtmin<<")!\n";
+              std::cerr<<" stepcount: "<<stepcount<<" ds_used: "<<ds[dsk]<<" energy error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+              abort();
+          }
+          
           stepcount++;
           
           if(stepcount>max_nstep) {
