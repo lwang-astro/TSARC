@@ -3,11 +3,9 @@ TARGET=chain hierarchy symtest keplerorbit
 
 VPATH=../include
 
-use_x86=yes
-#use_k_computer=yes
-QD_PATH=none
+#use_x86=yes
+use_k_computer=yes
 #QD_PATH=/opt/qd-2.3.18
-GPERF_PATH=none
 #GPERF_PATH = /opt/gperftools-2.6.1
 
 
@@ -25,6 +23,9 @@ CXXFLAGS += -x32
 CXXFLAGS += -Xg
 CXXFLAGS += -Nfjcex
 CXXFLAGS += -Krestp=all
+# profiling
+CXXFLAGS += -Ntl_trt
+CXXFLAGS += -DFAPP_PROFILE
 endif
 
 ## for debug------------------------------------------#
@@ -44,12 +45,12 @@ CXXFLAGS += -DARC_OPT_SYM2
 CXXFLAGS += -D ARC_PROFILE
 
 ## gperf----------------------------------------------#
-ifneq ($(GPERF_PATH),none)
+ifneq (x$(GPERF_PATH),x)
 CXXLIBS += -L$(GPERF_PATH)/lib -lprofiler -ltcmalloc
 endif
 
 ## qd-lib---------------------------------------------#
-ifneq ($(QD_PATH),none)
+ifneq (x$(QD_PATH),x)
 CXXFLAGS += -D USE_QD ${shell ${QD_PATH}/bin/qd-config --cxxflags}
 CXXLIBS += ${shell ${QD_PATH}/bin/qd-config --libs}
 endif
