@@ -2396,15 +2396,23 @@ public:
       dtemp[dsize]=dsize;
       backup(dtemp);
       fwrite(dtemp,sizeof(Float),dsize+1,pout);
-      // center-of-mass
-      Float cmass=particle::getMass();
-      fwrite(&cmass,sizeof(Float),1,pout);
-      fwrite(particle::getPos(),sizeof(Float),3,pout);
-      fwrite(particle::getVel(),sizeof(Float),3,pout);
+      // Pot, Ekin
+      fwrite(&Ekin,sizeof(Float),1,pout);
+      fwrite(&Pot,sizeof(Float),1,pout);
+      // center-of-mass particle
+      particle::dump(pout);
+      //Float cmass=particle::getMass();
+      //fwrite(&cmass,sizeof(Float),1,pout);
+      //fwrite(particle::getPos(),sizeof(Float),3,pout);
+      //fwrite(particle::getVel(),sizeof(Float),3,pout);
+      
+      // member particle
+      for(int i=0; i<num; i++) p[i].dump(pout);
       // mass of particles
-      Float *pmass=new Float[num];
-      p.getMassAll(pmass);
-      fwrite(pmass,sizeof(Float),num,pout);
+      //Float *pmass=new Float[num];
+      //p.getMassAll(pmass);
+      //fwrite(pmass,sizeof(Float),num,pout);
+      
       // interaction_parameters
       // if (Int_pars) fwrite(Int_pars,sizeof(int_par),1,pout);
       slowdown.dump(pout);
@@ -2419,7 +2427,7 @@ public:
 //      std::cerr<<std::endl;
       
       delete[] dtemp;
-      delete[] pmass;
+      //delete[] pmass;
   }
 
   // Dump all data including chain, chainpars and necessary information (chain.smpars and #ds)
@@ -2472,34 +2480,48 @@ public:
       
       restore(dtemp);
 
-      // center-of-mass
-      Float cmass,cx[3],cv[3];
-      rn = fread(&cmass,sizeof(Float),1,pin);
+      //Pot, Ekin
+      rn = fread(&Ekin,sizeof(Float),1,pin);
       if(rn<1) {
-        std::cerr<<"Error: cannot read center-of-mass!\n";
+        std::cerr<<"Error: cannot read Ekin!\n";
         abort();
       }
-      rn = fread(cx,sizeof(Float),3,pin);
-      if(rn<3) {
-        std::cerr<<"Error: reading position of center-of-mass particle fails, required reading 3 values, only got "<<rn<<"!\n";
+      rn = fread(&Pot,sizeof(Float),1,pin);
+      if(rn<1) {
+        std::cerr<<"Error: cannot read Pot!\n";
         abort();
       }
-      rn = fread(cv,sizeof(Float),3,pin);
-      if(rn<3) {
-        std::cerr<<"Error: reading velocity of center-of-mass particle fails, required reading 3 values, only got "<<rn<<"!\n";
-        abort();
-      }
-
-      particle::setMass(cmass);
-      particle::setPos(cx[0],cx[1],cx[2]);
-      particle::setVel(cv[0],cv[1],cv[2]);
       
-      Float *pmass=new Float[n];
-      rn = fread(pmass,sizeof(Float),n,pin);
-      if(rn<n) {
-        std::cerr<<"Error: reading particle masses fails, required number of data is "<<n<<", only got "<<rn<<"!\n";
-        abort();
-      }
+      
+      // center-of-mass
+      particle::read(pin);
+      //Float cmass,cx[3],cv[3];
+      //rn = fread(&cmass,sizeof(Float),1,pin);
+      //if(rn<1) {
+      //  std::cerr<<"Error: cannot read center-of-mass!\n";
+      //  abort();
+      //}
+      //rn = fread(cx,sizeof(Float),3,pin);
+      //if(rn<3) {
+      //  std::cerr<<"Error: reading position of center-of-mass particle fails, required reading 3 values, only got "<<rn<<"!\n";
+      //  abort();
+      //}
+      //rn = fread(cv,sizeof(Float),3,pin);
+      //if(rn<3) {
+      //  std::cerr<<"Error: reading velocity of center-of-mass particle fails, required reading 3 values, only got "<<rn<<"!\n";
+      //  abort();
+      //}
+      // 
+      //particle::setMass(cmass);
+      //particle::setPos(cx[0],cx[1],cx[2]);
+      //particle::setVel(cv[0],cv[1],cv[2]);
+      
+      //Float *pmass=new Float[n];
+      //rn = fread(pmass,sizeof(Float),n,pin);
+      //if(rn<n) {
+      //  std::cerr<<"Error: reading particle masses fails, required number of data is "<<n<<", only got "<<rn<<"!\n";
+      //  abort();
+      //}
 
       //Int_pars=new int_par;
       //rn = fread(Int_pars,sizeof(int_par),1,pin);
@@ -2507,14 +2529,12 @@ public:
       //  delete Int_pars;
       //  Int_pars=NULL;
       //}
-      
-      F_read=true;
                  
-      // mass of particles
+      // member particles
       p.allocate(n);
       for (int i=0;i<n;i++) {
           p.add(particle());
-          p[i].setMass(pmass[i]);
+          p[i].read(pin);
       }
 
       slowdown.read(pin);
@@ -2527,9 +2547,11 @@ public:
 //      std::cerr<<"\nMass of particles =";
 //      for (int i=0; i<n;i++) std::cerr<<pmass[i]<<" ";
 //      std::cerr<<std::endl;
+
+      F_read=true;
       
       delete[] dtemp;
-      delete[] pmass;
+      //delete[] pmass;
 
 //#ifdef ARC_PROFILE
 //      profile.initstep(pars.exp_itermax+1);
@@ -2650,7 +2672,7 @@ public:
     }
     if(F_read) {
         // initialization
-        resolve_XV();
+        // resolve_XV();
 
         F_Porigin = 0;
         F_Pmod = false;
@@ -2659,13 +2681,13 @@ public:
         initial_pf();
 
         // get potential and transformation parameter
-        calc_rAPW(f, int_pars);
+        // calc_rAPW(f, int_pars);
 
         // update slow-down
         // updateSlowDownFpert();
  
         // kinetic energy
-        calc_Ekin();
+        // calc_Ekin();
         
     }
     else {
@@ -4175,6 +4197,10 @@ public:
       const int dsize  = 6*(num-1)+3;
       const int darray = dsize+1; // backup data array size;
       Float bk[darray]; // for backup
+#ifdef ARC_DEBUG_DUMP
+      Float bk0[darray],Ekin_0,Pot_0; // for backup
+      particle p0[num];
+#endif
       bk[dsize] = (Float)dsize;    // label for safety check
       const int symk = pars.sym_k;
       Float timetable[symk]; // for storing time information
@@ -4192,6 +4218,13 @@ public:
       const Float eerr_min = pars.sym_An*0.5*pars.exp_error;
       bool tend_flag=false; // go to ending step
 
+#ifdef ARC_DEBUG_DUMP
+      backup(bk0);
+      Ekin_0 = Ekin;
+      Pot_0 = Pot;
+      for (int i=0; i<num; i++) p0[i]=p[i];
+#endif
+      
 #ifdef ARC_OPT_SYM2
       const Float pm1 = p[0].getMass();
       const Float pm2 = p[1].getMass();
@@ -4220,9 +4253,9 @@ public:
 #else 
           Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false);
 #endif
-          dt = (t -dt)*invk;
+          dt = t -dt;
 
-          if(!tend_flag&&dt<pars.dtmin) {
+          if(!tend_flag&&dt*invk<pars.dtmin) {
               std::cerr<<"Error! symplectic integrated time step ("<<dt<<") < minimum step ("<<pars.dtmin<<")!\n";
               std::cerr<<" stepcount: "<<stepcount<<" ds_used: "<<ds[dsk]<<" energy error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
               abort();
@@ -4230,11 +4263,22 @@ public:
           
           stepcount++;
           
-          if(stepcount>max_nstep) {
+          if(stepcount>max_nstep-10) {
               std::cerr<<"Error! stepcount >"<<max_nstep<<std::endl;
               std::cerr<<"Time: "<<t<<" Tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
                        <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
-              abort();
+              std::cerr<<"Tend_flag: "<<tend_flag<<" dt: "<<dt<<" subcount "<<nsubcount<<" dsbk: "<<dsbk<<std::endl;
+#ifdef ARC_DEBUG_DUMP
+              if(stepcount>max_nstep) {
+                  restore(bk0);
+                  Ekin = Ekin_0;
+                  Pot = Pot_0;
+                  for (int i=0; i<num; i++) p[i]=p0[i];
+                  return -stepcount;
+              }
+#else
+              if(stepcount>max_nstep) abort();
+#endif
           }
 
 #ifdef ARC_DEEP_DEBUG
@@ -4335,7 +4379,13 @@ public:
                   nsub--;
               }
               if(tend_flag&&ds[dsk]==ds[1-dsk]) {
-                  if(nsubcount>3&&(tend-t)>10*terr) ds[1-dsk] = dsbk;
+                  Float dtoff = tend-t;
+                  if(nsubcount>1&&dt<0.3*dtoff) {
+                      ds[1-dsk] = ds[dsk]*dtoff/dt;
+#ifdef ARC_DEEP_DEBUG
+                      std::cerr<<"Time step dt "<<dt<<" <0.3*(tend-t) "<<dtoff<<" enlarge step factor: "<<dtoff/dt<<" new ds: "<<ds[1-dsk]<<std::endl;
+#endif
+                  }
                   else nsubcount++;
               }
 
@@ -4365,11 +4415,10 @@ public:
               }
               else {
                   Float tp = timetable[pars.sym_order[i-1].index];
-                  Float dt = timetable[k] - tp;
+                  Float dtk = timetable[k] - tp;
                   Float dtmp = ds[dsk];
                   ds[dsk] *= pars.sym_order[i-1].cck;  // first set step to nearest k for t<tend
-                  dsbk = ds[dsk];
-                  ds[1-dsk] = dtmp*(pars.sym_order[i].cck-pars.sym_order[i-1].cck)*(tend-tp)/dt; //then set next step to c_k+1 -c_k
+                  ds[1-dsk] = dtmp*(pars.sym_order[i].cck-pars.sym_order[i-1].cck)*std::min(1.0,(tend-tp+terr)/dtk); //then set next step to c_k+1 -c_k
 #ifdef ARC_DEEP_DEBUG
                   std::cerr<<"T-end reach, t0 = "<<tp<<" t1 = "<<timetable[k]<<" t = "<<t<<" (tend-tp)/dt="<<(tend-tp)/dt<<" ck1="<<pars.sym_order[i].cck<<" ck0="<<pars.sym_order[i-1].cck<<" ds1 = "<<ds[dsk]<<" ds2 = "<<ds[1-dsk]<<" \n";
 #endif
