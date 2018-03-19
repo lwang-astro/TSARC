@@ -4209,8 +4209,8 @@ public:
       Float ds[2] = {s,s}; // step with a buffer
       Float dsbk = s;  //backup step size
       int dsk=0;
-      int nsub=-1, nsubbk=-1; // substep number
-      int nsubcount=0; // count how many times step is reduced
+      int nsub=-1; // substep number
+      int nsubcount=0; // counter for tsyn steps
       int stepcount = 0;
       bool bk_flag=true; // flag for backup or restore
       Float Ekin_bk = Ekin;
@@ -4255,13 +4255,22 @@ public:
 #endif
           dt = t -dt;
 
+          stepcount++;
+
           if(!tend_flag&&dt*invk<pars.dtmin) {
               std::cerr<<"Error! symplectic integrated time step ("<<dt<<") < minimum step ("<<pars.dtmin<<")!\n";
               std::cerr<<" stepcount: "<<stepcount<<" ds_used: "<<ds[dsk]<<" energy error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+#ifdef ARC_DEBUG_DUMP
+              restore(bk0);
+              Ekin = Ekin_0;
+              Pot = Pot_0;
+              for (int i=0; i<num; i++) p[i]=p0[i];
+              return -stepcount;
+#else
               abort();
+#endif
           }
           
-          stepcount++;
           
           if(stepcount>max_nstep-10) {
               std::cerr<<"Error! stepcount >"<<max_nstep<<std::endl;
@@ -4307,49 +4316,62 @@ public:
           Float eerr = abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt);
           if(!fix_step_flag) {
               if(eerr>pars.exp_error) {
-                  unsigned long Af=to_double(pow(eerr/pars.exp_error,pars.sym_inv_n));
-                  unsigned long c=1;
-                  while(Af>0) {
-                      Af = (Af>>1);
-                      c = (c<<1);
-                  }
-                  if(c==1) c=2;
-                  Float dsn = ds[dsk]/Float(double(c));
+                  //unsigned long Af=to_double(pow(eerr/pars.exp_error,pars.sym_inv_n));
+                  Float erat = pars.exp_error/eerr;
+                  Float Af=std::max(pow(erat,pars.sym_inv_n),0.125);
+                  //unsigned long c=1;
+                  //while(Af>0) {
+                  //    Af = (Af>>1);
+                  //    c = (c<<1);
+                  //}
+                  //if(c==1) c=2;
+                  //Float dsn = ds[dsk]/Float(double(c));
+                  //Float dsn = ds[dsk]*(Af>0.8?1.0:Af);
 
-                  // if same reduction appear twice, increase counter
-                  if (nsubbk==(int)c) nsubcount++;  
-                  else {
-                      nsubcount=0;
-                      nsubbk = (int)c;
-                  }
+                  //nsub = to_int(1.0/Af)-1;
+                  //// if same reduction appear twice, increase counter
+                  //if (Afbk==Af) nsubcount++;  
+                  //else {
+                  //    nsubcount=0;
+                  //    Afbk = Af;
+                  //}
 
                   // if nsub not yet reach 0, reset counter
-                  if(nsub>0) nsubcount = 0;
+                  // if(nsub>0) nsubcount = 0;
               
                   // check whether next step is already smaller than modified step
-                  if(dsn > ds[1-dsk]) {
-                      nsub = -1;
-                      ds[dsk] = ds[1-dsk];
-                  }
-                  else {
-                      // backup original step
-                      dsbk = ds[1-dsk];
-                      ds[1-dsk] = dsn;
-                      ds[dsk] = dsn;
-                      nsub = (c<<nsubcount);
-                  }
-
+                  //if(dsn > ds[1-dsk]) {
+                  //    nsub = -1;
+                  //    ds[dsk] = ds[1-dsk];
+                  //}
+                  //else {
+                  //    // backup original step
+                  //    dsbk = ds[1-dsk];
+                  //    ds[1-dsk] = dsn;
+                  //    ds[dsk] = dsn;
+                  //    nsub = (c<<nsubcount);
+                  //}
+                  // 
                   // if first step, reduce permanently
                   if(stepcount<3) {
                       nsub=-1;
-                      nsubbk = -1;
+                      ds[dsk] *=Af;
+                      ds[1-dsk] =ds[dsk];
+                      bk_flag = false;
+                      continue;
                   }
-              
-                  bk_flag = false;
+                  // for big energy error
+                  else if (erat<0.1) {
+                      if(bk_flag) dsbk = ds[dsk];
+                      ds[dsk] *=Af;
+                      ds[1-dsk] = ds[dsk];
+                      bk_flag = false;
+                      nsub = 2*to_int(1.0/Af);
+                      continue;
+                  }
 #ifdef ARC_DEEP_DEBUG
-                  std::cerr<<"Detected energy erro too large eerr/err_max ="<<eerr/pars.exp_error<<" eerr="<<eerr<<" Af="<<pow(eerr/pars.exp_error,pars.sym_inv_n)<<" step reduction factor="<<c<<" substep number="<<nsub<<" nsubcount="<<nsubcount<<std::endl;
+                  std::cerr<<"Detected energy erro too large eerr/err_max ="<<1.0/erat<<" eerr="<<eerr<<" Af="<<Af<<" substep number="<<nsub<<std::endl;
 #endif
-                  continue;
               }
           }
 #ifdef ARC_WARN
