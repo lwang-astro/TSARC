@@ -954,12 +954,6 @@ public:
 #endif
         if(time>=Trecord + Tperi) {
             Trecord = time;
-#ifdef ARC_DEBUG
-            if(fpertsqmax/finnersq>1e-6) {
-                std::cerr<<"Warning!: perturbation too strong, fpert = "<<sqrt(fpertsqmax)<<" finner = "<<sqrt(finnersq)<<" fpert/finner = "<<sqrt(fpertsqmax/finnersq)<<std::endl;
-                assert(fpertsqmax<finnersq);
-            }
-#endif
             if (fpertsqmax>0) {
                 kappa_org = kref/sqrt(fpertsqmax/finnersq);
                 kappa = std::max(Float(1.0),kappa_org);
@@ -968,13 +962,25 @@ public:
                 kappa_org = 1.0;
                 kappa = (tend-time)/Tperi;
             }
+#ifdef ARC_DEBUG
+            if(fpertsqmax/finnersq>1e-6) {
+                std::cerr<<"Warning!: perturbation too strong, fpert = "<<sqrt(fpertsqmax)<<" finner = "<<sqrt(finnersq)<<" fpert/finner = "<<sqrt(fpertsqmax/finnersq)<<" kappa = "<<kappa<<std::endl;
+                assert(fpertsqmax<finnersq);
+            }
+#endif
             fpertsqmax = fpertsqlast;
         }
         if(tend - time < Tperi) kappa = 1.0;
     }
 
-    //! adjust slow-down factor
-    /*! Obtain current slow-down factor
+    //! adjust slow-down factor to reach same phase as real step dt
+    /*! Adjust slow-down factor based on
+        K * dt_sd - dt_sd = n * P (n is integer)
+        n = (K - 1) * dt_sd /P = (K-1)/K * dt /P
+        Thus first adjust n to integer as
+        n(int) = int[(K-1)/K*dt/P]
+        Then obtain new kappa:
+        K_new = dt/(dt-n(int)*P)
       @param [in] dt: physical time step (assume dt is constant before next update of kappa) without slow-down factor
      */
     void adjustkappa(const Float dt) {
@@ -4201,6 +4207,12 @@ public:
       Float bk0[darray],Ekin_0,Pot_0; // for backup
       particle p0[num];
 #endif
+#ifdef ARC_DEBUG
+      bk[dsize] = dsize;
+#ifdef ARC_DEBUG_DUMP
+      bk0[dsize] = dsize;
+#endif      
+#endif
       bk[dsize] = (Float)dsize;    // label for safety check
       const int symk = pars.sym_k;
       Float timetable[symk]; // for storing time information
@@ -4257,21 +4269,6 @@ public:
 
           stepcount++;
 
-          if(!tend_flag&&dt*invk<pars.dtmin) {
-              std::cerr<<"Error! symplectic integrated time step ("<<dt<<") < minimum step ("<<pars.dtmin<<")!\n";
-              std::cerr<<" stepcount: "<<stepcount<<" ds_used: "<<ds[dsk]<<" energy error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
-#ifdef ARC_DEBUG_DUMP
-              restore(bk0);
-              Ekin = Ekin_0;
-              Pot = Pot_0;
-              for (int i=0; i<num; i++) p[i]=p0[i];
-              return -stepcount;
-#else
-              abort();
-#endif
-          }
-          
-          
           if(stepcount>max_nstep-10) {
               std::cerr<<"Error! stepcount >"<<max_nstep<<std::endl;
               std::cerr<<"Time: "<<t<<" Tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
@@ -4380,6 +4377,21 @@ public:
           }
 #endif
 
+          if(!tend_flag&&dt*invk<pars.dtmin) {
+              std::cerr<<"Error! symplectic integrated time step ("<<dt<<") < minimum step ("<<pars.dtmin<<")!\n";
+              std::cerr<<" stepcount: "<<stepcount<<" ds_used: "<<ds[dsk]<<" energy error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+#ifdef ARC_DEBUG_DUMP
+              restore(bk0);
+              Ekin = Ekin_0;
+              Pot = Pot_0;
+              for (int i=0; i<num; i++) p[i]=p0[i];
+              return -stepcount;
+#else
+              abort();
+#endif
+          }
+          
+          
           // time synchronization
           Float terr = (t-t0)*pars.dterr;
 
@@ -4640,8 +4652,15 @@ public:
         //<<"beta: "<<std::setw(width)<<pars.beta<<std::endl
         //<<"gamma: "<<std::setw(width)<<pars.gamma<<std::endl;
     if(slowdown.is_used) {
-        fout<<"\n----- slowdown ---------\n"
-            <<"kappa: "<<std::setw(width)<<slowdown.kappa<<std::endl;
+        fout<<"\n-------- slowdown ---------\n"
+            <<"kappa: "<<std::setw(width)<<slowdown.kappa<<std::endl
+            <<"kappa_org: "<<std::setw(width)<<slowdown.kappa_org<<std::endl
+            <<"kref: "<<std::setw(width)<<slowdown.kref<<std::endl
+            <<"fpertsqmax: "<<std::setw(width)<<slowdown.fpertsqmax<<std::endl
+            <<"fpertsqlast: "<<std::setw(width)<<slowdown.fpertsqlast<<std::endl
+            <<"finnersq: "<<std::setw(width)<<slowdown.finnersq<<std::endl
+            <<"Trecord: "<<std::setw(width)<<slowdown.Trecord<<std::endl
+            <<"Tperi: "<<std::setw(width)<<slowdown.Tperi<<std::endl;
     }
   }
 
