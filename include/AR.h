@@ -962,7 +962,7 @@ public:
                 kappa_org = 1.0;
                 kappa = (tend-time)/Tperi;
             }
-#ifdef ARC_DEBUG
+#ifdef ARC_WARN
             if(fpertsqmax/finnersq>1e-6) {
                 std::cerr<<"Warning!: perturbation too strong, fpert = "<<sqrt(fpertsqmax)<<" finner = "<<sqrt(finnersq)<<" fpert/finner = "<<sqrt(fpertsqmax/finnersq)<<" kappa = "<<kappa<<std::endl;
                 assert(fpertsqmax<finnersq);
@@ -2251,13 +2251,13 @@ public:
   Float calc_dt_X(const Float ds, const chainpars &pars) {
     // determine the physical time step
     Float dt = ds / (pars.alpha * (Ekin + Pt) + pars.beta * w + pars.gamma);
-#ifdef ARC_WARN
-    if (abs(dt) < pars.dtmin && info==NULL) {
-      info=new chaininfo(num);
-      info->status = 4;
-      info->subdt = dt;
-    }
-#endif
+//#ifdef ARC_WARN
+//    if (abs(dt) < pars.dtmin && info==NULL) {
+//      info=new chaininfo(num);
+//      info->status = 4;
+//      info->subdt = dt;
+//    }
+//#endif
     return dt;
   }
   
@@ -4032,19 +4032,19 @@ public:
         // Drift t (dependence: Ekin, Pt, w)
         Float dt = pars.sym_coff[i][0]*s / (pars.alpha * (Ekin + Pt) + pars.beta * w + pars.gamma);
 
-#ifdef ARC_WARN        
-        if (abs(dt) < pars.dtmin && info==NULL) {
-            info=new chaininfo(num);
-            info->status = 4;
-            info->subdt = dt;
-            info->inti = i;
-            info->subds = s;
-            info->Ekin = Ekin;
-            info->Pot = Pot;
-            info->W = W;
-            break;
-        }
-#endif
+//#ifdef ARC_WARN        
+//        if (abs(dt) < pars.dtmin && info==NULL) {
+//            info=new chaininfo(num);
+//            info->status = 4;
+//            info->subdt = dt;
+//            info->inti = i;
+//            info->subds = s;
+//            info->Ekin = Ekin;
+//            info->Pot = Pot;
+//            info->W = W;
+//            break;
+//        }
+//#endif
 
         // step_forward time
         t += dt;
@@ -4196,7 +4196,6 @@ public:
                                   const int max_nstep=100000) {
 
       // slowdown time
-      const Float invk = 1.0/slowdown.kappa;
       const Float tend = tend_in/slowdown.kappa;
       Float dt;
 
@@ -4377,8 +4376,8 @@ public:
           }
 #endif
 
-          if(!tend_flag&&dt*invk<pars.dtmin) {
-              std::cerr<<"Error! symplectic integrated time step ("<<dt<<") < minimum step ("<<pars.dtmin<<")!\n";
+          if(!tend_flag&&dt*slowdown.kappa<pars.dtmin) {
+              std::cerr<<"Error! symplectic integrated time step ("<<dt*slowdown.kappa<<") < minimum step ("<<pars.dtmin<<")!\n";
               std::cerr<<" stepcount: "<<stepcount<<" ds_used: "<<ds[dsk]<<" energy error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
 #ifdef ARC_DEBUG_DUMP
               restore(bk0);
