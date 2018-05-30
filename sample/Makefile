@@ -1,10 +1,10 @@
 ## TARGET
-TARGET=chain hierarchy symtest keplerorbit
+TARGET=chain hierarchy symtest keplerorbit keplertree
 
 VPATH=../include
 
-#use_x86=yes
-use_k_computer=yes
+use_x86=yes
+#use_k_computer=yes
 #QD_PATH=/opt/qd-2.3.18
 #GPERF_PATH = /opt/gperftools-2.6.1
 
@@ -12,8 +12,8 @@ use_k_computer=yes
 ## compiler-------------------------------------------#
 ifeq ($(use_x86),yes)
 CXX= g++
-CXXFLAGS += -O2 -Wall
-#CXXFLAGS += -g -fbounds-check -Wall -O0
+#CXXFLAGS += -O2 -Wall
+CXXFLAGS += -g -fbounds-check -Wall -O0
 endif
 
 ifeq ($(use_k_computer),yes)
