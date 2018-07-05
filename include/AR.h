@@ -965,7 +965,7 @@ public:
 #ifdef ARC_WARN
             if(fpertsqmax/finnersq>1e-6) {
                 std::cerr<<"Warning!: perturbation too strong, fpert = "<<sqrt(fpertsqmax)<<" finner = "<<sqrt(finnersq)<<" fpert/finner = "<<sqrt(fpertsqmax/finnersq)<<" kappa = "<<kappa<<std::endl;
-                assert(fpertsqmax<finnersq);
+                //assert(fpertsqmax<finnersq);
             }
 #endif
             fpertsqmax = fpertsqlast;
@@ -4223,6 +4223,7 @@ public:
       int nsub=-1; // substep number
       int nsubcount=0; // counter for tsyn steps
       int stepcount = 0;
+      int stepcount_tsyn=0; // after time end
       bool bk_flag=true; // flag for backup or restore
       Float Ekin_bk = Ekin;
       Float Pot_bk = Pot;
@@ -4268,13 +4269,22 @@ public:
 
           stepcount++;
 
-          if(stepcount>max_nstep-10) {
-              std::cerr<<"Error! stepcount >"<<max_nstep<<std::endl;
+#ifdef ARC_WARN
+          if(stepcount>=max_nstep&&stepcount%max_nstep==0) {
+              std::cerr<<"Warning: stepcount is signficiant "<<stepcount<<std::endl;
+              std::cerr<<"Time: "<<t<<" Tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
+                       <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+              print(std::cerr);
+          }
+#endif
+          
+          if(stepcount_tsyn>max_nstep-10) {
+              std::cerr<<"Error! stepcount after time synchronization >"<<max_nstep<<std::endl;
               std::cerr<<"Time: "<<t<<" Tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
                        <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
               std::cerr<<"Tend_flag: "<<tend_flag<<" dt: "<<dt<<" subcount "<<nsubcount<<" dsbk: "<<dsbk<<std::endl;
 #ifdef ARC_DEBUG_DUMP
-              if(stepcount>max_nstep) {
+              if(stepcount_tsyn>max_nstep) {
                   restore(bk0);
                   Ekin = Ekin_0;
                   Pot = Pot_0;
@@ -4282,13 +4292,19 @@ public:
                   return -stepcount;
               }
 #else
-              if(stepcount>max_nstep) abort();
+              if(stepcount_tsyn>max_nstep) abort();
 #endif
           }
 
 #ifdef ARC_DEEP_DEBUG
           std::cerr<<"Symplectic count: "<<stepcount<<" time: "<<t<<" tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
-                   <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+                   <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]
+                   <<" Ekin: "<<Ekin
+                   <<" Pot: "<<Pot
+                   <<" Pt: "<<Pt
+                   <<" E+Pt: "<<Ekin+Pot+Pt
+                   <<" error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)
+                   <<std::endl;
           std::cerr<<"Timetable: ";
           for (int i=0; i<symk; i++) std::cerr<<" "<<timetable[pars.sym_order[i].index];
           std::cerr<<std::endl;
@@ -4412,6 +4428,7 @@ public:
                   nsub--;
               }
               if(tend_flag&&ds[dsk]==ds[1-dsk]) {
+                  stepcount_tsyn++;
                   Float dtoff = tend-t;
                   if(nsubcount>1&&dt<0.3*dtoff) {
                       ds[1-dsk] = ds[dsk]*dtoff/dt;
@@ -4432,6 +4449,7 @@ public:
           else if(t>tend+terr) {
               tend_flag = true;
               bk_flag = false;
+              stepcount_tsyn++;
               nsubcount=0;
               // check timetable
               int i=-1,k=0;
@@ -4594,7 +4612,7 @@ public:
       @param[in] precision: printed precision for one variable
       @param[in] width: printing width for one variable
   */
-  void print(std::ostream & fout, const int precision=15, const int width=15) {
+  void print(std::ostream & fout, const int precision=15, const int width=23) {
     if (width<=0) {
       fout<<"Error: width should be larger than zero!\n";
       abort();
