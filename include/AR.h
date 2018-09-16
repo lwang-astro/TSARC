@@ -908,16 +908,18 @@ private:
     Float kappa;          // slow-down factor
     Float kappa_org;      // original slow-down factor
     Float fpertsqmax;     // maximum perturbation force square recorded
+    Float fpertsqmaxlast; // maximum perturbation force square recorded
     Float fpertsqlast;    // last perturbation force square record
-    Float Trecord;      // current time
+    Float t_real;         // current time
+    Float t_record;       // last kappa update time
     Float kref;    ///< reference kappa factor; slow-down factor kappa = max(1,kref/(perturbation/internal force))
-    Float Tperi;        ///< period for checking
+    Float period;        ///< period for checking
     Float finnersq;     ///< inner force square reference for slow-down determination
     bool is_used;         ///< if false, slow-down is switched off
 
 public:
     //! defaulted constructor
-    chainslowdown(): kappa(1.0), fpertsqmax(0.0), fpertsqlast(0.0), Trecord(0.0), kref(1.0e-05), Tperi(0.0), finnersq(0.0), is_used(false) {}
+    chainslowdown(): kappa(1.0), fpertsqmax(0.0), fpertsqmaxlast(0.0), fpertsqlast(0.0), t_real(0.0), t_record(0.0), kref(1.0e-05), period(0.0), finnersq(0.0), is_used(false) {}
     
     //! Update maximum perturbation force \f$ F_{pert,max}\f$
     /*! Update maximum perturbation force and record this input (only last one is recorded)
@@ -931,46 +933,64 @@ public:
     //! initialize slow-down parameters
     /*! Set slow-down parameters, slow-down method will be switched on
       @param [in] f_inner_sq: inner force square reference
-      @param [in] t_peri: Period of system 
+      @param [in] period: Period of system 
       @param [in] k_ref: Fpert/Finner criterion (default 1.0e-5)
     */
-    void setSlowDownPars(const Float f_inner_sq, const Float t_peri, const Float k_ref=1.0e-5) {
+    void setSlowDownPars(const Float f_inner_sq, const Float _period, const Float k_ref=1.0e-5) {
+        kappa = 1.0;
         finnersq = f_inner_sq;
-        Tperi    = t_peri;
-        Trecord  = -Tperi;
+        period   = _period;
+#ifdef ARC_DEBUG
+        assert(finnersq>0);
+        assert(period>0);
+#endif
+        t_record = -2.0*period;
         kref     = k_ref;
         is_used  = true;
+    }
+
+    //! Update real time
+    /*! Update current real time of the system
+        @param[in] dt_chain: chain inner integrated time with current slowdown factor, will be transferred and added to real time t_real.
+     */
+    void updateRealTime(const Float dt_chain) {
+        t_real += dt_chain * kappa;
     }
     
     //! Update slow-down factor
     /*! Update slow-down factor 
-        @param[in] time: current time for checking. if #time> record time + #Tperi, the kappa is updated (if time = 0. it is initialization)
-        @param[in] tend: ending physical time for integration, if tend-time<#Tperi, \f$kappa = 1.0\f$
+        @param[in] tend_real: ending physical time for integration, if tend-time<#period, \f$kappa = 1.0\f$
+        @param[in] tp_factor: if minimum factor of integration time interval / (kappa * period).
      */
-    void updatekappa(const Float time, const Float tend) {
+    void updatekappa(const Float tend_real, const Float tp_factor=0.01) {
+        if(is_used) {
 #ifdef ARC_DEBUG
-        assert(finnersq>0);
-        assert(Tperi>0);
+            assert(finnersq>0);
+            assert(period>0);
 #endif
-        if(time>=Trecord + Tperi) {
-            Trecord = time;
-            if (fpertsqmax>0) {
-                kappa_org = kref/sqrt(fpertsqmax/finnersq);
-                kappa = std::max(Float(1.0),kappa_org);
-            }
-            else {
-                kappa_org = 1.0;
-                kappa = (tend-time)/Tperi;
-            }
+            if((t_real-t_record)/kappa>=period||fpertsqmax>10*fpertsqmaxlast) {
+                t_record = t_real;
+                if (fpertsqmax>0) {
+                    kappa_org = kref/sqrt(fpertsqmax/finnersq);
+                    kappa = std::max(Float(1.0),kappa_org);
+                }
+                else {
+                    kappa_org = 1.0;
+                    kappa = (tend_real-t_real)/period;
+                }
 #ifdef ARC_WARN
-            if(fpertsqmax/finnersq>1e-6) {
-                std::cerr<<"Warning!: perturbation too strong, fpert = "<<sqrt(fpertsqmax)<<" finner = "<<sqrt(finnersq)<<" fpert/finner = "<<sqrt(fpertsqmax/finnersq)<<" kappa = "<<kappa<<std::endl;
-                //assert(fpertsqmax<finnersq);
-            }
+                if(fpertsqmax/finnersq>1e-6) {
+                    std::cerr<<"Warning!: perturbation too strong, fpert = "<<sqrt(fpertsqmax)<<" finner = "<<sqrt(finnersq)<<" fpert/finner = "<<sqrt(fpertsqmax/finnersq)<<" kappa = "<<kappa<<std::endl;
+                    //assert(fpertsqmax<finnersq);
+                }
 #endif
-            fpertsqmax = fpertsqlast;
+                fpertsqmaxlast = fpertsqmax;
+                fpertsqmax = fpertsqlast;
+            }
+            if((tend_real-t_real)/kappa<tp_factor*period) {
+                kappa = std::max(1.0,(tend_real-t_real)/(period*tp_factor));
+            }
         }
-        if(tend - time < Tperi) kappa = 1.0;
     }
 
     //! adjust slow-down factor to reach same phase as real step dt
@@ -985,8 +1005,8 @@ public:
      */
     void adjustkappa(const Float dt) {
         if(is_used) {
-            int kp = to_int((kappa-1.0)/kappa*dt/Tperi);
-            kappa = std::max(Float(1.0),dt/(dt-kp*Tperi));
+            int kp = to_int((kappa-1.0)/kappa*dt/period);
+            kappa = std::max(Float(1.0),dt/(dt-kp*period));
         }
         else kappa = 1.0;
     }
@@ -998,8 +1018,8 @@ public:
      */
     int adjustkappaPeriod(const Float dt) {
         if(is_used) {
-            int kp = to_int(dt/(kappa*Tperi))+1;
-            kappa = dt/(kp*Tperi);
+            int kp = to_int(dt/(kappa*period))+1;
+            kappa = dt/(kp*period);
             if(kappa<1.0) {
                 kappa=1.0;
                 return 0;
@@ -1054,6 +1074,32 @@ public:
         }
     }
 
+
+  //! print slowdown data
+  /*! Print slowdown data 
+      @param[in] fout: ofstream for printing
+      @param[in] precision: printed precision for one variable
+      @param[in] width: printing width for one variable
+  */
+  void print(std::ostream & fout, const int precision=15, const int width=23) {
+    if (width<=0) {
+      fout<<"Error: width should be larger than zero!\n";
+      abort();
+    }
+    if(is_used) {
+        fout<<"\n-------- slowdown ---------\n"
+            <<"kappa: "<<std::setw(width)<<kappa<<std::endl
+            <<"kappa_org: "<<std::setw(width)<<kappa_org<<std::endl
+            <<"kref: "<<std::setw(width)<<kref<<std::endl
+            <<"fpertsqmax: "<<std::setw(width)<<fpertsqmax<<std::endl
+            <<"fpertsqmaxlast: "<<std::setw(width)<<fpertsqmaxlast<<std::endl
+            <<"fpertsqlast: "<<std::setw(width)<<fpertsqlast<<std::endl
+            <<"finnersq: "<<std::setw(width)<<finnersq<<std::endl
+            <<"t_real: "<<std::setw(width)<<t_real<<std::endl
+            <<"t_record: "<<std::setw(width)<<t_record<<std::endl
+            <<"period: "<<std::setw(width)<<period<<std::endl;
+    }
+  }
 };
 
 //! ARC class based on template class particle_
@@ -2178,6 +2224,12 @@ private:
       }
   }
 
+  //! update slow-down time
+  /*!
+    
+   */
+
+
 //  // collect accident information
 //  void info_collection(const int status, const int intcount=-1, const Float perr=-1.0, const Float perr0=-1.0, const Float eerr=-1.0, const Float eerr0=-1.0, const Float terr=-1.0, const int i1=-1, const int i2=-1, const int inti=-1) {
 //    info = new chaininfo(num);
@@ -2665,7 +2717,7 @@ public:
   /*! Initialize chain based on particle list #p. After this function, positions and velocities of particles in #p will be shifted to their center-of-mass frame. \n
       Chain order list #list, relative position #X, velocity #V, initial system energy #Pt and initial time transformation parameter #w are calculated.
       The particle modification indicator (isPmod()) will be set to false.
-    @param [in] time: current time of particle system
+    @param [in] time: current time of particle system (real time)
     @param [in] pars: chainpars controller
     @param [in] int_pars: extra parameters used in f
   */
@@ -2726,8 +2778,10 @@ public:
         // update slow-down
         // updateSlowDownFpert();
  
-        // Initial intgrt value t
-        t = time;
+        // Initial intgrt value t (avoid confusion of real time when slowdown is used)
+        t = 0;
+
+        slowdown.t_real = time;
 
         // kinetic energy
         calc_Ekin();
@@ -2989,6 +3043,9 @@ public:
 #endif
       // step_forward time
       t += dt;
+
+      // update real time
+      slowdown.updateRealTime(dt);
       
       // recursive integration-----------------------------------------------//
       /*
@@ -3039,7 +3096,7 @@ public:
         //// center_shift_inverse_X();
 
         // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
-        fpert(pf, slowdown.kappa*t, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+        fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
 
         //// reset position to center-of-mass frame, update p.x 
         //// center_shift_X();
@@ -3094,6 +3151,9 @@ public:
 #endif
 
       t += dt;
+
+      // update real time
+      slowdown.updateRealTime(dt);
 
       // step forward for X (dependence: X, V)
       step_forward_X(dt);
@@ -3171,7 +3231,7 @@ public:
     The auto-determination of extrapolation orders based on the accuracy requirement is used. 
      @param [in] ds: integration step size
      @param [in] pars: chainpars controller
-     @param [in] toff: ending physical time
+     @param [in] toff_real: ending physical time
                       - if value is negative, it means integration will be done with fixed step size \a ds
                       - if value is positive and after step \a ds, the ending physical time is larger than \a toff, the interpolation of physical time #t (dense output) will be done instead of integration. In this case, the data are kept as initial values. Instead, the returning value is the ds modification factor (negative value), which can be used to modified current \a ds and redo the integration by calling this function again with new ds to approach ending physical time of \a toff. Notice if the required time sychronization criterion (set in chainpars.setEXP()) is small (<phase and energy error criterion), several iteration may be needed to get the physical time below this criterion.
      @param [in] int_pars: extra parameters used in f or fpert.
@@ -3187,7 +3247,7 @@ public:
   template<class pertparticle_, class pertforce_, class extpar_>
   Float extrapolation_integration(const Float ds, 
                                    chainpars &pars,
-                                   const Float toff = -1, 
+                                   const Float toff_real = -1, 
                                    extpar_ *int_pars = NULL,
                                    pertparticle_* pert = NULL, 
                                    pertforce_* pertf = NULL, 
@@ -3210,7 +3270,7 @@ public:
     }
     
     // slowdown time
-    const Float toff_sd = toff/slowdown.kappa;
+    const Float toff_sd = (toff_real-slowdown.t_real)/slowdown.kappa + t;
 
     // get parameters
     const Float error = pars.exp_error;
@@ -3238,7 +3298,7 @@ public:
       dn[i][dsize] = (Float)dsize; // label for safety check
       dnptr[i] = dn[i];
     }
-    Float Ekin0,Pot0;
+    Float Ekin0,Pot0,T_real0;
 
     // for dense output polynomial
 #ifdef ARC_PROFILE
@@ -3269,6 +3329,7 @@ public:
     backup(d0);
     Ekin0 = Ekin;
     Pot0 = Pot;
+    T_real0 = slowdown.t_real;
 
     // new step
     Float dsn = 1.0;
@@ -3284,6 +3345,7 @@ public:
         restore(d0);
         Ekin = Ekin0;
         Pot = Pot0;
+        slowdown.t_real = T_real0;
         // reset velocity to get correct w
         resolve_V();
       }
@@ -3704,6 +3766,7 @@ public:
       restore(d0);
       Ekin = Ekin0;
       Pot  = Pot0;
+      slowdown.t_real = T_real0;
       // reset velocity to get correct w
       resolve_V();
 
@@ -3791,6 +3854,7 @@ public:
       restore(d0);
       Ekin = Ekin0;
       Pot  = Pot0;
+      slowdown.t_real = T_real0;
       // reset velocity to get correct w
       resolve_V();
     }
@@ -3902,6 +3966,9 @@ public:
       // step_forward time
       t += dt;
 
+      // update real time
+      slowdown.updateRealTime(dt);
+
       // store current time
       if(timetable!=NULL) timetable[i] = t;
 
@@ -3914,7 +3981,7 @@ public:
       // perturber force
       if (fpert!=NULL) {
         // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
-        fpert(pf, slowdown.kappa*t, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+        fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
       }
 
       // Update rjk, A, Pot, dWdr, W for half X (dependence: pf, force, p.m, p.x, X)
@@ -4049,6 +4116,9 @@ public:
         // step_forward time
         t += dt;
 
+        // update real time
+        slowdown.updateRealTime(dt);
+
         // store current time
         timetable[i] = t;
         
@@ -4069,7 +4139,7 @@ public:
         p[0].setPos(x1[0],x1[1],x1[2]);
         p[1].setPos(x2[0],x2[1],x2[2]);
 
-        if(fpert_flag) fpert(pf, slowdown.kappa*t, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+        if(fpert_flag) fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
         
         Float3 At,dWt;
         Float Pott,Wt;
@@ -4176,7 +4246,7 @@ public:
       The positions and velocities of particles in #p will be integrated in the center-of-mass frame
       @param [in] s: Integration step size
       @param [in] pars: chainpars controller
-      @param [in] tend: time to finish the integration
+      @param [in] tend_real: real time to finish the integration
       @param [in] int_pars: extra parameters used in f or fpert.
       @param [in] pert: perturber particle array
       @param [in] pertf: perturrber force array for prediction
@@ -4187,7 +4257,7 @@ public:
   template<class pertparticle_, class pertforce_, class extpar_>
   int Symplectic_integration_tsyn(const Float s, 
                                   chainpars &pars,
-                                  const Float tend_in,
+                                  const Float tend_real,
                                   extpar_ *int_pars = NULL,
                                   pertparticle_* pert = NULL, 
                                   pertforce_* pertf = NULL, 
@@ -4196,14 +4266,14 @@ public:
                                   const int max_nstep=100000) {
 
       // slowdown time
-      const Float tend = tend_in/slowdown.kappa;
+      const Float tend = (tend_real-slowdown.t_real)/slowdown.kappa + t;
       Float dt;
 
       const int dsize  = 6*(num-1)+3;
       const int darray = dsize+1; // backup data array size;
       Float bk[darray]; // for backup
 #ifdef ARC_DEBUG_DUMP
-      Float bk0[darray],Ekin_0,Pot_0; // for backup
+      Float bk0[darray],Ekin_0,Pot_0, T_real_0; // for backup
       particle p0[num];
 #endif
 #ifdef ARC_DEBUG
@@ -4227,6 +4297,7 @@ public:
       bool bk_flag=true; // flag for backup or restore
       Float Ekin_bk = Ekin;
       Float Pot_bk = Pot;
+      Float T_real_bk = slowdown.t_real;
       const Float eerr_min = pars.sym_An*0.5*pars.exp_error;
       bool tend_flag=false; // go to ending step
 
@@ -4234,6 +4305,7 @@ public:
       backup(bk0);
       Ekin_0 = Ekin;
       Pot_0 = Pot;
+      T_real_0 = slowdown.t_real;
       for (int i=0; i<num; i++) p0[i]=p[i];
 #endif
       
@@ -4249,11 +4321,13 @@ public:
               backup(bk);
               Ekin_bk = Ekin;
               Pot_bk  = Pot;
+              T_real_bk = slowdown.t_real;
           }
           else {
               restore(bk);
               Ekin = Ekin_bk;
               Pot = Pot_bk;
+              slowdown.t_real = T_real_bk;
               resolve_V();
           }
           
@@ -4288,6 +4362,7 @@ public:
                   restore(bk0);
                   Ekin = Ekin_0;
                   Pot = Pot_0;
+                  slowdown.t_real = T_real_0;
                   for (int i=0; i<num; i++) p[i]=p0[i];
                   return -stepcount;
               }
@@ -4320,6 +4395,7 @@ public:
               restore(bk);
               Ekin = Ekin_bk;
               Pot = Pot_bk;
+              slowdown.t_real = T_real_bk;
               break;
           }
 #endif
@@ -4399,6 +4475,7 @@ public:
               restore(bk0);
               Ekin = Ekin_0;
               Pot = Pot_0;
+              slowdown.t_real = T_real_0;
               for (int i=0; i<num; i++) p[i]=p0[i];
               return -stepcount;
 #else
@@ -4510,6 +4587,7 @@ public:
       backup(bk);
       Float Ekin_bk = Ekin;
       Float Pot_bk  = Pot;
+      Float T_real_bk = slowdown.t_real;
 
 #ifdef ARC_OPT_SYM2
       const Float pm1 = p[0].getMass();
@@ -4528,6 +4606,7 @@ public:
       restore(bk);
       Ekin= Ekin_bk;
       Pot= Pot_bk;
+      slowdown.t_real = T_real_bk;
       resolve_V();
 
 #ifdef ARC_OPT_SYM2
@@ -4548,17 +4627,17 @@ public:
       restore(bk);
       Ekin= Ekin_bk;
       Pot= Pot_bk;
+      slowdown.t_real = T_real_bk;
       resolve_V();
 
     }
 #endif
 
-
   //! Get current physical time
   /*! \return current physical time
    */
   Float getTime() const {
-    return slowdown.kappa*t;
+    return slowdown.t_real;
   }
   //! Get current kinetic energy
   /*! \return current kinetic energy
@@ -4668,17 +4747,7 @@ public:
         //<<"alpha: "<<std::setw(width)<<pars.alpha<<std::endl
         //<<"beta: "<<std::setw(width)<<pars.beta<<std::endl
         //<<"gamma: "<<std::setw(width)<<pars.gamma<<std::endl;
-    if(slowdown.is_used) {
-        fout<<"\n-------- slowdown ---------\n"
-            <<"kappa: "<<std::setw(width)<<slowdown.kappa<<std::endl
-            <<"kappa_org: "<<std::setw(width)<<slowdown.kappa_org<<std::endl
-            <<"kref: "<<std::setw(width)<<slowdown.kref<<std::endl
-            <<"fpertsqmax: "<<std::setw(width)<<slowdown.fpertsqmax<<std::endl
-            <<"fpertsqlast: "<<std::setw(width)<<slowdown.fpertsqlast<<std::endl
-            <<"finnersq: "<<std::setw(width)<<slowdown.finnersq<<std::endl
-            <<"Trecord: "<<std::setw(width)<<slowdown.Trecord<<std::endl
-            <<"Tperi: "<<std::setw(width)<<slowdown.Tperi<<std::endl;
-    }
+    slowdown.print(fout, precision, width);
   }
 
 };
