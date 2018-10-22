@@ -1154,6 +1154,10 @@ class chain: public particle_{
 
   chainlist<particle> p;    ///< particle list
 
+  // information
+  Float rmin2_, rmax2_; ///< min and max distance in the chain
+  int rmin_index_, rmax_index_;  ///< min and max distance corresponding index in list (first component)
+
 public:
 
   //particle cm;              ///< center mass particle
@@ -1269,18 +1273,26 @@ private:
   void generate_list() {
     bool is_checked[nmax];
     for (int i=0; i<num; i++) is_checked[i] = false;
-    int inext=0;
-    for (int i=0; i<num; i++) {
-      // initial rjk; mark checked particle
-      is_checked[inext] = true;
 
+    // initial min/max distance recored
+    const Float NUMERIC_FLOAT_MAX = std::numeric_limits<Float>::max();
+    rmin2_ = NUMERIC_FLOAT_MAX;
+    rmax2_ = 0.0;
+    rmin_index_=0;
+    rmax_index_=0;
+
+    // initial first 
+    int inext=0;
+    list[0]=inext;
+    is_checked[0] = true;
+
+    for (int i=1; i<num; i++) {
+      // initial rjk; mark checked particle
       // initial chain_mem
-      list[i]=inext;
       int inow=inext;
     
       // make chain
-      Float rmin=HUGE;
-//      bool first=true;
+      Float rmin2ij = NUMERIC_FLOAT_MAX;
       for (int j=1; j<num; j++) {
         if(is_checked[j]) continue;
         const Float* rj = p[j].getPos();
@@ -1289,19 +1301,23 @@ private:
         Float dy = rj[1] - ri[1];
         Float dz = rj[2] - ri[2];
         Float dr2= dx*dx + dy*dy + dz*dz;
-//        if(first) {
-//          rmin = dr2;
-//          first=false;
-//          inext = j;
-//        }
-//        else 
-        if(dr2<rmin) {
-          rmin = dr2;
+        if(dr2<rmin2ij) {
+          rmin2ij = dr2;
           inext = j;
         }
       }
+      // find rmin/rmax
+      if(rmin2ij>rmax2_) {
+          rmax2_ = rmin2ij;
+          rmax_index_ = i;
+      }
+      if(rmin2ij<rmin2_) {
+          rmin2_ = rmin2ij;
+          rmin_index_ = i;
+      }
+      list[i]=inext;
+      is_checked[inext] = true;
     }
-
   }
 
   //! Calculate relative position and velocity
@@ -1823,6 +1839,14 @@ private:
     for (int i=0;i<num;i++) mask[i] = false;
 
     const Float NUMERIC_FLOAT_MAX = std::numeric_limits<Float>::max();
+
+    // initial min/max distance recored
+    rmin2_ = NUMERIC_FLOAT_MAX;
+    rmax2_ = 0.0;
+    rmin_index_=0;
+    rmax_index_=0;
+
+    // find link
     for (int k=0;k<num-1;k++) {
       int lk  = list[k];
        mask[lk] = true;
@@ -1830,7 +1854,7 @@ private:
       // possible new index
       int lku = lkn;
       // calculate distance
-      Float rmin = NUMERIC_FLOAT_MAX;
+      Float rmin2ij = NUMERIC_FLOAT_MAX;
       for (int j=0;j<num;j++) {
         if (mask[j]||j==k) continue;
         const Float* xk = p[lk].getPos();
@@ -1839,11 +1863,21 @@ private:
         Float yjk = xk[1] - xj[1];
         Float zjk = xk[2] - xj[2];
         Float rjk2 = xjk*xjk + yjk*yjk + zjk*zjk;
-        if (rjk2<rmin) {
+        if (rjk2<rmin2ij) {
           lku=j;
-          rmin = rjk2;
+          rmin2ij = rjk2;
         }
       }
+      // find rmin/rmax
+      if(rmin2ij>rmax2_) {
+          rmax2_ = rmin2ij;
+          rmax_index_ = k;
+      }
+      if(rmin2ij<rmin2_) {
+          rmin2_ = rmin2ij;
+          rmin_index_ = k;
+      }
+
       if (lku!=lkn) {
 #ifdef ARC_DEEP_DEBUG        
         std::cerr<<"Switch: "<<k<<" new: "<<lku<<" old: "<<lkn<<std::endl;
@@ -2292,7 +2326,96 @@ public:
 
     return sqrt(Xm);
   }
-  
+
+  //! get mininum distance and corresponding index
+  /*! Get minimum distance (square) in the chain and the first component index in the link list
+    @param[out] _rmin2: minimum distance square
+    @param[out] _rmin_index: corresponding first component index in chain list
+   */
+  void getRminIndex(Float& _rmin2, int& _rmin_index) {
+      _rmin2 = rmin2_;
+      _rmin_index = rmin_index_;
+  }
+
+  //! get maxinum distance and corresponding index
+  /*! Get maximum distance (square) in the chain and the first component index in the link list
+    @param[out] _rmax2: maximum distance square
+    @param[out] _rmax_index: corresponding first component index in chain list
+   */
+  void getRmaxIndex(Float& _rmax2, int& _rmax_index) {
+      _rmax2 = rmax2_;
+      _rmax_index = rmax_index_;
+  }
+
+  //! get whether two pair is leaving each other or coming 
+  /*! Check X*V of the pair sign, the left and right c.m. are used
+    @param[in] _first_index: the pair index to check (first component)
+    \return true: go away, otherwise income
+   */
+  bool getDirection(const int _first_index) {
+      const int i1 = _first_index;
+      if(i1>=num-1) {
+          std::cerr<<"Error, getDirection index overflow, index="<<i1<<" particle num="<<num<<std::endl;
+          abort();
+      }
+      if(num==2) {
+          Float xv2 = X[i1][0]*V[i1][0] + X[i1][1]*V[i1][1] + X[i1][2]*V[i1][2];
+          return (xv2>0);
+      }
+      else {
+          Float3 xcm1={0},vcm1={0};
+          for (int i=0; i<=i1; i++) {
+              const int k=list[i];
+              const Float* xk = p[k].getPos();
+              const Float* vk = p[k].getVel();
+              const Float  mk = p[k].getMass();
+              for (int j=0; j<3; j++) {
+                  xcm1[j] += mk*xk[j];
+                  vcm1[j] += mk*vk[j];
+              }
+          }
+          Float3 xcm2={0}, vcm2={0};
+          for (int i=i1+1; i<num; i++) {
+              const int k=list[i];
+              const Float* xk = p[k].getPos();
+              const Float* vk = p[k].getVel();
+              const Float  mk = p[k].getMass();
+              for (int j=0; j<3; j++) {
+                  xcm2[j] += mk*xk[j];
+                  vcm2[j] += mk*vk[j];
+              }
+          }
+          Float xv2 = (xcm2[0]-xcm1[0])*(vcm2[0]-vcm1[0])
+              + (xcm2[1]-xcm1[1])*(vcm2[1]-vcm1[1])
+              + (xcm2[2]-xcm1[2])*(vcm2[2]-vcm1[2]);
+          return (xv2>0);
+      }
+  }
+
+  //! get particle original address list before and after given index
+  /*! Get two particle original address groups based on the given index in chain list(will be last index in the first group)
+    @param[out] _first_list: particle original address array to store the first group
+    @param[out] _n_first: number of particles in the first list
+    @param[out] _second_list: particle original address array to store the second group
+    @param[out] _n_second: number of particles in the second list
+    @param[in] _isplit: index used to split group
+  */
+  template <class Tp>
+  void splitTwoGroups(Tp* _first_list[], 
+                      int& _n_first, 
+                      Tp* _second_list[], 
+                      int& _n_second,
+                      const int _isplit) {
+      if(_isplit<0||_isplit>=num) {
+          std::cerr<<"Error! index out of chain list boundary num: "<<num<<" index: "<<_isplit<<std::endl;
+          abort();
+      }
+      particle** ptr=p.getPAdr();
+      for (int i=0; i<=_isplit; i++) _first_list[i] = (Tp*)ptr[list[i]];
+      for (int i=_isplit+1; i<num; i++) _second_list[i-_isplit-1] = (Tp*)ptr[list[i]];
+      _n_first = _isplit+1;
+      _n_second = num-_isplit-1;
+  }
   
   //! Calculate physical time step for X
   /*! Calculate physical time step dt for #X based on ds
@@ -2693,6 +2816,15 @@ public:
    */
   const particle& getP(const int i) const {
     return p[i];
+  }
+
+  //! Get Particle original address (const reference)
+  /*!
+    @param[in] i: particle index in p
+    \return: particle original address of i
+   */
+  particle** getPAdr() const {
+    return p.getPAdr();
   }
 
   ////! Get pertuber particle i (const reference)
@@ -5031,7 +5163,7 @@ public:
   //! Return the i^th of memebr's reference in the particle #data
   /*! [] Operator overloading, return the i^th particle reference from the particle (copied) data list
     @param [in] i: the index of member in the list #p
-    \return particle reference in chainlist #data
+    \return: particle reference in chainlist #data
    */
   particle &operator [](const int i) const {
     //if (cflag[i]) {
@@ -5047,6 +5179,14 @@ public:
     }
 #endif
     return data[i];
+  }
+
+  //! return particle original address array
+  /*!
+    \return: particle original address array (const)
+   */
+  particle** getPAdr() const{
+      return p;
   }
 
   //! Dump function for particle data
