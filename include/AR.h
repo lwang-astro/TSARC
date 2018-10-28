@@ -907,41 +907,49 @@ template <class T> friend class chain;
 private:
     Float kappa;          // slow-down factor
     Float kappa_org;      // original slow-down factor
-    Float fpertsqmax;     // maximum perturbation force square recorded
-    Float fpertsqmaxlast; // maximum perturbation force square recorded
-    Float fpertsqlast;    // last perturbation force square record
+    Float fratiosqmax;     // maximum perturbation force / inner force square recorded
+    Float fratiosqmaxlast; // maximum perturbation force / inner force square recorded
+    Float fratiosqlast;    // last perturbation force / inner force square record
     Float t_real;         // current time
     Float t_record;       // last kappa update time
     Float kref;    ///< reference kappa factor; slow-down factor kappa = max(1,kref/(perturbation/internal force))
     Float period;        ///< period for checking
-    Float finnersq;     ///< inner force square reference for slow-down determination
+    //Float finnersq;     ///< inner force square reference for slow-down determination
     bool is_used;         ///< if false, slow-down is switched off
 
 public:
     //! defaulted constructor
-    chainslowdown(): kappa(1.0), fpertsqmax(0.0), fpertsqmaxlast(0.0), fpertsqlast(0.0), t_real(0.0), t_record(0.0), kref(1.0e-05), period(0.0), finnersq(0.0), is_used(false) {}
+    chainslowdown(): kappa(1.0), fratiosqmax(0.0), fratiosqmaxlast(0.0), fratiosqlast(0.0), t_real(0.0), t_record(0.0), kref(1.0e-05), period(0.0), is_used(false) {}
     
+    //! reset function
+    void reset(){
+        kappa = 1.0;
+        fratiosqmax = fratiosqmaxlast = fratiosqlast = 0.0;
+        t_real = 0.0;
+        t_record = 0.0;
+        kref = 0.0;
+        period = 0.0;
+        is_used = false;
+    }
+
     //! Update maximum perturbation force \f$ F_{pert,max}\f$
     /*! Update maximum perturbation force and record this input (only last one is recorded)
-      @param[in] fpertsq: new perturbation force square
+      @param[in] _fratiosq: new perturbation force square
      */
-    void updatefpertsq(const Float fpertsq) {
-        fpertsqmax = fpertsq>fpertsqmax? fpertsq: fpertsqmax;
-        fpertsqlast = fpertsq;
+    void updatefratiosq(const Float _fratiosq) {
+        fratiosqmax = _fratiosq>fratiosqmax? _fratiosq: fratiosqmax;
+        fratiosqlast = _fratiosq;
     }
 
     //! initialize slow-down parameters
     /*! Set slow-down parameters, slow-down method will be switched on
-      @param [in] f_inner_sq: inner force square reference
       @param [in] period: Period of system 
       @param [in] k_ref: Fpert/Finner criterion (default 1.0e-5)
     */
-    void setSlowDownPars(const Float f_inner_sq, const Float _period, const Float k_ref=1.0e-5) {
+    void setSlowDownPars(const Float _period, const Float k_ref=1.0e-5) {
         kappa = 1.0;
-        finnersq = f_inner_sq;
         period   = _period;
 #ifdef ARC_DEBUG
-        assert(finnersq>0);
         assert(period>0);
 #endif
         t_record = -2.0*period;
@@ -960,35 +968,44 @@ public:
     //! Update slow-down factor
     /*! Update slow-down factor 
         @param[in] tend_real: ending physical time for integration, if tend-time<#period, \f$kappa = 1.0\f$
+        @param[in] mass_ratio:  chain c.m. mass/nearest perturber mass
         @param[in] tp_factor: if minimum factor of integration time interval / (kappa * period).
+        @param[in] modify_factor: maximum modification factor for kappa (should be >1.0), if <0, initialization
      */
-    void updatekappa(const Float tend_real, const Float tp_factor=0.01) {
+    void updatekappa(const Float tend_real, const Float mass_ratio, const Float tp_factor=0.01,  const Float modify_factor_limit=1.2) {
         if(is_used) {
+            Float kappa_backup=kappa;
 #ifdef ARC_DEBUG
-            assert(finnersq>0);
             assert(period>0);
 #endif
-            if((t_real-t_record)/kappa>=period||fpertsqmax>10*fpertsqmaxlast) {
-                t_record = t_real;
-                if (fpertsqmax>0) {
-                    kappa_org = kref/sqrt(fpertsqmax/finnersq);
-                    kappa = std::max(Float(1.0),kappa_org);
-                }
-                else {
-                    kappa_org = 1.0;
-                    kappa = (tend_real-t_real)/period;
-                }
-#ifdef ARC_WARN
-                if(fpertsqmax/finnersq>1e-6) {
-                    std::cerr<<"Warning!: perturbation too strong, fpert = "<<sqrt(fpertsqmax)<<" finner = "<<sqrt(finnersq)<<" fpert/finner = "<<sqrt(fpertsqmax/finnersq)<<" kappa = "<<kappa<<std::endl;
-                    //assert(fpertsqmax<finnersq);
-                }
-#endif
-                fpertsqmaxlast = fpertsqmax;
-                fpertsqmax = fpertsqlast;
+            // update kappa based on current max fratio
+            if (fratiosqmax>0) {
+                kappa_org = kref/sqrt(std::max(1.0,mass_ratio)*fratiosqmax);
+                kappa = std::max(Float(1.0),kappa_org);
             }
+            else {
+                kappa_org = 1.0;
+                kappa = (tend_real-t_real)/period;
+            }
+#ifdef ARC_WARN
+            if(fratiosqmax>1e-6) {
+                std::cerr<<"Warning!: perturbation too strong, fratio = "<<sqrt(fratiosqmax)<<" kappa = "<<kappa<<std::endl;
+            }
+#endif
+            // update fratio max record 
+            if((t_real-t_record)/kappa>=period) {
+                t_record = t_real;
+                fratiosqmaxlast = fratiosqmax;
+                fratiosqmax = fratiosqlast;
+            }
+            // limit kappa based on tp_factor
             if((tend_real-t_real)/kappa<tp_factor*period) {
                 kappa = std::max(1.0,(tend_real-t_real)/(period*tp_factor));
+            }
+            // limit kappa change based on modify_factor_limit
+            if (modify_factor_limit>0) {
+                if(kappa>kappa_backup) kappa=std::min(kappa,kappa_backup*modify_factor_limit);
+                else kappa=std::max(kappa,kappa_backup/modify_factor_limit);
             }
         }
     }
@@ -1087,14 +1104,15 @@ public:
       abort();
     }
     if(is_used) {
-        fout<<"\n-------- slowdown ---------\n"
+        fout<<std::setprecision(precision)
+            <<"\n-------- slowdown ---------\n"
             <<"kappa: "<<std::setw(width)<<kappa<<std::endl
             <<"kappa_org: "<<std::setw(width)<<kappa_org<<std::endl
             <<"kref: "<<std::setw(width)<<kref<<std::endl
-            <<"fpertsqmax: "<<std::setw(width)<<fpertsqmax<<std::endl
-            <<"fpertsqmaxlast: "<<std::setw(width)<<fpertsqmaxlast<<std::endl
-            <<"fpertsqlast: "<<std::setw(width)<<fpertsqlast<<std::endl
-            <<"finnersq: "<<std::setw(width)<<finnersq<<std::endl
+            <<"fratiosqmax: "<<std::setw(width)<<fratiosqmax<<std::endl
+            <<"fratiosqmaxlast: "<<std::setw(width)<<fratiosqmaxlast<<std::endl
+            <<"fratiosqlast: "<<std::setw(width)<<fratiosqlast<<std::endl
+            //<<"finnersq: "<<std::setw(width)<<finnersq<<std::endl
             <<"t_real: "<<std::setw(width)<<t_real<<std::endl
             <<"t_record: "<<std::setw(width)<<t_record<<std::endl
             <<"period: "<<std::setw(width)<<period<<std::endl;
@@ -2250,11 +2268,24 @@ private:
       for (int i=0; i<num-1; i++) {
           int k = list[i];
           int k1 = list[i+1];
+          //Float mk = p[k].getMass();
+          //Float mk1 = p[k1].getMass();
           Float fp[3] = {pf[k1][0]-pf[k][0],
-                          pf[k1][1]-pf[k][1],
-                          pf[k1][2]-pf[k][2]};
+                         pf[k1][1]-pf[k][1],
+                         pf[k1][2]-pf[k][2]};
+          //Float fcp[3] = {mk1*pf[k1][0]-mk*pf[k][0],
+          //                mk1*pf[k1][1]-mk*pf[k][1],
+          //                mk1*pf[k1][2]-mk*pf[k][2]};
+          Float fin[3] = {acc[k1][0]-acc[k][0],
+                          acc[k1][1]-acc[k][1],
+                          acc[k1][2]-acc[k][2]};
           Float fp2 = fp[0]*fp[0] + fp[1]*fp[1] + fp[2]*fp[2];
-          slowdown.updatefpertsq(fp2);
+          Float fin2= fin[0]*fin[0] +fin[1]*fin[1] +fin[2]*fin[2];
+          //Float fcp2 = fcp[0]*fcp[0] + fcp[1]*fcp[1] + fcp[2]*fcp[2];
+          //Float fc2 = pf[k1][0]*pf[k1][0] + pf[k1][1]*pf[k1][1] + pf[k1][2]*pf[k1][2];
+          //Float m12 = mk*mk1;
+          //Float mt= mk+mk1;
+          slowdown.updatefratiosq(fp2/fin2);
       }
   }
 
@@ -2845,20 +2876,62 @@ public:
     return num;
   }
 
-  //! Initialization
+
+  //! Initial chain
   /*! Initialize chain based on particle list #p. After this function, positions and velocities of particles in #p will be shifted to their center-of-mass frame. \n
-      Chain order list #list, relative position #X, velocity #V, initial system energy #Pt and initial time transformation parameter #w are calculated.
-      The particle modification indicator (isPmod()) will be set to false.
+    Chain order list #list, relative position #X, velocity #V are calculated
+   */
+  void initChain() {
+      // update number indicator
+      // update_num(p.getN());
+      num = p.getN();
+    
+      // Generate chain link list
+      generate_list();
+
+      // set center-of-mass
+      if (F_Porigin==1) {
+          center_shift_init();
+          F_Porigin=0;
+      }
+      else {
+          std::cerr<<"Error: particles are not in original frame!\n";
+          abort();
+      }
+
+      // set member relative position and velocity
+      calc_XV();
+  }
+
+  //! Initialization of intergration parameters and slowdown time and perturbation
+  /*! Initial system energy #Pt and initial time transformation parameter #w are calculated.
+    The particle modification indicator (isPmod()) will be set to false.
+    Slowdown perturbation force and real time is initailized
     @param [in] time: current time of particle system (real time)
     @param [in] pars: chainpars controller
     @param [in] int_pars: extra parameters used in f
+    @param [in] pert: perturber particle array
+    @param [in] pertf: perturrber force array for prediction
+    @param [in] npert: number of perturbers
   */
-  template<class extpar_>
-  void init(const Float time, const chainpars &pars, extpar_* int_pars) {
+  template<class pertparticle_, class pertforce_, class extpar_>
+  void initSys(const Float time, 
+               const chainpars &pars, 
+               extpar_* int_pars,
+               pertparticle_* pert = NULL, 
+               pertforce_* pertf = NULL, 
+               const int npert = 0) {
     pair_AW<particle,extpar_> f = reinterpret_cast<pair_AW<particle,extpar_>>(pars.pp_AW);
+    ext_Acc<particle,pertparticle_,pertforce_,extpar_> fpert = reinterpret_cast<ext_Acc<particle,pertparticle_,pertforce_,extpar_>>(pars.ext_A);
     if(std::type_index(typeid(f))!=*pars.pp_AW_type) {
         std::cerr<<"Error: acceleration function type not matched the data type\n";
         abort();
+    }
+    if(fpert!=NULL) {
+        if(std::type_index(typeid(fpert))!=*pars.ext_A_type) {
+            std::cerr<<"Error: perturber function type not matched the data type\n";
+            abort();
+        }
     }
     if(F_read) {
         // initialization
@@ -2881,40 +2954,34 @@ public:
         
     }
     else {
-        // update number indicator
-        // update_num(p.getN());
-        num = p.getN();
     
-        // Generate chain link list
-        generate_list();
-
-        // set center-of-mass
-        if (F_Porigin==1) {
-            center_shift_init();
-            F_Porigin=0;
-        }
-        else {
-            std::cerr<<"Error: particles are not in original frame!\n";
-            abort();
-        }
-
-        // set member relative position and velocity
-        calc_XV();
-    
-        // initial pf
-        initial_pf();
-        
-        // set relative distance matrix, acceleration, potential and transformation parameter, notice force will be recalculated later.
-        calc_rAPW(f, int_pars);
-
-        // update slow-down
-        // updateSlowDownFpert();
- 
         // Initial intgrt value t (avoid confusion of real time when slowdown is used)
         t = 0;
 
         slowdown.t_real = time;
 
+        // initial pf
+        initial_pf();
+        
+        // perturber force
+        if (fpert!=NULL) {
+            // should not do this, since center of mass position is changed during integration
+            //// get original position first, update p.x (dependence: X, particle::x)
+            //// center_shift_inverse_X();
+
+            // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
+            fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+
+            //// reset position to center-of-mass frame, update p.x 
+            //// center_shift_X();
+        }
+
+        // set relative distance matrix, acceleration, potential and transformation parameter, notice force will be recalculated later.
+        calc_rAPW(f, int_pars);
+
+        // update slow-down
+        updateSlowDownFpert();
+ 
         // kinetic energy
         calc_Ekin();
 
@@ -4123,6 +4190,9 @@ public:
         break;
       }
 
+      // update slow-down
+      updateSlowDownFpert();
+
       // Kick time step dt(V) (dependence: Pot, W)
       Float dvt = calc_dt_V(pars.sym_coff[i][1]*s,pars);
 
@@ -4140,8 +4210,6 @@ public:
 
     }
     
-    // update slow-down
-    updateSlowDownFpert();
 
     // update chain list order
     if(num>2&&check_flag)  update_link();
@@ -4223,7 +4291,10 @@ public:
     const bool dw_calc_flag = pars.beta>0;
     const bool fpert_flag = fpert!=NULL;
 //    const Float m1_m2_1 = -m1_m2 - 1.0;
-    Float fp2 = 0.0;
+    Float fp2 = 0.0, At2 = std::numeric_limits<Float>::max();
+    //Float fc2 = At2, fcp2 = 0.0;
+    const Float m1 = p[0].getMass();
+    const Float m2 = p[1].getMass();
 
     // integration with cofficients table
     for (int i=0;i<pars.sym_k;i++) {
@@ -4301,7 +4372,6 @@ public:
         dpf[0] = pf[1][0]-pf[0][0]; 
         dpf[1] = pf[1][1]-pf[0][1];
         dpf[2] = pf[1][2]-pf[0][2];
-        fp2 = dpf[0]*dpf[0] + dpf[1]*dpf[1] + dpf[2]*dpf[2];
 
         V[0][0] += dvt * (At[0]*m1_m2_1 + slowdown.kappa*dpf[0]); 
         V[0][1] += dvt * (At[1]*m1_m2_1 + slowdown.kappa*dpf[1]); 
@@ -4330,12 +4400,12 @@ public:
         p[0].setVel(v1[0],v1[1],v1[2]);
         p[1].setVel(v2[0],v2[1],v2[2]);
 
-        Pt -= dvt * (p[0].getMass() * (ave_v[0][0] * slowdown.kappa*pf[0][0] +
-                                       ave_v[0][1] * slowdown.kappa*pf[0][1] +
-                                       ave_v[0][2] * slowdown.kappa*pf[0][2])
-                   + p[1].getMass() * (ave_v[1][0] * slowdown.kappa*pf[1][0] +
-                                       ave_v[1][1] * slowdown.kappa*pf[1][1] +
-                                       ave_v[1][2] * slowdown.kappa*pf[1][2]));
+        Pt -= dvt * (m1 * (ave_v[0][0] * slowdown.kappa*pf[0][0] +
+                           ave_v[0][1] * slowdown.kappa*pf[0][1] +
+                           ave_v[0][2] * slowdown.kappa*pf[0][2])
+                   + m2 * (ave_v[1][0] * slowdown.kappa*pf[1][0] +
+                           ave_v[1][1] * slowdown.kappa*pf[1][1] +
+                           ave_v[1][2] * slowdown.kappa*pf[1][2]));
         
         if(dw_calc_flag) w += dvt*(ave_v[0][0] * dWt[0] +
                                    ave_v[0][1] * dWt[1] +
@@ -4344,9 +4414,16 @@ public:
                                    ave_v[1][1] * dWt[1] - 
                                    ave_v[1][2] * dWt[2]);
         
-        Ekin = 0.5 * (p[0].getMass() * (v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2])
-                     +p[1].getMass() * (v2[0]*v2[0]+v2[1]*v2[1]+v2[2]*v2[2]));
+        Ekin = 0.5 * (m1 * (v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2])
+                     +m2 * (v2[0]*v2[0]+v2[1]*v2[1]+v2[2]*v2[2]));
         
+        At2 = std::min(At2, At[0]*At[0] + At[1]*At[1] + At[2]*At[2]);
+        fp2 = std::max(fp2, dpf[0]*dpf[0] + dpf[1]*dpf[1] + dpf[2]*dpf[2]);
+        //fc2 = std::min(fc2, pf[0][0]*pf[0][0] + pf[0][1]*pf[0][1] + pf[0][2]*pf[0][2]);
+        //Float dfc1 = m1*pf[0][0]-m2*pf[1][0];
+        //Float dfc2 = m1*pf[0][1]-m2*pf[1][1];
+        //Float dfc3 = m1*pf[0][2]-m2*pf[1][2];
+        //fcp2= std::max(fcp2, dfc1*dfc1+dfc2*dfc2+dfc3*dfc3);
     }
 
     // resolve X
@@ -4363,7 +4440,7 @@ public:
     p[1].setPos(x2[0],x2[1],x2[2]);
 
     // update slowdown factor
-    slowdown.updatefpertsq(fp2);
+    slowdown.updatefratiosq(fp2/At2);
 
 #ifdef ARC_PROFILE
     profile.t_sym += get_wtime();
