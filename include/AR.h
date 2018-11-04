@@ -985,7 +985,7 @@ public:
             }
             else {
                 kappa_org = 1.0;
-                kappa = (tend_real-t_real)/period;
+                kappa = std::max(Float(1.0),(tend_real-t_real)/period);
             }
 #ifdef ARC_WARN
             if(fratiosqmax>1e-6) {
@@ -1000,7 +1000,7 @@ public:
             }
             // limit kappa based on tp_factor
             if((tend_real-t_real)/kappa<tp_factor*period) {
-                kappa = std::max(1.0,(tend_real-t_real)/(period*tp_factor));
+                kappa = std::max(Float(1.0),(tend_real-t_real)/(period*tp_factor));
             }
             // limit kappa change based on modify_factor_limit
             if (modify_factor_limit>0) {
@@ -1143,6 +1143,8 @@ public:
 template <class particle_>
 class chain: public particle_{
   typedef particle_ particle;
+  chainlist<particle> p;    ///< particle list
+
   Float3 *X;  ///< relative position 
   Float3 *V;  ///< relative velocity
   Float3 *acc; ///< acceleration   
@@ -1169,8 +1171,6 @@ class chain: public particle_{
   bool F_Pmod;     ///< indicate whether particle list is modified (true: modified)
   int  F_Porigin;  ///< indicate whether particle is shifted back to original frame (1: original frame: 0: center-of-mass frame; 2: only position is original frame)
   bool F_read;     ///< indicate whether read() funcion is used
-
-  chainlist<particle> p;    ///< particle list
 
   // information
   Float rmin2_, rmax2_; ///< min and max distance in the chain
@@ -1254,6 +1254,46 @@ public:
 #endif
   }
 
+  chain& operator = (const chain& _c) {
+      clear();
+      *(particle*)this = *(particle*)&_c;
+      allocate(_c.nmax);
+      p = _c.p;
+
+      PS::S32 n3=3*(_c.num-1);
+      for(int i=0; i<n3; i++) (*X)[i] = *(_c.X)[i];
+      for(int i=0; i<n3; i++) (*V)[i] = *(_c.V)[i];
+      n3=3*_c.num;
+      for(int i=0; i<n3; i++) (*acc)[i] = *(_c.acc)[i];
+      for(int i=0; i<n3; i++) (*pf)[i] = *(_c.pf)[i];
+      for(int i=0; i<n3; i++) (*dWdr)[i] = *(_c.dWdr)[i];
+      for(int i=0; i<_c.num; i++) list[i] = _c.list[i];
+      
+      t  = _c.t;
+      Pt = _c.Pt;
+      w  = _c.w;
+
+      W = _c.W;
+      Ekin = _c.Ekin;
+      Pot  = _c.Pot;
+
+      num = _c.num;
+      
+      F_Pmod = _c.F_Pmod;
+      F_Porigin = _c.F_Porigin;
+      F_read = _c.F_read;
+
+      rmin2_ = _c.rmin2_;
+      rmax2_ = _c.rmax2_;
+
+      rmin_index_ = _c.rmin_index_;
+      rmax_index_ = _c.rmax_index_;
+
+      slowdown = _c.slowdown;
+
+      return *this;
+  }
+
   //! destructor
   ~chain() {
     if (nmax>0) {
@@ -1327,11 +1367,11 @@ private:
       // find rmin/rmax
       if(rmin2ij>rmax2_) {
           rmax2_ = rmin2ij;
-          rmax_index_ = i;
+          rmax_index_ = inow;
       }
       if(rmin2ij<rmin2_) {
           rmin2_ = rmin2ij;
-          rmin_index_ = i;
+          rmin_index_ = inow;
       }
       list[i]=inext;
       is_checked[inext] = true;
@@ -2876,6 +2916,12 @@ public:
     return num;
   }
 
+  //! Get maximum particle number
+  /*! \return Current maximum particle number that can be stored in particle address list #p
+   */
+  int getNmax() const {
+    return nmax;
+  }
 
   //! Initial chain
   /*! Initialize chain based on particle list #p. After this function, positions and velocities of particles in #p will be shifted to their center-of-mass frame. \n
@@ -5052,9 +5098,19 @@ public:
     num = 0;
   }
 
+  chainlist& operator = (const chainlist& _c) {
+      clear();
+      allocate(_c.nmax);
+      num = _c.num;
+      for(int i=0; i<num; i++) p[i] = _c.p[i];
+      for(int i=0; i<num; i++) data[i] = _c.data[i];
+      return *this;
+  }
+
+
   //! Destructor
   ~chainlist() {
-    if (alloc_flag>0) {
+    if (alloc_flag) {
       //if (alloc_flag) 
       //  for (int i=0;i<num;i++)
       //    if (p[i]!=NULL) delete (particle*)p[i];
