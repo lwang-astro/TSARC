@@ -47,6 +47,8 @@ static Float get_wtime(){
 
 //! A structure storing time profile 
 class chainprofile{
+private:
+  int  itermax;   ///< maximum iter level
 public:
   Float t_apw;    ///< APW calculation
   Float t_uplink; ///< update link
@@ -59,8 +61,8 @@ public:
   Float t_check;  ///< for debug
   Float t_sym;    ///< symplectic_integration
 
-  int* stepcount;  ///< iteration step count in extrapolation
   int  itercount;  ///< total substep in extrapolation
+  int* stepcount;  ///< iteration step count in extrapolation
 
   chainprofile() {reset_tp();}  ///< initialization 
 
@@ -69,6 +71,26 @@ public:
       stepcount=new int[n];
       for (int i=0; i<n; i++) stepcount[i]=0;
     }
+    itermax = n;
+  }
+
+  chainprofile& operator = (const chainprofile& _c) {
+      if (stepcount) delete[] stepcount;
+      itermax  = _c.itermax;
+      t_apw    = _c.t_apw   ; 
+      t_uplink = _c.t_uplink; 
+      t_lf     = _c.t_lf    ; 
+      t_ep     = _c.t_ep    ; 
+      t_pext   = _c.t_pext  ; 
+      t_dense  = _c.t_dense ; 
+      t_init   = _c.t_init  ; 
+      t_newdt  = _c.t_newdt ; 
+      t_check  = _c.t_check ; 
+      t_sym    = _c.t_sym   ; 
+      itercount= _c.itercount;
+      stepcount=new int[itermax];
+      for (int i=0; i<itermax; i++) stepcount[i] = _c.stepcount[i];
+      return *this;
   }
 
   /*! reset the time*/
@@ -1260,13 +1282,12 @@ public:
       allocate(_c.nmax);
       p = _c.p;
 
-      PS::S32 n3=3*(_c.num-1);
-      for(int i=0; i<n3; i++) (*X)[i] = *(_c.X)[i];
-      for(int i=0; i<n3; i++) (*V)[i] = *(_c.V)[i];
-      n3=3*_c.num;
-      for(int i=0; i<n3; i++) (*acc)[i] = *(_c.acc)[i];
-      for(int i=0; i<n3; i++) (*pf)[i] = *(_c.pf)[i];
-      for(int i=0; i<n3; i++) (*dWdr)[i] = *(_c.dWdr)[i];
+      PS::S32 nrel=_c.num-1;
+      for(int i=0; i<nrel; i++) for(int k=0; k<3; k++) X[i][k] = _c.X[i][k];
+      for(int i=0; i<nrel; i++) for(int k=0; k<3; k++) V[i][k] = _c.V[i][k];
+      for(int i=0; i<_c.num; i++) for(int k=0; k<3; k++) acc [i][k] = _c.acc [i][k];
+      for(int i=0; i<_c.num; i++) for(int k=0; k<3; k++) pf  [i][k] = _c.pf  [i][k];
+      for(int i=0; i<_c.num; i++) for(int k=0; k<3; k++) dWdr[i][k] = _c.dWdr[i][k];
       for(int i=0; i<_c.num; i++) list[i] = _c.list[i];
       
       t  = _c.t;
@@ -1291,6 +1312,9 @@ public:
 
       slowdown = _c.slowdown;
 
+#ifdef ARC_PROFILE
+      profile = _c.profile;
+#endif
       return *this;
   }
 
@@ -4554,7 +4578,16 @@ public:
       Float Pot_bk = Pot;
       Float T_real_bk = slowdown.t_real;
       const Float eerr_min = pars.sym_An*0.5*pars.exp_error;
+      Float eerr_pre=eerr_min; // energy error of previous step
       bool tend_flag=false; // go to ending step
+
+#ifdef ARC_DEBUG
+      Float Ekin_check = 0.0;
+      for (int i=0; i<num; i++) {
+          Ekin_check += 0.5*p[i].getMass()*(p[i].getVel()[0]*p[i].getVel()[0]+p[i].getVel()[1]*p[i].getVel()[1]+p[i].getVel()[2]*p[i].getVel()[2]);
+      }
+      assert(abs(Ekin_check-Ekin)<1e-10);
+#endif
 
 #ifdef ARC_DEBUG_DUMP
       backup(bk0);
@@ -4704,7 +4737,7 @@ public:
                       continue;
                   }
                   // for big energy error
-                  else if (erat<0.1) {
+                  else if (erat<0.1&&pars.exp_error/eerr_pre<0.1) {
                       if(bk_flag) dsbk = ds[dsk];
                       ds[dsk] *=Af;
                       ds[1-dsk] = ds[dsk];
@@ -4722,6 +4755,7 @@ public:
               std::cerr<<"Warning: symplectic integrator error > 100*criterion:"<<eerr<<std::endl;
           }
 #endif
+          eerr_pre = eerr;
 
           if(!tend_flag&&dt*slowdown.kappa<pars.dtmin) {
               std::cerr<<"Error! symplectic integrated time step ("<<dt*slowdown.kappa<<") < minimum step ("<<pars.dtmin<<")!\n";
