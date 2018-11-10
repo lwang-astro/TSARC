@@ -95,6 +95,7 @@ public:
 
   /*! reset the time*/
   void reset_tp(){
+    itermax=0;
     t_apw=0.0;
     t_uplink=0.0;
     t_lf=0.0;
@@ -4578,7 +4579,7 @@ public:
       Float Pot_bk = Pot;
       Float T_real_bk = slowdown.t_real;
       const Float eerr_min = pars.sym_An*0.5*pars.exp_error;
-      Float eerr_pre=eerr_min; // energy error of previous step
+      //Float eerr_pre=eerr_min; // energy error of previous step
       bool tend_flag=false; // go to ending step
 
 #ifdef ARC_DEBUG
@@ -4737,7 +4738,7 @@ public:
                       continue;
                   }
                   // for big energy error
-                  else if (erat<0.1&&pars.exp_error/eerr_pre<0.1) {
+                  else if (erat<0.1) {
                       if(bk_flag) dsbk = ds[dsk];
                       ds[dsk] *=Af;
                       ds[1-dsk] = ds[dsk];
@@ -4755,7 +4756,7 @@ public:
               std::cerr<<"Warning: symplectic integrator error > 100*criterion:"<<eerr<<std::endl;
           }
 #endif
-          eerr_pre = eerr;
+//          eerr_pre = eerr;
 
           if(!tend_flag&&dt*slowdown.kappa<pars.dtmin) {
               std::cerr<<"Error! symplectic integrated time step ("<<dt*slowdown.kappa<<") < minimum step ("<<pars.dtmin<<")!\n";
@@ -5435,6 +5436,16 @@ public:
     for(int i=0; i<num; i++) {
         //if(cflag[i]) ((chain<particle>*)p[i])->cm=data[i];
         //else *p[i] = data[i];
+#ifdef ARC_DEBUG
+        const double* pos=data[i].getPos();
+        const double* vel=data[i].getVel();
+        assert(!std::isnan(pos[0]));
+        assert(!std::isnan(pos[1]));
+        assert(!std::isnan(pos[2]));
+        assert(!std::isnan(vel[0]));
+        assert(!std::isnan(vel[1]));
+        assert(!std::isnan(vel[2]));
+#endif
         if(p[i]!=NULL) *p[i] = data[i];
     }
   }
