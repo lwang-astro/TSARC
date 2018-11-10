@@ -2488,29 +2488,16 @@ public:
       }
   }
 
-  //! get particle original address list before and after given index
-  /*! Get two particle original address groups based on the given index in chain list(will be last index in the first group)
-    @param[out] _first_list: particle original address array to store the first group
-    @param[out] _n_first: number of particles in the first list
-    @param[out] _second_list: particle original address array to store the second group
-    @param[out] _n_second: number of particles in the second list
-    @param[in] _isplit: index used to split group
+  //! get particle original address in the chain list order
+  /*! 
+    @param[out] _list particle address array to store the results
+    \return number of particles in chain
   */
   template <class Tp>
-  void splitTwoGroups(Tp* _first_list[], 
-                      int& _n_first, 
-                      Tp* _second_list[], 
-                      int& _n_second,
-                      const int _isplit) {
-      if(_isplit<0||_isplit>=num) {
-          std::cerr<<"Error! index out of chain list boundary num: "<<num<<" index: "<<_isplit<<std::endl;
-          abort();
-      }
+  int getPAdrChain(Tp* _list[]) {
       particle** ptr=p.getPAdr();
-      for (int i=0; i<=_isplit; i++) _first_list[i] = (Tp*)ptr[list[i]];
-      for (int i=_isplit+1; i<num; i++) _second_list[i-_isplit-1] = (Tp*)ptr[list[i]];
-      _n_first = _isplit+1;
-      _n_second = num-_isplit-1;
+      for (int i=0; i<num; i++) _list[i] = (Tp*)ptr[list[i]];
+      return num;
   }
   
   //! Calculate physical time step for X
