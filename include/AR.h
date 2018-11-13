@@ -1939,7 +1939,7 @@ private:
       // calculate distance
       Float rmin2ij = NUMERIC_FLOAT_MAX;
       for (int j=0;j<num;j++) {
-        if (mask[j]||j==k) continue;
+        if (mask[j]||j==lk) continue;
         const Float* xk = p[lk].getPos();
         const Float* xj = p[j].getPos();
         Float xjk = xk[0] - xj[0];
@@ -1953,6 +1953,9 @@ private:
       }
       // find rmin/rmax
       if(rmin2ij>rmax2_) {
+#ifdef ARC_DEBUG
+          assert(rmin2ij!=NUMERIC_FLOAT_MAX);
+#endif
           rmax2_ = rmin2ij;
           rmax_index_ = k;
       }
@@ -4677,7 +4680,7 @@ public:
 #endif
 
           // energy check
-          Float eerr = abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt);
+          Float eerr = abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/bk[1]);
           if(!fix_step_flag) {
               if(eerr>pars.exp_error) {
                   //unsigned long Af=to_double(pow(eerr/pars.exp_error,pars.sym_inv_n));
