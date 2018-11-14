@@ -3376,7 +3376,14 @@ public:
       updateSlowDownFpert();
 
       // Update chain list order if necessary, update list, X, V (dependence: p.x, X, V)
-      if (num>2&&check_flag==2) update_link();
+      if (check_flag==2) {
+          if (num>2) update_link();
+          else {
+              // update rmax and rmin
+              rmin2_ = X[0][0]*X[0][0] + X[0][1]*X[0][1] + X[0][2]*X[0][2];
+              rmax2_ = rmin2_;
+          }
+      }
 
       // Get time step dt(V) (dependence: Pot, W)
       Float dvt = calc_dt_V(ds,pars);
@@ -3477,7 +3484,14 @@ public:
 //#endif
       
     // update chain list order and calculate potential
-    if(num>2&&check_flag==1)  update_link();
+    if (check_flag==1) {
+        if(num>2)  update_link();
+        else {
+            // update rmax and rmin
+            rmin2_ = X[0][0]*X[0][0] + X[0][1]*X[0][1] + X[0][2]*X[0][2];
+            rmax2_ = rmin2_;
+        }
+    }
 
     // clear memory
     //delete[] ave_v;
@@ -4105,6 +4119,11 @@ public:
 #endif
       // update chain link order
       if(num>2) update_link();
+      else {
+          // update rmax and rmin
+          rmin2_ = X[0][0]*X[0][0] + X[0][1]*X[0][1] + X[0][2]*X[0][2];
+          rmax2_ = rmin2_;
+      }
     }
 
     if(reset_flag) {
@@ -4273,7 +4292,14 @@ public:
     
 
     // update chain list order
-    if(num>2&&check_flag)  update_link();
+    if(check_flag) {
+        if(num>2)  update_link();
+        else {
+            // update rmax and rmin
+            rmin2_ = X[0][0]*X[0][0] + X[0][1]*X[0][1] + X[0][2]*X[0][2];
+            rmax2_ = rmin2_;
+        }
+    }
 
 #ifdef FAPP_PROFILE
     fapp_stop("sym",1,1);
@@ -4802,6 +4828,11 @@ public:
 
               bk_flag = true;
               if(num>2) update_link();
+              else {
+                  // update rmax and rmin
+                  rmin2_ = X[0][0]*X[0][0] + X[0][1]*X[0][1] + X[0][2]*X[0][2];
+                  rmax2_ = rmin2_;
+              }
           }
           else if(t>tend+terr) {
               tend_flag = true;
@@ -4834,6 +4865,12 @@ public:
           }
           else {
               if(num>2) update_link();
+              else {
+                  // update rmax and rmin
+                  rmin2_ = X[0][0]*X[0][0] + X[0][1]*X[0][1] + X[0][2]*X[0][2];
+                  rmax2_ = rmin2_;
+              }
+              
 #ifdef ARC_DEEP_DEBUG
               std::cerr<<"Finish, terr = "<<(t-tend)/(t-t0)<<" eerr = "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
 #endif
