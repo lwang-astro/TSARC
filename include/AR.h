@@ -1089,6 +1089,14 @@ public:
         return kappa_org;
     }
 
+    // Get perturbation factor
+    /*!
+      \return the maximum perturbation force / internal force square record
+     */
+    Float getFratioSq() const {
+        return fratiosqmax;
+    }
+
     //! Switcher of slow-down
     /*! @param[in] used: if true, switch on, else switch off
      */
