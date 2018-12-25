@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# test scaling with steps
+# test scaling with steps and error (energy, time)
 source ~/.uftools.sh
 
 #p2.test
@@ -8,7 +8,8 @@ tt=p2
 sbase=0.49672941329
 #p3.test
 tt=p3
-sbase=0.0175620368276
+sbase=0.000004442882938158366 # use formula in Symbolic_calculator.ipynb
+
 
 exec="./hierarchy $tt.test -r 2"
 #kepc='../../P3TARC/test/keplersolvertest 2'

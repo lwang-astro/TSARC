@@ -5,8 +5,8 @@
 # test scaling with steps
 source ~/.uftools.sh
 
-#exec='./chain -N 5 input '
-exec='./hierarchy p3.test -r 2'
+exec='./chain -N 5 input '
+#exec='./hierarchy p3.test -r 2'
 
 step=(`powseq 0.5 -s 10 -n 15`)
 n=(`powseq 2 -n 5`)
@@ -51,6 +51,6 @@ echo 'Extrapolation integrator'
 for i in `seq 2 4`
 do
     echo 'sequence '$i
-    $exec -s ${step[0]} -n ${n[0]}000 -m 1 -k $i 1>extra_data_s$i  2>extra_err_s$i
+    $exec -s ${step[0]} -n ${n[0]}000 -m 'rational' -k $i 1>extra_data_s$i  2>extra_err_s$i
     egrep -i profile extra_err_s$i |tail -1 |awk '{print 0,0,$3,$11}' >>sym_prof
 done

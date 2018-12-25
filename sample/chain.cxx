@@ -412,7 +412,8 @@ int main(int argc, char **argv){
   // Int_pars.calc_mm2(pmass,n); //mm2
 
   // initialization of chain system
-  c.init(t,pars,&Int_pars);
+  c.initChain();
+  c.initSys(t,pars,&Int_pars,p,pf);
 
   //printing column title
   std::cout<<"Time"

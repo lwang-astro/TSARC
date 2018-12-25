@@ -1003,7 +1003,7 @@ public:
 #endif
             // update kappa based on current max fratio
             if (fratiosqmax>0) {
-                kappa_org = kref/sqrt(std::max(1.0,mass_ratio)*fratiosqmax);
+                kappa_org = kref/sqrt(std::max(Float(1.0),mass_ratio)*fratiosqmax);
                 kappa = std::max(Float(1.0),kappa_org);
             }
             else {
@@ -1291,7 +1291,7 @@ public:
       allocate(_c.nmax);
       p = _c.p;
 
-      PS::S32 nrel=_c.num-1;
+      int nrel=_c.num-1;
       for(int i=0; i<nrel; i++) for(int k=0; k<3; k++) X[i][k] = _c.X[i][k];
       for(int i=0; i<nrel; i++) for(int k=0; k<3; k++) V[i][k] = _c.V[i][k];
       for(int i=0; i<_c.num; i++) for(int k=0; k<3; k++) acc [i][k] = _c.acc [i][k];
@@ -3025,7 +3025,7 @@ public:
     else {
     
         // Initial intgrt value t (avoid confusion of real time when slowdown is used)
-        t = 0;
+        t = Float(0.0);
 
         slowdown.t_real = time;
 
@@ -4719,7 +4719,7 @@ public:
               if(eerr>pars.exp_error) {
                   //unsigned long Af=to_double(pow(eerr/pars.exp_error,pars.sym_inv_n));
                   Float erat = pars.exp_error/eerr;
-                  Float Af=std::max(pow(erat,pars.sym_inv_n),0.125);
+                  Float Af=std::max(pow(erat,pars.sym_inv_n),Float(0.125));
                   //unsigned long c=1;
                   //while(Af>0) {
                   //    Af = (Af>>1);
@@ -4865,7 +4865,7 @@ public:
                   Float dtk = timetable[k] - tp;
                   Float dtmp = ds[dsk];
                   ds[dsk] *= pars.sym_order[i-1].cck;  // first set step to nearest k for t<tend
-                  ds[1-dsk] = dtmp*(pars.sym_order[i].cck-pars.sym_order[i-1].cck)*std::min(1.0,(tend-tp+terr)/dtk); //then set next step to c_k+1 -c_k
+                  ds[1-dsk] = dtmp*(pars.sym_order[i].cck-pars.sym_order[i-1].cck)*std::min(Float(1.0),(tend-tp+terr)/dtk); //then set next step to c_k+1 -c_k
 #ifdef ARC_DEEP_DEBUG
                   std::cerr<<"T-end reach, t0 = "<<tp<<" t1 = "<<timetable[k]<<" t = "<<t<<" (tend-tp)/dt="<<(tend-tp)/dt<<" ck1="<<pars.sym_order[i].cck<<" ck0="<<pars.sym_order[i-1].cck<<" ds1 = "<<ds[dsk]<<" ds2 = "<<ds[1-dsk]<<" \n";
 #endif

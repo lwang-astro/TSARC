@@ -258,7 +258,8 @@ int main(int argc, char **argv){
   //c.link_int_par(Int_pars);
   c.linkP(N,p);
 
-  c.init(0.0,pars,&Int_pars);
+  c.initChain();
+  c.initSys(0.0,pars,&Int_pars,(Particle*)NULL,(ARC::Float3*)NULL);
 
   // printing data
   print_pars pw;
