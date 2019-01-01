@@ -418,9 +418,9 @@ public:
     @param [in] dte: Time synchronization error limit (defaulted #dterr = 1e-6)
    */
   void setErr(const Float error=1E-10, const Float dtm=5.4e-20, const Float dte=1e-6) {
-    dterr = dte;
-    dtmin = dtm;
-    exp_error = error;
+    if(dte>0) dterr = dte;
+    if(dtm>0) dtmin = dtm;
+    if(error>0) exp_error = error;
   }
 
   //! Set interpolation method
@@ -454,8 +454,8 @@ public:
     @param [in] intpmax: maximum derivate index for dense ouput interpolation (defaulted #itermax/2)
   */
   void setIterSeq(const int itermax=20, const int sequence=0, const int intpmax=0) {
-    exp_itermax = itermax;
-    exp_sequence = sequence;
+    if(itermax>0) exp_itermax = itermax;
+    if(sequence>=0) exp_sequence = sequence;
 
     // delete binomial array
     if (bin_index!=NULL) {
@@ -499,7 +499,7 @@ public:
             abort();
         }
         else if(intpmax==0) den_intpmax=itermax/2;
-        else den_intpmax = intpmax;
+        else if(intpmax>0) den_intpmax = intpmax;
 
     }    
   }
@@ -4555,7 +4555,7 @@ public:
       @param [in] pert: perturber particle array
       @param [in] pertf: perturrber force array for prediction
       @param [in] npert: number of perturbers
-      @param [in] fix_step_flag: whether suppress auto-step determination due to energy error
+      @param [in] fix_step_flag: 0: adjust step for both initial and integration based on energy error; 1: adjust initial step but fix after that; 2: fix step and use input step s
       \return step counter
   */
   template<class pertparticle_, class pertforce_, class extpar_>
@@ -4566,7 +4566,7 @@ public:
                                   pertparticle_* pert = NULL, 
                                   pertforce_* pertf = NULL, 
                                   const int npert = 0,
-                                  const bool fix_step_flag = false,
+                                  const int fix_step_flag = 0,
                                   const int max_nstep=100000) {
 
       // slowdown time
@@ -4715,8 +4715,8 @@ public:
 
           // energy check
           Float eerr = abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/bk[1]);
-          if(!fix_step_flag) {
-              if(eerr>pars.exp_error) {
+          if(eerr>pars.exp_error) {
+              if(fix_step_flag<=1) {
                   //unsigned long Af=to_double(pow(eerr/pars.exp_error,pars.sym_inv_n));
                   Float erat = pars.exp_error/eerr;
                   Float Af=std::max(pow(erat,pars.sym_inv_n),Float(0.125));
@@ -4759,20 +4759,23 @@ public:
                       ds[dsk] *=Af;
                       ds[1-dsk] =ds[dsk];
                       bk_flag = false;
+#ifdef ARC_DEEP_DEBUG
+                      std::cerr<<"Detected energy erro too large eerr/err_max ="<<1.0/erat<<" eerr="<<eerr<<" Af="<<Af<<" substep number="<<nsub<<std::endl;
+#endif
                       continue;
                   }
                   // for big energy error
-                  else if (erat<0.1) {
+                  else if (fix_step_flag==0&&erat<0.1) {
                       if(bk_flag) dsbk = ds[dsk];
                       ds[dsk] *=Af;
                       ds[1-dsk] = ds[dsk];
                       bk_flag = false;
                       nsub = 2*to_int(1.0/Af);
+#ifdef ARC_DEEP_DEBUG
+                      std::cerr<<"Detected energy erro too large eerr/err_max ="<<1.0/erat<<" eerr="<<eerr<<" Af="<<Af<<" substep number="<<nsub<<std::endl;
+#endif
                       continue;
                   }
-#ifdef ARC_DEEP_DEBUG
-                  std::cerr<<"Detected energy erro too large eerr/err_max ="<<1.0/erat<<" eerr="<<eerr<<" Af="<<Af<<" substep number="<<nsub<<std::endl;
-#endif
               }
           }
 #ifdef ARC_WARN
@@ -4803,7 +4806,7 @@ public:
 
           if(t<tend-terr){
               // step increase depend on nsub or error
-              if(!fix_step_flag&&!tend_flag) {
+              if(fix_step_flag==0&&!tend_flag) {
                   if(nsub==0) {
 #ifdef ARC_DEEP_DEBUG
                       std::cerr<<"Recover to backup step ds_current="<<ds[dsk]<<" ds_next="<<ds[1-dsk]<<" ds_backup="<<dsbk<<std::endl;
