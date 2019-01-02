@@ -1122,32 +1122,50 @@ public:
         }
     }
 
+    //! backup real time and force ratio
+    /*! @param[in] _bk: backup data array[3]
+     */
+    void backup(Float* _bk) {
+        _bk[0] = t_real;
+        _bk[1] = fratiosqmax;
+        _bk[2] = fratiosqlast;
+    }
 
-  //! print slowdown data
-  /*! Print slowdown data 
+    //! restore real time and force ratio
+    /*! @param[in] _bk: restore data array[3]
+     */
+    void restore(Float* _bk) {
+        t_real =  _bk[0];
+        fratiosqmax  = _bk[1];
+        fratiosqlast = _bk[2];
+    }
+    
+
+    //! print slowdown data
+    /*! Print slowdown data 
       @param[in] fout: ofstream for printing
       @param[in] precision: printed precision for one variable
       @param[in] width: printing width for one variable
-  */
-  void print(std::ostream & fout, const int precision=15, const int width=23) {
-    if (width<=0) {
-      fout<<"Error: width should be larger than zero!\n";
-      abort();
-    }
-    if(is_used) {
-        fout<<std::setprecision(precision)
-            <<"\n-------- slowdown ---------\n"
-            <<"kappa: "<<std::setw(width)<<kappa<<std::endl
-            <<"kappa_org: "<<std::setw(width)<<kappa_org<<std::endl
-            <<"kref: "<<std::setw(width)<<kref<<std::endl
-            <<"fratiosqmax: "<<std::setw(width)<<fratiosqmax<<std::endl
-            <<"fratiosqmaxlast: "<<std::setw(width)<<fratiosqmaxlast<<std::endl
-            <<"fratiosqlast: "<<std::setw(width)<<fratiosqlast<<std::endl
-            //<<"finnersq: "<<std::setw(width)<<finnersq<<std::endl
-            <<"t_real: "<<std::setw(width)<<t_real<<std::endl
-            <<"t_record: "<<std::setw(width)<<t_record<<std::endl
-            <<"period: "<<std::setw(width)<<period<<std::endl;
-    }
+    */
+    void print(std::ostream & fout, const int precision=15, const int width=23) {
+        if (width<=0) {
+            fout<<"Error: width should be larger than zero!\n";
+            abort();
+        }
+        if(is_used) {
+            fout<<std::setprecision(precision)
+                <<"\n-------- slowdown ---------\n"
+                <<"kappa: "<<std::setw(width)<<kappa<<std::endl
+                <<"kappa_org: "<<std::setw(width)<<kappa_org<<std::endl
+                <<"kref: "<<std::setw(width)<<kref<<std::endl
+                <<"fratiosqmax: "<<std::setw(width)<<fratiosqmax<<std::endl
+                <<"fratiosqmaxlast: "<<std::setw(width)<<fratiosqmaxlast<<std::endl
+                <<"fratiosqlast: "<<std::setw(width)<<fratiosqlast<<std::endl
+                //<<"finnersq: "<<std::setw(width)<<finnersq<<std::endl
+                <<"t_real: "<<std::setw(width)<<t_real<<std::endl
+                <<"t_record: "<<std::setw(width)<<t_record<<std::endl
+                <<"period: "<<std::setw(width)<<period<<std::endl;
+        }
   }
 };
 
@@ -2352,9 +2370,9 @@ private:
           //Float fcp[3] = {mk1*pf[k1][0]-mk*pf[k][0],
           //                mk1*pf[k1][1]-mk*pf[k][1],
           //                mk1*pf[k1][2]-mk*pf[k][2]};
-          Float fin[3] = {acc[k1][0]-acc[k][0],
-                          acc[k1][1]-acc[k][1],
-                          acc[k1][2]-acc[k][2]};
+          Float fin[3] = {acc[k1][0]-acc[k][0] - slowdown.kappa*fp[0],
+                          acc[k1][1]-acc[k][1] - slowdown.kappa*fp[1],
+                          acc[k1][2]-acc[k][2] - slowdown.kappa*fp[2]};
           Float fp2 = fp[0]*fp[0] + fp[1]*fp[1] + fp[2]*fp[2];
           Float fin2= fin[0]*fin[0] +fin[1]*fin[1] +fin[2]*fin[2];
           //Float fcp2 = fcp[0]*fcp[0] + fcp[1]*fcp[1] + fcp[2]*fcp[2];
@@ -3154,7 +3172,7 @@ public:
     }      
   }
 
-  //! Backup chain data (#t, #Pt, #w, #X, #V)
+  //! Backup chain basic data (#t, #Pt, #w, #X, #V)
   /*! Backup chain data to one dimensional array. 
       - #t : current physical time
       - #Pt : current time momentum (system binding energy)
@@ -3177,6 +3195,35 @@ public:
     db[2] = w;
     std::memcpy(&db[3], X[0], ndata*sizeof(Float));
     std::memcpy(&db[3+ndata], V[0], ndata*sizeof(Float));
+  }
+
+  //! Backup chain basic and integrated data (#t, #Pt, #w, #Ekin, #Pot, #X, #V)
+  /*! Backup chain data to one dimensional array. 
+      - #t : current physical time
+      - #Pt : current time momentum (system binding energy)
+      - #w : current time transformation parameter
+      - #Ekin: kinetic energy
+      - #Pot: Potential energy
+      - #X : current relative position array
+      - #V : current relative velocite array
+     @param [out] db: backup array (size should be 6*#num-3) where #num is the total number of particles in #p
+   */
+  void backupInt(Float* db) {
+#ifdef ARC_DEBUG
+    const int dsize=6*num-1;
+    if ((int)db[dsize]!=dsize) {
+      std::cerr<<"Error: data array size ("<<(int)db[dsize]<<") for backup is not matched, should be ("<<dsize<<")!\n";
+      abort();
+    }
+#endif
+    const int ndata=3*(num-1);
+    db[0] = t;
+    db[1] = Pt;
+    db[2] = w;
+    db[3] = Ekin;
+    db[4] = Pot;
+    std::memcpy(&db[5], X[0], ndata*sizeof(Float));
+    std::memcpy(&db[5+ndata], V[0], ndata*sizeof(Float));
   }
      
   //! Restore chain data (#t, #Pt, #w, #X, #V)
@@ -3202,6 +3249,35 @@ public:
     w = db[2];
     std::memcpy(X[0], &db[3], ndata*sizeof(Float));
     std::memcpy(V[0], &db[3+ndata], ndata*sizeof(Float));
+  }
+
+  //! Restore chain basic and integrated data (#t, #Pt, #w, #Ekin, #Pot, #X, #V)
+  /*! Restore integration data from one dimensional array, the order of data should be #t, #Pt, #w, #X[#num][3], #V[#num][3]
+      - #t : current physical time
+      - #Pt : current time momentum (system binding energy)
+      - #w : current time transformation parameter
+      - #Ekin: kinetic energy
+      - #Pot: Potential energy
+      - #X : current relative position array
+      - #V : current relative velocite array
+     @param [in] db: one dimensional array that storing chain data (array size should be 6*#num-3) where #num is the total number of particles in #p
+   */
+  void restoreInt(Float* db) {
+#ifdef ARC_DEBUG
+    const int dsize=6*num-1;
+    if ((int)db[dsize]!=dsize) {
+      std::cerr<<"Error: data array size ("<<(int)db[dsize]<<") for restore is not matched, should be ("<<dsize<<")!\n";
+      abort();
+    }
+#endif
+    const int ndata=3*(num-1);
+    t = db[0];
+    Pt = db[1];
+    w = db[2];
+    Ekin = db[3];
+    Pot = db[4];
+    std::memcpy(X[0], &db[5], ndata*sizeof(Float));
+    std::memcpy(V[0], &db[5+ndata], ndata*sizeof(Float));
   }
 
   //! Leapfrog integrator
@@ -4386,7 +4462,9 @@ public:
     const bool dw_calc_flag = pars.beta>0;
     const bool fpert_flag = fpert!=NULL;
 //    const Float m1_m2_1 = -m1_m2 - 1.0;
-    Float fp2 = 0.0, At2 = std::numeric_limits<Float>::max();
+    Float fp2 = Float(0.0);
+    Float At2 = std::numeric_limits<Float>::max();
+    Float fratio = Float(0.0);
     //Float fc2 = At2, fcp2 = 0.0;
     const Float m1 = p[0].getMass();
     const Float m2 = p[1].getMass();
@@ -4468,9 +4546,13 @@ public:
         dpf[1] = pf[1][1]-pf[0][1];
         dpf[2] = pf[1][2]-pf[0][2];
 
-        V[0][0] += dvt * (At[0]*m1_m2_1 + slowdown.kappa*dpf[0]); 
-        V[0][1] += dvt * (At[1]*m1_m2_1 + slowdown.kappa*dpf[1]); 
-        V[0][2] += dvt * (At[2]*m1_m2_1 + slowdown.kappa*dpf[2]); 
+        At[0] *= m1_m2_1;
+        At[1] *= m1_m2_1;
+        At[2] *= m1_m2_1;
+
+        V[0][0] += dvt * (At[0] + slowdown.kappa*dpf[0]); 
+        V[0][1] += dvt * (At[1] + slowdown.kappa*dpf[1]); 
+        V[0][2] += dvt * (At[2] + slowdown.kappa*dpf[2]); 
 
         Float3 v1,v2,ave_v[2];
         v1[0] = - m2_mt*V[0][0];
@@ -4512,8 +4594,9 @@ public:
         Ekin = 0.5 * (m1 * (v1[0]*v1[0]+v1[1]*v1[1]+v1[2]*v1[2])
                      +m2 * (v2[0]*v2[0]+v2[1]*v2[1]+v2[2]*v2[2]));
         
-        At2 = std::min(At2, At[0]*At[0] + At[1]*At[1] + At[2]*At[2]);
-        fp2 = std::max(fp2, dpf[0]*dpf[0] + dpf[1]*dpf[1] + dpf[2]*dpf[2]);
+        At2 = At[0]*At[0] + At[1]*At[1] + At[2]*At[2];
+        fp2 = dpf[0]*dpf[0] + dpf[1]*dpf[1] + dpf[2]*dpf[2];
+        fratio = std::max(fratio, fp2/At2);
         //fc2 = std::min(fc2, pf[0][0]*pf[0][0] + pf[0][1]*pf[0][1] + pf[0][2]*pf[0][2]);
         //Float dfc1 = m1*pf[0][0]-m2*pf[1][0];
         //Float dfc2 = m1*pf[0][1]-m2*pf[1][1];
@@ -4535,7 +4618,7 @@ public:
     p[1].setPos(x2[0],x2[1],x2[2]);
 
     // update slowdown factor
-    slowdown.updatefratiosq(fp2/At2);
+    slowdown.updatefratiosq(fratio);
 
 #ifdef ARC_PROFILE
     profile.t_sym += get_wtime();
@@ -4573,20 +4656,20 @@ public:
       const Float tend = (tend_real-slowdown.t_real)/slowdown.kappa + t;
       Float dt;
 
-      const int dsize  = 6*(num-1)+3;
+      const int dsize  = 6*(num-1)+5;
       const int darray = dsize+1; // backup data array size;
-      Float bk[darray]; // for backup
+      Float bk[darray]; // for backup chain data
+      Float bksd[3]; // for slowdown backup
 #ifdef ARC_DEBUG_DUMP
-      Float bk0[darray],Ekin_0,Pot_0, T_real_0; // for backup
+      Float bk0[darray], bksd0[3]; // for backup
       particle p0[num];
 #endif
 #ifdef ARC_DEBUG
-      bk[dsize] = dsize;
+      bk[dsize] = (Float)dsize;  // label for safety check
 #ifdef ARC_DEBUG_DUMP
-      bk0[dsize] = dsize;
+      bk0[dsize] = (Float)dsize;
 #endif      
 #endif
-      bk[dsize] = (Float)dsize;    // label for safety check
       const int symk = pars.sym_k;
       Float timetable[symk]; // for storing time information
       
@@ -4599,9 +4682,6 @@ public:
       int stepcount = 0;
       int stepcount_tsyn=0; // after time end
       bool bk_flag=true; // flag for backup or restore
-      Float Ekin_bk = Ekin;
-      Float Pot_bk = Pot;
-      Float T_real_bk = slowdown.t_real;
       const Float eerr_min = pars.sym_An*0.5*pars.exp_error;
       //Float eerr_pre=eerr_min; // energy error of previous step
       bool tend_flag=false; // go to ending step
@@ -4615,10 +4695,8 @@ public:
 #endif
 
 #ifdef ARC_DEBUG_DUMP
-      backup(bk0);
-      Ekin_0 = Ekin;
-      Pot_0 = Pot;
-      T_real_0 = slowdown.t_real;
+      backupInt(bk0);
+      slowdown.backup(bksd0);
       for (int i=0; i<num; i++) p0[i]=p[i];
 #endif
       
@@ -4631,16 +4709,12 @@ public:
       while(true) {
           // backup /restore data
           if(bk_flag) {
-              backup(bk);
-              Ekin_bk = Ekin;
-              Pot_bk  = Pot;
-              T_real_bk = slowdown.t_real;
+              backupInt(bk);
+              slowdown.backup(bksd);
           }
           else {
-              restore(bk);
-              Ekin = Ekin_bk;
-              Pot = Pot_bk;
-              slowdown.t_real = T_real_bk;
+              restoreInt(bk);
+              slowdown.restore(bksd);
               resolve_V();
           }
           
@@ -4660,7 +4734,7 @@ public:
           if(stepcount>=max_nstep&&stepcount%max_nstep==0) {
               std::cerr<<"Warning: stepcount is signficiant "<<stepcount<<std::endl;
               std::cerr<<"Time: "<<t<<" Tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
-                       <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+                       <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)<<std::endl;
               print(std::cerr);
           }
 #endif
@@ -4668,14 +4742,12 @@ public:
           if(stepcount_tsyn>max_nstep-10) {
               std::cerr<<"Error! stepcount after time synchronization >"<<max_nstep<<std::endl;
               std::cerr<<"Time: "<<t<<" Tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
-                       <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+                       <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)<<std::endl;
               std::cerr<<"Tend_flag: "<<tend_flag<<" dt: "<<dt<<" subcount "<<nsubcount<<" dsbk: "<<dsbk<<std::endl;
 #ifdef ARC_DEBUG_DUMP
               if(stepcount_tsyn>max_nstep) {
-                  restore(bk0);
-                  Ekin = Ekin_0;
-                  Pot = Pot_0;
-                  slowdown.t_real = T_real_0;
+                  restoreInt(bk0);
+                  slowdown.restore(bksd0);
                   for (int i=0; i<num; i++) p[i]=p0[i];
                   return -stepcount;
               }
@@ -4691,7 +4763,7 @@ public:
                    <<" Pot: "<<Pot
                    <<" Pt: "<<Pt
                    <<" E+Pt: "<<Ekin+Pot+Pt
-                   <<" error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)
+                   <<" error: "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)
                    <<std::endl;
           std::cerr<<"Timetable: ";
           for (int i=0; i<symk; i++) std::cerr<<" "<<timetable[pars.sym_order[i].index];
@@ -4705,16 +4777,14 @@ public:
               info->ds1 = ds[dsk];
               info->ds2 = ds[1-dsk];
 
-              restore(bk);
-              Ekin = Ekin_bk;
-              Pot = Pot_bk;
-              slowdown.t_real = T_real_bk;
+              restoreInt(bk);
+              slowdown.restore(bksd);
               break;
           }
 #endif
 
           // energy check
-          Float eerr = abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/bk[1]);
+          Float eerr = abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/bk[1]);
           if(eerr>pars.exp_error) {
               if(fix_step_flag<=1) {
                   //unsigned long Af=to_double(pow(eerr/pars.exp_error,pars.sym_inv_n));
@@ -4787,12 +4857,10 @@ public:
 
           if(!tend_flag&&dt*slowdown.kappa<pars.dtmin) {
               std::cerr<<"Error! symplectic integrated time step ("<<dt*slowdown.kappa<<") < minimum step ("<<pars.dtmin<<")!\n";
-              std::cerr<<" stepcount: "<<stepcount<<" ds_used: "<<ds[dsk]<<" energy error: "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+              std::cerr<<" stepcount: "<<stepcount<<" ds_used: "<<ds[dsk]<<" energy error: "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)<<std::endl;
 #ifdef ARC_DEBUG_DUMP
-              restore(bk0);
-              Ekin = Ekin_0;
-              Pot = Pot_0;
-              slowdown.t_real = T_real_0;
+              restoreInt(bk0);
+              slowdown.restore(bksd0);
               for (int i=0; i<num; i++) p[i]=p0[i];
               return -stepcount;
 #else
@@ -4883,7 +4951,7 @@ public:
               }
               
 #ifdef ARC_DEEP_DEBUG
-              std::cerr<<"Finish, terr = "<<(t-tend)/(t-t0)<<" eerr = "<<abs((Ekin+Pot+Pt-Ekin_bk-Pot_bk-bk[1])/Pt)<<std::endl;
+              std::cerr<<"Finish, terr = "<<(t-tend)/(t-t0)<<" eerr = "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)<<std::endl;
 #endif
               break;
           }
