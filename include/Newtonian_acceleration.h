@@ -122,7 +122,7 @@ namespace NTA {
     @param[in] npert: number of perturbers
     @param[in] pars: extra parameters (not used)
   */
-  void Newtonian_extAcc(Float3 *acc, const Float t, Particle *p, const int np, Particle *pert, Float3 *pertf, const int npert, Newtonian_pars *pars) {
+  int Newtonian_extAcc(Float3 *acc, const Float t, Particle *p, const int np, Particle *pert, Float3 *pertf, const int npert, Newtonian_pars *pars) {
       Float3 xp[npert];
       for (int i=0; i<npert; i++) {
           const Float* r = pert[i].getPos();
@@ -154,6 +154,7 @@ namespace NTA {
           }
       }
               //Pij = - pi.getMass()*mp / dr;
+      return 0;
   }
 
   //! Newtonian two-body kepler period

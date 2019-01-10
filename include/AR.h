@@ -153,9 +153,10 @@ class chainslowdown;
   @param[in] force: perturber acceleration class used for prediction
   @param[in] npert: number of perturbers
   @param[in] pars: extra parameters 
+  \return user-defined status (defaulted should be zero)
  */
 template<class particle_, class pertparticle_, class force_, class extpar_>
-using ext_Acc = void(*)(Float3 *acc, const Float t, particle_ *p, const int np, pertparticle_ *pert, force_ *fpert, const int npert, extpar_ *pars);
+using ext_Acc = int (*)(Float3 *acc, const Float t, particle_ *p, const int np, pertparticle_ *pert, force_ *fpert, const int npert, extpar_ *pars);
 
 //! Function pointer type to function for calculation of acceleration (potential) and the component of time transformation function \f$\partial W_{ij}/\partial \mathbf{x}_i\f$ and \f$W_{ij}\f$ (from particle j to particle i).
 /*!     
@@ -1010,11 +1011,11 @@ public:
                 kappa_org = 1.0;
                 kappa = std::max(Float(1.0),(tend_real-t_real)/period);
             }
-#ifdef ARC_WARN
-            if(fratiosqmax>1e-6) {
-                std::cerr<<"Warning!: perturbation too strong, fratio = "<<sqrt(fratiosqmax)<<" kappa = "<<kappa<<std::endl;
-            }
-#endif
+//#ifdef ARC_WARN
+//            if(fratiosqmax>1e-6) {
+//                std::cerr<<"Warning!: perturbation too strong, fratio = "<<sqrt(fratiosqmax)<<" kappa = "<<kappa<<std::endl;
+//            }
+//#endif
             // update fratio max record 
             if((t_real-t_record)/kappa>=period) {
                 t_record = t_real;
@@ -1466,7 +1467,7 @@ private:
   */
   //      @param [in] resolve_flag: flag to determine whether to resolve sub-chain particles for force calculations. (defaulted false)
   template<class extpar_>
-  void calc_rAPW (pair_AW<particle,extpar_> fforce, extpar_ *pars) {
+  void calc_rAPW (pair_AW<particle, extpar_> fforce, extpar_ *pars) {
 #ifdef ARC_PROFILE
     profile.t_apw -= get_wtime();
 #endif
@@ -1537,6 +1538,7 @@ private:
           info->status = stat;
           info->i1 = lj;
           info->i2 = lk;
+          break;
         }
 #else 
         fforce(At, Pot_jk, dWt_jk, Wt_jk, xjk, *pj, *pk, pars);
@@ -2693,14 +2695,14 @@ public:
       fwrite(&Ekin,sizeof(Float),1,pout);
       fwrite(&Pot,sizeof(Float),1,pout);
       // center-of-mass particle
-      particle::dump(pout);
+      particle::writeBinary(pout);
       //Float cmass=particle::getMass();
       //fwrite(&cmass,sizeof(Float),1,pout);
       //fwrite(particle::getPos(),sizeof(Float),3,pout);
       //fwrite(particle::getVel(),sizeof(Float),3,pout);
       
       // member particle
-      for(int i=0; i<num; i++) p[i].dump(pout);
+      for(int i=0; i<num; i++) p[i].writeBinary(pout);
       // mass of particles
       //Float *pmass=new Float[num];
       //p.getMassAll(pmass);
@@ -3000,6 +3002,7 @@ public:
     @param [in] pert: perturber particle array
     @param [in] pertf: perturrber force array for prediction
     @param [in] npert: number of perturbers
+    \return fail_flag: true: fail
   */
   template<class pertparticle_, class pertforce_, class extpar_>
   void initSys(const Float time, 
@@ -3057,8 +3060,15 @@ public:
             //// center_shift_inverse_X();
 
             // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
+#ifdef ARC_WARN
+            int stat=fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+            if (stat!=0&&info==NULL) {
+                info = new chaininfo(num);
+                info->status = stat;
+            }
+#else
             fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
-
+#endif
             //// reset position to center-of-mass frame, update p.x 
             //// center_shift_X();
         }
@@ -3440,8 +3450,19 @@ public:
         //// center_shift_inverse_X();
 
         // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
+#ifdef ARC_WARN
+          int stat=fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+          if (stat!=0&&info==NULL) {
+              info = new chaininfo(num);
+              info->status = stat;
+              info->inti = i;
+              info->subds = ds;
+              check_flag=0;
+              break;
+          }
+#else
         fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
-
+#endif
         //// reset position to center-of-mass frame, update p.x 
         //// center_shift_X();
       }
@@ -4344,7 +4365,17 @@ public:
       // perturber force
       if (fpert!=NULL) {
         // Update perturber force pf (dependence: pext, original-frame p.x, p.getMass())
-        fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+#ifdef ARC_WARN
+          int stat = fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+          if (stat!=0&&info!=NULL) {
+              info = new chaininfo(num);
+              info->status = stat;
+              info->inti = i;
+              break;
+          }
+#else
+          fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+#endif
       }
 
       // Update rjk, A, Pot, dWdr, W for half X (dependence: pf, force, p.m, p.x, X)
@@ -4515,8 +4546,21 @@ public:
         p[0].setPos(x1[0],x1[1],x1[2]);
         p[1].setPos(x2[0],x2[1],x2[2]);
 
+#ifdef ARC_WARN
+        if(fpert_flag) {
+            int stat=fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
+            if (stat!=0&&info==NULL) {
+                info = new chaininfo(num);
+                info->status = stat;
+                info->i1 = 0;
+                info->i2 = 1;
+                info->inti = i;
+                break;
+            }
+        }
+#else
         if(fpert_flag) fpert(pf, slowdown.t_real, p.getData(), p.getN(), pert, pertf, npert, int_pars);
-        
+#endif        
         Float3 At,dWt;
         Float Pott,Wt;
 
@@ -4737,6 +4781,7 @@ public:
                        <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)<<std::endl;
               print(std::cerr);
           }
+          if (info!=NULL) return -stepcount;
 #endif
           
           if(stepcount_tsyn>max_nstep-10) {
