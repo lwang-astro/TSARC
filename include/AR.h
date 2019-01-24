@@ -64,7 +64,7 @@ public:
   int  itercount;  ///< total substep in extrapolation
   int* stepcount;  ///< iteration step count in extrapolation
 
-  chainprofile() {reset_tp();}  ///< initialization 
+  chainprofile() {stepcount=NULL; reset_tp();}  ///< initialization 
 
   void initstep(const int n) {
     if (!stepcount) {
@@ -106,6 +106,7 @@ public:
     t_newdt=0.0;
     t_check=0.0;
     t_sym=0.0;
+    if(stepcount) delete [] stepcount;
     stepcount=NULL;
     itercount=0;
   }
@@ -931,6 +932,7 @@ template <class T> friend class chain;
 private:
     Float kappa;          // slow-down factor
     Float kappa_org;      // original slow-down factor
+    Float kappa_max;      // maximum kappa factor
     Float fratiosqmax;     // maximum perturbation force / inner force square recorded
     Float fratiosqmaxlast; // maximum perturbation force / inner force square recorded
     Float fratiosqlast;    // last perturbation force / inner force square record
@@ -970,14 +972,15 @@ public:
       @param [in] period: Period of system 
       @param [in] k_ref: Fpert/Finner criterion (default 1.0e-5)
     */
-    void setSlowDownPars(const Float _period, const Float k_ref=1.0e-5) {
+    void setSlowDownPars(const Float _period, const Float _k_ref, const Float _kappa_max) {
         kappa = 1.0;
+        kappa_max = _kappa_max;
         period   = _period;
 #ifdef ARC_DEBUG
         assert(period>0);
 #endif
         t_record = -2.0*period;
-        kref     = k_ref;
+        kref     = _k_ref;
         is_used  = true;
     }
 
@@ -992,11 +995,9 @@ public:
     //! Update slow-down factor
     /*! Update slow-down factor 
         @param[in] tend_real: ending physical time for integration, if tend-time<#period, \f$kappa = 1.0\f$
-        @param[in] mass_ratio:  chain c.m. mass/nearest perturber mass
-        @param[in] tp_factor: if minimum factor of integration time interval / (kappa * period).
         @param[in] modify_factor: maximum modification factor for kappa (should be >1.0), if <0, initialization
      */
-    void updatekappa(const Float tend_real, const Float mass_ratio, const Float tp_factor=0.01,  const Float modify_factor_limit=1.2) {
+    void updatekappa(const Float tend_real, const Float modify_factor_limit=0.05) {
         if(is_used) {
             Float kappa_backup=kappa;
 #ifdef ARC_DEBUG
@@ -1004,11 +1005,13 @@ public:
 #endif
             // update kappa based on current max fratio
             if (fratiosqmax>0) {
-                kappa_org = kref/sqrt(std::max(Float(1.0),mass_ratio)*fratiosqmax);
-                kappa = std::max(Float(1.0),kappa_org);
+                kappa_org = kref/sqrt(fratiosqmax);
+                kappa = std::min(kappa_org, kappa_max);
+                kappa = std::max(Float(1.0),kappa);
             }
             else {
                 kappa_org = 1.0;
+                // if no perturbation, set kappa to fit dt_real for one period
                 kappa = std::max(Float(1.0),(tend_real-t_real)/period);
             }
 //#ifdef ARC_WARN
@@ -1016,20 +1019,25 @@ public:
 //                std::cerr<<"Warning!: perturbation too strong, fratio = "<<sqrt(fratiosqmax)<<" kappa = "<<kappa<<std::endl;
 //            }
 //#endif
-            // update fratio max record 
-            if((t_real-t_record)/kappa>=period) {
+            // update fratio max record after one orbital integration
+            if((t_real-t_record)>=period*kappa) {
                 t_record = t_real;
                 fratiosqmaxlast = fratiosqmax;
                 fratiosqmax = fratiosqlast;
             }
+            // real time step
+            Float dt_real = tend_real - t_real;
+            // slowdown period
+            Float period_sd = kappa*period;
             // limit kappa based on tp_factor
-            if((tend_real-t_real)/kappa<tp_factor*period) {
-                kappa = std::max(Float(1.0),(tend_real-t_real)/(period*tp_factor));
-            }
-            // limit kappa change based on modify_factor_limit
+            //if(dt_real<tp_factor*period_sd) {
+            //    kappa = std::max(Float(1.0),dt_real/(period*tp_factor));
+            //}
+            // limit kappa change due to the period 
             if (modify_factor_limit>0) {
-                if(kappa>kappa_backup) kappa=std::min(kappa,kappa_backup*modify_factor_limit);
-                else kappa=std::max(kappa,kappa_backup/modify_factor_limit);
+                Float modify_factor_period = dt_real/period_sd * modify_factor_limit;
+                if(kappa>kappa_backup) kappa=std::min(kappa,kappa_backup*(1.0+modify_factor_period));
+                else kappa=std::max(kappa,kappa_backup/(1.0+modify_factor_period));
             }
         }
     }
@@ -1158,6 +1166,7 @@ public:
                 <<"\n-------- slowdown ---------\n"
                 <<"kappa: "<<std::setw(width)<<kappa<<std::endl
                 <<"kappa_org: "<<std::setw(width)<<kappa_org<<std::endl
+                <<"kappa_max: "<<std::setw(width)<<kappa_max<<std::endl
                 <<"kref: "<<std::setw(width)<<kref<<std::endl
                 <<"fratiosqmax: "<<std::setw(width)<<fratiosqmax<<std::endl
                 <<"fratiosqmaxlast: "<<std::setw(width)<<fratiosqmaxlast<<std::endl
@@ -1168,6 +1177,11 @@ public:
                 <<"period: "<<std::setw(width)<<period<<std::endl;
         }
   }
+    
+    //! check whether it is used
+    bool isUsed() const {
+        return is_used;
+    }
 };
 
 //! ARC class based on template class particle_
@@ -1455,6 +1469,111 @@ private:
   void initial_pf() {
     for (int i=0; i<num; i++) 
         for (int j=0; j<3; j++) pf[i][j] = 0.0;
+  }
+
+  //! calculate perturbation / inner acceleration square for two particles
+  /*! the inner acceleration is calculated for all particles between i1 and i2 in the chain list
+    @param[in] fforce: force function
+    @param[in] i1: index in chain list for first particle
+    @param[in] i2: index in chain list for second particle
+    @param[in] pars: integration parameters
+    \return fratio square
+   */
+  template<class extpar_>
+  Float calcFratioInnerSq (pair_AW<particle, extpar_> fforce, const int i1, const int i2, extpar_ *pars) {
+#ifdef ARC_DEBUG
+      if(fforce==NULL) {
+          std::cerr<<"Error: acceleration and time transformation calculation function is NULL!\n";
+          abort();
+      }
+      if(i1<0||i2>=num) {
+          std::cerr<<"Error: force calculation index range overflow, i1="<<i1<<" i2="<<i2<<std::endl;
+          abort();
+      }
+#endif
+      int ilst[2] = {i1, i2};
+      Float3 acc_in[2];
+
+      for (int iacc=0; iacc<2; iacc++) {
+        int j = ilst[iacc];
+        int lj = list[j];
+        const particle *pj= &p[lj];
+
+        for (int k=0; k<3; k++) {
+            acc_in [iacc][k]=0.0; // reset Acceleration
+        }
+
+        for (int k=i1;k<=i2;k++) {
+            if(k==j) continue;
+            int lk = list[k];
+            const particle *pk= &p[lk];
+            const Float* xj = pj->getPos();
+            Float3 xjk;
+
+            if(k==j+1) {
+                xjk[0] = X[j][0];
+                xjk[1] = X[j][1];
+                xjk[2] = X[j][2];
+            }
+            if(k==j-1) {
+                xjk[0] = -X[k][0];
+                xjk[1] = -X[k][1];
+                xjk[2] = -X[k][2];
+            }
+            else if(k==j+2) {
+                xjk[0] = X[j][0] + X[j+1][0];
+                xjk[1] = X[j][1] + X[j+1][1];
+                xjk[2] = X[j][2] + X[j+1][2];
+            }
+            else if(k==j-2) {
+                xjk[0] = -X[k][0] - X[k+1][0];
+                xjk[1] = -X[k][1] - X[k+1][1];
+                xjk[2] = -X[k][2] - X[k+1][2];
+            }
+            else {
+                const Float* xk = pk->getPos();
+                xjk[0] = xk[0] - xj[0];
+                xjk[1] = xk[1] - xj[1];
+                xjk[2] = xk[2] - xj[2];
+            }
+
+            Float3 At,dWt_jk;
+            Float Pot_jk,Wt_jk;
+
+            // force calculation function from k to j
+#ifdef ARC_WARN
+            int stat = fforce(At, Pot_jk, dWt_jk, Wt_jk, xjk, *pj, *pk, pars);
+            if (stat!=0&&info==NULL) {
+                info = new chaininfo(num);
+                info->status = stat;
+                info->i1 = lj;
+                info->i2 = lk;
+                break;
+            }
+#else 
+            fforce(At, Pot_jk, dWt_jk, Wt_jk, xjk, *pj, *pk, pars);
+#endif
+
+            // Acceleration
+            acc_in[iacc][0] += At[0];
+            acc_in[iacc][1] += At[1];
+            acc_in[iacc][2] += At[2];
+        }
+      }
+      Float3 daccp, daccin;
+      Float daccp2, daccin2;
+      daccin[0] = acc_in[0][0] - acc_in[1][0];
+      daccin[1] = acc_in[0][1] - acc_in[1][1];
+      daccin[2] = acc_in[0][2] - acc_in[1][2];
+
+      daccp[0] = acc[i1][0] - acc[i2][0] - daccin[0];
+      daccp[1] = acc[i1][1] - acc[i2][1] - daccin[1];
+      daccp[2] = acc[i1][2] - acc[i2][2] - daccin[2];
+
+      daccin2 = daccin[0]*daccin[0] + daccin[1]*daccin[1] + daccin[2]*daccin[2];
+      daccp2 = daccp[0]*daccp[0] + daccp[1]*daccp[1] + daccp[2]*daccp[2];
+
+      return daccp2/daccin2;
   }
 
   //! Calculate acceleration (potential) and transformation parameter
@@ -2519,6 +2638,39 @@ public:
       }
   }
 
+  //! get acceleration ratio of perturbation and inner at one break index for both sides
+  /*! if one side is single, return value 1 for ratio for that side
+    @param[out]: _fratiosq_left: perturbation/ inner acceleration square for left side
+    @param[out]: _fratiosq_right: perturbation/ inner acceleration square for right side
+    @param[in]: _break_index: first index to break the two sides for chain
+   */
+    template<class extpar_>
+    void getFratioInnerSq(Float& _fratiosq_left, Float& _fratiosq_right, const int _break_index,  const chainpars &_pars, extpar_ *_int_pars) {
+      const int ibreak = _break_index;
+      if(ibreak>=num-1) {
+          std::cerr<<"Error, getFratioInnerSq index overflow, index="<<ibreak<<" particle num="<<num<<std::endl;
+          abort();
+      }
+      if(num==2) {
+          _fratiosq_left = _fratiosq_right = 1.0;
+      }
+      else {
+          pair_AW<particle,extpar_> f = reinterpret_cast<pair_AW<particle,extpar_>>(_pars.pp_AW);
+//#ifdef ARC_DEBUG
+//          if(std::type_index(typeid(f))!=*_pars.pp_AW_type) {
+//              std::cerr<<"Error: acceleration function type not matched the data type\n";
+//              abort();
+//          }
+//#endif
+          // left
+          if(ibreak>0) _fratiosq_left=calcFratioInnerSq(f, 0, ibreak, _int_pars);
+          else _fratiosq_left = 1.0;
+          // right
+          if(num>ibreak+2) _fratiosq_right=calcFratioInnerSq(f, ibreak+1, num-1, _int_pars);
+          else _fratiosq_right = 1.0;
+      }
+    }
+
   //! get particle original address in the chain list order
   /*! 
     @param[out] _list particle address array to store the results
@@ -2789,7 +2941,7 @@ public:
       
       
       // center-of-mass
-      particle::read(pin);
+      particle::readBinary(pin);
       //Float cmass,cx[3],cv[3];
       //rn = fread(&cmass,sizeof(Float),1,pin);
       //if(rn<1) {
@@ -2829,7 +2981,7 @@ public:
       p.allocate(n);
       for (int i=0;i<n;i++) {
           p.add(particle());
-          p[i].read(pin);
+          p[i].readBinary(pin);
       }
 
       slowdown.read(pin);
@@ -2928,7 +3080,7 @@ public:
   /*!
     \return: particle i (const reference)
    */
-  const particle& getP(const int i) const {
+  particle& getP(const int i) const {
     return p[i];
   }
 
@@ -3106,6 +3258,12 @@ public:
     }
     std::cerr<<std::setw(WIDTH)<<Ekin<<std::setw(WIDTH)<<Pot<<std::setw(WIDTH)<<Pt+Ekin-Pot<<std::setw(WIDTH)<<Pt<<std::setw(WIDTH)<<w<<std::endl;
     #endif*/
+#ifdef ARC_PROFILE
+    if(!profile.stepcount) {
+        if(pars.exp_sequence>0) profile.initstep(pars.exp_itermax+1);
+        else profile.initstep(1);
+    }
+#endif
     
   }
 
@@ -4280,7 +4438,7 @@ public:
   */
   template<class pertparticle_, class pertforce_, class extpar_>
   void Symplectic_integration(const Float s, 
-                              chainpars &pars,
+                              const chainpars &pars,
                               Float* timetable,
                               extpar_ *int_pars = NULL,
                               pertparticle_* pert = NULL, 
@@ -4442,7 +4600,7 @@ public:
   */
   template<class pertparticle_, class pertforce_, class extpar_>
   void Symplectic_integration_two(const Float s, 
-                                  chainpars &pars,
+                                  const chainpars &pars,
                                   Float* timetable,
                                   const Float m2_mt,
                                   const Float m1_m2_1,
@@ -4687,7 +4845,7 @@ public:
   */
   template<class pertparticle_, class pertforce_, class extpar_>
   int Symplectic_integration_tsyn(const Float s, 
-                                  chainpars &pars,
+                                  const chainpars &pars,
                                   const Float tend_real,
                                   extpar_ *int_pars = NULL,
                                   pertparticle_* pert = NULL, 

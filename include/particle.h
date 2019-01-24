@@ -215,25 +215,24 @@ public:
     coff = c;
   }
 
-  //! data dump
-  /*! dump whole particle data to FILE
-    @param [in] pout: std::FILE pointer for dumping the data
-  */
-  void dump(FILE *pout) {
-    fwrite(this, sizeof(*this),1,pout);
-  }
+    //! write class data to file with binary format
+    /*! @param[in] _fp: FILE type file for output
+     */
+    void writeBinary(FILE *_fp) const {
+        fwrite(this, sizeof(*this),1,_fp);
+    }
 
-  //! data read
-  /*! read whole particle data from file
-    @param [in] pin: std::FILE pointer for reading the data
-  */
-  void read(FILE *pin) {
-      size_t rcount = fread(this, sizeof(*this),1,pin);
-      if (rcount<1) {
-          std::cerr<<"Error: Data reading fails! requiring data number is 1, only obtain "<<rcount<<".\n";
-          abort();
-      }
-  }
+    //! read class data to file with binary format
+    /*! @param[in] _fp: FILE type file for reading
+     */
+    void readBinary(FILE *_fin) {
+        size_t rcount = fread(this, sizeof(*this),1,_fin);
+        if (rcount<1) {
+            std::cerr<<"Error: Data reading fails! requiring data number is 1, only obtain "<<rcount<<".\n";
+            abort();
+        }
+    }
+
     
   //! Clear function
   /*! Reset mass, position and velocity to zero.

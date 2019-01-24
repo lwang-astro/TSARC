@@ -20,7 +20,8 @@ void chain_print(const ARC::chain<Particle> &c, const Float ds, const int w, con
            <<std::setw(w)<<c.getPot()
            <<std::setw(w)<<c.getPt()
            <<std::setw(w)<<c.getw()
-           <<std::setw(w)<<c.getW();
+           <<std::setw(w)<<c.getW()
+           <<std::setw(w)<<ds;
   const int n = c.getN();
   for (int j=0;j<n;j++) {
     std::cout<<std::setw(w)<<c.getP(j).getMass();
@@ -31,7 +32,6 @@ void chain_print(const ARC::chain<Particle> &c, const Float ds, const int w, con
       std::cout<<std::setw(w)<<c.getP(j).getVel()[k];
     }
   }
-  std::cout<<std::setw(w)<<ds;
   std::cout<<std::endl;
 }  
 
