@@ -932,6 +932,7 @@ template <class T> friend class chain;
 private:
     Float kappa;          // slow-down factor
     Float kappa_org;      // original slow-down factor
+    Float dkappa_org;     // change of original slow-down factor
     Float kappa_max;      // maximum kappa factor
     Float fratiosqmax;     // maximum perturbation force / inner force square recorded
     Float fratiosqmaxlast; // maximum perturbation force / inner force square recorded
@@ -991,24 +992,46 @@ public:
     void updateRealTime(const Float dt_chain) {
         t_real += dt_chain * kappa;
     }
+
+
+    //! Update slow-down factor 
+    /*! Update slow-down factor 
+     */
+    void updateKappa() {
+        kappa_org = kref/sqrt(fratiosqlast);
+        //kappa_org = std::pow(kref/sqrt(fratiosqlast),2.0);
+        kappa = std::min(kappa_org, kappa_max);
+        kappa = std::max(Float(1.0),kappa);
+    }
+
+    //! Update slow-down factor at kappa mimimum
+    /*! Update slow-down factor 
+     */
+    void updateKappaMin() {
+        Float kappa_backup=kappa_org;
+        Float dkappa_backup = dkappa_org;
+        kappa_org = kref/sqrt(fratiosqlast);
+        dkappa_org = kappa_org - kappa_backup;
+        if (dkappa_org>0&&dkappa_backup<0) {
+        //kappa_org = std::pow(kref/sqrt(fratiosqlast),2.0);
+            kappa = std::min(kappa_org, kappa_max);
+            kappa = std::max(Float(1.0),kappa);
+        }
+    }
     
-    //! Update slow-down factor
+    //! Update slow-down factor based on time step 
     /*! Update slow-down factor 
         @param[in] tend_real: ending physical time for integration, if tend-time<#period, \f$kappa = 1.0\f$
         @param[in] modify_factor: maximum modification factor for kappa (should be >1.0), if <0, initialization
      */
-    void updatekappa(const Float tend_real, const Float modify_factor_limit=0.05) {
+    void updateKappaDt(const Float tend_real, const Float modify_factor_limit=0.05) {
         if(is_used) {
             Float kappa_backup=kappa;
 #ifdef ARC_DEBUG
             assert(period>0);
 #endif
             // update kappa based on current max fratio
-            if (fratiosqmax>0) {
-                kappa_org = kref/sqrt(fratiosqmax);
-                kappa = std::min(kappa_org, kappa_max);
-                kappa = std::max(Float(1.0),kappa);
-            }
+            if (fratiosqmax>0) updateKappa();
             else {
                 kappa_org = 1.0;
                 // if no perturbation, set kappa to fit dt_real for one period
@@ -4435,6 +4458,7 @@ public:
       @param [in] pertf: perturrber force array for prediction
       @param [in] npert: number of perturbers
       @param [in] check_flag: check link at end (default: true)
+      @param [in] update_sd_flag: whether update slowdown factor
   */
   template<class pertparticle_, class pertforce_, class extpar_>
   void Symplectic_integration(const Float s, 
@@ -4444,7 +4468,8 @@ public:
                               pertparticle_* pert = NULL, 
                               pertforce_* pertf = NULL, 
                               const int npert = 0,
-                              bool check_flag = true) {
+                              bool check_flag = true,
+                              bool update_sd_flag = true) {
 #ifdef ARC_PROFILE
     profile.t_sym -= get_wtime();
 #endif
@@ -4512,7 +4537,7 @@ public:
       slowdown.updateRealTime(dt);
 
       // store current time
-      if(timetable!=NULL) timetable[i] = t;
+      if(timetable!=NULL) timetable[i] = slowdown.t_real;
 
       // Drift X (dependence: V, dt)
       step_forward_X(dt);
@@ -4574,6 +4599,8 @@ public:
         }
     }
 
+    if(update_sd_flag) slowdown.updateKappaMin();
+
 #ifdef FAPP_PROFILE
     fapp_stop("sym",1,1);
 #endif
@@ -4596,7 +4623,7 @@ public:
       @param [in] pert: perturber particle array
       @param [in] pertf: perturrber force array for prediction
       @param [in] npert: number of perturbers
-      @param [in] check_flag: check link at end (default: true)
+      @param [in] update_sdk_flag: whether to update slowdown factor
   */
   template<class pertparticle_, class pertforce_, class extpar_>
   void Symplectic_integration_two(const Float s, 
@@ -4607,7 +4634,8 @@ public:
                                   extpar_ *int_pars = NULL,
                                   pertparticle_* pert = NULL, 
                                   pertforce_* pertf = NULL, 
-                                  const int npert = 0) {
+                                  const int npert = 0,
+                                  const bool update_sd_flag=true) {
 #ifdef ARC_PROFILE
     profile.t_sym -= get_wtime();
 #endif
@@ -4685,7 +4713,7 @@ public:
         slowdown.updateRealTime(dt);
 
         // store current time
-        timetable[i] = t;
+        timetable[i] = slowdown.t_real;
         
         // step forward relative X
         X[0][0] += dt * V[0][0];
@@ -4821,6 +4849,9 @@ public:
 
     // update slowdown factor
     slowdown.updatefratiosq(fratio);
+    if(update_sd_flag) {
+        slowdown.updateKappaMin();
+    }
 
 #ifdef ARC_PROFILE
     profile.t_sym += get_wtime();
@@ -4854,9 +4885,10 @@ public:
                                   const int fix_step_flag = 0,
                                   const int max_nstep=100000) {
 
-      // slowdown time
-      const Float tend = (tend_real-slowdown.t_real)/slowdown.kappa + t;
-      Float dt;
+      // real full time step
+      const Float dt_real_full = tend_real-slowdown.t_real;
+      // time synchronization
+      const Float terr_real = dt_real_full*pars.dterr;
 
       const int dsize  = 6*(num-1)+5;
       const int darray = dsize+1; // backup data array size;
@@ -4875,7 +4907,7 @@ public:
       const int symk = pars.sym_k;
       Float timetable[symk]; // for storing time information
       
-      const Float t0 = t; // backup initial time
+      //const Float t0_real = slowdown.t_real; // backup initial time
       Float ds[2] = {s,s}; // step with a buffer
       Float dsbk = s;  //backup step size
       int dsk=0;
@@ -4887,6 +4919,7 @@ public:
       const Float eerr_min = pars.sym_An*0.5*pars.exp_error;
       //Float eerr_pre=eerr_min; // energy error of previous step
       bool tend_flag=false; // go to ending step
+      bool update_kappa_flag=true;
 
 #ifdef ARC_DEBUG
       Float Ekin_check = 0.0;
@@ -4921,21 +4954,26 @@ public:
           }
           
           // integrate one step
-          dt = t;
+
+          // integrated dt;
+          Float dt_real = slowdown.t_real;
+
 #ifdef ARC_OPT_SYM2
-          if(num==2) Symplectic_integration_two(ds[dsk], pars, timetable, m2_mt, m1_m2_1, int_pars, pert, pertf, npert);
-          else Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false);
+          if(num==2) Symplectic_integration_two(ds[dsk], pars, timetable, m2_mt, m1_m2_1, int_pars, pert, pertf, npert, update_kappa_flag);
+          else Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false, update_kappa_flag);
 #else 
-          Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false);
+          Symplectic_integration(ds[dsk], pars, timetable, int_pars, pert, pertf, npert, false, update_kappa_flag);
 #endif
-          dt = t -dt;
+
+          // real step size
+          dt_real = slowdown.t_real - dt_real;
 
           stepcount++;
 
 #ifdef ARC_WARN
           if(stepcount>=max_nstep&&stepcount%max_nstep==0) {
               std::cerr<<"Warning: stepcount is signficiant "<<stepcount<<std::endl;
-              std::cerr<<"Time: "<<t<<" Tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
+              std::cerr<<"Time: "<<t<<" Tend(real): "<<tend_real<<" dterr(real): "<<(slowdown.t_real-tend_real)/dt_real_full
                        <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)<<std::endl;
               print(std::cerr);
           }
@@ -4944,9 +4982,9 @@ public:
           
           if(stepcount_tsyn>max_nstep-10) {
               std::cerr<<"Error! stepcount after time synchronization >"<<max_nstep<<std::endl;
-              std::cerr<<"Time: "<<t<<" Tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
+              std::cerr<<"Time: "<<t<<" Tend(real): "<<tend_real<<" dterr(real): "<<(slowdown.t_real-tend_real)/dt_real_full
                        <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]<<" error: "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)<<std::endl;
-              std::cerr<<"Tend_flag: "<<tend_flag<<" dt: "<<dt<<" subcount "<<nsubcount<<" dsbk: "<<dsbk<<std::endl;
+              std::cerr<<"Tend_flag: "<<tend_flag<<" dt(real): "<<dt_real<<" subcount "<<nsubcount<<" dsbk: "<<dsbk<<std::endl;
 #ifdef ARC_DEBUG_DUMP
               if(stepcount_tsyn>max_nstep) {
                   restoreInt(bk0);
@@ -4960,7 +4998,7 @@ public:
           }
 
 #ifdef ARC_DEEP_DEBUG
-          std::cerr<<"Symplectic count: "<<stepcount<<" time: "<<t<<" tend: "<<tend<<" dterr: "<<(t-tend)/(t-t0)
+          std::cerr<<"Symplectic count: "<<stepcount<<" time (real): "<<slowdown.t_real<<" tend(real): "<<tend_real<<" dterr: "<<(slowdown.t_real-tend_real)/dt_real_full<<" time (int): "<<t;
                    <<" ds_used: "<<ds[dsk]<<" ds_next: "<<ds[1-dsk]
                    <<" Ekin: "<<Ekin
                    <<" Pot: "<<Pot
@@ -5058,8 +5096,8 @@ public:
 #endif
 //          eerr_pre = eerr;
 
-          if(!tend_flag&&dt*slowdown.kappa<pars.dtmin) {
-              std::cerr<<"Error! symplectic integrated time step ("<<dt*slowdown.kappa<<") < minimum step ("<<pars.dtmin<<")!\n";
+          if(!tend_flag&&dt_real<pars.dtmin) {
+              std::cerr<<"Error! symplectic integrated time step ("<<dt_real<<") < minimum step ("<<pars.dtmin<<")!\n";
               std::cerr<<" stepcount: "<<stepcount<<" ds_used: "<<ds[dsk]<<" energy error: "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)<<std::endl;
 #ifdef ARC_DEBUG_DUMP
               restoreInt(bk0);
@@ -5072,10 +5110,7 @@ public:
           }
           
           
-          // time synchronization
-          Float terr = (t-t0)*pars.dterr;
-
-          if(t<tend-terr){
+          if(slowdown.t_real<tend_real-terr_real){
               // step increase depend on nsub or error
               if(fix_step_flag==0&&!tend_flag) {
                   if(nsub==0) {
@@ -5094,11 +5129,11 @@ public:
               }
               if(tend_flag&&ds[dsk]==ds[1-dsk]) {
                   stepcount_tsyn++;
-                  Float dtoff = tend-t;
-                  if(nsubcount>1&&dt<0.3*dtoff) {
-                      ds[1-dsk] = ds[dsk]*dtoff/dt;
+                  Float dtoff_real = tend_real-slowdown.t_real;
+                  if(nsubcount>1&&dt_real<0.3*dtoff_real) {
+                      ds[1-dsk] = ds[dsk]*dtoff_real/dt_real;
 #ifdef ARC_DEEP_DEBUG
-                      std::cerr<<"Time step dt "<<dt<<" <0.3*(tend-t) "<<dtoff<<" enlarge step factor: "<<dtoff/dt<<" new ds: "<<ds[1-dsk]<<std::endl;
+                      std::cerr<<"Time step dt(real) "<<dt_real<<" <0.3*(tend-t)(real) "<<dtoff_real<<" enlarge step factor: "<<dtoff_real/dt_real<<" new ds: "<<ds[1-dsk]<<std::endl;
 #endif
                   }
                   else nsubcount++;
@@ -5116,32 +5151,33 @@ public:
                   rmax2_ = rmin2_;
               }
           }
-          else if(t>tend+terr) {
+          else if(slowdown.t_real>tend_real+terr_real) {
               tend_flag = true;
               bk_flag = false;
+              update_kappa_flag = false;
               stepcount_tsyn++;
               nsubcount=0;
               // check timetable
               int i=-1,k=0;
               for(i=0; i<symk; i++) {
                   k = pars.sym_order[i].index;
-                  if(tend<timetable[k]) break;
+                  if(tend_real<timetable[k]) break;
               }
               if (i==0) {
-                  ds[dsk] *= pars.sym_order[i].cck*tend/timetable[k];
+                  ds[dsk] *= pars.sym_order[i].cck*tend_real/timetable[k];
                   ds[1-dsk] = ds[dsk];
 #ifdef ARC_DEEP_DEBUG
-                  std::cerr<<"T-end reach, t1 = "<<timetable[k]<<" t = "<<t<<" tend/t1="<<tend/timetable[k]<<" ck1="<<pars.sym_order[i].cck<<" ds1 = "<<ds[dsk]<<" ds2 = "<<ds[1-dsk]<<"\n";
+                  std::cerr<<"T-end reach, t1 (real)= "<<timetable[k]<<" t (real)= "<<slowdown.t_real<<" tend/t1 (real)="<<tend_real/timetable[k]<<" ck1="<<pars.sym_order[i].cck<<" ds1 = "<<ds[dsk]<<" ds2 = "<<ds[1-dsk]<<"\n";
 #endif
               }
               else {
-                  Float tp = timetable[pars.sym_order[i-1].index];
-                  Float dtk = timetable[k] - tp;
+                  Float tp_real = timetable[pars.sym_order[i-1].index];
+                  Float dtk_real = timetable[k] - tp_real;
                   Float dtmp = ds[dsk];
                   ds[dsk] *= pars.sym_order[i-1].cck;  // first set step to nearest k for t<tend
-                  ds[1-dsk] = dtmp*(pars.sym_order[i].cck-pars.sym_order[i-1].cck)*std::min(Float(1.0),(tend-tp+terr)/dtk); //then set next step to c_k+1 -c_k
+                  ds[1-dsk] = dtmp*(pars.sym_order[i].cck-pars.sym_order[i-1].cck)*std::min(Float(1.0),(tend_real-tp_real+terr_real)/dtk_real); //then set next step to c_k+1 -c_k
 #ifdef ARC_DEEP_DEBUG
-                  std::cerr<<"T-end reach, t0 = "<<tp<<" t1 = "<<timetable[k]<<" t = "<<t<<" (tend-tp)/dt="<<(tend-tp)/dt<<" ck1="<<pars.sym_order[i].cck<<" ck0="<<pars.sym_order[i-1].cck<<" ds1 = "<<ds[dsk]<<" ds2 = "<<ds[1-dsk]<<" \n";
+                  std::cerr<<"T-end reach, t0 (real)= "<<tp_real<<" t1 (real)= "<<timetable[k]<<" t (real)= "<<slowdown.t_real<<" (tend-tp)/dt (real)="<<(tend_real-tp)/dt_real<<" ck1="<<pars.sym_order[i].cck<<" ck0="<<pars.sym_order[i-1].cck<<" ds1 = "<<ds[dsk]<<" ds2 = "<<ds[1-dsk]<<" \n";
 #endif
               }
           }
@@ -5154,7 +5190,7 @@ public:
               }
               
 #ifdef ARC_DEEP_DEBUG
-              std::cerr<<"Finish, terr = "<<(t-tend)/(t-t0)<<" eerr = "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)<<std::endl;
+              std::cerr<<"Finish, terr = "<<(slowdown.t_real - tend_real)/dt_real_full<<" eerr = "<<abs((Ekin+Pot+Pt-bk[3]-bk[4]-bk[1])/Pt)<<std::endl;
 #endif
               break;
           }
