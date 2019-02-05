@@ -932,11 +932,11 @@ template <class T> friend class chain;
 private:
     Float kappa;          // slow-down factor
     Float kappa_org;      // original slow-down factor
-    Float dkappa_org;     // change of original slow-down factor
     Float kappa_max;      // maximum kappa factor
-    Float fratiosqmax;     // maximum perturbation force / inner force square recorded
-    Float fratiosqmaxlast; // maximum perturbation force / inner force square recorded
-    Float fratiosqlast;    // last perturbation force / inner force square record
+    Float f_ratio_sq_max;     // maximum perturbation force / inner force square recorded
+    Float f_ratio_sq_peak;     // minimum perturbation force / inner force square recorded
+    Float f_ratio_sq_last;    // last record of perturbation force / inner force square 
+    Float df_ratio_sq_last;   // last record of difference of perturbation force / inner force square 
     Float t_real;         // current time
     Float t_record;       // last kappa update time
     Float kref;    ///< reference kappa factor; slow-down factor kappa = max(1,kref/(perturbation/internal force))
@@ -946,15 +946,15 @@ private:
 
 public:
     //! defaulted constructor
-    chainslowdown(): kappa(1.0), fratiosqmax(0.0), fratiosqmaxlast(0.0), fratiosqlast(0.0), t_real(0.0), t_record(0.0), kref(1.0e-05), period(0.0), is_used(false) {}
+    chainslowdown() { reset(); }
     
     //! reset function
     void reset(){
-        kappa = 1.0;
-        fratiosqmax = fratiosqmaxlast = fratiosqlast = 0.0;
-        t_real = 0.0;
-        t_record = 0.0;
-        kref = 0.0;
+        kappa = kappa_org = kappa_max = 1.0;
+        f_ratio_sq_max = f_ratio_sq_peak = 0.0;
+        f_ratio_sq_last = df_ratio_sq_last = 0.0;
+        t_real = t_record = 0.0;
+        kref = 1.0e-8;
         period = 0.0;
         is_used = false;
     }
@@ -963,9 +963,28 @@ public:
     /*! Update maximum perturbation force and record this input (only last one is recorded)
       @param[in] _fratiosq: new perturbation force square
      */
-    void updatefratiosq(const Float _fratiosq) {
-        fratiosqmax = _fratiosq>fratiosqmax? _fratiosq: fratiosqmax;
-        fratiosqlast = _fratiosq;
+    void updateFRatioSqRange(const Float _f_ratio_sq) {
+        // backup differential f_ratio_sq from last step
+        Float df_ratio_sq_back= df_ratio_sq_last;
+        // get new
+        df_ratio_sq_last = _f_ratio_sq - f_ratio_sq_last;
+        // update peak value when reach maximum peak
+        if (df_ratio_sq_last<0 && df_ratio_sq_back>0) f_ratio_sq_peak = f_ratio_sq_last;
+        // record f_ratio_sq
+        f_ratio_sq_last  = _f_ratio_sq;
+        // record the max of f_ratio_sq peak
+        f_ratio_sq_max = f_ratio_sq_peak>f_ratio_sq_max? f_ratio_sq_peak: f_ratio_sq_max;
+    }
+
+    //! initial maximum perturbation force \f$ F_{pert,max}\f$
+    /*! initial maximum perturbation force and record this input (only last one is recorded)
+      @param[in] _fratiosq: new perturbation force square
+     */
+    void initialFRatioSqRange(const Float _f_ratio_sq) {
+        df_ratio_sq_last = 1;
+        f_ratio_sq_last  = _f_ratio_sq;
+        f_ratio_sq_peak = f_ratio_sq_last;
+        f_ratio_sq_max = f_ratio_sq_last;
     }
 
     //! initialize slow-down parameters
@@ -975,12 +994,13 @@ public:
     */
     void setSlowDownPars(const Float _period, const Float _k_ref, const Float _kappa_max) {
         kappa = 1.0;
+        kappa_org = 1.0;
         kappa_max = _kappa_max;
         period   = _period;
 #ifdef ARC_DEBUG
         assert(period>0);
 #endif
-        t_record = -2.0*period;
+        t_record = t_real;
         kref     = _k_ref;
         is_used  = true;
     }
@@ -994,73 +1014,44 @@ public:
     }
 
 
-    //! Update slow-down factor 
-    /*! Update slow-down factor 
+    //! Update slow-down factor minimum
+    /*! Update slow-down factor minimum
      */
-    void updateKappa() {
-        kappa_org = kref/sqrt(fratiosqlast);
+    void updateKappaMin() {
+        kappa_org = kref/sqrt(f_ratio_sq_max);
         //kappa_org = std::pow(kref/sqrt(fratiosqlast),2.0);
         kappa = std::min(kappa_org, kappa_max);
         kappa = std::max(Float(1.0),kappa);
     }
 
-    //! Update slow-down factor at kappa mimimum
-    /*! Update slow-down factor 
-     */
-    void updateKappaMin() {
-        Float kappa_backup=kappa_org;
-        Float dkappa_backup = dkappa_org;
-        kappa_org = kref/sqrt(fratiosqlast);
-        dkappa_org = kappa_org - kappa_backup;
-        if (dkappa_org>0&&dkappa_backup<0) {
-        //kappa_org = std::pow(kref/sqrt(fratiosqlast),2.0);
-            kappa = std::min(kappa_org, kappa_max);
-            kappa = std::max(Float(1.0),kappa);
-        }
-    }
-    
-    //! Update slow-down factor based on time step 
-    /*! Update slow-down factor 
+    //! Update slow-down factor after one period using minimum record
+    /*! Update slow-down factor after one period using minimum record
         @param[in] tend_real: ending physical time for integration, if tend-time<#period, \f$kappa = 1.0\f$
         @param[in] modify_factor: maximum modification factor for kappa (should be >1.0), if <0, initialization
      */
-    void updateKappaDt(const Float tend_real, const Float modify_factor_limit=0.05) {
+    void updateKappaMinPeriod(const Float modify_factor_limit=0.05) {
         if(is_used) {
-            Float kappa_backup=kappa;
 #ifdef ARC_DEBUG
             assert(period>0);
 #endif
-            // update kappa based on current max fratio
-            if (fratiosqmax>0) updateKappa();
-            else {
-                kappa_org = 1.0;
-                // if no perturbation, set kappa to fit dt_real for one period
-                kappa = std::max(Float(1.0),(tend_real-t_real)/period);
-            }
-//#ifdef ARC_WARN
-//            if(fratiosqmax>1e-6) {
-//                std::cerr<<"Warning!: perturbation too strong, fratio = "<<sqrt(fratiosqmax)<<" kappa = "<<kappa<<std::endl;
-//            }
-//#endif
             // update fratio max record after one orbital integration
-            if((t_real-t_record)>=period*kappa) {
-                t_record = t_real;
-                fratiosqmaxlast = fratiosqmax;
-                fratiosqmax = fratiosqlast;
-            }
-            // real time step
-            Float dt_real = tend_real - t_real;
-            // slowdown period
-            Float period_sd = kappa*period;
-            // limit kappa based on tp_factor
-            //if(dt_real<tp_factor*period_sd) {
-            //    kappa = std::max(Float(1.0),dt_real/(period*tp_factor));
-            //}
-            // limit kappa change due to the period 
-            if (modify_factor_limit>0) {
-                Float modify_factor_period = dt_real/period_sd * modify_factor_limit;
-                if(kappa>kappa_backup) kappa=std::min(kappa,kappa_backup*(1.0+modify_factor_period));
-                else kappa=std::max(kappa,kappa_backup/(1.0+modify_factor_period));
+            Float dt = t_real - t_record;
+            if (dt>period) {
+#ifdef ARC_DEBUG
+                assert(f_ratio_sq_max>0.0);
+#endif
+                updateKappaMin();
+                // limit kappa change due to modify_factor_limit
+                if (dt>period*kappa) {
+                    // update time record of modification
+                    t_record = t_real;
+                    // reset f ratio records
+                    if (modify_factor_limit>0) {
+                        if(f_ratio_sq_peak>f_ratio_sq_max) f_ratio_sq_max = std::min(f_ratio_sq_peak,f_ratio_sq_max*(1.0+modify_factor_limit));
+                        else f_ratio_sq_max=std::max(f_ratio_sq_peak,f_ratio_sq_max/(1.0+modify_factor_limit));
+                    }
+                    else f_ratio_sq_max = f_ratio_sq_peak;
+                }
             }
         }
     }
@@ -1126,7 +1117,7 @@ public:
       \return the maximum perturbation force / internal force square record
      */
     Float getFratioSq() const {
-        return fratiosqmax;
+        return f_ratio_sq_max;
     }
 
     //! Switcher of slow-down
@@ -1158,18 +1149,22 @@ public:
     /*! @param[in] _bk: backup data array[3]
      */
     void backup(Float* _bk) {
-        _bk[0] = t_real;
-        _bk[1] = fratiosqmax;
-        _bk[2] = fratiosqlast;
+        _bk[0] = kappa;
+        _bk[1] = t_real;
+        _bk[2] = t_record;
+        _bk[3] = f_ratio_sq_max;
+        _bk[4] = f_ratio_sq_peak;
     }
 
     //! restore real time and force ratio
     /*! @param[in] _bk: restore data array[3]
      */
     void restore(Float* _bk) {
-        t_real =  _bk[0];
-        fratiosqmax  = _bk[1];
-        fratiosqlast = _bk[2];
+        kappa  =   _bk[0];
+        t_real =   _bk[1];
+        t_record = _bk[2];
+        f_ratio_sq_max = _bk[3];
+        f_ratio_sq_peak = _bk[4];
     }
     
 
@@ -1191,10 +1186,8 @@ public:
                 <<"kappa_org: "<<std::setw(width)<<kappa_org<<std::endl
                 <<"kappa_max: "<<std::setw(width)<<kappa_max<<std::endl
                 <<"kref: "<<std::setw(width)<<kref<<std::endl
-                <<"fratiosqmax: "<<std::setw(width)<<fratiosqmax<<std::endl
-                <<"fratiosqmaxlast: "<<std::setw(width)<<fratiosqmaxlast<<std::endl
-                <<"fratiosqlast: "<<std::setw(width)<<fratiosqlast<<std::endl
-                //<<"finnersq: "<<std::setw(width)<<finnersq<<std::endl
+                <<"f_ratio_sq_max: "<<std::setw(width)<<f_ratio_sq_max<<std::endl
+                <<"f_ratio_sq_peak: "<<std::setw(width)<<f_ratio_sq_peak<<std::endl
                 <<"t_real: "<<std::setw(width)<<t_real<<std::endl
                 <<"t_record: "<<std::setw(width)<<t_record<<std::endl
                 <<"period: "<<std::setw(width)<<period<<std::endl;
@@ -2523,14 +2516,37 @@ private:
           //Float fc2 = pf[k1][0]*pf[k1][0] + pf[k1][1]*pf[k1][1] + pf[k1][2]*pf[k1][2];
           //Float m12 = mk*mk1;
           //Float mt= mk+mk1;
-          slowdown.updatefratiosq(fp2/fin2);
+          slowdown.updateFRatioSqRange(fp2/fin2);
       }
   }
 
-  //! update slow-down time
-  /*!
-    
+  //! initial slow-down perturbation force
+  /*! initial slow-down perturbation force
    */
+  void initialSlowDownFpert() {
+      for (int i=0; i<num-1; i++) {
+          int k = list[i];
+          int k1 = list[i+1];
+          //Float mk = p[k].getMass();
+          //Float mk1 = p[k1].getMass();
+          Float fp[3] = {pf[k1][0]-pf[k][0],
+                         pf[k1][1]-pf[k][1],
+                         pf[k1][2]-pf[k][2]};
+          //Float fcp[3] = {mk1*pf[k1][0]-mk*pf[k][0],
+          //                mk1*pf[k1][1]-mk*pf[k][1],
+          //                mk1*pf[k1][2]-mk*pf[k][2]};
+          Float fin[3] = {acc[k1][0]-acc[k][0] - slowdown.kappa*fp[0],
+                          acc[k1][1]-acc[k][1] - slowdown.kappa*fp[1],
+                          acc[k1][2]-acc[k][2] - slowdown.kappa*fp[2]};
+          Float fp2 = fp[0]*fp[0] + fp[1]*fp[1] + fp[2]*fp[2];
+          Float fin2= fin[0]*fin[0] +fin[1]*fin[1] +fin[2]*fin[2];
+          //Float fcp2 = fcp[0]*fcp[0] + fcp[1]*fcp[1] + fcp[2]*fcp[2];
+          //Float fc2 = pf[k1][0]*pf[k1][0] + pf[k1][1]*pf[k1][1] + pf[k1][2]*pf[k1][2];
+          //Float m12 = mk*mk1;
+          //Float mt= mk+mk1;
+          slowdown.initialFRatioSqRange(fp2/fin2);
+      }
+  }
 
 
 //  // collect accident information
@@ -3252,7 +3268,7 @@ public:
         calc_rAPW(f, int_pars);
 
         // update slow-down
-        updateSlowDownFpert();
+        initialSlowDownFpert();
  
         // kinetic energy
         calc_Ekin();
@@ -4848,7 +4864,7 @@ public:
     p[1].setPos(x2[0],x2[1],x2[2]);
 
     // update slowdown factor
-    slowdown.updatefratiosq(fratio);
+    slowdown.updateFRatioSqRange(fratio);
     if(update_sd_flag) {
         slowdown.updateKappaMin();
     }
@@ -4893,9 +4909,9 @@ public:
       const int dsize  = 6*(num-1)+5;
       const int darray = dsize+1; // backup data array size;
       Float bk[darray]; // for backup chain data
-      Float bksd[3]; // for slowdown backup
+      Float bksd[5]; // for slowdown backup
 #ifdef ARC_DEBUG_DUMP
-      Float bk0[darray], bksd0[3]; // for backup
+      Float bk0[darray], bksd0[5]; // for backup
       particle p0[num];
 #endif
 #ifdef ARC_DEBUG
@@ -4919,7 +4935,7 @@ public:
       const Float eerr_min = pars.sym_An*0.5*pars.exp_error;
       //Float eerr_pre=eerr_min; // energy error of previous step
       bool tend_flag=false; // go to ending step
-      bool update_kappa_flag=true;
+      bool update_kappa_flag=false;
 
 #ifdef ARC_DEBUG
       Float Ekin_check = 0.0;
