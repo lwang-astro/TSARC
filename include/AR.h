@@ -1047,7 +1047,10 @@ public:
 #endif
             // update fratio max record after one orbital integration
             Float dt = t_real - t_record;
-            if (dt>period&&f_ratio_sq_max>0.0) {
+            if (dt>period) {
+#ifdef ARC_DEBUG
+                assert(f_ratio_sq_max>0.0);
+#endif
                 updateKappaMin();
                 // limit kappa change due to modify_factor_limit
                 if (dt>period*kappa) {
@@ -2562,7 +2565,7 @@ private:
           //Float mt= mk+mk1;
           fratiosqmax = std::max(fratiosqmax,fp2/fin2);
       }
-      slowdown.updateFRatioSqRange(fratiosqmax);
+      slowdown.initialFRatioSqRange(fratiosqmax);
   }
 
 
