@@ -1013,14 +1013,25 @@ public:
         t_real += dt_chain * kappa;
     }
 
+    //! manually set kappa
+    /* auto-adjust in the range (1.0, kappa_max)
+     */
+    void setKappa(const Float _kappa) {
+        kappa = _kappa;
+        kappa_org = _kappa;
+        f_ratio_sq_max = kref;
+        f_ratio_sq_last = kref;
+        kappa = std::min(kappa, kappa_max);
+        kappa = std::max(Float(1.0),kappa);
+    }
 
     //! Update slow-down factor minimum
     /*! Update slow-down factor minimum
      */
     void updateKappaMin() {
-        kappa_org = kref/sqrt(f_ratio_sq_max);
-        //kappa_org = std::pow(kref/sqrt(fratiosqlast),2.0);
-        kappa = std::min(kappa_org, kappa_max);
+        kappa = kref/sqrt(f_ratio_sq_max);
+        kappa_org = kref/sqrt(f_ratio_sq_last);
+        kappa = std::min(kappa, kappa_max);
         kappa = std::max(Float(1.0),kappa);
     }
 
@@ -1036,10 +1047,7 @@ public:
 #endif
             // update fratio max record after one orbital integration
             Float dt = t_real - t_record;
-            if (dt>period) {
-#ifdef ARC_DEBUG
-                assert(f_ratio_sq_max>0.0);
-#endif
+            if (dt>period&&f_ratio_sq_max>0.0) {
                 updateKappaMin();
                 // limit kappa change due to modify_factor_limit
                 if (dt>period*kappa) {
@@ -1118,6 +1126,11 @@ public:
      */
     Float getFratioSq() const {
         return f_ratio_sq_max;
+    }
+
+    // Get sd reference factor
+    Float getSDRef() const {
+        return kref;
     }
 
     //! Switcher of slow-down
@@ -2496,6 +2509,7 @@ private:
   /*! Update slow-down perturbation maximum force
    */
   void updateSlowDownFpert() {
+      Float fratiosqmax=0.0;
       for (int i=0; i<num-1; i++) {
           int k = list[i];
           int k1 = list[i+1];
@@ -2516,14 +2530,16 @@ private:
           //Float fc2 = pf[k1][0]*pf[k1][0] + pf[k1][1]*pf[k1][1] + pf[k1][2]*pf[k1][2];
           //Float m12 = mk*mk1;
           //Float mt= mk+mk1;
-          slowdown.updateFRatioSqRange(fp2/fin2);
+          fratiosqmax = std::max(fratiosqmax,fp2/fin2);
       }
+      slowdown.updateFRatioSqRange(fratiosqmax);
   }
 
   //! initial slow-down perturbation force
   /*! initial slow-down perturbation force
    */
   void initialSlowDownFpert() {
+      Float fratiosqmax=0.0;
       for (int i=0; i<num-1; i++) {
           int k = list[i];
           int k1 = list[i+1];
@@ -2544,8 +2560,9 @@ private:
           //Float fc2 = pf[k1][0]*pf[k1][0] + pf[k1][1]*pf[k1][1] + pf[k1][2]*pf[k1][2];
           //Float m12 = mk*mk1;
           //Float mt= mk+mk1;
-          slowdown.initialFRatioSqRange(fp2/fin2);
+          fratiosqmax = std::max(fratiosqmax,fp2/fin2);
       }
+      slowdown.updateFRatioSqRange(fratiosqmax);
   }
 
 
